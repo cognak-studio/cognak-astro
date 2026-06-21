@@ -1,0 +1,296 @@
+---
+/**
+ * BaseLayout — ported from cognak-black header.php + footer.php.
+ * Reproduces <head> (consent mode, meta, JSON-LD, fonts, CSS), the global
+ * cursor + cookie banner, the site footer, and the conditional script loads
+ * that functions.php used to enqueue per page type.
+ */
+const THEME = '/wp-content/themes/cognak-black';
+
+export interface Props {
+  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | '404' | 'page';
+  title?: string;
+  description?: string;
+  ogType?: string;
+  ogImage?: string;
+  ogUrl?: string;
+  noindex?: boolean;
+  /** Extra JSON-LD object (e.g. CreativeWork on project pages) */
+  jsonLd?: Record<string, unknown> | null;
+  /** Forced page background color (matches per-template wp_head injection) */
+  pageBg?: string | null;
+}
+
+const {
+  page = 'page',
+  title = 'COGNAK | Design & Development Studio, Los Angeles',
+  description = 'An award-winning design and development studio in Los Angeles, partnering with startups and global brands on identity, art direction, and web.',
+  ogType = 'website',
+  ogImage = 'https://cognak.com' + THEME + '/assets/images/cognak-og.jpg',
+  ogUrl = 'https://cognak.com/',
+  noindex = false,
+  jsonLd = null,
+  pageBg = null,
+} = Astro.props;
+
+const isHome = page === 'home';
+const bodyClass = isHome ? 'non-fixed-nav' : 'fixed-nav';
+
+// Inner-page top nav (home-bottom-bar inner-page-nav) renders on these pages.
+const innerNavPages = ['studio', 'projects', 'project', 'privacy', '404'];
+const showInnerNav = innerNavPages.includes(page);
+const innerNavVariant =
+  page === 'studio' ? ' studio-nav' :
+  page === 'privacy' ? ' privacy-nav' :
+  page === '404' ? ' fourofour-nav' : '';
+
+const professionalService = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfessionalService',
+  name: 'COGNAK',
+  description:
+    'An award-winning design and development studio based in Los Angeles. We partner with startups, rising ventures, and global brands to lead next-gen creative work.',
+  url: 'https://cognak.com',
+  logo: 'https://cognak.com' + THEME + '/assets/images/cognak-logo.svg',
+  email: 'hello@cognak.com',
+  telephone: '+16178636802',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Los Angeles',
+    addressRegion: 'CA',
+    addressCountry: 'US',
+  },
+  founder: { '@type': 'Person', name: 'Pierce Liefeld', jobTitle: 'Founder & CEO' },
+  alternateName: ['COGNAK Studio', 'COGNAK Design', 'COGNAK Agency', 'Cognak Los Angeles'],
+  disambiguatingDescription:
+    'COGNAK is a proper brand name (pronounced kōnˌyak), not a variant spelling of cognac. It is a design and development studio based in Los Angeles.',
+  sameAs: [
+    'https://www.instagram.com/cognak/',
+    'https://dribbble.com/cognak',
+    'https://www.awwwards.com/sites/cognak',
+    'https://cognak.com',
+  ],
+  knowsAbout: [
+    'Art Direction', 'Brand Identity', 'Web Design', 'Web Development', 'UI/UX Design',
+    'Motion & Animation', 'Creative Strategy', 'Packaging Design', 'Design Systems', 'Video Production',
+  ],
+};
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) — consent mode default must fire before any config -->
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      'analytics_storage': 'denied',
+      'ad_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'wait_for_update': 500
+    });
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#3a313b" />
+  {isHome && <style is:inline>{`html{background:#17151a!important}`}</style>}
+  {pageBg && <style is:inline set:html={`html,body{background-color:${pageBg}!important}`}></style>}
+  <title set:html={title}></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://assets.unicorn.studio" />
+  <!-- Site icon / favicon (matches WordPress site-icon output) -->
+  <link rel="icon" href="/wp-content/uploads/2026/05/cropped-org-logo-32x32.png" sizes="32x32" />
+  <link rel="icon" href="/wp-content/uploads/2026/05/cropped-org-logo-192x192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/wp-content/uploads/2026/05/cropped-org-logo-180x180.png" />
+  <meta name="msapplication-TileImage" content="/wp-content/uploads/2026/05/cropped-org-logo-270x270.png" />
+  <link rel="preload" href={`${THEME}/assets/images/cognak-logo.svg`} as="image" type="image/svg+xml" />
+  <link rel="preload" href={`${THEME}/stylesheets/custom.css`} as="style" />
+
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(professionalService)} />
+  {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
+
+  <meta name="description" content={description} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
+  {isHome && <meta name="p:domain_verify" content="ffad2dc262e467b3e80d13ee1449d794" />}
+
+  <meta property="og:type" content={ogType} />
+  <meta property="og:url" content={ogUrl} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:site_name" content="COGNAK" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
+
+  <!-- Stylesheets (same order as wpc_theme_styles) -->
+  <link rel="stylesheet" href={`${THEME}/css/reset.css`} />
+  <link rel="stylesheet" href={`${THEME}/stylesheets/screen.css`} />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" />
+  <link rel="stylesheet" href={`${THEME}/stylesheets/custom.css`} />
+
+  {isHome && (
+    <style is:inline>{`
+@keyframes cognak-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.home-bottom-bar, #awwwards, .scroll-discover, #cognak-cookie {
+    animation: cognak-fade-in 1s ease 0s both;
+}
+`}</style>
+  )}
+
+  <!-- Google tags — GA4 + Ads, sharing one dataLayer -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SE5WX8VYF3"></script>
+  <script is:inline>
+    (function () {
+      try {
+        if (document.cookie.indexOf('cognak_consent=accepted') !== -1) {
+          gtag('consent', 'update', {
+            'analytics_storage': 'granted',
+            'ad_storage': 'granted',
+            'ad_user_data': 'granted',
+            'ad_personalization': 'granted'
+          });
+        }
+      } catch (e) {}
+      gtag('js', new Date());
+      gtag('config', 'G-SE5WX8VYF3');
+      gtag('config', 'AW-876403750');
+      gtag('event', 'conversion', { 'send_to': 'AW-876403750/xmGnCNTYt7scEKa486ED' });
+    })();
+  </script>
+  <script is:inline define:vars={{ page }}>window.COGNAK_PAGE = page;</script>
+</head>
+<body id="cognak" class={bodyClass}>
+  <a href="#cognak-main" class="skip-to-main">Skip to main content</a>
+  <div id="cognak-cursor"><span id="cognak-cursor-label"></span><img id="cognak-cursor-img" src="" alt="" /></div>
+
+  {isHome && (
+    <div id="cognak-cookie" role="dialog" aria-label="Cookie consent" aria-modal="true" aria-describedby="cognak-cookie-desc">
+      <span class="cognak-cookie-label" id="cognak-cookie-desc">This site uses <a href="/privacy-policy" class="cognak-cookie-link">cookies</a></span>
+      <button class="cognak-cookie-opt" id="cognak-decline" type="button">
+        <span class="cognak-cookie-radio"></span>Decline
+      </button>
+      <button class="cognak-cookie-opt cognak-cookie-opt--on" id="cognak-accept" type="button">
+        <span class="cognak-cookie-radio cognak-cookie-radio--on"></span>Accept
+      </button>
+    </div>
+    <script is:inline>
+      (function () {
+        var el = document.getElementById('cognak-cookie');
+        if (!el) return;
+        if (document.cookie.indexOf('cognak_consent=') !== -1) { el.style.display = 'none'; return; }
+        if (window.innerWidth > 720) { document.documentElement.appendChild(el); }
+        function setCookie(val) {
+          var d = new Date(); d.setFullYear(d.getFullYear() + 1);
+          document.cookie = 'cognak_consent=' + val + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+        }
+        function dismiss() {
+          el.style.opacity = '0';
+          el.style.pointerEvents = 'none';
+          setTimeout(function () { el.style.display = 'none'; }, 400);
+        }
+        document.getElementById('cognak-accept').addEventListener('click', function () {
+          setCookie('accepted');
+          if (typeof gtag === 'function') gtag('consent', 'update', { analytics_storage: 'granted', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
+          dismiss();
+        });
+        document.getElementById('cognak-decline').addEventListener('click', function () {
+          setCookie('declined');
+          dismiss();
+        });
+      })();
+    </script>
+  )}
+
+  {showInnerNav && (
+    <div class={`home-bottom-bar inner-page-nav${innerNavVariant}`} style={page === 'studio' ? 'background:transparent!important;' : undefined}>
+      <a href="/" class="home-bottom-logo">
+        <img src="/wp-content/themes/cognak-black/assets/images/cognak-logo.svg" alt="COGNAK" />
+      </a>
+      <a href="mailto:hello@cognak.com" class="home-bottom-email">hello@cognak.com</a>
+      <div class="home-bottom-location">Los Angeles, CA <span class="pulse-dot" aria-hidden="true">&bull;</span> <span id="la-time" aria-hidden="true"></span></div>
+      <div class="inner-nav-links">
+        <a href="/projects">Projects</a>
+        <a href="/studio">Studio</a>
+      </div>
+    </div>
+  )}
+
+  <slot />
+
+  <footer class="main-footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-contact">
+          <span class="footer-label">Get in touch</span>
+          <a href="mailto:hello@cognak.com" class="footer-email-link">hello@cognak.com</a>
+          <a href="https://calendar.app.google/U4EdR5gEVfaGkWhN8" class="footer-email-link">schedule a call</a>
+        </div>
+        <div class="footer-social">
+          <span class="footer-label">Social</span>
+          <a href="https://www.instagram.com/cognak/" target="_blank" rel="noopener noreferrer">instagram</a>
+          <a href="https://dribbble.com/cognak" target="_blank" rel="noopener noreferrer">dribbble</a>
+        </div>
+        <div class="footer-top-right">
+          <a href="#" class="footer-backtotop" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Back to top</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">
+          <p>© {new Date().getFullYear()} COGNAK LLC <a href="/privacy-policy" class="footer-privacy">Privacy Policy</a></p>
+        </div>
+        <div class="footer-links">
+          <a href="/projects">Projects</a>
+          <a href="/studio">Studio</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Sitewide click conversion tracking (footer.php) -->
+  <script is:inline>
+    function gtag_report_conversion(sendTo, url) {
+      var callback = function () { if (typeof url !== 'undefined') { window.location = url; } };
+      if (typeof gtag === 'function') {
+        gtag('event', 'conversion', { 'send_to': sendTo, 'event_callback': callback });
+      }
+      return false;
+    }
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a');
+      if (!link) return;
+      var href = link.getAttribute('href') || '';
+      if (href.indexOf('mailto:hello@cognak.com') !== -1) {
+        if (typeof gtag === 'function') {
+          gtag('event', 'click_email', { 'event_category': 'Contact', 'event_label': 'mailto:hello@cognak.com' });
+        }
+        gtag_report_conversion('AW-876403750/KaY9CKLGmLwcEKa486ED', href);
+      }
+      if (href.indexOf('calendar.app.google') !== -1) {
+        if (typeof gtag === 'function') {
+          gtag('event', 'click_schedule_call', { 'event_category': 'Contact', 'event_label': 'Schedule a Call' });
+        }
+        gtag_report_conversion('AW-876403750/r1GlCKXGmLwcEKa486ED', href);
+      }
+    });
+  </script>
+  <!-- if you're reading this, you're our kind of person. pierce@cognak.com -->
+
+  <!-- Global scripts (deferred) -->
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
+  <script src="/js/cognak-lenis-init.js" defer></script>
+  <script src="/js/cognak-global.js" defer></script>
+
+  {(page === 'home' || page === 'studio') && (
+    <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.12/dist/unicornStudio.umd.js" defer></script>
+    <script src="/js/cognak-unicorn-init.js" defer></script>
+  )}
+  {page === 'home' && <script src="/js/cognak-home.js" defer></script>}
+  {page === 'projects' && <script src="/js/cognak-projects.js" defer></script>}
+  {page === 'project' && <script src="/js/cognak-single.js" defer></script>}
+</body>
+</html>

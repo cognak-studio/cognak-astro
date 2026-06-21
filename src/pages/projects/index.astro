@@ -1,0 +1,140 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
+
+// All projects, A→Z (matches page-projects.php orderby title ASC).
+const all = (await getCollection('projects', (p) => !p.data.draft)).sort((a, b) =>
+  a.data.title.localeCompare(b.data.title)
+);
+
+const items = await Promise.all(
+  all.map(async (p) => {
+    const thumb = await getImage({ src: p.data.thumbnail, format: 'webp', width: 800 });
+    const hoverSrc = p.data.hover ?? p.data.hero;
+    const cursorHero = await getImage({ src: hoverSrc, format: 'webp', width: 600 });
+    const dateUnix = p.data.date
+      ? Math.floor(p.data.date.getTime() / 1000)
+      : p.data.projectYear
+        ? Math.floor(new Date(Number(p.data.projectYear), 0, 1).getTime() / 1000)
+        : 0;
+    return {
+      slug: p.data.slug ?? p.slug,
+      title: p.data.title,
+      type: p.data.projectType ?? '',
+      year: p.data.projectYear ?? '',
+      category: p.data.category ?? '',
+      thumb: thumb.src,
+      cursorHero: cursorHero.src,
+      dateUnix,
+    };
+  })
+);
+const count = items.length;
+---
+<BaseLayout
+  page="projects"
+  title="Projects – COGNAK | Design & Development"
+  description="Explore our work — premium digital and print experiences crafted for startups, rising ventures, and global brands."
+  ogUrl="https://cognak.com/projects/"
+  pageBg="#EAE5F2"
+>
+  <canvas id="projects-matrix-glow" aria-hidden="true"></canvas>
+  <main id="cognak-main"><section class="projects-archive">
+
+    <div class="projects-intro">
+      <div class="projects-display-copy">
+        <h1 class="projects-display-headline">The <span class="headline-dark-lavender">projects<sup class="projects-count-sup" aria-hidden="true">{count}</sup></span> we touch are rooted in a simple belief: digital and print experiences should feel premium, intentional, and human.</h1>
+      </div>
+      <div class="projects-intro-text">
+        <p>We skip the predictable, off-the-shelf templates and sweat every detail across design and code—whether we're launching a brand from scratch or rebuilding a platform to set a new standard for your business.</p>
+      </div>
+    </div>
+
+    <div class="projects-sort-bar">
+      <div class="projects-view-toggle">
+        <button class="view-toggle-btn view-toggle-btn--list is-active" id="view-toggle-list" aria-label="List view" title="List view">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="1" y1="4.5" x2="17" y2="4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+            <line x1="1" y1="9" x2="17" y2="9" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+            <line x1="1" y1="13.5" x2="17" y2="13.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="view-toggle-btn view-toggle-btn--grid" id="view-toggle-grid" aria-label="Grid view" title="Grid view">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="1" width="7" height="7" rx="0.5" stroke="currentColor" stroke-width="1.25"/>
+            <rect x="10" y="1" width="7" height="7" rx="0.5" stroke="currentColor" stroke-width="1.25"/>
+            <rect x="1" y="10" width="7" height="7" rx="0.5" stroke="currentColor" stroke-width="1.25"/>
+            <rect x="10" y="10" width="7" height="7" rx="0.5" stroke="currentColor" stroke-width="1.25"/>
+          </svg>
+        </button>
+      </div>
+      <button class="projects-sort-btn" id="projects-sort-toggle" aria-label="Sort: newest first">
+        <span class="sort-label">Sort</span>
+        <span class="sort-icon sort-icon-newest">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="9" cy="9" r="7.5" stroke="currentColor" stroke-width="1.25"/>
+            <line x1="9" y1="9" x2="9" y2="4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" from="0 9 9" to="360 9 9" dur="6s" repeatCount="indefinite"/>
+            </line>
+            <line x1="9" y1="9" x2="9" y2="5.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" from="0 9 9" to="360 9 9" dur="72s" repeatCount="indefinite"/>
+            </line>
+            <circle cx="9" cy="9" r="0.75" fill="currentColor"/>
+          </svg>
+        </span>
+        <span class="sort-icon sort-icon-alpha">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <text x="0" y="14" font-family="Inter, sans-serif" font-size="11" fill="currentColor">a<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.04;0.700;0.701;1" dur="2s" repeatCount="indefinite"/></text>
+            <text x="6" y="14" font-family="Inter, sans-serif" font-size="11" fill="currentColor">b<animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.15;0.19;0.700;0.701;1" dur="2s" repeatCount="indefinite"/></text>
+            <text x="12" y="14" font-family="Inter, sans-serif" font-size="11" fill="currentColor">c<animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.30;0.34;0.700;0.701;1" dur="2s" repeatCount="indefinite"/></text>
+          </svg>
+        </span>
+      </button>
+    </div>
+
+    <div class="projects-grid">
+      {items.map((p) => (
+        <article class="projects-grid-item project-excerpt"
+                 data-hero={p.cursorHero}
+                 data-date={p.dateUnix}
+                 data-title={p.title}
+                 data-category={p.category}>
+          <a href={`/projects/${p.slug}`} class="projects-grid-link">
+            <figure class="projects-grid-figure" style={`view-transition-name: project-thumb-${p.slug}`}>
+              <img src={p.thumb} class="projects-grid-img" alt={p.title} />
+              <figcaption class="project-title-hover">{p.title}</figcaption>
+            </figure>
+          </a>
+        </article>
+      ))}
+    </div>
+
+    <div class="projects-list">
+      {items.map((p) => (
+        <a href={`/projects/${p.slug}`} class="projects-list-item" data-date={p.dateUnix} data-title={p.title}>
+          <span class="list-item-title">{p.title}</span>
+          {p.category && <span class="list-item-tag">{p.category}</span>}
+        </a>
+      ))}
+    </div>
+
+    <div class="projects-below">
+      <div class="projects-below-right">
+        <div class="projects-below-desktop">
+          <p>COGNAK is a creative studio that brings original ideas to life.<br>We handle everything from the initial design to the final build,<br>working with teams who want to pair compelling brand narratives<br>with flawless digital execution.</p>
+          <p>We keep our process lean, focused, and entirely dedicated<br>to <span class="projects-glow">making your vision feel singular and real.</span></p>
+        </div>
+        <div class="projects-below-mobile">
+          <p>COGNAK is a creative studio that brings<br>original ideas to life. We handle everything<br>from the initial design to the final build,<br>working with teams who want to pair<br>compelling brand narratives with flawless<br>digital execution.</p>
+          <p>We keep our process lean, focused,<br>and entirely dedicated to<br><span class="projects-glow">making your vision feel singular and real.</span></p>
+        </div>
+      </div>
+      <div class="hp-start-wrap">
+        <a href="mailto:hello@cognak.com" class="projects-start-link">Start a project</a>
+        <span class="availability-sub"><span class="avail-dot" aria-hidden="true"></span> Currently booking 30–60 days out</span>
+      </div>
+    </div>
+
+  </section></main>
+</BaseLayout>

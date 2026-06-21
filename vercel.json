@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/project/:slug*",
+      "destination": "/projects/:slug*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "portfolio" }],
+      "destination": "/projects",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "query", "key": "portfolio" }],
+      "destination": "/projects",
+      "permanent": true
+    }
+  ]
+}

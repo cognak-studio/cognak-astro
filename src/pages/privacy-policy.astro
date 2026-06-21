@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  page="privacy"
+  title="Privacy Policy – COGNAK"
+  description="How COGNAK handles data, analytics, advertising, and cookies on cognak.com."
+  ogUrl="https://cognak.com/privacy-policy/"
+  pageBg="#F1D6EA"
+>
+  <main id="cognak-main"><section class="privacy-template">
+
+    <h1 class="privacy-headline">Privacy Policy</h1>
+
+    <div class="privacy-body">
+      <p>COGNAK LLC is a design and development studio based in Los Angeles, California. This page explains how we handle data when you visit cognak.com.</p>
+
+      <h2>Analytics</h2>
+      <p>We use Google Analytics (GA4) to collect anonymous, aggregate data about how visitors use this site — pages visited, session duration, and general geographic region. This data is never linked to any individual and is not sold or shared with third parties.</p>
+      <p>We also run Google Ads to advertise our services. If you accept cookies, Google Ads may set cookies to measure whether an ad led to a visit or inquiry, and to improve the relevance of ads you see. No personally identifiable information is collected or shared.</p>
+      <p>You can opt out of Google Analytics tracking at any time using the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a>. You can manage Google ad personalization at <a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>.</p>
+
+      <h2>Cookies</h2>
+      <p>We use one first-party cookie (<code>cognak_consent</code>) to store your cookie preference. If you accept cookies, Google Analytics sets its own cookies (<code>_ga</code>, <code>_ga_*</code>) to measure site usage across sessions, and Google Ads sets cookies (<code>_gcl_*</code>) to measure ad conversions. All tracking is consent-gated — declining cookies prevents any analytics or ad cookies from being set.</p>
+
+      <h2>Contact</h2>
+      <p>If you reach out via hello@cognak.com, your email and message are used solely to respond to your inquiry. No information is stored beyond standard email retention.</p>
+
+      <h2>Your Rights</h2>
+      <p>EU visitors may request access to or deletion of any personal data we hold by contacting <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
+
+      <h2>Intellectual Property</h2>
+      <p>All work, imagery, and content displayed on cognak.com is the property of COGNAK LLC or its respective clients and is protected by copyright. Nothing on this site may be reproduced, copied, or redistributed without prior written permission from COGNAK LLC.</p>
+
+      <h2>Questions</h2>
+      <p><a href="mailto:hello@cognak.com">hello@cognak.com</a></p>
+    </div>
+
+  </section></main>
+
+  <script is:inline>
+    if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
+    window.scrollTo(0, 0);
+    (function () {
+      var els = document.querySelectorAll('.privacy-body h2, .privacy-body p');
+      if (!els.length || !('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('privacy-visible'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var el = entry.target;
+          var idx = Array.prototype.indexOf.call(els, el);
+          setTimeout(function () { el.classList.add('privacy-visible'); }, idx * 50);
+          observer.unobserve(el);
+        });
+      }, { threshold: 0.1 });
+      els.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+</BaseLayout>
