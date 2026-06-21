@@ -22,7 +22,7 @@ moreDetails: '<p>• 1+ year ongoing relationship</p>
   <p>• <a href="http://www.hex.tech">www.hex.tech</a></p>
 
   '
-metaDescription: View COGNAK's work for Hex, a collaborative workspace to write code, explore data, and build interactive dashboards with single platform.
+metaDescription: View COGNAK's work for Hex, a collaborative workspace to write code, explore data, and build interactive dashboards with a single platform.
 homepageFeature: true
 homepagePosition: 2
 ---
