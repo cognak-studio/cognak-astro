@@ -9,11 +9,17 @@
     "preview": "astro preview --open",
     "new": "node scripts/new-project.mjs",
     "og": "python3 scripts/generate-og.py",
+    "optimize": "node scripts/optimize-images.mjs",
+    "check": "astro check",
     "deploy": "npx vercel --prod",
     "astro": "astro"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",
     "astro": "^5.7.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.6.0"
   }
 }
