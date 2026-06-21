@@ -1,0 +1,31 @@
+{
+  "folders": [
+    {
+      "path": ".",
+      "name": "cognak.com (Astro)",
+      "folder_exclude_patterns": [
+        "node_modules",
+        "dist",
+        ".astro",
+        ".vercel",
+        ".git"
+      ],
+      "file_exclude_patterns": [
+        ".DS_Store"
+      ]
+    }
+  ],
+  "settings": {
+    // Keep content files clean + consistent
+    "default_encoding": "UTF-8",
+    "default_line_ending": "unix",
+    "ensure_newline_at_eof_on_save": true,
+    "trim_trailing_white_space_on_save": "not_on_caret",
+    "translate_tabs_to_spaces": true,
+    "tab_size": 2,
+    "word_wrap": true,
+    "rulers": [],
+    // Treat .astro files as HTML for decent highlighting out of the box
+    "extensions": ["astro"]
+  }
+}
