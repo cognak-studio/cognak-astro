@@ -20,7 +20,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Repo root = parent of this script's directory
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ASSETS   = os.path.join(BASE, "public/wp-content/themes/cognak-black/assets")
+ASSETS   = os.path.join(BASE, "public/theme/assets")
 TEMPLATE = os.path.join(ASSETS, "images/og-template.jpg")
 FONT     = os.path.join(ASSETS, "fonts/Inter-Medium.ttf")
 OUT      = os.path.join(BASE, "public/og")
