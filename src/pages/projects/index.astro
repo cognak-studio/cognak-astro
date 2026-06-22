@@ -19,7 +19,7 @@ const items = await Promise.all(
         ? Math.floor(new Date(Number(p.data.projectYear), 0, 1).getTime() / 1000)
         : 0;
     return {
-      slug: p.data.slug ?? p.slug,
+      slug: p.data.slug ?? p.id,
       title: p.data.title,
       type: p.data.projectType ?? '',
       year: p.data.projectYear ?? '',

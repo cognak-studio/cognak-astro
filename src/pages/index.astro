@@ -14,7 +14,7 @@ const cards = await Promise.all(
     const hoverSrc = p.data.hover ?? p.data.hero;
     const cursorHero = await getImage({ src: hoverSrc, format: 'webp', width: 600 });
     return {
-      slug: p.data.slug ?? p.slug,
+      slug: p.data.slug ?? p.id,
       title: p.data.title,
       type: p.data.projectType ?? '',
       year: p.data.projectYear ?? '',

@@ -197,6 +197,7 @@ import '../styles/site.css';
   <div id="cognak-cursor"><span id="cognak-cursor-label"></span><img id="cognak-cursor-img" src="" alt="" /></div>
 
   {isHome && (
+    <Fragment>
     <div id="cognak-cookie" role="dialog" aria-label="Cookie consent" aria-modal="true" aria-describedby="cognak-cookie-desc">
       <span class="cognak-cookie-label" id="cognak-cookie-desc">This site uses <a href="/privacy-policy" class="cognak-cookie-link">cookies</a></span>
       <button class="cognak-cookie-opt" id="cognak-decline" type="button">
@@ -232,6 +233,7 @@ import '../styles/site.css';
         });
       })();
     </script>
+    </Fragment>
   )}
 
   {showInnerNav && (
@@ -314,8 +316,10 @@ import '../styles/site.css';
   <script src="/js/cognak-global.js" defer></script>
 
   {(page === 'home' || page === 'studio') && (
+    <Fragment>
     <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.12/dist/unicornStudio.umd.js" defer></script>
     <script src="/js/cognak-unicorn-init.js" defer></script>
+    </Fragment>
   )}
   {page === 'home' && <script src="/js/cognak-home.js" defer></script>}
   {page === 'projects' && <script src="/js/cognak-projects.js" defer></script>}
