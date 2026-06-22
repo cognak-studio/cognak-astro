@@ -164,6 +164,9 @@ import '../styles/site.css';
     })();
   </script>
   <script is:inline define:vars={{ page }}>window.COGNAK_PAGE = page;</script>
+  {page === 'projects' && (
+    <script is:inline>{`(function(){try{var v=localStorage.getItem('cognak-projects-view');document.documentElement.classList.add(v==='grid'?'pv-grid':'pv-list');}catch(e){document.documentElement.classList.add('pv-list');}})();`}</script>
+  )}
   <!-- Project→project view transition: clean cross-fade instead of mismatched hero morph.
        Grid→project (and home→project) keep the shared-element thumbnail morph untouched. -->
   <script is:inline>

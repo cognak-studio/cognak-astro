@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2017/05/creamy-crew-sticker.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-332" src="/uploads/2017/05/creamy-crew-sticker.jpg" alt="" width="1366" height="911" /></picture></p>
+<p><picture><source type="image/webp" srcset="/uploads/2017/05/creamy-crew-sticker.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-332" src="/uploads/2017/05/creamy-crew-sticker.jpg" alt="Vice Cream — creamy crew sticker" width="1366" height="911" /></picture></p>
 

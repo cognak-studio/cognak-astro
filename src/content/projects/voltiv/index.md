@@ -25,5 +25,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2019/07/voltiv-image-1.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2322" src="/uploads/2019/07/voltiv-image-1.png" alt="" width="1500" height="1105" /></picture></p>
+<p><picture><source type="image/webp" srcset="/uploads/2019/07/voltiv-image-1.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2322" src="/uploads/2019/07/voltiv-image-1.png" alt="Voltiv project image" width="1500" height="1105" /></picture></p>
 

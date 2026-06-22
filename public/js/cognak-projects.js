@@ -80,6 +80,8 @@
         if (view === 'grid') return;
         view = 'grid';
         archive.classList.remove('is-list-view');
+        document.documentElement.classList.remove('pv-list');
+        document.documentElement.classList.add('pv-grid');
         btnGrid.classList.add('is-active');
         btnList.classList.remove('is-active');
         localStorage.setItem('cognak-projects-view', 'grid');
@@ -89,6 +91,8 @@
         if (view === 'list') return;
         view = 'list';
         archive.classList.add('is-list-view');
+        document.documentElement.classList.add('pv-list');
+        document.documentElement.classList.remove('pv-grid');
         btnList.classList.add('is-active');
         btnGrid.classList.remove('is-active');
         localStorage.setItem('cognak-projects-view', 'list');

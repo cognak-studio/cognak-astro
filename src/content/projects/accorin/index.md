@@ -25,5 +25,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2015/12/accorin-subpage.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2028" src="/uploads/2015/12/accorin-subpage.jpg" alt="" width="2048" height="1509" /></picture></p>
+<p><picture><source type="image/webp" srcset="/uploads/2015/12/accorin-subpage.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2028" src="/uploads/2015/12/accorin-subpage.jpg" alt="Accorin — subpage" width="2048" height="1509" /></picture></p>
 

@@ -38,4 +38,4 @@ moreDetails: <p>• Bullet one</p><p>• Bullet two</p>
 ![](./02.jpg)
 
 <!-- ...or raw HTML for full-width images already in /public/uploads/: -->
-<p><img src="/uploads/2026/06/project-wide.jpg" alt="" width="2048" height="1200" /></p>
+<p><img src="/uploads/2026/06/project-wide.jpg" alt="Project Name — wide" width="2048" height="1200" /></p>

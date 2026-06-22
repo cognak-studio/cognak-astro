@@ -339,22 +339,9 @@
     }
 })();
 
-/* ── GA4 conversion tracking for mailto links ─────────────────────────────── */
-(function() {
-    document.addEventListener('click', function(e) {
-        var link = e.target.closest('a[href^="mailto:"]');
-        if (!link) return;
-        if (typeof gtag !== 'function') return;
-        e.preventDefault();
-        var href = link.href;
-        gtag('event', 'contact_click', {
-            'event_category': 'engagement',
-            'event_label': href.replace('mailto:', ''),
-            'value': 1
-        });
-        setTimeout(function() { window.location.href = href; }, 300);
-    });
-})();
+/* Email-click tracking is handled in BaseLayout (single GA4 'click_email' event
+   + Google Ads conversion). The previous duplicate 'contact_click' handler was
+   removed so each email click logs exactly one GA4 event. */
 
 /* ── Text stagger on scroll-enter (all pages, unified) ────────────────────── */
 (function() {
@@ -484,4 +471,18 @@
     if (laHour >= 0 && laHour < 5) {
         document.body.classList.add('is-midnight');
     }
+})();
+
+/* ── Respect prefers-reduced-motion: don't autoplay/loop videos (WCAG 2.2.2) ─ */
+(function () {
+    if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    function stopVideos() {
+        document.querySelectorAll('video').forEach(function (v) {
+            v.removeAttribute('autoplay');
+            v.removeAttribute('loop');
+            try { v.pause(); } catch (e) {}
+        });
+    }
+    if (document.readyState !== 'loading') stopVideos();
+    else document.addEventListener('DOMContentLoaded', stopVideos);
 })();

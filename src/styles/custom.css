@@ -228,6 +228,12 @@ body.is-midnight .home-bottom-bar.inner-page-nav .pulse-dot {
     color: #7eb8f7 !important;
 }
 
+/* Brand purple used as TEXT: lighter on the dark home bg (good contrast there),
+   darkened to meet WCAG AA (4.5:1) on the light inner pages. Decorative purple
+   (backgrounds, borders, gradients) stays the literal brand #9F50FF. */
+:root { --cognak-purple-text: #9F50FF; }
+body.fixed-nav { --cognak-purple-text: #9647F0; }
+
 @font-face {
     font-family: 'Inter';
     src: url('/theme/assets/fonts/inter-latin-var.woff2') format('woff2');
@@ -488,7 +494,7 @@ body.non-fixed-nav {
 @keyframes hero-hl-settle {
     0%   { color: #FFB2E4; }
     20%  { color: #FFB2E4; }
-    100% { color: #9F50FF; }
+    100% { color: var(--cognak-purple-text); }
 }
 @media (max-width: 720px) {
     .hero-center-headline p {
@@ -541,7 +547,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .home-nav a:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 
@@ -601,7 +607,7 @@ body.non-fixed-nav {
 
 
 .home-bottom-email:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .home-bottom-location {
@@ -835,7 +841,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .footer-email-link:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .footer-social {
@@ -854,7 +860,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .footer-social a:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .footer-top-right {
@@ -900,7 +906,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .footer-links a:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 
@@ -988,7 +994,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .hp-projects-link:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .hp-heading-break {
@@ -1073,7 +1079,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .hp-more-btn:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .hp-more-plus {
@@ -1135,7 +1141,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .hp-start:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .hp-start { position: relative; overflow: visible; }
@@ -1358,7 +1364,7 @@ body.non-fixed-nav {
 .projects-below-mobile { display: none; }
 @keyframes projects-glow-pulse {
     0%, 100% { color: #FFB2E4; }
-    50%       { color: #9F50FF; }
+    50%       { color: var(--cognak-purple-text); }
 }
 .projects-glow {
     animation: projects-glow-pulse 3s ease-in-out infinite;
@@ -1399,7 +1405,7 @@ body.non-fixed-nav {
     40%  { color: #D580FF; }
     62%  { color: #CC99FF; }
     82%  { color: #8B1FFF; }
-    100% { color: #9F50FF; }
+    100% { color: var(--cognak-purple-text); }
 }
 .rl.rl-go { animation: letter-rainbow-in 0.4s ease forwards; }
 
@@ -1484,12 +1490,12 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .projects-sort-btn:hover .sort-label {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }@media (hover: hover) {
 
 .projects-sort-btn:hover .sort-icon {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .sort-icon {
@@ -1551,6 +1557,14 @@ body.non-fixed-nav {
 .projects-archive.is-list-view .projects-grid {
     display: none;
 }
+/* Pre-paint view state (set on <html> in the head before the archive renders)
+   so the grid never flashes before the JS applies the saved view preference. */
+html.pv-list .projects-list {
+    display: block;
+}
+html.pv-list .projects-grid {
+    display: none;
+}
 .projects-list-item {
     display: flex;
     align-items: center;
@@ -1572,7 +1586,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .projects-list-item:hover .list-item-title {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 .list-item-tag {
@@ -1588,7 +1602,7 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .projects-list-item:hover .list-item-tag {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 
@@ -1984,7 +1998,7 @@ body.non-fixed-nav {
     font-family: 'Geist Mono', monospace;
     font-size: 11px;
     font-weight: 400;
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
     letter-spacing: 0.04em;
     text-align: right;
     white-space: nowrap;
@@ -2234,12 +2248,12 @@ body.non-fixed-nav {
 }@media (hover: hover) {
 
 .inner-nav-links a:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }@media (hover: hover) {
 
 .home-bottom-bar.inner-page-nav .home-bottom-email:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 
@@ -2301,7 +2315,7 @@ body.non-fixed-nav {
 
 /* ── Single project page links ── */
 .template-single-project a:hover {
-    color: #9F50FF !important;
+    color: var(--cognak-purple-text) !important;
 }
 }
 
@@ -2363,7 +2377,7 @@ body.pagers-idle a[rel="next"] {
 }
 .template-single-project .information .category {
     font-family: 'Geist Mono', monospace !important;
-    color: #9F50FF !important;
+    color: var(--cognak-purple-text) !important;
     letter-spacing: 0.08em !important;
 }
 .template-single-project .information .details h2,
@@ -2425,7 +2439,7 @@ body.pagers-idle a[rel="next"] {
 }@media (hover: hover) {
 
 .cky-notice-des a:hover {
-    color: #9F50FF !important;
+    color: var(--cognak-purple-text) !important;
 }
 }
 .cky-btn-actions {
@@ -2549,7 +2563,7 @@ a[href*="cookieyes.com"],
     color: rgba(255,255,255,0.85);
 }
 #cognak-accept:hover {
-    color: #9F50FF !important;
+    color: var(--cognak-purple-text) !important;
 }
 #cognak-accept:hover .cognak-cookie-radio--on {
     animation: cookie-dot-pulse 1.6s ease-in-out infinite;
@@ -2572,7 +2586,7 @@ a[href*="cookieyes.com"],
     transition: border-color 0.2s ease;
 }
 .cognak-cookie-radio--on {
-    border-color: #9F50FF;
+    border-color: var(--cognak-purple-text);
     background: #9F50FF;
 }
 @media (max-width: 720px) {
@@ -2603,7 +2617,7 @@ a[href*="cookieyes.com"],
 }@media (hover: hover) {
 
 .footer-privacy:hover {
-    color: #9F50FF;
+    color: var(--cognak-purple-text);
 }
 }
 
