@@ -21,5 +21,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2572" src="/wp-content/uploads/2022/08/Asset-14@400x-1.png" alt="" width="2000" height="1248" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2571" src="/wp-content/uploads/2022/08/Asset-12@400x-1.png" alt="" width="2000" height="1250" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2570" src="/wp-content/uploads/2022/08/Asset-13@400x-1.png" alt="" width="2000" height="1250" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2572" src="/uploads/2022/08/Asset-14@400x-1.png" alt="" width="2000" height="1248" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2571" src="/uploads/2022/08/Asset-12@400x-1.png" alt="" width="2000" height="1250" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2570" src="/uploads/2022/08/Asset-13@400x-1.png" alt="" width="2000" height="1250" /></p>
 

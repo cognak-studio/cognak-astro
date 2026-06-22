@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-332" src="/wp-content/uploads/2017/05/creamy-crew-sticker.jpg" alt="" width="1366" height="911" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-332" src="/uploads/2017/05/creamy-crew-sticker.jpg" alt="" width="1366" height="911" /></p>
 

@@ -24,5 +24,5 @@ metaDescription: View COGNAK's work for Eagle Restorations, a Los Angeles-based 
 homepageFeature: false
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-731" src="/wp-content/uploads/2018/08/eagle-sub.jpg" alt="" width="2048" height="1429" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-730" src="/wp-content/uploads/2018/08/eagle-hero.jpg" alt="" width="3000" height="2143" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-731" src="/uploads/2018/08/eagle-sub.jpg" alt="" width="2048" height="1429" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-730" src="/uploads/2018/08/eagle-hero.jpg" alt="" width="3000" height="2143" /></p>
 

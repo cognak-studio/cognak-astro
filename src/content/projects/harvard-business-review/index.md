@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2330" src="/wp-content/uploads/2019/07/hbr-letter.jpg" alt="" width="1500" height="1001" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2330" src="/uploads/2019/07/hbr-letter.jpg" alt="" width="1500" height="1001" /></p>
 

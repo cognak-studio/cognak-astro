@@ -27,5 +27,5 @@ homepageFeature: true
 homepagePosition: 4
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2006" src="/wp-content/uploads/2015/12/verde-team.jpg" alt="" width="2048" height="1389" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2007" src="/wp-content/uploads/2015/12/verde-sell-sheets.jpg" alt="" width="2048" height="1367" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2282" src="/wp-content/uploads/2015/12/hot-dog-packaging.jpg" alt="" width="1400" height="933" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-723" src="/wp-content/uploads/2015/12/verde-site2.jpg" alt="" width="2048" height="3466" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2006" src="/uploads/2015/12/verde-team.jpg" alt="" width="2048" height="1389" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2007" src="/uploads/2015/12/verde-sell-sheets.jpg" alt="" width="2048" height="1367" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2282" src="/uploads/2015/12/hot-dog-packaging.jpg" alt="" width="1400" height="933" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-723" src="/uploads/2015/12/verde-site2.jpg" alt="" width="2048" height="3466" /></p>
 

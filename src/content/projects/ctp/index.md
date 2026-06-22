@@ -34,8 +34,8 @@ metaDescription: View COGNAK's work for CTP, a digital, advertising and PR agenc
 homepageFeature: false
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2513" src="/wp-content/uploads/2015/12/new-state-mockup-scaled.jpg" alt="" width="2560" height="1709" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2408" src="/wp-content/uploads/2015/12/zynlo-mockup.jpg" alt="" width="2048" height="1366" /></p>
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2413" src="/wp-content/uploads/2015/12/editshare-screen-cognak.png" alt="" width="2048" height="1509" /></p>
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2492" src="/wp-content/uploads/2015/12/armored-things-laptop-1-scaled.jpg" alt="" width="2560" height="1886" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2493" src="/wp-content/uploads/2015/12/apiture-mockup-scaled.jpg" alt="" width="2560" height="1886" /></p>
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-224" src="/wp-content/uploads/2015/12/hc-calendar.jpg" alt="" width="2048" height="1365" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2513" src="/uploads/2015/12/new-state-mockup-scaled.jpg" alt="" width="2560" height="1709" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2408" src="/uploads/2015/12/zynlo-mockup.jpg" alt="" width="2048" height="1366" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2413" src="/uploads/2015/12/editshare-screen-cognak.png" alt="" width="2048" height="1509" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2492" src="/uploads/2015/12/armored-things-laptop-1-scaled.jpg" alt="" width="2560" height="1886" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2493" src="/uploads/2015/12/apiture-mockup-scaled.jpg" alt="" width="2560" height="1886" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-224" src="/uploads/2015/12/hc-calendar.jpg" alt="" width="2048" height="1365" /></p>
 

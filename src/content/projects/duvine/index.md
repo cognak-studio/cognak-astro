@@ -27,12 +27,12 @@ moreDetails: '<p>• 10+ year relationship</p>
   <p>• <a href="http://www.duvine.com">www.duvine.com</a></p>
 
   '
-heroVideo: /wp-content/uploads/2026/06/1920x1080-This-is-travel_1-1.mp4
+heroVideo: /uploads/2026/06/1920x1080-This-is-travel_1-1.mp4
 metaDescription: View COGNAK's work for Duvine Cycling + Adventure Co., a six-time Travel + Leisure world’s best tour operator.
 homepageFeature: true
 homepagePosition: 3
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2668" src="/wp-content/uploads/2013/12/duvine-reels-cognak-scaled.jpg" alt="" width="2560" height="1707" /></p>
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-738" src="/wp-content/uploads/2013/12/duvine-interior-map.jpg" alt="" width="2048" height="1365" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-721" src="/wp-content/uploads/2018/12/duvine-magazine-hero.jpg" alt="" width="2048" height="1365" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-732" src="/wp-content/uploads/2013/12/duvine-interior-brochure.jpg" alt="" width="2048" height="1434" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-737" src="/wp-content/uploads/2013/12/duvine-back-cover.jpg" alt="" width="2048" height="1365" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2011" src="/wp-content/uploads/2013/12/duvine-tour-template.jpg" alt="" width="2048" height="1366" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2668" src="/uploads/2013/12/duvine-reels-cognak-scaled.jpg" alt="" width="2560" height="1707" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-738" src="/uploads/2013/12/duvine-interior-map.jpg" alt="" width="2048" height="1365" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-721" src="/uploads/2018/12/duvine-magazine-hero.jpg" alt="" width="2048" height="1365" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-732" src="/uploads/2013/12/duvine-interior-brochure.jpg" alt="" width="2048" height="1434" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-737" src="/uploads/2013/12/duvine-back-cover.jpg" alt="" width="2048" height="1365" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2011" src="/uploads/2013/12/duvine-tour-template.jpg" alt="" width="2048" height="1366" /></p>
 

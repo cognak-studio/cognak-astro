@@ -23,5 +23,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2440" src="/wp-content/uploads/2021/05/cognak-kidsluv-3.png" alt="" width="2000" height="2267" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2439" src="/wp-content/uploads/2021/05/cognak-kidsluv-2.png" alt="" width="2000" height="2267" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2438" src="/wp-content/uploads/2021/05/cognak-kidsluv-1.png" alt="" width="2000" height="2267" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2440" src="/uploads/2021/05/cognak-kidsluv-3.png" alt="" width="2000" height="2267" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2439" src="/uploads/2021/05/cognak-kidsluv-2.png" alt="" width="2000" height="2267" /> <img loading="lazy" decoding="async" class="alignnone size-full wp-image-2438" src="/uploads/2021/05/cognak-kidsluv-1.png" alt="" width="2000" height="2267" /></p>
 

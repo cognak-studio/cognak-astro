@@ -22,7 +22,7 @@ homepageFeature: false         # true = show on the homepage grid
 metaDescription: One sentence describing the project, for SEO + social sharing.
 
 # ── Optional flags ──
-# heroVideo: /wp-content/uploads/2026/06/project.mp4   # autoplay video hero instead of image
+# heroVideo: /uploads/2026/06/project.mp4   # autoplay video hero instead of image
 # noindex: true                # hide from Google + sitemap
 # draft: true                  # build-but-hide (not published)
 
@@ -37,5 +37,5 @@ moreDetails: <p>• Bullet one</p><p>• Bullet two</p>
 ![](./01.jpg)
 ![](./02.jpg)
 
-<!-- ...or raw HTML for full-width images already in /public/wp-content/uploads/: -->
-<p><img src="/wp-content/uploads/2026/06/project-wide.jpg" alt="" width="2048" height="1200" /></p>
+<!-- ...or raw HTML for full-width images already in /public/uploads/: -->
+<p><img src="/uploads/2026/06/project-wide.jpg" alt="" width="2048" height="1200" /></p>

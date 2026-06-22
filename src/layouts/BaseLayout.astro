@@ -5,7 +5,7 @@
  * cursor + cookie banner, the site footer, and the conditional script loads
  * that functions.php used to enqueue per page type.
  */
-const THEME = '/wp-content/themes/cognak-black';
+const THEME = '/theme';
 
 export interface Props {
   page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | '404' | 'page';
@@ -106,10 +106,10 @@ import '../styles/site.css';
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://assets.unicorn.studio" />
   <!-- Site icon / favicon (matches WordPress site-icon output) -->
-  <link rel="icon" href="/wp-content/uploads/2026/05/cropped-org-logo-32x32.png" sizes="32x32" />
-  <link rel="icon" href="/wp-content/uploads/2026/05/cropped-org-logo-192x192.png" sizes="192x192" />
-  <link rel="apple-touch-icon" href="/wp-content/uploads/2026/05/cropped-org-logo-180x180.png" />
-  <meta name="msapplication-TileImage" content="/wp-content/uploads/2026/05/cropped-org-logo-270x270.png" />
+  <link rel="icon" href="/uploads/2026/05/cropped-org-logo-32x32.png" sizes="32x32" />
+  <link rel="icon" href="/uploads/2026/05/cropped-org-logo-192x192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/uploads/2026/05/cropped-org-logo-180x180.png" />
+  <meta name="msapplication-TileImage" content="/uploads/2026/05/cropped-org-logo-270x270.png" />
   <link rel="preload" href={`${THEME}/assets/images/cognak-logo.svg`} as="image" type="image/svg+xml" />
 
   <script type="application/ld+json" is:inline set:html={JSON.stringify(professionalService)} />
@@ -233,7 +233,7 @@ import '../styles/site.css';
   {showInnerNav && (
     <div class={`home-bottom-bar inner-page-nav${innerNavVariant}`} style={page === 'studio' ? 'background:transparent!important;' : undefined}>
       <a href="/" class="home-bottom-logo">
-        <img src="/wp-content/themes/cognak-black/assets/images/cognak-logo.svg" alt="COGNAK" />
+        <img src="/theme/assets/images/cognak-logo.svg" alt="COGNAK" />
       </a>
       <a href="mailto:hello@cognak.com" class="home-bottom-email">hello@cognak.com</a>
       <div class="home-bottom-location">Los Angeles, CA <span class="pulse-dot" aria-hidden="true">&bull;</span> <span id="la-time" aria-hidden="true"></span></div>

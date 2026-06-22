@@ -28,5 +28,5 @@ homepagePosition: 9
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2555" src="/wp-content/uploads/2022/08/PXL_20220816_224425882.PORTRAIT-scaled.jpg" alt="" width="2048" height="1152" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2555" src="/uploads/2022/08/PXL_20220816_224425882.PORTRAIT-scaled.jpg" alt="" width="2048" height="1152" /></p>
 

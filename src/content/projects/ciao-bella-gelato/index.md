@@ -23,5 +23,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone wp-image-167 size-full" src="/wp-content/uploads/2015/12/cb-twitter-icon.jpg" alt="cb-twitter-icon" width="2000" height="1500" /></p>
+<p><img loading="lazy" decoding="async" class="alignnone wp-image-167 size-full" src="/uploads/2015/12/cb-twitter-icon.jpg" alt="cb-twitter-icon" width="2000" height="1500" /></p>
 

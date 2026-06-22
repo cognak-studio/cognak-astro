@@ -230,7 +230,7 @@ body.is-midnight .home-bottom-bar.inner-page-nav .pulse-dot {
 
 @font-face {
     font-family: 'Geist Mono';
-    src: url('/wp-content/themes/cognak-black/assets/fonts/GeistMono-VariableFont_wght.woff2') format('woff2');
+    src: url('/theme/assets/fonts/GeistMono-VariableFont_wght.woff2') format('woff2');
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;

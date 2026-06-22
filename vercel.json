@@ -2,6 +2,16 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/wp-content/uploads/:path*",
+      "destination": "/uploads/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/wp-content/themes/cognak-black/assets/:path*",
+      "destination": "/theme/assets/:path*",
+      "permanent": true
+    },
+    {
       "source": "/project/:slug*",
       "destination": "/projects/:slug*",
       "permanent": true
