@@ -15,4 +15,3 @@ moreDetails: <p>• Ongoing relationship</p><p>• Burlington, Massachusetts</p>
 ---
 
 <!-- Gallery images go here. Add files to this folder and reference them: -->
-![](./01.jpg)
