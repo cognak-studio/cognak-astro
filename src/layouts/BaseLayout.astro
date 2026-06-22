@@ -19,6 +19,8 @@ export interface Props {
   jsonLd?: Record<string, unknown> | null;
   /** Forced page background color (matches per-template wp_head injection) */
   pageBg?: string | null;
+  /** Absolute/optimized URL of the LCP hero image to preload (project pages) */
+  heroPreload?: string | null;
 }
 
 const {
@@ -31,6 +33,7 @@ const {
   noindex = false,
   jsonLd = null,
   pageBg = null,
+  heroPreload = null,
 } = Astro.props;
 
 const isHome = page === 'home';
@@ -111,6 +114,7 @@ import '../styles/site.css';
   <link rel="apple-touch-icon" href="/uploads/2026/05/cropped-org-logo-180x180.png" />
   <meta name="msapplication-TileImage" content="/uploads/2026/05/cropped-org-logo-270x270.png" />
   <link rel="preload" href={`${THEME}/assets/images/cognak-logo.svg`} as="image" type="image/svg+xml" />
+  {heroPreload && <link rel="preload" href={heroPreload} as="image" fetchpriority="high" />}
 
   <script type="application/ld+json" is:inline set:html={JSON.stringify(professionalService)} />
   {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
