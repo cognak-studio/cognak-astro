@@ -25,5 +25,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2530" src="/uploads/2021/04/Logo-Mockup-scaled.jpg" alt="" width="2048" height="1080" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2531" src="/uploads/2021/04/kenston-logo-hero-scaled.jpg" alt="" width="2048" height="1366" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2021/04/Logo-Mockup-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2530" src="/uploads/2021/04/Logo-Mockup-scaled.jpg" alt="" width="2048" height="1080" /></picture><picture><source type="image/webp" srcset="/uploads/2021/04/kenston-logo-hero-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2531" src="/uploads/2021/04/kenston-logo-hero-scaled.jpg" alt="" width="2048" height="1366" /></picture></p>
 

@@ -27,5 +27,5 @@ homepageFeature: true
 homepagePosition: 10
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-3138" src="/uploads/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.jpg" alt="" width="2560" height="1280" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-3139" src="/uploads/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.png" alt="" width="2560" height="1280" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-3138" src="/uploads/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.jpg" alt="" width="2560" height="1280" /></picture><picture><source type="image/webp" srcset="/uploads/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-3139" src="/uploads/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.png" alt="" width="2560" height="1280" /></picture></p>
 

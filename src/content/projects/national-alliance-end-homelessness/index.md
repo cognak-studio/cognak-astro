@@ -31,5 +31,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-290" src="/uploads/2015/12/naeh-site.png" alt="" width="1111" height="2048" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2015/12/naeh-site.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-290" src="/uploads/2015/12/naeh-site.png" alt="" width="1111" height="2048" /></picture></p>
 

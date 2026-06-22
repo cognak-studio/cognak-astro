@@ -33,5 +33,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone wp-image-222 size-full" src="/uploads/2015/12/gulf-leggy-header-landing-video.png" alt="gulf-leggy-header-landing-video" width="1168" height="2048" /><img loading="lazy" decoding="async" class="alignnone wp-image-221 size-full" src="/uploads/2015/12/Gulf-Rock-Flight-3x5-May-15.png" alt="Gulf-Rock-Flight-3x5-(May-15)" width="4320" height="2592" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2015/12/gulf-leggy-header-landing-video.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-222 size-full" src="/uploads/2015/12/gulf-leggy-header-landing-video.png" alt="gulf-leggy-header-landing-video" width="1168" height="2048" /></picture><picture><source type="image/webp" srcset="/uploads/2015/12/Gulf-Rock-Flight-3x5-May-15.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-221 size-full" src="/uploads/2015/12/Gulf-Rock-Flight-3x5-May-15.png" alt="Gulf-Rock-Flight-3x5-(May-15)" width="4320" height="2592" /></picture></p>
 

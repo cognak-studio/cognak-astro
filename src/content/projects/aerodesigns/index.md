@@ -33,5 +33,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone wp-image-249 size-full" src="/uploads/2016/07/REveal-4.png" alt="REveal-4" width="2048" height="1194" /> <img loading="lazy" decoding="async" class="alignnone wp-image-251 size-full" src="/uploads/2016/07/untitled.170.jpg" alt="untitled.170" width="1500" height="1079" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2016/07/REveal-4.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-249 size-full" src="/uploads/2016/07/REveal-4.png" alt="REveal-4" width="2048" height="1194" /></picture> <picture><source type="image/webp" srcset="/uploads/2016/07/untitled.170.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-251 size-full" src="/uploads/2016/07/untitled.170.jpg" alt="untitled.170" width="1500" height="1079" /></picture></p>
 

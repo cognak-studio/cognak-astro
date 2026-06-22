@@ -3142,3 +3142,6 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     .fourofour-buttons { margin-left: 0; gap: 24px; }
     .fourofour-btn { font-size: clamp(32px, 8vw, 48px); }
 }
+
+/* <picture> wrappers around body images are layout-transparent */
+#cognak-main picture { display: contents; }

@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2320" src="/uploads/2019/07/ossio-package-2.jpg" alt="" width="1500" height="1105" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2019/07/ossio-package-2.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2320" src="/uploads/2019/07/ossio-package-2.jpg" alt="" width="1500" height="1105" /></picture></p>
 

@@ -26,5 +26,5 @@ metaDescription: View COGNAK's work for HYPR, a cybersecurity company based in N
 homepageFeature: false
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2661" src="/uploads/2024/02/hypr-brand-guide-cognak-scaled.jpg" alt="" width="2560" height="1920" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2671" src="/uploads/2024/02/hypr-nyse-cognak.png" alt="" width="3000" height="2000" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2024/02/hypr-brand-guide-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2661" src="/uploads/2024/02/hypr-brand-guide-cognak-scaled.jpg" alt="" width="2560" height="1920" /></picture><picture><source type="image/webp" srcset="/uploads/2024/02/hypr-nyse-cognak.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2671" src="/uploads/2024/02/hypr-nyse-cognak.png" alt="" width="3000" height="2000" /></picture></p>
 

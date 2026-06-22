@@ -27,5 +27,5 @@ homepageFeature: true
 homepagePosition: 2
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2922" src="/uploads/2025/08/hex-homepage-cognak-scaled.jpg" alt="" width="2560" height="1920" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2922" src="/uploads/2025/08/hex-homepage-cognak-scaled.jpg" alt="" width="2560" height="1920" /></picture></p>
 

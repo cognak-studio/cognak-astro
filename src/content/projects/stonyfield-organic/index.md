@@ -35,5 +35,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><img loading="lazy" decoding="async" class="alignnone wp-image-255 size-full" src="/uploads/2016/08/Stonyfield-BV-MultiPack-Render.jpg" alt="Stonyfield---BV-MultiPack-Render" width="1166" height="809" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-253" src="/uploads/2016/08/stony-pint.jpg" alt="" width="2048" height="1152" /><img loading="lazy" decoding="async" class="alignnone size-full wp-image-254" src="/uploads/2016/08/stony-box.jpg" alt="" width="2048" height="1152" /></p>
+<p><picture><source type="image/webp" srcset="/uploads/2016/08/Stonyfield-BV-MultiPack-Render.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-255 size-full" src="/uploads/2016/08/Stonyfield-BV-MultiPack-Render.jpg" alt="Stonyfield---BV-MultiPack-Render" width="1166" height="809" /></picture><picture><source type="image/webp" srcset="/uploads/2016/08/stony-pint.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-253" src="/uploads/2016/08/stony-pint.jpg" alt="" width="2048" height="1152" /></picture><picture><source type="image/webp" srcset="/uploads/2016/08/stony-box.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-254" src="/uploads/2016/08/stony-box.jpg" alt="" width="2048" height="1152" /></picture></p>
 
