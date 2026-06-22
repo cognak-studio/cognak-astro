@@ -78,6 +78,7 @@ const professionalService = {
 
 import Analytics from '@vercel/analytics/astro';
 import SpeedInsights from '@vercel/speed-insights/astro';
+import '../styles/site.css';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -110,7 +111,6 @@ import SpeedInsights from '@vercel/speed-insights/astro';
   <link rel="apple-touch-icon" href="/wp-content/uploads/2026/05/cropped-org-logo-180x180.png" />
   <meta name="msapplication-TileImage" content="/wp-content/uploads/2026/05/cropped-org-logo-270x270.png" />
   <link rel="preload" href={`${THEME}/assets/images/cognak-logo.svg`} as="image" type="image/svg+xml" />
-  <link rel="preload" href={`${THEME}/stylesheets/custom.css`} as="style" />
 
   <script type="application/ld+json" is:inline set:html={JSON.stringify(professionalService)} />
   {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
@@ -131,10 +131,7 @@ import SpeedInsights from '@vercel/speed-insights/astro';
   <meta name="twitter:image" content={ogImage} />
 
   <!-- Stylesheets (same order as wpc_theme_styles) -->
-  <link rel="stylesheet" href={`${THEME}/css/reset.css`} />
-  <link rel="stylesheet" href={`${THEME}/stylesheets/screen.css`} />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" />
-  <link rel="stylesheet" href={`${THEME}/stylesheets/custom.css`} />
 
   {isHome && (
     <style is:inline>{`

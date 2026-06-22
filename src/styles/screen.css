@@ -613,7 +613,7 @@ body.fixed-nav {
 /* line 277, ../sass/_header.scss */
 .main-intro {
   background-color: #3A313B;
-  background: url(../assets/images/home-background.jpg) no-repeat center center fixed;
+  background: url(/wp-content/themes/cognak-black/assets/images/home-background.jpg) no-repeat center center fixed;
   background-size: cover;
   margin: 0 auto;
   position: relative;
@@ -679,7 +679,7 @@ body.fixed-nav {
   width: 80px;
   height: 67px;
   text-align: center;
-  background: url(../assets/images/footer_sprites-sf4ed364461.png) center top;
+  background: url(/wp-content/themes/cognak-black/assets/images/footer_sprites-sf4ed364461.png) center top;
   text-indent: -119988px;
   overflow: hidden;
   text-align: left;
