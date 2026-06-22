@@ -544,6 +544,9 @@ body.non-fixed-nav {
     text-decoration: none;
     letter-spacing: 0.04em;
     transition: color 0.2s ease;
+    /* Wider tap target without shifting the tight vertical nav */
+    padding: 4px 12px;
+    margin: -4px -12px;
 }@media (hover: hover) {
 
 .home-nav a:hover {
@@ -1530,7 +1533,7 @@ body.non-fixed-nav {
     background: none;
     border: none;
     cursor: pointer;
-    color: rgba(58, 49, 59, 0.35);
+    color: rgba(58, 49, 59, 0.6);
     transition: color 0.2s ease;
     border-radius: 4px;
 }@media (hover: hover) {
@@ -2245,6 +2248,9 @@ html.pv-list .projects-grid {
     text-decoration: none;
     letter-spacing: 0.04em;
     transition: color 0.2s ease;
+    /* Larger tap target (a11y 2.5.8) without shifting layout — gap is 24px so no overlap */
+    padding: 12px 10px;
+    margin: -12px -10px;
 }@media (hover: hover) {
 
 .inner-nav-links a:hover {
