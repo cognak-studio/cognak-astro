@@ -12,6 +12,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -63,6 +64,13 @@ moreDetails: <p>• Detail one</p><p>• Detail two</p>
 
 fs.mkdirSync(dir, { recursive: true });
 fs.writeFileSync(path.join(dir, 'index.md'), md);
+
+// When launched from the double-click helper (OPEN_AFTER=1), reveal the new
+// folder in Finder and open the index.md in the default editor automatically.
+if (process.env.OPEN_AFTER === '1' && process.platform === 'darwin') {
+  try { execFileSync('open', [dir]); } catch {}
+  try { execFileSync('open', [path.join(dir, 'index.md')]); } catch {}
+}
 
 console.log(`
   ✓ Created src/content/projects/${slug}/index.md
