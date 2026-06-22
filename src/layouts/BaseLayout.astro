@@ -75,6 +75,9 @@ const professionalService = {
     'Motion & Animation', 'Creative Strategy', 'Packaging Design', 'Design Systems', 'Video Production',
   ],
 };
+
+import Analytics from '@vercel/analytics/astro';
+import SpeedInsights from '@vercel/speed-insights/astro';
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -292,5 +295,7 @@ const professionalService = {
   {page === 'home' && <script src="/js/cognak-home.js" defer></script>}
   {page === 'projects' && <script src="/js/cognak-projects.js" defer></script>}
   {page === 'project' && <script src="/js/cognak-single.js" defer></script>}
+  <Analytics />
+  <SpeedInsights />
 </body>
 </html>
