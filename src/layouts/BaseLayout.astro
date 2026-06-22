@@ -104,8 +104,7 @@ import '../styles/site.css';
   {isHome && <style is:inline>{`html{background:#17151a!important}`}</style>}
   {pageBg && <style is:inline set:html={`html,body{background-color:${pageBg}!important}`}></style>}
   <title set:html={title}></title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" href={`${THEME}/assets/fonts/inter-latin-var.woff2`} as="font" type="font/woff2" crossorigin />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://assets.unicorn.studio" />
   <!-- Site icon / favicon (matches WordPress site-icon output) -->
@@ -134,8 +133,7 @@ import '../styles/site.css';
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={ogImage} />
 
-  <!-- Stylesheets (same order as wpc_theme_styles) -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" />
+  <!-- Inter is now self-hosted (see @font-face in custom.css) -->
 
   {isHome && (
     <style is:inline>{`

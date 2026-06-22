@@ -229,6 +229,21 @@ body.is-midnight .home-bottom-bar.inner-page-nav .pulse-dot {
 }
 
 @font-face {
+    font-family: 'Inter';
+    src: url('/theme/assets/fonts/inter-latin-var.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Inter';
+    src: url('/theme/assets/fonts/inter-latin-var-italic.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
     font-family: 'Geist Mono';
     src: url('/theme/assets/fonts/GeistMono-VariableFont_wght.woff2') format('woff2');
     font-weight: 100 900;
