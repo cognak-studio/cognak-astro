@@ -2853,6 +2853,21 @@ select:focus-visible,
     from { opacity: 0; }
     to   { opacity: 1; }
 }
+@keyframes vt-fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+/* Project → project (prev/next): the heroes have mismatched names, so a shared-element
+   morph isn't possible. Override the morph-tuned root rules above with a clean two-way
+   cross-fade (set via the 'proj-switch' transition type in BaseLayout's pagereveal/pageswap). */
+html:active-view-transition-type(proj-switch)::view-transition-old(root) {
+    animation: 220ms ease both vt-fade-out;
+    opacity: 1;
+}
+html:active-view-transition-type(proj-switch)::view-transition-new(root) {
+    animation: 220ms ease both vt-fade-in;
+    animation-delay: 0ms;
+}
 /* Shared element morph — project thumbnail expands into hero.
    Names are dynamic (project-thumb-{ID}); browser interpolates automatically.
    Note: will-change is intentionally omitted — promoting every thumbnail to its

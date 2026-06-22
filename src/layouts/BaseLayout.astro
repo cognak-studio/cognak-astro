@@ -166,6 +166,30 @@ import SpeedInsights from '@vercel/speed-insights/astro';
     })();
   </script>
   <script is:inline define:vars={{ page }}>window.COGNAK_PAGE = page;</script>
+  <!-- Project→project view transition: clean cross-fade instead of mismatched hero morph.
+       Grid→project (and home→project) keep the shared-element thumbnail morph untouched. -->
+  <script is:inline>
+    (function () {
+      var isProject = function (p) { return /^\/projects\/[^/]+\/?$/.test(p || ''); };
+      var apply = function (vt, fromPath, toPath) {
+        if (!vt || !isProject(fromPath) || !isProject(toPath)) return;
+        try { vt.types.add('proj-switch'); } catch (e) {}
+        var hero = document.querySelector('.img-wide--hero');
+        if (hero) hero.style.viewTransitionName = 'none';
+      };
+      window.addEventListener('pageswap', function (e) {
+        if (!e.viewTransition) return;
+        var to = e.activation && e.activation.entry ? new URL(e.activation.entry.url).pathname : '';
+        apply(e.viewTransition, location.pathname, to);
+      });
+      window.addEventListener('pagereveal', function (e) {
+        if (!e.viewTransition) return;
+        var nav = window.navigation;
+        var from = nav && nav.activation && nav.activation.from ? new URL(nav.activation.from.url).pathname : '';
+        apply(e.viewTransition, from, location.pathname);
+      });
+    })();
+  </script>
 </head>
 <body id="cognak" class={bodyClass}>
   <a href="#cognak-main" class="skip-to-main">Skip to main content</a>
