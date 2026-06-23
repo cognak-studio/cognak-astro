@@ -8,7 +8,7 @@ const all = (await getCollection('projects', (p) => !p.data.draft)).sort((a, b) 
   a.data.title.localeCompare(b.data.title)
 );
 
-const items = await Promise.all(
+const unsorted = await Promise.all(
   all.map(async (p) => {
     const thumb = await getImage({ src: p.data.thumbnail, format: 'webp', width: 800 });
     const hoverSrc = p.data.hover ?? p.data.hero;
@@ -30,7 +30,13 @@ const items = await Promise.all(
     };
   })
 );
+// Render in the JS default sort order (newest first) so cognak-projects.js'
+// on-load sortItems() is a no-op and the grid never reshuffles after paint.
+const items = unsorted.sort((a, b) => b.dateUnix - a.dateUnix);
 const count = items.length;
+// Items past the first 8 start lazy (opacity 0) in the markup, matching
+// initLazyLoad(), so they don't flash in at full opacity before the JS runs.
+const LAZY_AFTER = 8;
 ---
 <BaseLayout
   page="projects"
@@ -40,6 +46,7 @@ const count = items.length;
   pageBg="#EAE5F2"
 >
   <canvas id="projects-matrix-glow" aria-hidden="true"></canvas>
+  <noscript><style>{`.projects-grid-item.proj-lazy{opacity:1}`}</style></noscript>
   <main id="cognak-main"><section class="projects-archive">
 
     <div class="projects-intro">
@@ -94,8 +101,8 @@ const count = items.length;
     </div>
 
     <div class="projects-grid">
-      {items.map((p) => (
-        <article class="projects-grid-item project-excerpt"
+      {items.map((p, i) => (
+        <article class:list={["projects-grid-item", "project-excerpt", { "proj-lazy": i >= LAZY_AFTER }]}
                  data-hero={p.cursorHero}
                  data-date={p.dateUnix}
                  data-title={p.title}
