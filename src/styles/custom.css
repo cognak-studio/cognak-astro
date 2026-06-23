@@ -1307,7 +1307,10 @@ body.non-fixed-nav {
     .projects-intro-text p { animation: none; }
 }
 .projects-grid {
-    display: grid;
+    /* List is the default view, so the grid is hidden until grid view is
+       explicitly activated (html.pv-grid pre-paint, or .is-grid-view via JS).
+       This guarantees the grid never flashes on load before the JS runs. */
+    display: none;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 100px;
@@ -1546,26 +1549,23 @@ body.non-fixed-nav {
     color: #3A313B;
 }
 
-/* ── Projects list view ── */
+/* ── Projects list view (default) ── */
 .projects-list {
-    display: none;
+    display: block;
     margin-bottom: 100px;
     border-top: 1px solid rgba(58, 49, 59, 0.15);
     position: relative;
     z-index: 51;
 }
-.projects-archive.is-list-view .projects-list {
-    display: block;
+/* Grid view is opt-in. The pre-paint script in the head adds html.pv-grid for
+   users whose saved preference is grid, before first paint; the JS mirrors it
+   with .is-grid-view on the archive. Either one swaps list → grid. */
+html.pv-grid .projects-grid,
+.projects-archive.is-grid-view .projects-grid {
+    display: grid;
 }
-.projects-archive.is-list-view .projects-grid {
-    display: none;
-}
-/* Pre-paint view state (set on <html> in the head before the archive renders)
-   so the grid never flashes before the JS applies the saved view preference. */
-html.pv-list .projects-list {
-    display: block;
-}
-html.pv-list .projects-grid {
+html.pv-grid .projects-list,
+.projects-archive.is-grid-view .projects-list {
     display: none;
 }
 .projects-list-item {

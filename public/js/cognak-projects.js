@@ -66,20 +66,20 @@
     var mode = 'newest';
     var view = localStorage.getItem('cognak-projects-view') || 'list';
 
-    if (view === 'list') {
-        archive.classList.add('is-list-view');
-        btnList.classList.add('is-active');
-        btnGrid.classList.remove('is-active');
-    } else {
-        archive.classList.remove('is-list-view');
+    if (view === 'grid') {
+        archive.classList.add('is-grid-view');
         btnGrid.classList.add('is-active');
         btnList.classList.remove('is-active');
+    } else {
+        archive.classList.remove('is-grid-view');
+        btnList.classList.add('is-active');
+        btnGrid.classList.remove('is-active');
     }
 
     btnGrid.addEventListener('click', function() {
         if (view === 'grid') return;
         view = 'grid';
-        archive.classList.remove('is-list-view');
+        archive.classList.add('is-grid-view');
         document.documentElement.classList.remove('pv-list');
         document.documentElement.classList.add('pv-grid');
         btnGrid.classList.add('is-active');
@@ -90,7 +90,7 @@
     btnList.addEventListener('click', function() {
         if (view === 'list') return;
         view = 'list';
-        archive.classList.add('is-list-view');
+        archive.classList.remove('is-grid-view');
         document.documentElement.classList.add('pv-list');
         document.documentElement.classList.remove('pv-grid');
         btnList.classList.add('is-active');
