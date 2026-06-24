@@ -335,6 +335,7 @@ body { overflow-x: clip; }
     <script is:inline>
     (function() {
         var el = document.getElementById('capability-emoji');
+        if (!el) return; // emoji cursor-follower is disabled (element removed) — bail out
         var items = document.querySelectorAll('.capabilities-list li[data-emoji]');
 
         document.addEventListener('mousemove', function(e) {
