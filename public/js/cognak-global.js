@@ -486,3 +486,13 @@
     if (document.readyState !== 'loading') stopVideos();
     else document.addEventListener('DOMContentLoaded', stopVideos);
 })();
+
+/* ── Footer "Back to top" (replaces an inline onclick handler, for CSP) ─────── */
+(function () {
+    var btn = document.querySelector('.footer-backtotop');
+    if (!btn) return;
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+})();

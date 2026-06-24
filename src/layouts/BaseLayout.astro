@@ -266,7 +266,7 @@ import '../styles/site.css';
           <a href="https://dribbble.com/cognak" target="_blank" rel="noopener noreferrer">dribbble</a>
         </div>
         <div class="footer-top-right">
-          <a href="#" class="footer-backtotop" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Back to top</a>
+          <a href="#" class="footer-backtotop">Back to top</a>
         </div>
       </div>
       <div class="footer-bottom">
@@ -315,11 +315,10 @@ import '../styles/site.css';
   <script src="/js/cognak-lenis-init.js" defer></script>
   <script src="/js/cognak-global.js" defer></script>
 
+  {/* UnicornStudio: the init script lazy-loads the WebGL library itself
+      (on idle, once the hero is near the viewport) — see cognak-unicorn-init.js. */}
   {(page === 'home' || page === 'studio') && (
-    <Fragment>
-    <script src="https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.1.12/dist/unicornStudio.umd.js" defer></script>
     <script src="/js/cognak-unicorn-init.js" defer></script>
-    </Fragment>
   )}
   {page === 'home' && <script src="/js/cognak-home.js" defer></script>}
   {page === 'projects' && <script src="/js/cognak-projects.js" defer></script>}
