@@ -576,6 +576,10 @@ body.non-fixed-nav {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 99999 !important;
+    /* will-change isolates the bar onto its own compositor layer so the
+       backdrop-filter actually paints over the hero/WebGL ancestors —
+       same fix the inner-page nav uses. Without it the blur silently drops. */
+    will-change: transform;
 }
 
 .home-bottom-logo img {
@@ -2210,8 +2214,10 @@ html.pv-grid .projects-list,
     top: 0;
     bottom: auto;
     background: rgba(247, 241, 255, 0.75);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    /* !important matches the per-page rule the studio nav uses, so the frosted
+       blur renders on Projects too (and any inner page) instead of dropping out. */
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
     pointer-events: auto;
     /* will-change creates own compositor layer (isolates backdrop-filter) without being
        a named view-transition participant — prevents white ghost bar on homepage nav */
