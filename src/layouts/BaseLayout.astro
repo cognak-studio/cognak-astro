@@ -191,6 +191,20 @@ import '../styles/site.css';
       });
     })();
   </script>
+
+  <!-- Frosted nav blur — kept inline so the standard `backdrop-filter` survives
+       CSS minification. lightningcss drops the unprefixed property from the
+       bundled stylesheet (leaving only -webkit-, which Chrome no longer honors
+       on its own), which is why the blur rendered ONLY on the studio nav — whose
+       blur lives in an is:inline block like this one. This applies the same 6px
+       frost to the pinned homepage nav and every inner-page nav. -->
+  <style is:inline>
+    .home-bottom-bar.nav-mode,
+    .home-bottom-bar.inner-page-nav {
+      -webkit-backdrop-filter: blur(6px) !important;
+      backdrop-filter: blur(6px) !important;
+    }
+  </style>
 </head>
 <body id="cognak" class={bodyClass}>
   <a href="#cognak-main" class="skip-to-main">Skip to main content</a>
