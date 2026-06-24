@@ -295,10 +295,16 @@ import '../styles/site.css';
       if (!link) return;
       var href = link.getAttribute('href') || '';
       if (href.indexOf('mailto:hello@cognak.com') !== -1) {
+        // The mailto link's own default action opens the mail client exactly once.
+        // Do NOT call gtag_report_conversion here: its event_callback does
+        // window.location = url, which re-opens the mail dialog — and gtag can
+        // invoke that callback more than once, stacking up several dialogs.
+        // Fire the GA4 event + Ads conversion without re-navigating.
         if (typeof gtag === 'function') {
           gtag('event', 'click_email', { 'event_category': 'Contact', 'event_label': 'mailto:hello@cognak.com' });
+          gtag('event', 'conversion', { 'send_to': 'AW-876403750/KaY9CKLGmLwcEKa486ED' });
         }
-        gtag_report_conversion('AW-876403750/KaY9CKLGmLwcEKa486ED', href);
+        return;
       }
       if (href.indexOf('calendar.app.google') !== -1) {
         if (typeof gtag === 'function') {
