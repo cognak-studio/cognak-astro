@@ -260,8 +260,8 @@ body { overflow-x: clip; }
         <div class="studio-tab-panels">
             <div class="studio-tab-panel studio-tab-panel--active studio-tab-panel--entrance" id="tab-approach">
                 <p>The traditional agency model was built to scale. We were built not to.</p>
-                <p>Small means the people responsible for your work are the people accountable for it — no layers to absorb the feedback, dilute the thinking, or slow things down.</p>
-                <p>We understand the problem before we propose the solution. The structure we build is earned, not imposed. The work that comes out the other side doesn't need to chase what's current — it's built to outlast it.</p>
+                <p>Small means the people responsible for your work are the people accountable for it. No layers to absorb the feedback, dilute the thinking, or slow things down.</p>
+                <p>We understand the problem before we propose the solution. The structure we build is earned, not imposed. The work that comes out the other side doesn't chase what's current; it's <span class="award-name" data-award-pop>award-winning</span> because it's built to outlast it.</p>
             </div>
             <div class="studio-tab-panel" id="tab-founder">
                 <p><span class="founder-name">Pierce Liefeld</span> founded COGNAK with a simple premise: there's no reason a small studio can't do what a large agency does — usually better, and without the overhead baked into the cost.</p>
@@ -271,6 +271,12 @@ body { overflow-x: clip; }
 
         <div class="founder-portrait-wrap" id="founder-portrait" aria-hidden="true">
             <img class="founder-portrait-img" src="/theme/assets/images/pierce-liefeld.jpg" alt="Pierce Liefeld, founder of COGNAK" loading="eager" draggable="false">
+        </div>
+
+        <div class="award-badges-wrap" id="award-badges-pop" aria-hidden="true">
+            <img class="award-badge-pop" src="/uploads/2026/06/best-ux-white.png" alt="" draggable="false">
+            <img class="award-badge-pop" src="/uploads/2026/06/best-innovation-purple.png" alt="" draggable="false">
+            <img class="award-badge-pop" src="/uploads/2026/06/best-ui-black.png" alt="" draggable="false">
         </div>
 
     </div>
@@ -587,6 +593,23 @@ body { overflow-x: clip; }
             cursor.classList.remove('is-founder');
             if (label) label.textContent = '';
             if (founderPortrait) founderPortrait.classList.remove('is-active');
+        });
+    });
+
+    // ── "award-winning" hover — purple pill cursor + CSSDA badges pop right ──
+    var awardNames  = document.querySelectorAll('.award-name');
+    var awardBadges = document.getElementById('award-badges-pop');
+    awardNames.forEach(function(el) {
+        el.addEventListener('mouseenter', function() {
+            cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-next');
+            cursor.classList.add('is-founder');
+            if (label) label.textContent = 'Award-winning';
+            if (awardBadges) awardBadges.classList.add('is-active');
+        });
+        el.addEventListener('mouseleave', function() {
+            cursor.classList.remove('is-founder');
+            if (label) label.textContent = '';
+            if (awardBadges) awardBadges.classList.remove('is-active');
         });
     });
 
