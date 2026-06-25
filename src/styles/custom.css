@@ -2294,6 +2294,40 @@ html.pv-grid .projects-list,
     aspect-ratio: 16 / 9;
     object-fit: cover;
     display: block;
+    background: #000;
+}
+.hero-video-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+.hero-video-loader.is-hidden {
+    opacity: 0;
+}
+.hero-video-spinner {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #14001f 0%, #2a0a55 35%, #7a2ff2 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4px));
+    animation: hero-video-spin 0.9s linear infinite;
+}
+@keyframes hero-video-spin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hero-video-spinner { animation-duration: 2.4s; }
 }
 .hero-mute-btn {
     position: absolute;

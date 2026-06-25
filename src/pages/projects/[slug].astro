@@ -70,7 +70,8 @@ const jsonLd = {
     <figure class="img-wide img-wide--hero" style={`view-transition-name: project-thumb-${slug}`}>
       {d.heroVideo ? (
         <>
-          <video class="hero-video" src={d.heroVideo} autoplay muted loop playsinline webkit-playsinline x5-playsinline poster={heroImg.src}></video>
+          <video class="hero-video" src={d.heroVideo} autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="auto"></video>
+          <div class="hero-video-loader" aria-hidden="true"><span class="hero-video-spinner"></span></div>
           <button class="hero-mute-btn" aria-label="Toggle sound">
             <svg class="hero-mute-icon hero-mute-icon--muted" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 8H7L12 4V18L7 14H3V8Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>

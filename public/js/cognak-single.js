@@ -15,6 +15,23 @@
     });
 })();
 
+/* ── Hero video loader ring (fade out once the video has a frame) ──────────── */
+(function() {
+    var video  = document.querySelector('.hero-video');
+    var loader = document.querySelector('.hero-video-loader');
+    if (!video || !loader) return;
+    var done = false;
+    function hide() {
+        if (done) return;
+        done = true;
+        loader.classList.add('is-hidden');
+    }
+    if (video.readyState >= 2) { hide(); }
+    video.addEventListener('loadeddata', hide);
+    video.addEventListener('playing', hide);
+    setTimeout(hide, 8000);
+})();
+
 /* ── Mobile prev/next tap-to-reveal + awwwards badge (functions.php) ───────── */
 (function() {
     document.querySelectorAll('.mobile-pager').forEach(function(btn) {
