@@ -653,3 +653,70 @@
         resize();
     });
 })();
+
+/* ── "award-winning": per-letter vibration + badges that pop above cursor ─── */
+(function() {
+    var targets = document.querySelectorAll('[data-award]');
+    if (!targets.length) return;
+
+    /* 1 ─ Split each target into individually-animatable letter spans. */
+    targets.forEach(function(el) {
+        if (el.dataset.awSplit) return;
+        el.dataset.awSplit = '1';
+        var text = el.textContent, frag = document.createDocumentFragment(), n = 0;
+        for (var i = 0; i < text.length; i++) {
+            var ch = text[i];
+            var s = document.createElement('span');
+            s.className = 'aw-l' + (ch === ' ' ? ' aw-space' : '');
+            s.style.setProperty('--i', n++);
+            s.textContent = ch === ' ' ? ' ' : ch;
+            frag.appendChild(s);
+        }
+        el.textContent = '';
+        el.appendChild(frag);
+    });
+
+    /* 2 ─ Badge pop-up: pointer devices only (no hover state on touch). */
+    var canHover = window.matchMedia('(hover: hover)').matches;
+    if (!canHover) return;
+
+    var BADGES = [
+        '/uploads/2026/06/best-ux-white.png',
+        '/uploads/2026/06/best-innovation-purple.png',
+        '/uploads/2026/06/best-ui-black.png'
+    ];
+    var box = document.createElement('div');
+    box.id = 'aw-badges';
+    box.setAttribute('aria-hidden', 'true');
+    BADGES.forEach(function(src, i) {
+        var img = document.createElement('img');
+        img.className = 'aw-badge aw-b' + i;
+        img.src = src;
+        img.alt = '';
+        img.draggable = false;
+        box.appendChild(img);
+    });
+    document.body.appendChild(box);
+
+    var raf = null, px = 0, py = 0;
+    function place() {
+        raf = null;
+        box.style.transform = 'translate(' + px + 'px,' + py + 'px)';
+    }
+    function move(e) {
+        px = e.clientX; py = e.clientY;
+        if (!raf) raf = requestAnimationFrame(place);
+    }
+
+    targets.forEach(function(el) {
+        el.addEventListener('pointerenter', function(e) {
+            px = e.clientX; py = e.clientY; place();
+            box.classList.add('is-on');
+            el.addEventListener('pointermove', move);
+        });
+        el.addEventListener('pointerleave', function() {
+            box.classList.remove('is-on');
+            el.removeEventListener('pointermove', move);
+        });
+    });
+})();

@@ -980,6 +980,89 @@ body.non-fixed-nav {
     margin: 0;
 }
 .hp-desc-mobile { display: none; }
+
+/* ── "award-winning" — gradient + per-letter cymatic vibration ───────────── */
+.award-winning {
+    position: relative;
+    display: inline-block;
+    font-weight: 600;
+    cursor: default;
+    background: linear-gradient(90deg, #a855f7 0%, #ec4899 35%, #f0abfc 50%, #ec4899 65%, #a855f7 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: aw-shimmer 4s linear infinite;
+    will-change: background-position;
+}
+/* Each letter is wrapped in .aw-l by JS; --i carries its index for phase. */
+.award-winning .aw-l {
+    display: inline-block;
+    will-change: transform;
+    animation: aw-vibe 1.6s ease-in-out infinite;
+    animation-delay: calc(var(--i) * -0.11s);
+}
+.award-winning .aw-l.aw-space { width: 0.28em; }
+@keyframes aw-shimmer {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 220% 50%; }
+}
+@keyframes aw-vibe {
+    0%, 100% { transform: translateY(0)      scaleY(1);    }
+    25%      { transform: translateY(-2.6px) scaleY(1.06); }
+    50%      { transform: translateY(0)      scaleY(1);    }
+    75%      { transform: translateY(2.2px)  scaleY(0.96); }
+}
+
+/* ── Award badges that pop above the cursor on hover ─────────────────────── */
+#aw-badges {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 99990;
+    opacity: 0;
+}
+#aw-badges.is-on { opacity: 1; }
+#aw-badges .aw-badge {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 78px;
+    height: 78px;
+    margin: -39px 0 0 -39px;          /* center on the anchor point */
+    border-radius: 50%;
+    opacity: 0;
+    transform: translate(0, 0) scale(0.2) rotate(0deg);
+    transform-origin: 50% 50%;
+    filter: drop-shadow(0 10px 22px rgba(0,0,0,0.45));
+    transition:
+        transform 0.62s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity   0.34s ease;
+}
+/* Spread targets — set as CSS vars per badge, applied when .is-on */
+#aw-badges.is-on .aw-badge {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) scale(1) rotate(var(--rot));
+}
+#aw-badges .aw-badge.aw-b0 { --tx: -86px; --ty: -120px; --rot: -13deg; transition-delay: 0s;    }
+#aw-badges .aw-badge.aw-b1 { --tx:   0px; --ty: -158px; --rot:   0deg; transition-delay: 0.05s; }
+#aw-badges .aw-badge.aw-b2 { --tx:  86px; --ty: -120px; --rot:  13deg; transition-delay: 0.1s;  }
+/* Reverse (collapse back into the word) is faster + no overshoot */
+#aw-badges:not(.is-on) .aw-badge {
+    transition:
+        transform 0.34s cubic-bezier(0.4, 0, 0.7, 0.2),
+        opacity   0.28s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .award-winning { animation: none; }
+    .award-winning .aw-l { animation: none; }
+    #aw-badges .aw-badge { transition: opacity 0.2s ease; }
+}
 .hp-projects-heading {
     font-family: 'Inter', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
