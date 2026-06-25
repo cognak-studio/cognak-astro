@@ -2294,7 +2294,7 @@ html.pv-grid .projects-list,
     aspect-ratio: 16 / 9;
     object-fit: cover;
     display: block;
-    background: #000;
+    background: #fff;
 }
 .hero-video-loader {
     position: absolute;
@@ -2305,7 +2305,7 @@ html.pv-grid .projects-list,
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #000;
+    background: #fff;
     opacity: 1;
     transition: opacity 0.6s ease;
     pointer-events: none;
