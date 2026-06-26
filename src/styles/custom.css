@@ -484,6 +484,28 @@ body.non-fixed-nav {
     margin: 0;
     user-select: none;
     transform: translateY(-2.5vh);
+    position: relative;
+}
+/* Soft halo in the hero bg color (#17151a) to lift the text off the WebGL.
+   Rendered as a static radial gradient behind the text (not a text-shadow) so
+   it never repaints while the headline types in — reads as a faint darkening
+   that fades out, not a drop shadow. */
+.hero-center-headline p::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 175%;
+    height: 320%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center,
+        rgba(23,21,26,0.92) 0%,
+        rgba(23,21,26,0.78) 18%,
+        rgba(23,21,26,0.55) 34%,
+        rgba(23,21,26,0.30) 50%,
+        rgba(23,21,26,0) 70%);
+    z-index: -1;
+    pointer-events: none;
 }
 .hero-hl-pink {
     position: relative;
@@ -498,7 +520,7 @@ body.non-fixed-nav {
 }
 @media (max-width: 720px) {
     .hero-center-headline p {
-        font-size: clamp(34px, 7vw, 52px) !important;
+        font-size: clamp(46px, 9.5vw, 70px) !important;
         transform: translateY(-3vh) !important;
         text-align: center;
     }
@@ -535,6 +557,23 @@ body.non-fixed-nav {
     flex-direction: column;
     align-items: flex-end;
     gap: 6px;
+}
+/* Bg-color halo behind the Projects/Studio nav — radiates from the top-right corner. */
+.home-nav::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 480px;
+    height: 340px;
+    background: radial-gradient(ellipse at top right,
+        rgba(23,21,26,1) 0%,
+        rgba(23,21,26,0.96) 22%,
+        rgba(23,21,26,0.78) 40%,
+        rgba(23,21,26,0.45) 56%,
+        rgba(23,21,26,0) 75%);
+    z-index: -1;
+    pointer-events: none;
 }
 .home-nav a {
     font-family: 'Inter', sans-serif;
@@ -607,6 +646,24 @@ body.non-fixed-nav {
     letter-spacing: 0.04em;
     transition: color 0.2s ease, transform 0.3s ease, left 0.3s ease;
 }
+/* Bg-color halo behind hello@cognak.com — centered oval (wider than tall). */
+.home-bottom-email::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 360px;
+    height: 150px;
+    background: radial-gradient(ellipse at center,
+        rgba(23,21,26,0.92) 0%,
+        rgba(23,21,26,0.70) 22%,
+        rgba(23,21,26,0.42) 40%,
+        rgba(23,21,26,0.20) 55%,
+        rgba(23,21,26,0) 72%);
+    z-index: -1;
+    pointer-events: none;
+}
 .home-bottom-bar.nav-swapped .home-bottom-email {
     left: 30%;
     transform: translate(-50%, -50%);
@@ -629,6 +686,23 @@ body.non-fixed-nav {
     color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
     white-space: nowrap;
+}
+/* Bg-color halo behind the location/time — radiates from the bottom-right corner. */
+.home-bottom-location::before {
+    content: "";
+    position: absolute;
+    bottom: -45px;
+    right: -45px;
+    width: 480px;
+    height: 300px;
+    background: radial-gradient(ellipse at bottom right,
+        rgba(23,21,26,0.92) 0%,
+        rgba(23,21,26,0.72) 18%,
+        rgba(23,21,26,0.45) 34%,
+        rgba(23,21,26,0.22) 50%,
+        rgba(23,21,26,0) 70%);
+    z-index: -1;
+    pointer-events: none;
 }
 
 .home-bottom-bar.nav-swapped .home-bottom-location {
@@ -2629,6 +2703,24 @@ a[href*="cookieyes.com"],
     align-items: flex-start;
     gap: 6px;
     transition: opacity 0.4s ease;
+}
+/* Soft bg-color halo behind the cookie banner — radiates out from the top-left
+   corner (same fade-out look as the hero, not a centered circle). */
+#cognak-cookie::before {
+    content: "";
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 520px;
+    height: 380px;
+    background: radial-gradient(ellipse at top left,
+        rgba(23,21,26,1) 0%,
+        rgba(23,21,26,0.96) 22%,
+        rgba(23,21,26,0.78) 40%,
+        rgba(23,21,26,0.45) 56%,
+        rgba(23,21,26,0) 75%);
+    z-index: -1;
+    pointer-events: none;
 }
 .cognak-cookie-label {
     font-family: 'Inter', sans-serif;
