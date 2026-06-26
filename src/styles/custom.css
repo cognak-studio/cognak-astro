@@ -1489,15 +1489,19 @@ body.non-fixed-nav {
 
 /* ── Rainbow letter sweep ── */
 .rl { display: inline; transition: color 0.2s ease; }
-@keyframes letter-rainbow-in {
-    0%   { color: inherit; }
-    20%  { color: #E8A0FF; }
-    40%  { color: #D580FF; }
-    62%  { color: #CC99FF; }
-    82%  { color: #8B1FFF; }
+/* Seamless loop: start and end colors match so each revolution flows into the
+   next with no snap. Linear timing + evenly spaced stops keep it smooth, and
+   the per-letter stagger (set in JS) makes it wave across the word. */
+@keyframes letter-rainbow-loop {
+    0%   { color: var(--cognak-purple-text); }
+    16%  { color: #E8A0FF; }
+    33%  { color: #D580FF; }
+    50%  { color: #CC99FF; }
+    66%  { color: #B266FF; }
+    83%  { color: #8B1FFF; }
     100% { color: var(--cognak-purple-text); }
 }
-.rl.rl-go { animation: letter-rainbow-in 0.4s ease forwards; }
+.rl.rl-go { animation: letter-rainbow-loop 2.4s linear infinite; }
 
 /* ── Project count label ── */
 .projects-count-label {
