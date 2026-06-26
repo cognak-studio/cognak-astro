@@ -74,7 +74,7 @@
             letters.forEach(function(l, i) {
                 l.classList.remove('rl-go');
                 void l.offsetWidth;
-                l.style.animationDelay = (i * 28) + 'ms';
+                l.style.animationDelay = (i * 120) + 'ms';
                 l.classList.add('rl-go');
             });
         });
