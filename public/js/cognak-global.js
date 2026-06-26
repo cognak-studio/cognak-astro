@@ -159,7 +159,7 @@
             scheduleClearImg();
             return;
         }
-        var pane = e.target.closest('.project-excerpt');
+        var pane = e.target.closest('.project-excerpt, .projects-list-item');
         if (pane) {
             cancelClearImg();
             onProject = true;
