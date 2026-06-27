@@ -884,7 +884,8 @@ body.non-fixed-nav {
         display: none !important;
     }
     .home-nav {
-        display: none;
+        top: 20px;
+        right: 20px;
     }
 }
 
