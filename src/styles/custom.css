@@ -2283,16 +2283,37 @@ html.pv-grid .projects-list,
         max-width: 100% !important;
         width: 100% !important;
     }
-    /* Hide portrait + award badges on mobile — no hover state needed */
+    /* Portrait + badges: hidden by default on mobile, shown on tap via is-active */
     .founder-portrait-wrap,
     .award-badges-wrap {
-        display: none !important;
+        display: none;
+        position: fixed !important;
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -44px) !important;
+        transition: opacity 0.4s ease !important;
+        opacity: 0;
+        pointer-events: none;
     }
-    /* Kill chroma cursor on mobile */
+    .founder-portrait-wrap {
+        width: 200px !important;
+    }
+    .award-badges-wrap {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+    .founder-portrait-wrap.is-active,
+    .award-badges-wrap.is-active {
+        display: flex !important;
+        opacity: 1 !important;
+        transform: translate(-50%, -50%) !important;
+    }
+    /* Re-enable taps on trigger words */
     .founder-name,
     .award-name {
-        pointer-events: none;
-        cursor: auto !important;
+        pointer-events: auto;
+        cursor: pointer !important;
         animation: none;
         text-shadow: -2px 0 0 rgba(139,31,255,0.5), 2px 0 0 rgba(219,39,199,0.4);
     }
