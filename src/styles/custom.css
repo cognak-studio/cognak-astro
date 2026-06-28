@@ -910,6 +910,11 @@ html.home-scrolled #cognak-cookie {
     .home-nav {
         display: none;
     }
+    /* Hide the desktop top-right nav halo on mobile — it's 480px wide and
+       bleeds across the entire viewport, creating a shadow behind the bottom bar */
+    body.non-fixed-nav::after {
+        display: none;
+    }
 }
 
 /* ── Footer redesign ── */

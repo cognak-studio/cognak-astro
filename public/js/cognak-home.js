@@ -11,7 +11,7 @@
     var navLinks = null;
     if (homeNav) {
         navLinks = document.createElement('div');
-        navLinks.style.cssText = 'display:none;gap:24px;align-items:center;';
+        navLinks.style.cssText = 'display:none;gap:24px;align-items:center;flex-shrink:0;overflow:hidden;';
         homeNav.querySelectorAll('a').forEach(function(a) {
             var clone = a.cloneNode(true);
             clone.style.cssText = "font-family:'Inter',sans-serif;font-size:13px;font-weight:400;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:0.04em;";
