@@ -559,7 +559,7 @@ body.non-fixed-nav {
     gap: 6px;
 }
 /* Bg-color halo behind the Projects/Studio nav — radiates from the top-right corner. */
-.home-nav::before {
+body.non-fixed-nav .home-nav::before {
     content: "";
     position: absolute;
     top: -50px;
@@ -647,7 +647,7 @@ body.non-fixed-nav {
     transition: color 0.2s ease, transform 0.3s ease, left 0.3s ease;
 }
 /* Bg-color halo behind hello@cognak.com — centered oval (wider than tall). */
-.home-bottom-email::before {
+body.non-fixed-nav .home-bottom-email::before {
     content: "";
     position: absolute;
     left: 50%;
@@ -688,7 +688,7 @@ body.non-fixed-nav {
     white-space: nowrap;
 }
 /* Bg-color halo behind the location/time — radiates from the bottom-right corner. */
-.home-bottom-location::before {
+body.non-fixed-nav .home-bottom-location::before {
     content: "";
     position: absolute;
     bottom: -45px;
@@ -2753,8 +2753,9 @@ a[href*="cookieyes.com"],
     transition: opacity 0.4s ease;
 }
 /* Soft bg-color halo behind the cookie banner — radiates out from the top-left
-   corner (same fade-out look as the hero, not a centered circle). */
-#cognak-cookie::before {
+   corner (same fade-out look as the hero, not a centered circle).
+   Homepage only (non-fixed-nav) — inner pages have a light nav bar. */
+body.non-fixed-nav #cognak-cookie::before {
     content: "";
     position: absolute;
     top: -50px;
