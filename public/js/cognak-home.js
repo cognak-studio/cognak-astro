@@ -37,7 +37,7 @@
             var naturalTop = stageH - barH - scrollY;
             var clampedTop = Math.max(0, naturalTop);
             bar.style.transform = 'translateY(' + clampedTop + 'px)';
-            document.documentElement.classList.toggle('home-scrolled', scrollY > window.innerHeight * 0.5);
+            document.documentElement.classList.toggle('home-scrolled', scrollY > stageH - barH);
         }
 
         window.addEventListener('scroll', mobileUpdate, { passive: true });
@@ -54,10 +54,10 @@
         var stageBottom = stage.getBoundingClientRect().bottom;
         var barH        = bar.offsetHeight;
 
-        // Hero halos (cookie/nav/location) are fixed. Keep them through the hero
-        // scroll and only fade once the hero is leaving — when its bottom edge
-        // crosses the middle of the viewport.
-        document.documentElement.classList.toggle('home-scrolled', stageBottom < window.innerHeight * 0.5);
+        // Nav/location/email halos are fixed. Keep them for the whole hero scroll
+        // and only fade once the hero has actually scrolled out (its bottom edge
+        // reaches the top bar). The cookie halo is excluded — it stays always.
+        document.documentElement.classList.toggle('home-scrolled', stageBottom <= barH);
 
         if (stageBottom <= barH) {
             bar.classList.add('nav-mode');

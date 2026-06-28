@@ -714,17 +714,12 @@ body.non-fixed-nav .home-bottom-location::before {
     opacity: 1;
     transition: opacity 0.3s ease;
 }
-html.home-scrolled #cognak-cookie::before,
+/* Cookie halo is intentionally NOT here — it stays behind the cookie banner the
+   entire time. These fade only once the hero has scrolled out of view. */
 html.home-scrolled .home-nav::before,
 html.home-scrolled .home-bottom-location::before,
 html.home-scrolled .home-bottom-email::before {
     opacity: 0;
-}
-/* The cookie banner is fixed too — keep it within the hero only, not visible
-   behind the nav on lower sections. */
-html.home-scrolled #cognak-cookie {
-    opacity: 0;
-    pointer-events: none;
 }
 
 .home-bottom-bar.nav-swapped .home-bottom-location {
