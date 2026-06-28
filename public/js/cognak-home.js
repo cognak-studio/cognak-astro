@@ -24,16 +24,11 @@
     }
 
     if (isMobile) {
-        // On mobile, always show the nav links anchored to the right edge of the
-        // bar so they can't overflow the viewport. Use absolute positioning within
-        // the fixed bar (not a separate transform approach, which conflicted with
-        // the CSS bottom:0 baseline).
+        // On mobile, let the bar's flex layout (justify-content: space-between)
+        // place navLinks at the right naturally — no absolute positioning or
+        // transforms, which can detach from the bar during overscroll gestures.
         if (navLinks) {
             navLinks.style.display = 'flex';
-            navLinks.style.position = 'absolute';
-            navLinks.style.right    = '24px';
-            navLinks.style.top      = '50%';
-            navLinks.style.transform = 'translateY(-50%)';
         }
         if (homeNav) homeNav.style.display = 'none';
     }

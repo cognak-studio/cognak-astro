@@ -766,6 +766,9 @@ html.home-scrolled #cognak-cookie {
     }
     /* Radial-gradient halo behind Projects/Studio (right side of bar).
        Radial gradient avoids filter:blur which breaks fixed compositing on mobile. */
+    .home-nav-links-mobile {
+        position: relative;
+    }
     .home-nav-links-mobile::before {
         content: "";
         position: absolute;
