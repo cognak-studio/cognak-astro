@@ -760,6 +760,30 @@ html.home-scrolled #cognak-cookie {
         /* Let nav-mode class control background + backdrop-filter (same as desktop)
            so the background fades in on scroll and out at the very top */
         pointer-events: auto;
+        /* Clip the nav-links halo at the viewport right edge without affecting
+           vertical overflow (overflow-x:clip doesn't create a scroll container) */
+        overflow-x: clip;
+    }
+    /* Blurred blob shadow behind Projects/Studio — same treatment as cookie banner */
+    .home-nav-links-mobile::before {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 160px;
+        right: -30px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(23, 21, 26, 0.88);
+        border-radius: 50%;
+        filter: blur(36px);
+        z-index: -1;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+    /* Shadow belongs to the hero — fade it out once the bar has moved to the top */
+    html.home-scrolled .home-nav-links-mobile::before {
+        opacity: 0;
     }
     .home-bottom-bar.inner-page-nav {
         background: rgba(247, 241, 255, 0.75) !important;

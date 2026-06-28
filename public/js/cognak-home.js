@@ -13,6 +13,7 @@
     var navLinks = null;
     if (homeNav) {
         navLinks = document.createElement('div');
+        navLinks.className = 'home-nav-links-mobile';
         navLinks.style.cssText = 'display:none;gap:24px;align-items:center;';
         homeNav.querySelectorAll('a').forEach(function(a) {
             var clone = a.cloneNode(true);
