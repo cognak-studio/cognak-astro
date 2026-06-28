@@ -768,6 +768,10 @@ html.home-scrolled #cognak-cookie {
         /* Clip the nav-links halo at the viewport right edge without affecting
            vertical overflow (overflow-x:clip doesn't create a scroll container) */
         overflow-x: clip;
+        /* Always keep the bar on its own GPU compositor layer on mobile.
+           Without this, Chrome promotes/demotes the layer when nav-mode is
+           added/removed during scroll, causing a brief repaint jolt. */
+        will-change: transform;
     }
     /* Radial-gradient halo behind Projects/Studio (right side of bar).
        Radial gradient avoids filter:blur which breaks fixed compositing on mobile. */
