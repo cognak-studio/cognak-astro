@@ -915,11 +915,9 @@ html.home-scrolled #cognak-cookie {
     body.non-fixed-nav::after {
         display: none !important;
     }
-    /* Hard-cap everything fixed to the viewport width on mobile */
-    .home-nav,
-    #awwwards {
-        max-width: 100vw;
-        overflow: hidden;
+    /* Cookie banner halo is 520px wide — clips past right viewport edge on mobile */
+    #cognak-cookie::before {
+        display: none !important;
     }
 }
 
