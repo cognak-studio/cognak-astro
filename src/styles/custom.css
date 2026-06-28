@@ -792,8 +792,9 @@ html.home-scrolled #cognak-cookie {
     .home-bottom-logo {
         position: relative;
     }
-    /* Matching halo behind the cognak logo (left side of bar) */
-    .home-bottom-logo::before {
+    /* Halo behind the cognak logo — homepage hero only (body.non-fixed-nav).
+       Inner pages (studio, projects, privacy) don't have that class. */
+    body.non-fixed-nav .home-bottom-logo::before {
         content: "";
         position: absolute;
         width: 200px;
@@ -814,7 +815,7 @@ html.home-scrolled #cognak-cookie {
     }
     /* Both halos belong to the hero — fade out once bar reaches the top */
     html.home-scrolled .home-nav-links-mobile::before,
-    html.home-scrolled .home-bottom-logo::before {
+    html.home-scrolled body.non-fixed-nav .home-bottom-logo::before {
         opacity: 0;
     }
     .home-bottom-bar.inner-page-nav {
