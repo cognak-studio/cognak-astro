@@ -920,6 +920,7 @@ html.home-scrolled #cognak-cookie {
         display: flex;
         gap: 20px;
         pointer-events: auto;
+        margin-left: auto;
     }
     .home-bottom-mobile-nav a {
         font-family: 'Inter', sans-serif;
@@ -3009,12 +3010,7 @@ html body.page-template-page-privacy-policy,
         gap: 0 !important;
     }
     .footer-links {
-        position: absolute !important;
-        right: 24px !important;
-        bottom: 100px !important;
-        flex-direction: column !important;
-        align-items: flex-end !important;
-        gap: 15px !important;
+        display: none !important;
     }
     .main-footer {
         position: relative !important;
