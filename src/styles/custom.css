@@ -759,6 +759,9 @@ html.home-scrolled #cognak-cookie {
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         transition: none;
+        /* Block touches through the bar — prevents content behind from being
+           scrollable in the bar's footprint */
+        pointer-events: auto;
     }
     .home-bottom-bar.inner-page-nav {
         background: rgba(247, 241, 255, 0.75) !important;
@@ -2840,9 +2843,15 @@ a[href*="cookieyes.com"],
     #cognak-cookie {
         top: 20px;
         left: 20px;
-        /* Clip the 520px halo pseudo-element to the banner's own bounds so it
-           doesn't extend past the right viewport edge and cause horizontal scroll */
-        overflow: clip;
+        /* Replace the 520px ::before radial gradient (overflows viewport) with a
+           layered box-shadow — soft dark glow that won't cause horizontal scroll */
+        box-shadow:
+            0 0 28px 12px rgba(23, 21, 26, 0.95),
+            0 0 70px 40px rgba(23, 21, 26, 0.65),
+            0 0 130px 80px rgba(23, 21, 26, 0.35);
+    }
+    #cognak-cookie::before {
+        display: none;
     }
 }
 
