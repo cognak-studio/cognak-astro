@@ -48,10 +48,18 @@
             bar.style.top = '0';
             bar.style.bottom = 'auto';
         } else if (stageBottom < window.innerHeight) {
-            // Hero partially visible: follow stage bottom upward
             bar.classList.add('nav-mode');
-            bar.style.top = Math.max(0, stageBottom - barH) + 'px';
-            bar.style.bottom = 'auto';
+            if (isMobile) {
+                // Mobile: don't JS-track the hero bottom — that causes parallax.
+                // Let CSS bottom:0 hold the bar steady; just fade the background in.
+                // Clear any top/bottom set by the first branch (when scrolling back up).
+                bar.style.top = '';
+                bar.style.bottom = '';
+            } else {
+                // Desktop: follow stage bottom upward for the slide-up effect
+                bar.style.top = Math.max(0, stageBottom - barH) + 'px';
+                bar.style.bottom = 'auto';
+            }
         } else {
             // Hero fully visible: let CSS bottom:0 handle it — don't use
             // window.innerHeight here because it changes when Chrome's address
