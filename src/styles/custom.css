@@ -526,7 +526,9 @@ body.non-fixed-nav {
     }
     .hw { display: block !important; }
     .hw-br { display: none; }
-    #hero-make, #hero-something, #hero-phrase { min-height: 1.2em; }
+    #hero-make, #hero-something { min-height: 1.2em; }
+    /* Reserve 2-line height so "Make something" doesn't shift when phrase wraps */
+    #hero-phrase { min-height: 2.2em; }
 }
 @media (prefers-reduced-motion: reduce) {
     .hero-center-headline { transition: none; opacity: 1; filter: none; }
@@ -745,7 +747,7 @@ html.home-scrolled #cognak-cookie {
 }
 
 @media screen and (max-width: 720px) {
-    html, body {
+    body {
         overflow-x: hidden;
         max-width: 100%;
     }
@@ -913,10 +915,6 @@ html.home-scrolled #cognak-cookie {
     /* Hide the desktop top-right nav halo on mobile — it's 480px wide and
        bleeds across the entire viewport, creating a shadow behind the bottom bar */
     body.non-fixed-nav::after {
-        display: none !important;
-    }
-    /* Cookie banner halo is 520px wide — clips past right viewport edge on mobile */
-    #cognak-cookie::before {
         display: none !important;
     }
 }
@@ -2846,6 +2844,9 @@ a[href*="cookieyes.com"],
     #cognak-cookie {
         top: 20px;
         left: 20px;
+        /* Clip the 520px halo pseudo-element to the banner's own bounds so it
+           doesn't extend past the right viewport edge and cause horizontal scroll */
+        overflow: clip;
     }
 }
 

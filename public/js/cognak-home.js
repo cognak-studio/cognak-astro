@@ -73,7 +73,13 @@
         }
     }
 
-    window.addEventListener('scroll', update, { passive: true });
+    var _scrollTick = false;
+    window.addEventListener('scroll', function() {
+        if (!_scrollTick) {
+            _scrollTick = true;
+            requestAnimationFrame(function() { update(); _scrollTick = false; });
+        }
+    }, { passive: true });
     window.addEventListener('resize', update);
     requestAnimationFrame(update);
 })();
