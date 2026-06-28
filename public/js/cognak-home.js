@@ -37,7 +37,7 @@
             var naturalTop = stageH - barH - scrollY;
             var clampedTop = Math.max(0, naturalTop);
             bar.style.transform = 'translateY(' + clampedTop + 'px)';
-            document.body.classList.toggle('home-scrolled', scrollY > 4);
+            document.documentElement.classList.toggle('home-scrolled', scrollY > 4);
         }
 
         window.addEventListener('scroll', mobileUpdate, { passive: true });
@@ -56,7 +56,7 @@
 
         // Hero halos (cookie/nav/location) are fixed, so flag scroll-out-of-hero
         // to fade them — they should only appear over the hero, not scroll along.
-        document.body.classList.toggle('home-scrolled', window.scrollY > 4);
+        document.documentElement.classList.toggle('home-scrolled', window.scrollY > 4);
 
         if (stageBottom <= barH) {
             bar.classList.add('nav-mode');

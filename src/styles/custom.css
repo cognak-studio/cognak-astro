@@ -714,15 +714,15 @@ body.non-fixed-nav .home-bottom-location::before {
     opacity: 1;
     transition: opacity 0.3s ease;
 }
-body.home-scrolled #cognak-cookie::before,
-body.home-scrolled .home-nav::before,
-body.home-scrolled .home-bottom-location::before,
-body.home-scrolled .home-bottom-email::before {
+html.home-scrolled #cognak-cookie::before,
+html.home-scrolled .home-nav::before,
+html.home-scrolled .home-bottom-location::before,
+html.home-scrolled .home-bottom-email::before {
     opacity: 0;
 }
 /* The cookie banner is fixed too — keep it within the hero only, not visible
    behind the nav on lower sections. */
-body.home-scrolled #cognak-cookie {
+html.home-scrolled #cognak-cookie {
     opacity: 0;
     pointer-events: none;
 }
@@ -2760,8 +2760,9 @@ a[href*="cookieyes.com"],
 }
 /* Soft bg-color halo behind the cookie banner — radiates out from the top-left
    corner (same fade-out look as the hero, not a centered circle).
-   Homepage only (non-fixed-nav) — inner pages have a light nav bar. */
-body.non-fixed-nav #cognak-cookie::before {
+   Cookie banner only renders on the homepage, and on desktop it's reparented
+   onto <html>, so this stays unscoped (no body ancestor selector). */
+#cognak-cookie::before {
     content: "";
     position: absolute;
     top: -50px;
