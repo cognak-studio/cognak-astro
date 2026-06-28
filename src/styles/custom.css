@@ -746,13 +746,13 @@ html.home-scrolled #cognak-cookie {
 
 @media screen and (max-width: 720px) {
     html, body {
-        overflow-x: clip;
+        overflow-x: hidden;
         max-width: 100%;
     }
     .hero-scroll-stage,
     .main-intro,
     .homepage-main {
-        overflow-x: clip;
+        overflow-x: hidden;
         max-width: 100%;
     }
     .home-bottom-bar {
@@ -913,7 +913,13 @@ html.home-scrolled #cognak-cookie {
     /* Hide the desktop top-right nav halo on mobile — it's 480px wide and
        bleeds across the entire viewport, creating a shadow behind the bottom bar */
     body.non-fixed-nav::after {
-        display: none;
+        display: none !important;
+    }
+    /* Hard-cap everything fixed to the viewport width on mobile */
+    .home-nav,
+    #awwwards {
+        max-width: 100vw;
+        overflow: hidden;
     }
 }
 
