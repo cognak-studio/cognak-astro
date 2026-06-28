@@ -705,6 +705,22 @@ body.non-fixed-nav {
     pointer-events: none;
 }
 
+/* The hero halos sit on fixed elements, so fade them out once the page is
+   scrolled off the hero — they belong to the hero scene only. */
+#cognak-cookie::before,
+.home-nav::before,
+.home-bottom-location::before,
+.home-bottom-email::before {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+body.home-scrolled #cognak-cookie::before,
+body.home-scrolled .home-nav::before,
+body.home-scrolled .home-bottom-location::before,
+body.home-scrolled .home-bottom-email::before {
+    opacity: 0;
+}
+
 .home-bottom-bar.nav-swapped .home-bottom-location {
     left: 60%;
     transform: translate(-50%, -50%);
