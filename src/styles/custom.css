@@ -720,6 +720,12 @@ body.home-scrolled .home-bottom-location::before,
 body.home-scrolled .home-bottom-email::before {
     opacity: 0;
 }
+/* The cookie banner is fixed too — keep it within the hero only, not visible
+   behind the nav on lower sections. */
+body.home-scrolled #cognak-cookie {
+    opacity: 0;
+    pointer-events: none;
+}
 
 .home-bottom-bar.nav-swapped .home-bottom-location {
     left: 60%;
