@@ -422,11 +422,21 @@ body { overflow-x: clip; }
     var badges      = document.getElementById('award-badges-pop');
     var founderTriggers = document.querySelectorAll('.founder-name');
     var awardTriggers   = document.querySelectorAll('.award-name');
+    var cursor      = document.getElementById('cognak-cursor');
+    var cursorLabel = document.getElementById('cognak-cursor-label');
     var portraitTimer, badgesTimer;
     var activeTrigger = null;
 
+    function clearCursorPill() {
+        // Android Chrome synthesizes mouseenter on tap, so the desktop cursor pill
+        // activates but mouseleave never fires. Clear it manually here.
+        if (cursor)      { cursor.classList.remove('is-founder'); }
+        if (cursorLabel) { cursorLabel.textContent = ''; }
+    }
+
     function clearTrigger() {
         if (activeTrigger) { activeTrigger.classList.remove('is-tapped'); activeTrigger = null; }
+        clearCursorPill();
     }
 
     function showFor3s(el, triggerEl, existingTimer) {
