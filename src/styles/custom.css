@@ -780,8 +780,7 @@ html.home-scrolled #cognak-cookie {
         width: 220px;
         height: 160px;
         right: -30px;
-        top: 50%;
-        transform: translateY(-50%);
+        top: calc(50% - 80px);
         background: radial-gradient(ellipse at 65% 50%,
             rgba(23, 21, 26, 0.96) 0%,
             rgba(23, 21, 26, 0.78) 22%,
@@ -805,8 +804,7 @@ html.home-scrolled #cognak-cookie {
         width: 200px;
         height: 160px;
         left: -30px;
-        top: 50%;
-        transform: translateY(-50%);
+        top: calc(50% - 80px);
         background: radial-gradient(ellipse at 35% 50%,
             rgba(23, 21, 26, 0.96) 0%,
             rgba(23, 21, 26, 0.78) 22%,
