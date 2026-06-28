@@ -37,6 +37,15 @@
         var stageBottom = stage.getBoundingClientRect().bottom;
         var barH        = bar.offsetHeight;
 
+        // Top hero halos (Projects/Studio nav + cookie banner) are fixed, so their
+        // soft bottom edges would otherwise linger over the content scrolling up
+        // beneath them until home-scrolled finally fires. Fade them out within the
+        // first ~40% of a viewport scroll instead, so they're gone before the hero
+        // edge passes — no shadow flash below the WebGL area.
+        var scrolled = Math.max(0, window.innerHeight - stageBottom);
+        var haloOpacity = Math.max(0, Math.min(1, 1 - scrolled / (window.innerHeight * 0.4)));
+        document.documentElement.style.setProperty('--hero-halo-opacity', haloOpacity);
+
         // Nav/location/email halos are fixed. Keep them for the whole hero scroll
         // and only fade once the hero has actually scrolled out (its bottom edge
         // reaches the top bar). The cookie halo is excluded — it stays always.
