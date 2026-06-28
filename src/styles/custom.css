@@ -764,7 +764,8 @@ html.home-scrolled #cognak-cookie {
            vertical overflow (overflow-x:clip doesn't create a scroll container) */
         overflow-x: clip;
     }
-    /* Blurred blob shadow behind Projects/Studio — same treatment as cookie banner */
+    /* Radial-gradient halo behind Projects/Studio (right side of bar).
+       Radial gradient avoids filter:blur which breaks fixed compositing on mobile. */
     .home-nav-links-mobile::before {
         content: "";
         position: absolute;
@@ -773,16 +774,44 @@ html.home-scrolled #cognak-cookie {
         right: -30px;
         top: 50%;
         transform: translateY(-50%);
-        background: rgba(23, 21, 26, 0.88);
-        border-radius: 50%;
-        filter: blur(36px);
+        background: radial-gradient(ellipse at 65% 50%,
+            rgba(23, 21, 26, 0.96) 0%,
+            rgba(23, 21, 26, 0.78) 22%,
+            rgba(23, 21, 26, 0.52) 40%,
+            rgba(23, 21, 26, 0.22) 60%,
+            rgba(23, 21, 26, 0) 80%);
         z-index: -1;
         pointer-events: none;
         opacity: 1;
         transition: opacity 0.3s ease;
     }
-    /* Shadow belongs to the hero — fade it out once the bar has moved to the top */
-    html.home-scrolled .home-nav-links-mobile::before {
+    /* Give logo a positioning context for its ::before halo */
+    .home-bottom-logo {
+        position: relative;
+    }
+    /* Matching halo behind the cognak logo (left side of bar) */
+    .home-bottom-logo::before {
+        content: "";
+        position: absolute;
+        width: 200px;
+        height: 160px;
+        left: -30px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: radial-gradient(ellipse at 35% 50%,
+            rgba(23, 21, 26, 0.96) 0%,
+            rgba(23, 21, 26, 0.78) 22%,
+            rgba(23, 21, 26, 0.52) 40%,
+            rgba(23, 21, 26, 0.22) 60%,
+            rgba(23, 21, 26, 0) 80%);
+        z-index: -1;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+    /* Both halos belong to the hero — fade out once bar reaches the top */
+    html.home-scrolled .home-nav-links-mobile::before,
+    html.home-scrolled .home-bottom-logo::before {
         opacity: 0;
     }
     .home-bottom-bar.inner-page-nav {
