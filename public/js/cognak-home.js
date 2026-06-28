@@ -8,6 +8,8 @@
     var stage    = document.querySelector('.hero-scroll-stage');
     if (!bar || !stage) return;
 
+    var isMobile = window.matchMedia('(max-width: 720px)').matches;
+
     var navLinks = null;
     if (homeNav) {
         navLinks = document.createElement('div');
@@ -20,42 +22,19 @@
         bar.appendChild(navLinks);
     }
 
-    if (window.matchMedia('(max-width: 720px)').matches) {
+    if (isMobile) {
+        // On mobile, always show the nav links anchored to the right edge of the
+        // bar so they can't overflow the viewport. Use absolute positioning within
+        // the fixed bar (not a separate transform approach, which conflicted with
+        // the CSS bottom:0 baseline).
         if (navLinks) {
             navLinks.style.display = 'flex';
-            // Anchor links to the right edge of the bar so they can never
-            // overflow the viewport regardless of flex container behaviour.
             navLinks.style.position = 'absolute';
             navLinks.style.right    = '24px';
             navLinks.style.top      = '50%';
             navLinks.style.transform = 'translateY(-50%)';
         }
         if (homeNav) homeNav.style.display = 'none';
-
-        bar.style.position = 'fixed';
-        bar.style.top      = '0';
-        bar.style.bottom   = 'auto';
-        bar.style.willChange = 'transform';
-
-        var stageH = stage.offsetHeight;
-        var barH   = bar.offsetHeight;
-
-        function mobileUpdate() {
-            var scrollY    = window.scrollY;
-            var naturalTop = stageH - barH - scrollY;
-            var clampedTop = Math.max(0, naturalTop);
-            bar.style.transform = 'translateY(' + clampedTop + 'px)';
-            document.documentElement.classList.toggle('home-scrolled', scrollY > stageH - barH);
-        }
-
-        window.addEventListener('scroll', mobileUpdate, { passive: true });
-        window.addEventListener('resize', function() {
-            stageH = stage.offsetHeight;
-            barH   = bar.offsetHeight;
-            mobileUpdate();
-        }, { passive: true });
-        mobileUpdate();
-        return;
     }
 
     function update() {
@@ -81,11 +60,15 @@
 
         if (stageBottom <= barH + 55) {
             bar.classList.add('nav-swapped');
-            if (navLinks) navLinks.style.display = 'flex';
+            // On desktop: show navLinks now that hero has scrolled out.
+            // On mobile: navLinks are always shown (set above); just add class.
+            if (!isMobile && navLinks) navLinks.style.display = 'flex';
             if (homeNav) { homeNav.style.opacity = '0'; homeNav.style.pointerEvents = 'none'; }
         } else {
             bar.classList.remove('nav-swapped');
-            if (navLinks) navLinks.style.display = 'none';
+            // On desktop: hide navLinks while still in hero.
+            // On mobile: keep navLinks always visible.
+            if (!isMobile && navLinks) navLinks.style.display = 'none';
             if (homeNav && window.cognak_entrance_done) { homeNav.style.opacity = '1'; homeNav.style.pointerEvents = ''; }
         }
     }
@@ -465,6 +448,19 @@
     var hl        = document.querySelector('.hero-center-headline');
     if (!el || !hl) return;
 
+    var isMobilePhrases = window.matchMedia('(max-width: 720px)').matches;
+
+    // On mobile, \n in a phrase renders as <br> so words stack.
+    // "with intention" stays one line; "worth noticing" and "to outlast trends"
+    // break at the positions the user specified.
+    function setPhrase(text) {
+        if (isMobilePhrases && text.indexOf('\n') !== -1) {
+            el.innerHTML = text.replace(/\n/g, '<br>');
+        } else {
+            el.textContent = text;
+        }
+    }
+
     function typeIn(target, setFn, onDone) {
         var i = 0;
         var t = setInterval(function() {
@@ -473,12 +469,14 @@
         }, 55);
     }
 
+    var initialPhrase = isMobilePhrases ? 'worth\nnoticing' : 'worth noticing';
+
     function startTypeSequence() {
         typeIn('Make', function(t) { if (makeEl) makeEl.textContent = t; }, function() {
             setTimeout(function() {
                 typeIn('something', function(t) { if (somethingEl) somethingEl.textContent = t; }, function() {
                     setTimeout(function() {
-                        typeIn('worth noticing', function(t) { el.textContent = t; }, null);
+                        typeIn(initialPhrase, function(t) { setPhrase(t); }, null);
                     }, 80);
                 });
             }, 80);
@@ -495,7 +493,15 @@
     });
     hlObserver.observe(hl, { attributes: true, attributeFilter: ['class'] });
 
-    var phrases = [
+    var phrases = isMobilePhrases ? [
+        'worth\nnoticing',
+        'that lasts',
+        'to outlast\ntrends',
+        'moving',
+        'with intention',
+        'human',
+        'considered'
+    ] : [
         'worth noticing',
         'that lasts',
         'to outlast trends',
@@ -514,14 +520,14 @@
         current = (current + 1) % phrases.length;
         var target = phrases[current];
         var i = 0;
-        hl.setAttribute('aria-label', 'Make something ' + target);
-        el.textContent = '';
+        hl.setAttribute('aria-label', 'Make something ' + target.replace(/\n/g, ' '));
+        el.innerHTML = '';
         timer = setInterval(function() {
             if (i < target.length) {
-                el.textContent = target.slice(0, i + 1);
+                setPhrase(target.slice(0, i + 1));
                 i++;
             } else {
-                el.textContent = target;
+                setPhrase(target);
                 clearInterval(timer);
                 timer = null;
             }
