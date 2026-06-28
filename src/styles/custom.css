@@ -558,12 +558,14 @@ body.non-fixed-nav {
     align-items: flex-end;
     gap: 6px;
 }
-/* Bg-color halo behind the Projects/Studio nav — radiates from the top-right corner. */
-body.non-fixed-nav .home-nav::before {
+/* Bg-color halo behind the Projects/Studio nav — radiates from the top-right corner.
+   Lives on the body (not .home-nav) so it can sit BELOW the cursor and awwwards
+   badge; .home-nav's huge z-index would otherwise trap it above both. */
+body.non-fixed-nav::after {
     content: "";
-    position: absolute;
-    top: -50px;
-    right: -50px;
+    position: fixed;
+    top: -18px;
+    right: -10px;
     width: 480px;
     height: 340px;
     background: radial-gradient(ellipse at top right,
@@ -572,7 +574,7 @@ body.non-fixed-nav .home-nav::before {
         rgba(23,21,26,0.78) 40%,
         rgba(23,21,26,0.45) 56%,
         rgba(23,21,26,0) 75%);
-    z-index: -1;
+    z-index: 9998;
     pointer-events: none;
 }
 .home-nav a {
@@ -708,7 +710,7 @@ body.non-fixed-nav .home-bottom-location::before {
 /* The hero halos sit on fixed elements, so fade them out once the page is
    scrolled off the hero — they belong to the hero scene only. */
 #cognak-cookie::before,
-.home-nav::before,
+body.non-fixed-nav::after,
 .home-bottom-location::before,
 .home-bottom-email::before {
     opacity: 1;
@@ -716,7 +718,7 @@ body.non-fixed-nav .home-bottom-location::before {
 }
 /* Cookie halo is intentionally NOT here — it stays behind the cookie banner the
    entire time. These fade only once the hero has scrolled out of view. */
-html.home-scrolled .home-nav::before,
+html.home-scrolled body.non-fixed-nav::after,
 html.home-scrolled .home-bottom-location::before,
 html.home-scrolled .home-bottom-email::before {
     opacity: 0;
@@ -903,6 +905,13 @@ html.home-scrolled .home-bottom-email::before {
     .home-nav {
         top: 20px;
         right: 20px;
+    }
+    .home-nav a {
+        margin-right: 0 !important;
+        padding-right: 0 !important;
+    }
+    body.non-fixed-nav::after {
+        display: none;
     }
 }
 
