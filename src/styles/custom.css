@@ -747,6 +747,11 @@ html.home-scrolled #cognak-cookie {
 }
 
 @media screen and (max-width: 720px) {
+    /* Prevent pull-down bounce/stretch — Chrome's overscroll animation causes
+       position:fixed elements to drift during the gesture */
+    html, body {
+        overscroll-behavior-y: none;
+    }
     /* Clip horizontal overflow at the paint layer without creating a scroll container
        (overflow:clip doesn't establish a BFC unlike overflow:hidden) */
     .hero-scroll-stage,
