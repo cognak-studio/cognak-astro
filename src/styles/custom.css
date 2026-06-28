@@ -711,12 +711,18 @@ body.non-fixed-nav .home-bottom-location::before {
 
 /* The hero halos sit on fixed elements, so fade them out once the page is
    scrolled off the hero — they belong to the hero scene only. */
-#cognak-cookie::before,
-body.non-fixed-nav::after,
 .home-bottom-location::before,
 .home-bottom-email::before {
     opacity: 1;
     transition: opacity 0.3s ease;
+}
+/* The two top halos (Projects/Studio nav + cookie banner) fade early, driven by
+   scroll progress (--hero-halo-opacity, set in cognak-home.js). This clears their
+   soft bottom edges before the hero scrolls out, so no shadow flashes over the
+   content below the WebGL hero. */
+#cognak-cookie::before,
+body.non-fixed-nav::after {
+    opacity: var(--hero-halo-opacity, 1);
 }
 /* The cookie banner (and its top-left halo, which fades with the parent's
    opacity) belongs to the hero too — hide it once the hero scrolls out of view.
@@ -788,8 +794,6 @@ html.home-scrolled #cognak-cookie {
             rgba(23, 21, 26, 0) 80%);
         z-index: -1;
         pointer-events: none;
-        opacity: 1;
-        transition: opacity 0.3s ease;
     }
     /* Give logo a positioning context for its ::before halo */
     .home-bottom-logo {
@@ -812,10 +816,8 @@ html.home-scrolled #cognak-cookie {
             rgba(23, 21, 26, 0) 80%);
         z-index: -1;
         pointer-events: none;
-        opacity: 1;
-        transition: opacity 0.3s ease;
     }
-    /* Both halos belong to the hero — fade out once bar reaches the top */
+    /* Both halos belong to the hero — snap out once bar reaches the top */
     html.home-scrolled .home-nav-links-mobile::before,
     html.home-scrolled body.non-fixed-nav .home-bottom-logo::before {
         opacity: 0;

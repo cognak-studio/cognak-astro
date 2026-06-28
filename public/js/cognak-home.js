@@ -37,6 +37,15 @@
         var stageBottom = stage.getBoundingClientRect().bottom;
         var barH        = bar.offsetHeight;
 
+        // Top hero halos (Projects/Studio nav + cookie banner) are fixed, so their
+        // soft bottom edges would otherwise linger over the content scrolling up
+        // beneath them until home-scrolled finally fires. Fade them out within the
+        // first ~40% of a viewport scroll instead, so they're gone before the hero
+        // edge passes — no shadow flash below the WebGL area.
+        var scrolled = Math.max(0, window.innerHeight - stageBottom);
+        var haloOpacity = Math.max(0, Math.min(1, 1 - scrolled / (window.innerHeight * 0.4)));
+        document.documentElement.style.setProperty('--hero-halo-opacity', haloOpacity);
+
         // Nav/location/email halos are fixed. Keep them for the whole hero scroll
         // and only fade once the hero has actually scrolled out (its bottom edge
         // reaches the top bar). The cookie halo is excluded — it stays always.
@@ -48,18 +57,10 @@
             bar.style.top = '0';
             bar.style.bottom = 'auto';
         } else if (stageBottom < window.innerHeight) {
+            // Hero partially visible: follow stage bottom upward
             bar.classList.add('nav-mode');
-            if (isMobile) {
-                // Mobile: don't JS-track the hero bottom — that causes parallax.
-                // Let CSS bottom:0 hold the bar steady; just fade the background in.
-                // Clear any top/bottom set by the first branch (when scrolling back up).
-                bar.style.top = '';
-                bar.style.bottom = '';
-            } else {
-                // Desktop: follow stage bottom upward for the slide-up effect
-                bar.style.top = Math.max(0, stageBottom - barH) + 'px';
-                bar.style.bottom = 'auto';
-            }
+            bar.style.top = Math.max(0, stageBottom - barH) + 'px';
+            bar.style.bottom = 'auto';
         } else {
             // Hero fully visible: let CSS bottom:0 handle it — don't use
             // window.innerHeight here because it changes when Chrome's address
