@@ -113,8 +113,11 @@
 
     setTimeout(function() {
         window.cognak_entrance_done = true;
+        // On mobile the top-right .home-nav is intentionally hidden and replaced
+        // by the cloned links in the bottom bar — don't reveal it here, or the two
+        // navs collide and Projects/Studio overflow off the right edge.
         var nav = document.querySelector('.home-nav');
-        if (nav) {
+        if (nav && !window.matchMedia('(max-width: 720px)').matches) {
             nav.style.transition = 'opacity 1s ease';
             nav.style.opacity = '1';
             nav.style.pointerEvents = 'auto';
