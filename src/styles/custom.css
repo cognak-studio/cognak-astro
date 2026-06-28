@@ -716,12 +716,17 @@ body.non-fixed-nav::after,
     opacity: 1;
     transition: opacity 0.3s ease;
 }
-/* Cookie halo is intentionally NOT here — it stays behind the cookie banner the
-   entire time. These fade only once the hero has scrolled out of view. */
+/* The cookie banner (and its top-left halo, which fades with the parent's
+   opacity) belongs to the hero too — hide it once the hero scrolls out of view.
+   On desktop the banner is reparented onto <html>, so html.home-scrolled reaches it. */
 html.home-scrolled body.non-fixed-nav::after,
 html.home-scrolled .home-bottom-location::before,
-html.home-scrolled .home-bottom-email::before {
+html.home-scrolled .home-bottom-email::before,
+html.home-scrolled #cognak-cookie {
     opacity: 0;
+}
+html.home-scrolled #cognak-cookie {
+    pointer-events: none;
 }
 
 .home-bottom-bar.nav-swapped .home-bottom-location {
