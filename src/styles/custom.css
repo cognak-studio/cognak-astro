@@ -747,12 +747,6 @@ html.home-scrolled #cognak-cookie {
 }
 
 @media screen and (max-width: 720px) {
-    .hero-scroll-stage,
-    .main-intro,
-    .homepage-main {
-        overflow-x: hidden;
-        max-width: 100%;
-    }
     .home-bottom-bar {
         padding: 20px 24px;
         background: rgba(23, 21, 26, 0.75) !important;
