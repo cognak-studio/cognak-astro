@@ -11,7 +11,7 @@
     var navLinks = null;
     if (homeNav) {
         navLinks = document.createElement('div');
-        navLinks.style.cssText = 'display:none;gap:24px;align-items:center;flex-shrink:0;overflow:hidden;';
+        navLinks.style.cssText = 'display:none;gap:24px;align-items:center;';
         homeNav.querySelectorAll('a').forEach(function(a) {
             var clone = a.cloneNode(true);
             clone.style.cssText = "font-family:'Inter',sans-serif;font-size:13px;font-weight:400;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:0.04em;";
@@ -21,7 +21,15 @@
     }
 
     if (window.matchMedia('(max-width: 720px)').matches) {
-        if (navLinks) navLinks.style.display = 'flex';
+        if (navLinks) {
+            navLinks.style.display = 'flex';
+            // Anchor links to the right edge of the bar so they can never
+            // overflow the viewport regardless of flex container behaviour.
+            navLinks.style.position = 'absolute';
+            navLinks.style.right    = '24px';
+            navLinks.style.top      = '50%';
+            navLinks.style.transform = 'translateY(-50%)';
+        }
         if (homeNav) homeNav.style.display = 'none';
 
         bar.style.position = 'fixed';
