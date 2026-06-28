@@ -747,6 +747,14 @@ html.home-scrolled #cognak-cookie {
 }
 
 @media screen and (max-width: 720px) {
+    /* Clip horizontal overflow at the paint layer without creating a scroll container
+       (overflow:clip doesn't establish a BFC unlike overflow:hidden) */
+    .hero-scroll-stage,
+    .main-intro,
+    .homepage-main {
+        overflow-x: clip;
+        max-width: 100%;
+    }
     .home-bottom-bar {
         padding: 20px 24px;
         background: rgba(23, 21, 26, 0.75) !important;
@@ -2837,15 +2845,20 @@ a[href*="cookieyes.com"],
     #cognak-cookie {
         top: 20px;
         left: 20px;
-        /* Replace the 520px ::before radial gradient (overflows viewport) with a
-           layered box-shadow — soft dark glow that won't cause horizontal scroll */
-        box-shadow:
-            0 0 28px 12px rgba(23, 21, 26, 0.95),
-            0 0 70px 40px rgba(23, 21, 26, 0.65),
-            0 0 130px 80px rgba(23, 21, 26, 0.35);
     }
+    /* On mobile the desktop ::before is 520px wide and overflows the viewport.
+       Override it with a compact blurred blob — filter:blur on a rounded shape
+       produces a genuine soft shadow, not the sharp rectangle that box-shadow gives. */
     #cognak-cookie::before {
-        display: none;
+        width: 240px;
+        height: 180px;
+        top: -50px;
+        left: -40px;
+        background: rgba(23, 21, 26, 0.88);
+        border-radius: 50%;
+        filter: blur(36px);
+        /* Override the desktop radial-gradient so the blob reads as a shadow */
+        background-image: none;
     }
 }
 
