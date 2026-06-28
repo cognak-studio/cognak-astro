@@ -47,16 +47,23 @@
         document.documentElement.classList.toggle('home-scrolled', stageBottom <= barH);
 
         if (stageBottom <= barH) {
+            // Hero scrolled fully past: pin bar to top
             bar.classList.add('nav-mode');
             bar.style.top = '0';
+            bar.style.bottom = 'auto';
         } else if (stageBottom < window.innerHeight) {
+            // Hero partially visible: follow stage bottom upward
             bar.classList.add('nav-mode');
             bar.style.top = Math.max(0, stageBottom - barH) + 'px';
+            bar.style.bottom = 'auto';
         } else {
+            // Hero fully visible: let CSS bottom:0 handle it — don't use
+            // window.innerHeight here because it changes when Chrome's address
+            // bar shows/hides, causing the bar to jolt.
             bar.classList.remove('nav-mode');
-            bar.style.top = (window.innerHeight - barH) + 'px';
+            bar.style.top = '';
+            bar.style.bottom = '';
         }
-        bar.style.bottom = 'auto';
 
         if (stageBottom <= barH + 55) {
             bar.classList.add('nav-swapped');
