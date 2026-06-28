@@ -595,11 +595,6 @@ body.non-fixed-nav::after {
 }
 }
 
-/* Projects/Studio in bottom bar — mobile only */
-.home-bottom-mobile-nav {
-    display: none;
-}
-
 /* ── Homepage bottom bar ── */
 .home-bottom-bar {
     position: fixed;
@@ -914,21 +909,6 @@ html.home-scrolled #cognak-cookie {
     }
     .home-nav {
         display: none;
-    }
-    /* Projects/Studio in bottom bar on mobile homepage */
-    .home-bottom-mobile-nav {
-        display: flex;
-        gap: 20px;
-        pointer-events: auto;
-        margin-left: auto;
-    }
-    .home-bottom-mobile-nav a {
-        font-family: 'Inter', sans-serif;
-        font-size: 13px;
-        font-weight: 400;
-        color: rgba(255,255,255,0.6);
-        text-decoration: none;
-        letter-spacing: 0.04em;
     }
 }
 

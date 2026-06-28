@@ -22,7 +22,7 @@
 
     if (window.matchMedia('(max-width: 720px)').matches) {
         if (navLinks) navLinks.style.display = 'flex';
-        if (homeNav) { homeNav.style.opacity = '0'; homeNav.style.pointerEvents = 'none'; }
+        if (homeNav) homeNav.style.display = 'none';
 
         bar.style.position = 'fixed';
         bar.style.top      = '0';
