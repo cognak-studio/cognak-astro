@@ -2371,31 +2371,41 @@ html.pv-grid .projects-list,
         max-width: 100% !important;
         width: 100% !important;
     }
-    /* Portrait + badges: hidden by default on mobile, shown on tap via is-active */
+    /* Portrait + badges: hidden by default on mobile via opacity (not display:none —
+       display toggle kills CSS transitions, preventing the badge spring pop). */
     .founder-portrait-wrap,
     .award-badges-wrap {
-        display: none;
+        display: flex !important;
         position: fixed !important;
         left: 50% !important;
-        top: 50% !important;
-        transform: translate(-50%, -44px) !important;
-        transition: opacity 0.4s ease !important;
+        top: 44% !important;
         opacity: 0;
         pointer-events: none;
     }
     .founder-portrait-wrap {
         width: 200px !important;
+        transform: translate(-50%, calc(-50% + 16px)) !important;
+        transition: transform 0.55s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease !important;
     }
     .award-badges-wrap {
         flex-direction: column !important;
         align-items: center !important;
         gap: 12px !important;
+        transform: translate(-50%, -50%) !important;
+        transition: opacity 0.4s ease !important;
     }
-    .founder-portrait-wrap.is-active,
-    .award-badges-wrap.is-active {
-        display: flex !important;
+    .founder-portrait-wrap.is-active {
         opacity: 1 !important;
         transform: translate(-50%, -50%) !important;
+    }
+    .award-badges-wrap.is-active {
+        opacity: 1 !important;
+    }
+    /* Purple highlight on the tapped trigger word — fades when popup dismisses */
+    .founder-name.is-tapped,
+    .award-name.is-tapped {
+        color: #9F50FF !important;
+        text-shadow: none !important;
     }
     /* Re-enable taps on trigger words */
     .founder-name,

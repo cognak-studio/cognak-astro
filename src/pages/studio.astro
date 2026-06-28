@@ -423,25 +423,35 @@ body { overflow-x: clip; }
     var founderTriggers = document.querySelectorAll('.founder-name');
     var awardTriggers   = document.querySelectorAll('.award-name');
     var portraitTimer, badgesTimer;
+    var activeTrigger = null;
 
-    function showFor3s(el, existingTimer) {
+    function clearTrigger() {
+        if (activeTrigger) { activeTrigger.classList.remove('is-tapped'); activeTrigger = null; }
+    }
+
+    function showFor3s(el, triggerEl, existingTimer) {
         if (!el) return existingTimer;
         clearTimeout(existingTimer);
+        clearTrigger();
         el.classList.add('is-active');
-        return setTimeout(function() { el.classList.remove('is-active'); }, 3000);
+        if (triggerEl) { triggerEl.classList.add('is-tapped'); activeTrigger = triggerEl; }
+        return setTimeout(function() {
+            el.classList.remove('is-active');
+            clearTrigger();
+        }, 3000);
     }
 
     founderTriggers.forEach(function(n) {
         n.addEventListener('click', function(e) {
             e.stopPropagation();
-            portraitTimer = showFor3s(portrait, portraitTimer);
+            portraitTimer = showFor3s(portrait, n, portraitTimer);
         });
     });
 
     awardTriggers.forEach(function(n) {
         n.addEventListener('click', function(e) {
             e.stopPropagation();
-            badgesTimer = showFor3s(badges, badgesTimer);
+            badgesTimer = showFor3s(badges, n, badgesTimer);
         });
     });
 
@@ -451,6 +461,7 @@ body { overflow-x: clip; }
         if (badges)   badges.classList.remove('is-active');
         clearTimeout(portraitTimer);
         clearTimeout(badgesTimer);
+        clearTrigger();
     });
 })();
 </script>
