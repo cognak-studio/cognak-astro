@@ -56,7 +56,7 @@
 
         // Hero halos (cookie/nav/location) are fixed, so flag scroll-out-of-hero
         // to fade them — they should only appear over the hero, not scroll along.
-        document.body.classList.toggle('home-scrolled', stageBottom < window.innerHeight - 1);
+        document.body.classList.toggle('home-scrolled', window.scrollY > 4);
 
         if (stageBottom <= barH) {
             bar.classList.add('nav-mode');
