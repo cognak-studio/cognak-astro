@@ -757,12 +757,8 @@ html.home-scrolled #cognak-cookie {
     }
     .home-bottom-bar {
         padding: 20px 24px;
-        background: rgba(23, 21, 26, 0.75) !important;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        transition: none;
-        /* Block touches through the bar — prevents content behind from being
-           scrollable in the bar's footprint */
+        /* Let nav-mode class control background + backdrop-filter (same as desktop)
+           so the background fades in on scroll and out at the very top */
         pointer-events: auto;
     }
     .home-bottom-bar.inner-page-nav {
