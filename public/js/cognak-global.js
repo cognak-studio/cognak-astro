@@ -258,48 +258,74 @@
             return clamp(v).toString(16).padStart(2, '0');
         }).join('');
     }
-    function analyzeAndColor(img, caption) {
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
+    // White or black text, decided by the brightness of the card thumbnail.
+    // (Unchanged behaviour — the title stays legible on light vs dark cards.)
+    function colorFromThumb(img, caption) {
         var sw = img.naturalWidth;
         var sh = Math.min(80, img.naturalHeight);
         var sy = img.naturalHeight - sh;
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
         canvas.width = sw;
         canvas.height = sh;
         try {
             ctx.drawImage(img, 0, sy, sw, sh, 0, 0, sw, sh);
             var data = ctx.getImageData(0, 0, sw, sh).data;
-            var totalLum = 0, totalR = 0, totalG = 0, totalB = 0, count = 0;
+            var total = 0, count = 0;
             for (var i = 0; i < data.length; i += 32) {
-                var r = data[i], g = data[i + 1], b = data[i + 2];
-                totalLum += getLuminance(r, g, b);
-                totalR += r; totalG += g; totalB += b;
+                total += getLuminance(data[i], data[i + 1], data[i + 2]);
                 count++;
             }
-            var avg   = count ? totalLum / count : 0;
-            var avgR  = count ? totalR / count : 128;
-            var avgG  = count ? totalG / count : 128;
-            var avgB  = count ? totalB / count : 128;
-            var isLight = avg > 0.45;
-            caption.style.color = isLight ? '#111111' : '#ffffff';
-            var shift = 35;
-            var glowR, glowG, glowB;
-            if (isLight) {
-                glowR = clamp(avgR + shift);
-                glowG = clamp(avgG + shift);
-                glowB = clamp(avgB + shift);
-            } else {
-                glowR = clamp(avgR - shift);
-                glowG = clamp(avgG - shift);
-                glowB = clamp(avgB - shift);
-            }
-            var glowColor = toHex(glowR, glowG, glowB);
-            caption.style.textShadow =
-                '0 0 20px ' + glowColor + ', 0 0 10px ' + glowColor;
+            var avg = count ? total / count : 0;
+            caption.style.color = avg > 0.45 ? '#111111' : '#ffffff';
         } catch (e) {
             caption.style.color = '#ffffff';
-            caption.style.textShadow = 'none';
         }
+    }
+
+    // Average colour of the darkest ~15% of pixels in the bottom-left region
+    // (where the title sits). Drives an image/video-derived shadow rather than
+    // a tinted glow. Works for <img> and <video> (samples the current frame).
+    function darkestRegionColor(media) {
+        var w = media.naturalWidth || media.videoWidth;
+        var h = media.naturalHeight || media.videoHeight;
+        if (!w || !h) return null;
+        var sw = Math.max(1, Math.min(Math.round(w * 0.7), w));
+        var sh = Math.max(1, Math.min(Math.round(h * 0.5), h));
+        var sy = h - sh;
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+        canvas.width = sw;
+        canvas.height = sh;
+        try {
+            ctx.drawImage(media, 0, sy, sw, sh, 0, 0, sw, sh);
+            var data = ctx.getImageData(0, 0, sw, sh).data;
+            var px = [];
+            for (var i = 0; i < data.length; i += 32) {
+                var r = data[i], g = data[i + 1], b = data[i + 2];
+                px.push([getLuminance(r, g, b), r, g, b]);
+            }
+            if (!px.length) return null;
+            px.sort(function(a, b) { return a[0] - b[0]; });
+            var n = Math.max(1, Math.round(px.length * 0.15));
+            var tr = 0, tg = 0, tb = 0;
+            for (var j = 0; j < n; j++) { tr += px[j][1]; tg += px[j][2]; tb += px[j][3]; }
+            return [Math.round(tr / n), Math.round(tg / n), Math.round(tb / n)];
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // Soft, layered shadow that fades out — legible but not distracting.
+    function buildShadow(rgb) {
+        var c = rgb
+            ? 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ','
+            : 'rgba(0,0,0,';
+        return '0 0 3px ' + c + '0.95), 0 1px 10px ' + c + '0.6), 0 1px 24px ' + c + '0.35)';
+    }
+
+    function applyShadow(caption, media) {
+        caption.style.textShadow = buildShadow(darkestRegionColor(media));
     }
 
     var isHoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -336,15 +362,42 @@
             document.querySelectorAll('.project-excerpt, .projects-grid-item')
         );
         tileItems.forEach(function(item) {
-            var img = item.querySelector('img:not(.emoji)');
             var caption = item.querySelector('.project-title-hover');
-            if (!img || !caption) return;
-            if (img.complete && img.naturalWidth > 0) {
-                analyzeAndColor(img, caption);
-            } else {
-                img.addEventListener('load', function() {
-                    analyzeAndColor(img, caption);
-                }, { once: true });
+            if (!caption) return;
+            var thumb = item.querySelector('img:not(.emoji):not(.hp-hover-media)');
+            var media = item.querySelector('.hp-hover-media') || thumb;
+
+            // Always start with a neutral soft shadow so text is legible immediately.
+            caption.style.textShadow = buildShadow(null);
+
+            // Text colour (white/black) from the card thumbnail.
+            if (thumb) {
+                if (thumb.complete && thumb.naturalWidth > 0) {
+                    colorFromThumb(thumb, caption);
+                } else {
+                    thumb.addEventListener('load', function() {
+                        colorFromThumb(thumb, caption);
+                    }, { once: true });
+                }
+            }
+
+            // Shadow colour from the darkest part of the visible media.
+            if (media) {
+                if (media.tagName === 'VIDEO') {
+                    var sampleVid = function() { applyShadow(caption, media); };
+                    if (media.readyState >= 2) {
+                        sampleVid();
+                    } else {
+                        media.addEventListener('loadeddata', sampleVid, { once: true });
+                        media.addEventListener('playing', sampleVid, { once: true });
+                    }
+                } else if (media.complete && media.naturalWidth > 0) {
+                    applyShadow(caption, media);
+                } else {
+                    media.addEventListener('load', function() {
+                        applyShadow(caption, media);
+                    }, { once: true });
+                }
             }
         });
         if (!isHoverDevice) {
