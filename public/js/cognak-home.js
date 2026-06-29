@@ -585,6 +585,7 @@
     cards.forEach(function(card) {
         var tX = 0, tY = 0, cX = 0, cY = 0;
         var hovering = false, raf = null;
+        var hoverVid = card.querySelector('video.hp-hover-media');
 
         function lerp(a, b, t) { return a + (b - a) * t; }
 
@@ -603,6 +604,10 @@
         card.addEventListener('mouseenter', function() {
             hovering = true;
             if (!raf) raf = requestAnimationFrame(tick);
+            if (hoverVid) {
+                var pr = hoverVid.play();
+                if (pr && pr.catch) pr.catch(function() {});
+            }
         });
         card.addEventListener('mousemove', function(e) {
             var r = card.getBoundingClientRect();
@@ -613,6 +618,7 @@
             hovering = false;
             tX = 0; tY = 0;
             if (!raf) raf = requestAnimationFrame(tick);
+            if (hoverVid) { hoverVid.pause(); hoverVid.currentTime = 0; }
         });
     });
 })();

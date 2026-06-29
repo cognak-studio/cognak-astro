@@ -12,14 +12,18 @@ const cards = await Promise.all(
   featured.map(async (p) => {
     const thumb = await getImage({ src: p.data.thumbnail, format: 'webp', width: 800 });
     const hoverSrc = p.data.hover ?? p.data.hero;
-    const cursorHero = await getImage({ src: hoverSrc, format: 'webp', width: 600 });
+    // Square-sized hero shown inside the tile on hover.
+    const squareHero = await getImage({ src: hoverSrc, format: 'webp', width: 1000 });
+    // Cursor-sized panel (the colour box + logo) shown in the custom cursor on hover.
+    const cursorPanel = await getImage({ src: p.data.thumbnail, format: 'webp', width: 600 });
     return {
       slug: p.data.slug ?? p.id,
       title: p.data.title,
       type: p.data.projectType ?? '',
       year: p.data.projectYear ?? '',
       thumb: thumb.src,
-      cursorHero: cursorHero.src,
+      squareHero: squareHero.src,
+      cursorPanel: cursorPanel.src,
       heroVideo: p.data.heroVideo ?? null,
     };
   })
@@ -72,14 +76,18 @@ const cards = await Promise.all(
       <div class="hp-grid" id="hp-grid">
         {cards.map((c, i) => (
           <article class:list={["col", "project-excerpt", { "hp-hidden": i >= 6 }]}
-            data-hero={c.cursorHero}
-            data-hero-video={c.heroVideo}
+            data-hero={c.cursorPanel}
             data-project-title={c.title}
             data-project-type={c.type}
             data-project-year={c.year}>
             <figure style={`view-transition-name: project-thumb-${c.slug}`}>
               <a href={`/projects/${c.slug}`}>
                 <img src={c.thumb} class="cover hp-lazy" loading="lazy" alt={c.title} />
+                {c.heroVideo ? (
+                  <video class="hp-hover-media" src={c.heroVideo} muted loop playsinline webkit-playsinline preload="none" aria-hidden="true"></video>
+                ) : (
+                  <img class="hp-hover-media" src={c.squareHero} loading="lazy" alt="" aria-hidden="true" />
+                )}
                 <figcaption class="project-title-hover">{c.title}</figcaption>
               </a>
             </figure>

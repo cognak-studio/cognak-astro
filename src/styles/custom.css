@@ -1237,6 +1237,23 @@ html.home-scrolled #cognak-cookie {
     transform: translateY(12px);
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
+/* Hover swap: tile reveals the hero image/video on hover (homepage only). */
+.hp-grid .project-excerpt .hp-hover-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    z-index: 1;
+    pointer-events: none;
+}
+.hp-grid .project-excerpt .project-title-hover { z-index: 2; }
+@media (hover: hover) and (pointer: fine) {
+    .hp-grid .project-excerpt:hover .hp-hover-media { opacity: 1; }
+}
 .hp-grid .project-excerpt figure img.hp-lazy.hp-lazy-loaded {
     opacity: 1;
     transform: translateY(0);
