@@ -92,7 +92,13 @@
     var cursor = document.getElementById('cognak-cursor');
     var label  = document.getElementById('cognak-cursor-label');
     var cursorImg = document.getElementById('cognak-cursor-img');
+    var cursorVideo = document.getElementById('cognak-cursor-video');
     if (!cursor) return;
+
+    function clearCursorVideo() {
+        cursor.classList.remove('is-video');
+        if (cursorVideo) { cursorVideo.pause(); cursorVideo.removeAttribute('src'); cursorVideo.load(); }
+    }
 
     var mouseX = 0, mouseY = 0;
     var curX   = 0, curY   = 0;
@@ -107,6 +113,7 @@
         if (clearImgTimer) { clearTimeout(clearImgTimer); }
         clearImgTimer = setTimeout(function() {
             if (cursorImg) cursorImg.src = '';
+            clearCursorVideo();
             clearImgTimer = null;
         }, 250);
     }
@@ -144,8 +151,10 @@
         velY *= 0.80;
         var targetTilt = Math.max(-18, Math.min(18, velX * 0.9));
         tiltAngle += (targetTilt - tiltAngle) * 0.12;
-        if (cursorImg && onProject) {
-            cursorImg.style.transform = 'rotate(' + tiltAngle.toFixed(2) + 'deg)';
+        if (onProject) {
+            var tilt = 'rotate(' + tiltAngle.toFixed(2) + 'deg)';
+            if (cursorImg) cursorImg.style.transform = tilt;
+            if (cursorVideo) cursorVideo.style.transform = tilt;
         }
         requestAnimationFrame(loop);
     })();
@@ -165,8 +174,19 @@
             onProject = true;
             cursor.classList.remove('is-link', 'is-home');
             cursor.classList.add('is-project');
-            if (cursorImg && pane.dataset.hero && cursorImg.getAttribute('src') !== pane.dataset.hero) {
-                cursorImg.src = pane.dataset.hero;
+            if (cursorVideo && pane.dataset.heroVideo) {
+                // Project has a hero video — play it in the cursor instead of the still.
+                cursor.classList.add('is-video');
+                if (cursorVideo.getAttribute('src') !== pane.dataset.heroVideo) {
+                    cursorVideo.src = pane.dataset.heroVideo;
+                }
+                var pr = cursorVideo.play();
+                if (pr && pr.catch) pr.catch(function() {});
+            } else {
+                clearCursorVideo();
+                if (cursorImg && pane.dataset.hero && cursorImg.getAttribute('src') !== pane.dataset.hero) {
+                    cursorImg.src = pane.dataset.hero;
+                }
             }
             label.textContent = '';
             return;

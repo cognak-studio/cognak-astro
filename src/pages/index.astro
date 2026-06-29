@@ -20,6 +20,7 @@ const cards = await Promise.all(
       year: p.data.projectYear ?? '',
       thumb: thumb.src,
       cursorHero: cursorHero.src,
+      heroVideo: p.data.heroVideo ?? null,
     };
   })
 );
@@ -72,6 +73,7 @@ const cards = await Promise.all(
         {cards.map((c, i) => (
           <article class:list={["col", "project-excerpt", { "hp-hidden": i >= 6 }]}
             data-hero={c.cursorHero}
+            data-hero-video={c.heroVideo}
             data-project-title={c.title}
             data-project-type={c.type}
             data-project-year={c.year}>

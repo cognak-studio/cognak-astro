@@ -125,6 +125,23 @@ a, button, [role="button"] {
     z-index: 1;
 }
 #cognak-cursor.is-project #cognak-cursor-img { opacity: 1; }
+#cognak-cursor-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    display: block;
+    z-index: 1;
+    pointer-events: none;
+}
+/* When a hovered project has a hero video, show the video and hide the still. */
+#cognak-cursor.is-project.is-video #cognak-cursor-video { opacity: 1; }
+#cognak-cursor.is-project.is-video #cognak-cursor-img { opacity: 0; }
 #cognak-cursor.is-next {
     width: 100px;
     height: 100px;
@@ -2552,6 +2569,7 @@ html.pv-grid .projects-list,
     width: 100%;
     aspect-ratio: 16 / 9;
     object-fit: cover;
+    object-position: top center;
     display: block;
     background: #fff;
 }
