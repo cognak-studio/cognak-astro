@@ -520,7 +520,7 @@ body.non-fixed-nav {
 }
 @media (max-width: 720px) {
     .hero-center-headline p {
-        font-size: clamp(46px, 9.5vw, 70px) !important;
+        font-size: clamp(42px, 8.5vw, 63px) !important;
         transform: translateY(-3vh) !important;
         text-align: center;
     }
@@ -537,6 +537,12 @@ body.non-fixed-nav {
 #awwwards {
     z-index: 9999 !important;
     top: 49% !important;
+}
+@media (max-width: 720px) {
+    #awwwards {
+        transform: scale(0.7);
+        transform-origin: right center;
+    }
 }
 #awwwards a .js-color-bg {
     transition: fill 0.25s ease;
