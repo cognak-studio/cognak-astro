@@ -515,11 +515,11 @@
 (function() {
     console.log(
         '%cCOGNAK',
-        'font-size:40px;font-weight:900;color:#FFB2E4;font-family:Geist Mono,monospace;letter-spacing:-2px;'
+        'font-size:40px;font-weight:900;color:#FFB2E4;font-family:Diatype Mono Variable,monospace;letter-spacing:-2px;'
     );
     console.log(
         '%cevery digital and print experience we make\nis built to feel premium, intentional, and human.\n\nhello@cognak.com',
-        'color:rgba(255,255,255,0.35);font-family:Geist Mono,monospace;font-size:11px;line-height:2;'
+        'color:rgba(255,255,255,0.35);font-family:Diatype Mono Variable,monospace;font-size:11px;line-height:2;'
     );
 
     var _origTitle = document.title;

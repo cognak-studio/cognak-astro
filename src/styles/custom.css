@@ -99,7 +99,7 @@ a, button, [role="button"] {
     overflow: hidden;
 }
 #cognak-cursor-label {
-    font-family: 'Inter', 'inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 11px;
     font-weight: 500;
     color: #fff;
@@ -224,7 +224,7 @@ a, button, [role="button"] {
     position: fixed;
     bottom: 32px;
     left: 32px;
-    font-family: 'Geist Mono', monospace;
+    font-family: 'Diatype Mono Variable', monospace;
     font-size: 10px;
     line-height: 1.7;
     color: rgba(255,255,255,0.22);
@@ -251,53 +251,27 @@ body.is-midnight .home-bottom-bar.inner-page-nav .pulse-dot {
 :root { --cognak-purple-text: #9F50FF; }
 body.fixed-nav { --cognak-purple-text: #9647F0; }
 
-/* ===== DIATYPE TEST SWAP (2026-06-30) =====
-   ABC Diatype (Test, variable) repointed onto the 'Inter' and 'Geist Mono'
-   family names so every existing font-weight maps 1:1 with no changes to
-   usage sites. Variable weight axis 100-900; the trial has no italic axis, so
-   italics are browser-synthesised (faux) — acceptable for evaluation.
-   'Inter'      -> ABC Diatype Plus Variable
-   'Geist Mono' -> ABC Diatype Mono Variable
-   TO REVERT: delete this block and uncomment the ORIGINAL block below. */
+/* ===== DIATYPE VARIABLE =====
+   Site type is ABC Diatype. Variable weight axis 100-900; the trial has no
+   italic axis, so italics are browser-synthesised (faux) — acceptable for
+   evaluation.
+   'Diatype Variable'      -> ABC Diatype Plus Variable
+   'Diatype Mono Variable' -> ABC Diatype Mono Variable */
 
 @font-face {
-    font-family: 'Inter';
+    font-family: 'Diatype Variable';
     src: url('/theme/assets/fonts/diatype/diatype-var.ttf') format('truetype-variations');
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;
 }
 @font-face {
-    font-family: 'Geist Mono';
+    font-family: 'Diatype Mono Variable';
     src: url('/theme/assets/fonts/diatype/diatype-mono-var.ttf') format('truetype-variations');
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;
 }
-
-/* ===== ORIGINAL FONTS (commented out for revert) =====
-@font-face {
-    font-family: 'Inter';
-    src: url('/theme/assets/fonts/inter-latin-var.woff2') format('woff2');
-    font-weight: 100 900;
-    font-style: normal;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Inter';
-    src: url('/theme/assets/fonts/inter-latin-var-italic.woff2') format('woff2');
-    font-weight: 100 900;
-    font-style: italic;
-    font-display: swap;
-}
-@font-face {
-    font-family: 'Geist Mono';
-    src: url('/theme/assets/fonts/GeistMono-VariableFont_wght.woff2') format('woff2');
-    font-weight: 100 900;
-    font-style: normal;
-    font-display: swap;
-}
-===== END ORIGINAL ===== */
 
 html, body {
   height: 100%;
@@ -427,7 +401,7 @@ padding-right: 30px;
     background-color: #3A313B !important;
     border: 0 !important;
     color: #fff !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-weight: 600 !important;
     font-size: 14px !important;
     line-height: 1.2 !important;
@@ -516,7 +490,7 @@ body.non-fixed-nav {
     opacity: 1;
 }
 .hero-center-headline p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
     font-weight: 500;
     color: rgba(255,255,255,0.85);
@@ -628,7 +602,7 @@ body.non-fixed-nav::after {
     pointer-events: none;
 }
 .home-nav a {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 14px;
     font-weight: 400;
     line-height: 1;
@@ -691,7 +665,7 @@ body.non-fixed-nav::after {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 14px;
     font-weight: 400;
     color: rgba(255,255,255,0.6);
@@ -733,7 +707,7 @@ body.non-fixed-nav .home-bottom-email::before {
     top: 50%;
     transform: translate(-100%, -50%);
     transition: left 0.3s ease, transform 0.3s ease;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 14px;
     font-weight: 400;
     color: rgba(255,255,255,0.6);
@@ -1042,7 +1016,7 @@ html.home-scrolled #cognak-cookie {
 }
 .footer-label {
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
     font-weight: 700;
     color: #6d6d6d;
@@ -1054,7 +1028,7 @@ html.home-scrolled #cognak-cookie {
 }
 .footer-email-link {
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 2.2vw, 34px);
     font-weight: 600;
     color: #3A313B;
@@ -1073,7 +1047,7 @@ html.home-scrolled #cognak-cookie {
     padding-left: 15%;
 }
 .footer-social a {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 2.2vw, 34px);
     font-weight: 600;
     color: #3A313B;
@@ -1091,7 +1065,7 @@ html.home-scrolled #cognak-cookie {
     justify-content: flex-end;
 }
 .footer-backtotop {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
     font-weight: 700;
     color: #3A313B;
@@ -1110,7 +1084,7 @@ html.home-scrolled #cognak-cookie {
     align-items: baseline;
 }
 .footer-copy p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
     color: #3A313B;
     margin: 0;
@@ -1121,7 +1095,7 @@ html.home-scrolled #cognak-cookie {
     gap: 24px;
 }
 .footer-links a {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
     color: #3A313B;
     text-decoration: none;
@@ -1172,7 +1146,7 @@ html.home-scrolled #cognak-cookie {
     margin-bottom: 2px;
 }
 .hp-def {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 24px;
     font-weight: 400;
     color: rgba(255,255,255,0.6);
@@ -1189,7 +1163,7 @@ html.home-scrolled #cognak-cookie {
     font-weight: 400;
 }
 .hp-desc {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 17px;
     color: rgba(255,255,255,0.6);
     line-height: 1.7;
@@ -1197,7 +1171,7 @@ html.home-scrolled #cognak-cookie {
 }
 .hp-desc-mobile { display: none; }
 .hp-projects-heading {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
     font-weight: 500;
     color: rgba(255,255,255,0.4);
@@ -1304,7 +1278,7 @@ html.home-scrolled #cognak-cookie {
     margin-top: 20px;
 }
 .hp-more-btn {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(22px, 3.0vw, 58px);
     font-weight: 700;
     color: #fff;
@@ -1342,7 +1316,7 @@ html.home-scrolled #cognak-cookie {
     margin-bottom: 100px;
 }
 .hp-bottom-right p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 17px;
     color: rgba(255,255,255,0.6);
     line-height: 1.75;
@@ -1370,7 +1344,7 @@ html.home-scrolled #cognak-cookie {
 }
 .hp-start {
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(22px, 3.0vw, 58px);
     font-weight: 700;
     color: #fff;
@@ -1394,7 +1368,7 @@ html.home-scrolled #cognak-cookie {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
     font-weight: 400;
     letter-spacing: 0.02em;
@@ -1479,7 +1453,7 @@ html.home-scrolled #cognak-cookie {
     margin-bottom: 40px;
 }
 .projects-display-headline {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
     font-weight: 500;
     color: #7A6E9A;
@@ -1521,7 +1495,7 @@ html.home-scrolled #cognak-cookie {
     }
 }
 .projects-archive-heading {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(52px, 7vw, 92px);
     font-weight: 600;
     color: #3A313B;
@@ -1530,7 +1504,7 @@ html.home-scrolled #cognak-cookie {
     margin: 0 0 32px;
 }
 .projects-intro-text p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 17px;
     color: #3A313B;
     line-height: 1.75;
@@ -1596,7 +1570,7 @@ html.home-scrolled #cognak-cookie {
     margin-bottom: 100px;
 }
 .projects-below-right p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 17px;
     color: rgba(58,49,59,0.72);
     line-height: 1.7;
@@ -1616,7 +1590,7 @@ html.home-scrolled #cognak-cookie {
 }
 .projects-start-link {
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(22px, 3.0vw, 58px);
     font-weight: 700;
     color: #3A313B;
@@ -1661,7 +1635,7 @@ html.home-scrolled #cognak-cookie {
 /* ── Project count label ── */
 .projects-count-label {
     display: block;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 12px;
     font-weight: 400;
     color: rgba(58, 49, 59, 0.4);
@@ -1730,7 +1704,7 @@ html.home-scrolled #cognak-cookie {
     color: #3A313B;
 }
 .sort-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
     font-weight: 700;
     letter-spacing: normal;
@@ -1823,7 +1797,7 @@ html.pv-grid .projects-list,
     gap: 24px;
 }
 .list-item-title {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(22px, 3.0vw, 58px);
     font-weight: 400;
     color: #3A313B;
@@ -1836,7 +1810,7 @@ html.pv-grid .projects-list,
 }
 }
 .list-item-tag {
-    font-family: 'Geist Mono', monospace;
+    font-family: 'Diatype Mono Variable', monospace;
     font-size: 12px;
     font-weight: 500;
     color: #6d6d6d;
@@ -1865,7 +1839,7 @@ html.pv-grid .projects-list,
     margin-bottom: 52px;
 }
 .studio-display-headline {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
     font-weight: 500;
     color: rgba(255,255,255,0.85);
@@ -2042,7 +2016,7 @@ html.pv-grid .projects-list,
 }
 #cognak-cursor.is-founder #cognak-cursor-label {
     opacity: 1 !important;
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-size: 11px !important;
     font-weight: 500 !important;
     color: #fff !important;
@@ -2066,7 +2040,7 @@ html.pv-grid .projects-list,
     flex-shrink: 0;
 }
 .studio-tab {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(19px, 2vw, 28px);
     font-weight: 400;
     line-height: 1.3;
@@ -2147,7 +2121,7 @@ html.pv-grid .projects-list,
     left: 0;
     top: 0;
     width: 280px;
-    font-family: 'Geist Mono', monospace;
+    font-family: 'Diatype Mono Variable', monospace;
     font-size: 10px;
     line-height: 1.7;
     color: rgba(255,255,255,0.25);
@@ -2186,7 +2160,7 @@ html.pv-grid .projects-list,
     margin-left: auto;
 }
 .studio-manifesto {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(18px, 2.4vw, 30px);
     font-weight: 500;
     color: rgba(255,255,255,0.85);
@@ -2217,7 +2191,7 @@ html.pv-grid .projects-list,
     gap: 47px;
 }
 .studio-subhead p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
     color: rgba(255,255,255,0.55);
     line-height: 1.7;
@@ -2240,7 +2214,7 @@ html.pv-grid .projects-list,
     align-items: end;
 }
 .studio-caps-list li {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 17px;
     color: rgba(255,255,255,0.6);
     line-height: 1.6;
@@ -2280,7 +2254,7 @@ html.pv-grid .projects-list,
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 .scr-name {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
     font-weight: 400;
     color: rgba(255,255,255,0.55);
@@ -2288,7 +2262,7 @@ html.pv-grid .projects-list,
     letter-spacing: 0;
 }
 .scr-desc {
-    font-family: 'Geist Mono', monospace;
+    font-family: 'Diatype Mono Variable', monospace;
     font-size: 11px;
     font-weight: 400;
     color: var(--cognak-purple-text);
@@ -2348,7 +2322,7 @@ html.pv-grid .projects-list,
 .studio-start-wrap .availability-sub    { color: rgba(255,255,255,0.6) !important; }
 .studio-start-wrap .avail-dot           { color: #FFB2E4; }
 .capabilities-header {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
     font-weight: 500;
     color: rgba(255,255,255,0.6);
@@ -2364,7 +2338,7 @@ html.pv-grid .projects-list,
     max-width: 600px;
 }
 .capabilities-list li {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 27px;
     font-weight: 400;
     color: #fff;
@@ -2566,7 +2540,7 @@ html.pv-grid .projects-list,
     align-items: center;
 }
 .inner-nav-links a {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 14px;
     font-weight: 400;
     color: #3A313B;
@@ -2600,7 +2574,7 @@ html.pv-grid .projects-list,
     max-width: none;
 }
 .template-single-project .information .title {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-weight: 600 !important;
 }
 
@@ -2742,13 +2716,13 @@ body.pagers-idle a[rel="next"] {
     max-width: 400px !important;
 }
 .template-single-project .information .category {
-    font-family: 'Geist Mono', monospace !important;
+    font-family: 'Diatype Mono Variable', monospace !important;
     color: var(--cognak-purple-text) !important;
     letter-spacing: 0.08em !important;
 }
 .template-single-project .information .details h2,
 .template-single-project .information .details h3 {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-size: 13px !important;
     font-weight: 700 !important;
     color: #3A313B !important;
@@ -2758,7 +2732,7 @@ body.pagers-idle a[rel="next"] {
 }
 .template-single-project .information .details p,
 .template-single-project .information .details ul {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-size: 15px !important;
     color: #6d6d6d !important;
     line-height: 1.75 !important;
@@ -2784,7 +2758,7 @@ body.pagers-idle a[rel="next"] {
     flex-wrap: nowrap !important;
 }
 .cky-title {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-size: 13px !important;
     font-weight: 600 !important;
     color: #ffffff !important;
@@ -2793,7 +2767,7 @@ body.pagers-idle a[rel="next"] {
 }
 .cky-notice-des,
 .cky-notice-des p {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-size: 12px !important;
     color: rgba(255, 255, 255, 0.45) !important;
     line-height: 1.5 !important;
@@ -2815,7 +2789,7 @@ body.pagers-idle a[rel="next"] {
     align-items: center !important;
 }
 .cky-btn {
-    font-family: 'Inter', sans-serif !important;
+    font-family: 'Diatype Variable', sans-serif !important;
     font-size: 12px !important;
     font-weight: 600 !important;
     letter-spacing: 0.04em !important;
@@ -2922,7 +2896,7 @@ a[href*="cookieyes.com"],
     pointer-events: none;
 }
 .cognak-cookie-label {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 14px;
     font-weight: 400;
     line-height: 1;
@@ -2936,7 +2910,7 @@ a[href*="cookieyes.com"],
     display: flex;
     align-items: center;
     gap: 7px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 14px;
     font-weight: 400;
     line-height: 1;
@@ -3055,7 +3029,7 @@ html body.page-template-page-privacy-policy,
     padding: 190px 70px 120px;
 }
 .privacy-headline {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
     font-weight: 500;
     line-height: 1.1;
@@ -3069,7 +3043,7 @@ html body.page-template-page-privacy-policy,
     max-width: 600px;
 }
 .privacy-body h2 {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.1em;
@@ -3081,7 +3055,7 @@ html body.page-template-page-privacy-policy,
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .privacy-body p {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 16px;
     line-height: 1.8;
     color: #3A313B;
@@ -3105,7 +3079,7 @@ html body.page-template-page-privacy-policy,
 }
 .privacy-body code,
 .privacy-body code * {
-    font-family: 'Geist Mono', monospace !important;
+    font-family: 'Diatype Mono Variable', monospace !important;
     font-size: 13px !important;
     color: #815275 !important;
     background: rgba(129,82,117,0.1) !important;
@@ -3167,7 +3141,7 @@ html body.page-template-page-privacy-policy,
     .projects-below .avail-dot { color: #6BBF00 !important; }
     .hp-bottom .avail-dot      { color: #AAFF00 !important; }
     .availability-sub {
-        font-family: 'Inter', sans-serif !important;
+        font-family: 'Diatype Variable', sans-serif !important;
         margin-top: 12px !important;
         font-size: 12px !important;
     }
@@ -3199,7 +3173,7 @@ html body.page-template-page-privacy-policy,
     z-index: 999999999;
     background: #9F50FF;
     color: #fff;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
     font-weight: 600;
     padding: 10px 20px;
@@ -3372,7 +3346,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     right: 0;
     padding: 18px 14px 14px;
     background: none;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Diatype Variable', sans-serif;
     font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.12em;
@@ -3449,7 +3423,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 
     .mobile-pager-title {
         flex-shrink: 0;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Diatype Variable', sans-serif;
         font-size: 12px;
         font-weight: 500;
         color: #3A313B;
@@ -3507,7 +3481,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 
 /* Headline */
 .fourofour-headline {
-    font-family: "Inter", sans-serif;
+    font-family: "Diatype Variable", sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
     font-weight: 500;
     line-height: 1.08;
@@ -3525,7 +3499,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .fourofour-headline:hover .fourofour-frown { transform: rotate(22deg); }
 
 .fourofour-body {
-    font-family: "Inter", sans-serif;
+    font-family: "Diatype Variable", sans-serif;
     font-size: 15px;
     font-weight: 400;
     line-height: 1.7;
@@ -3541,7 +3515,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     margin-left: 300px;
 }
 .fourofour-btn {
-    font-family: "Inter", sans-serif;
+    font-family: "Diatype Variable", sans-serif;
     font-size: clamp(22px, 3.0vw, 58px);
     font-weight: 700;
     letter-spacing: -0.02em;
