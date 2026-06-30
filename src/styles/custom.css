@@ -608,12 +608,6 @@ body.non-fixed-nav {
     align-items: flex-end;
     gap: 6px;
 }
-/* While the cookie banner is showing (desktop), drop the Projects/Studio nav one
-   row so 'Projects' lines up with 'Decline' — shared baseline with the banner.
-   .cookie-open is toggled by the banner script; removed when it's dismissed. */
-@media (min-width: 721px) {
-    html.cookie-open .home-nav { top: 54px; }
-}
 /* Bg-color halo behind the Projects/Studio nav — radiates from the top-right corner.
    Lives on the body (not .home-nav) so it can sit BELOW the cursor and awwwards
    badge; .home-nav's huge z-index would otherwise trap it above both. */

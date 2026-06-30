@@ -225,13 +225,11 @@ import '../styles/site.css';
         if (!el) return;
         if (document.cookie.indexOf('cognak_consent=') !== -1) { el.style.display = 'none'; return; }
         if (window.innerWidth > 720) { document.documentElement.appendChild(el); }
-        document.documentElement.classList.add('cookie-open');
         function setCookie(val) {
           var d = new Date(); d.setFullYear(d.getFullYear() + 1);
           document.cookie = 'cognak_consent=' + val + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
         }
         function dismiss() {
-          document.documentElement.classList.remove('cookie-open');
           el.style.opacity = '0';
           el.style.pointerEvents = 'none';
           setTimeout(function () { el.style.display = 'none'; }, 400);
