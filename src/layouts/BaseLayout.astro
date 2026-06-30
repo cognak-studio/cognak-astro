@@ -163,7 +163,7 @@ import '../styles/site.css';
       gtag('event', 'conversion', { 'send_to': 'AW-876403750/xmGnCNTYt7scEKa486ED' });
     })();
   </script>
-  <script is:inline define:vars={{ page }}>window.COGNAK_PAGE = page;</script>
+  <script is:inline define:vars={{ page }}>window.COGNAK_PAGE = page; document.documentElement.classList.add('js');</script>
   {page === 'projects' && (
     <script is:inline>{`(function(){try{var v=localStorage.getItem('cognak-projects-view');document.documentElement.classList.add(v==='grid'?'pv-grid':'pv-list');}catch(e){document.documentElement.classList.add('pv-list');}})();`}</script>
   )}

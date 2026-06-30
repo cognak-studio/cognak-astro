@@ -3202,6 +3202,17 @@ select:focus-visible,
 
 /* ── Text stagger on scroll-enter ── */
 /* Headers keep the slide-up */
+/* Hide the hero headlines until JS has split + staggered the words, so the
+   full line never flashes in before the animation (JS adds html.js in <head>).
+   No-JS / pre-JS keeps them visible; reduced-motion shows them immediately. */
+html.js .studio-display-headline,
+html.js .projects-display-headline {
+    opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+    html.js .studio-display-headline,
+    html.js .projects-display-headline { opacity: 1; }
+}
 .stagger-word {
     display: inline-block;
     opacity: 0;

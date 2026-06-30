@@ -449,6 +449,9 @@
                 el.appendChild(node);
             }
         });
+        // Words now start hidden (.stagger-word opacity:0); reveal the container
+        // that CSS hid pre-JS so it never flashes the full unsplit line.
+        el.style.opacity = '1';
     }
 
     function animate(el, delay) {
