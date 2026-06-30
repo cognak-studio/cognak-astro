@@ -631,6 +631,7 @@ body.non-fixed-nav::after {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 400;
+    line-height: 1;
     color: rgba(255,255,255,0.6);
     text-decoration: none;
     letter-spacing: 0.04em;
@@ -2924,6 +2925,7 @@ a[href*="cookieyes.com"],
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 400;
+    line-height: 1;
     color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
     /* Negative to tighten only the gap under the label so "Decline" lines up with
@@ -2937,6 +2939,7 @@ a[href*="cookieyes.com"],
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 400;
+    line-height: 1;
     color: rgba(255,255,255,0.55);
     letter-spacing: 0.04em;
     background: none;
