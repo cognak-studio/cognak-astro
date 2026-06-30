@@ -26,6 +26,7 @@ const projects = defineCollection({
       theWork: z.string().optional(),
       moreDetails: z.string().optional(),
       heroVideo: z.string().optional(),
+      hoverVideo: z.string().optional(),
       thumbnail: image(),
       hero: image(),
       hover: image().optional(),

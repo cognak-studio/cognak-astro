@@ -5,6 +5,8 @@ category: Web, Print, Branding, Packaging, Photography, Video, Ads, 3D Rendering
 date: '2015-12-04T22:05:57+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
+heroVideo: /uploads/2026/06/verde-hero.mp4
+hoverVideo: /uploads/2026/06/verde-hover.mp4
 aboutTheClient: '<p><a href="http://www.nytimes.com/2016/06/02/business/smallbusiness/no-venture-capital-needed-or-wanted.html?smid=tw-nytimesbusiness&amp;smtyp=cur&amp;_r=0">Verde Farms</a> is a leading importer and marketer of sustainable, organic, pasture-raised meats sold throughout the U.S. They work globally with family farms that raise organic cattle and sheep in harmony with the environment to produce the highest quality grass-fed beef and lamb. As wholesale meat suppliers, they support grocers, restaurants and e-commerce food businesses with their organic and grass-fed beef and lamb needs.</p>
 
   '
@@ -27,5 +29,6 @@ homepageFeature: true
 homepagePosition: 4
 ---
 
+<p><picture><source type="image/webp" srcset="/uploads/2026/06/verde-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full" src="/uploads/2026/06/verde-hero-cognak-scaled.jpg" alt="Verde Farms — hero" width="2560" height="1708" /></picture></p>
 <p><picture><source type="image/webp" srcset="/uploads/2015/12/verde-team.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2006" src="/uploads/2015/12/verde-team.jpg" alt="Verde Farms — team" width="2048" height="1389" /></picture><picture><source type="image/webp" srcset="/uploads/2015/12/verde-sell-sheets.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2007" src="/uploads/2015/12/verde-sell-sheets.jpg" alt="Verde Farms — sell sheets" width="2048" height="1367" /></picture><picture><source type="image/webp" srcset="/uploads/2015/12/hot-dog-packaging.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2282" src="/uploads/2015/12/hot-dog-packaging.jpg" alt="Verde Farms — hot dog packaging" width="1400" height="933" /></picture><picture><source type="image/webp" srcset="/uploads/2015/12/verde-site2.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-723" src="/uploads/2015/12/verde-site2.jpg" alt="Verde Farms — site2" width="2048" height="3466" /></picture></p>
 

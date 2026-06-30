@@ -24,7 +24,7 @@ const cards = await Promise.all(
       thumb: thumb.src,
       squareHero: squareHero.src,
       cursorPanel: cursorPanel.src,
-      heroVideo: p.data.heroVideo ?? null,
+      heroVideo: p.data.hoverVideo ?? p.data.heroVideo ?? null,
     };
   })
 );
