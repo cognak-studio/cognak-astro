@@ -7,6 +7,7 @@ projectType: Web Development
 projectYear: 2019-2021
 thumbnail: ./thumb.png
 hero: ./hero.jpg
+heroVideo: /uploads/2026/06/quartet-hero.mp4
 aboutTheClient: '<p><a href="https://www.quartethealth.com">Quartet Health</a> is a technology-enabled mental health care company connecting people to the right treatment at the right time. Working with health plans and health systems, Quartet facilitates access to personalized care and enables virtual collaboration between providers to improve patient outcomes at scale.</p>
 
   '
@@ -27,4 +28,4 @@ homepageFeature: true
 homepagePosition: 1
 ---
 
-
+<p><picture><source type="image/webp" srcset="/uploads/2026/06/quartet-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full" src="/uploads/2026/06/quartet-hero-cognak-scaled.jpg" alt="Quartet Health — hero" width="2560" height="1886" /></picture></p>
