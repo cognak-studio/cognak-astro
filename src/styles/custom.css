@@ -251,6 +251,42 @@ body.is-midnight .home-bottom-bar.inner-page-nav .pulse-dot {
 :root { --cognak-purple-text: #9F50FF; }
 body.fixed-nav { --cognak-purple-text: #9647F0; }
 
+/* ===== SÖHNE TEST SWAP (2026-06-30) =====
+   Söhne (Test) repointed onto the 'Inter' and 'Geist Mono' family names so
+   every existing font-weight maps 1:1 with no changes to usage sites.
+   Söhne weight mapping: Extraleicht 200 / Leicht 300 / Buch 400 / Kräftig 500 /
+   Halbfett 600 / Dreiviertelfett 700 / Fett 800 / Extrafett 900.
+   TO REVERT: delete this block and uncomment the ORIGINAL block below. */
+
+/* --- Söhne onto 'Inter' (normal) --- */
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-200.woff2') format('woff2'); font-weight: 200; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-300.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-900.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+/* --- Söhne onto 'Inter' (italic) --- */
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-200-italic.woff2') format('woff2'); font-weight: 200; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-300-italic.woff2') format('woff2'); font-weight: 300; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-400-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-500-italic.woff2') format('woff2'); font-weight: 500; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-600-italic.woff2') format('woff2'); font-weight: 600; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-700-italic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-800-italic.woff2') format('woff2'); font-weight: 800; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/theme/assets/fonts/soehne/soehne-900-italic.woff2') format('woff2'); font-weight: 900; font-style: italic; font-display: swap; }
+/* --- Söhne Mono onto 'Geist Mono' --- */
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-200.woff2') format('woff2'); font-weight: 200; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-300.woff2') format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-500.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-600.woff2') format('woff2'); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-800.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('/theme/assets/fonts/soehne/soehne-mono-900.woff2') format('woff2'); font-weight: 900; font-style: normal; font-display: swap; }
+
+/* ===== ORIGINAL FONTS (commented out for revert) =====
 @font-face {
     font-family: 'Inter';
     src: url('/theme/assets/fonts/inter-latin-var.woff2') format('woff2');
@@ -265,7 +301,6 @@ body.fixed-nav { --cognak-purple-text: #9647F0; }
     font-style: italic;
     font-display: swap;
 }
-
 @font-face {
     font-family: 'Geist Mono';
     src: url('/theme/assets/fonts/GeistMono-VariableFont_wght.woff2') format('woff2');
@@ -273,6 +308,7 @@ body.fixed-nav { --cognak-purple-text: #9647F0; }
     font-style: normal;
     font-display: swap;
 }
+===== END ORIGINAL ===== */
 
 html, body {
   height: 100%;

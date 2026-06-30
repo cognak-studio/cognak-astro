@@ -6,7 +6,7 @@ hosting panel. You edit files, push to GitHub, and Vercel rebuilds and publishes
 in ~30 seconds.
 
 - **Live site:** https://cognak.com
-- **Local folder:** `/Users/pierceliefeld/Local Sites/cognak/cognak-astro`
+- **Local folder:** `/Users/pierceliefeld/Local Sites/clients/cognak-astro`
 - **Deploys:** auto-builds on every push to `main`; pull requests get preview URLs.
 
 ---
