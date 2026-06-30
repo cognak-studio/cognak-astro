@@ -1055,7 +1055,8 @@ article img {
   font-style: italic;
 }
 
-.img-wide img {
+.img-wide img,
+.img-wide video {
   display: block;
   height: auto;
   width: 100%;
