@@ -28,6 +28,7 @@ moreDetails: '<p>• 10+ year relationship</p>
 
   '
 heroVideo: /uploads/2026/06/1920x1080-This-is-travel_1-1.mp4
+hoverVideo: /uploads/2026/06/1440x1440-This-is-travel_1.mp4
 metaDescription: View COGNAK's work for Duvine Cycling + Adventure Co., a six-time Travel + Leisure world’s best tour operator.
 homepageFeature: true
 homepagePosition: 3
