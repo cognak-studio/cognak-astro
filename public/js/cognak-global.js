@@ -423,7 +423,10 @@
         '.projects-below-right p',
         '.studio-display-headline',
         '.studio-start-wrap .projects-start-link',
-        '.studio-start-wrap .availability-sub',
+        /* NOTE: '.studio-start-wrap .availability-sub' intentionally NOT staggered.
+           It's a display:flex container, so the word-splitter's inter-word spaces
+           are discarded and the 6px flex gap becomes the (too-wide) word spacing.
+           Home/projects never stagger this line either, so this keeps it consistent. */
         '.fourofour-headline',
         '.fourofour-body',
         '.privacy-headline',
