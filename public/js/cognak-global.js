@@ -258,35 +258,10 @@
             return clamp(v).toString(16).padStart(2, '0');
         }).join('');
     }
-    // White or black text, decided by the brightness of the card thumbnail.
-    // (Unchanged behaviour — the title stays legible on light vs dark cards.)
-    function colorFromThumb(img, caption) {
-        var sw = img.naturalWidth;
-        var sh = Math.min(80, img.naturalHeight);
-        var sy = img.naturalHeight - sh;
-        var canvas = document.createElement('canvas');
-        var ctx = canvas.getContext('2d');
-        canvas.width = sw;
-        canvas.height = sh;
-        try {
-            ctx.drawImage(img, 0, sy, sw, sh, 0, 0, sw, sh);
-            var data = ctx.getImageData(0, 0, sw, sh).data;
-            var total = 0, count = 0;
-            for (var i = 0; i < data.length; i += 32) {
-                total += getLuminance(data[i], data[i + 1], data[i + 2]);
-                count++;
-            }
-            var avg = count ? total / count : 0;
-            caption.style.color = avg > 0.45 ? '#111111' : '#ffffff';
-        } catch (e) {
-            caption.style.color = '#ffffff';
-        }
-    }
-
-    // Average colour of the darkest ~15% of pixels in the bottom-left region
-    // (where the title sits). Drives an image/video-derived shadow rather than
-    // a tinted glow. Works for <img> and <video> (samples the current frame).
-    function darkestRegionColor(media) {
+    // Sample the bottom-left region (where the title sits) of an <img>/<video>.
+    // Returns { avg, dark:[r,g,b], light:[r,g,b] } or null if not sampleable.
+    // Works for <img> and <video> (samples the current frame).
+    function sampleCaptionRegion(media) {
         var w = media.naturalWidth || media.videoWidth;
         var h = media.naturalHeight || media.videoHeight;
         if (!w || !h) return null;
@@ -300,32 +275,62 @@
         try {
             ctx.drawImage(media, 0, sy, sw, sh, 0, 0, sw, sh);
             var data = ctx.getImageData(0, 0, sw, sh).data;
-            var px = [];
+            var px = [], totalLum = 0;
             for (var i = 0; i < data.length; i += 32) {
-                var r = data[i], g = data[i + 1], b = data[i + 2];
-                px.push([getLuminance(r, g, b), r, g, b]);
+                var lum = getLuminance(data[i], data[i + 1], data[i + 2]);
+                px.push([lum, data[i], data[i + 1], data[i + 2]]);
+                totalLum += lum;
             }
             if (!px.length) return null;
             px.sort(function(a, b) { return a[0] - b[0]; });
             var n = Math.max(1, Math.round(px.length * 0.15));
-            var tr = 0, tg = 0, tb = 0;
-            for (var j = 0; j < n; j++) { tr += px[j][1]; tg += px[j][2]; tb += px[j][3]; }
-            return [Math.round(tr / n), Math.round(tg / n), Math.round(tb / n)];
+            function avgOf(arr) {
+                var tr = 0, tg = 0, tb = 0;
+                for (var j = 0; j < arr.length; j++) { tr += arr[j][1]; tg += arr[j][2]; tb += arr[j][3]; }
+                var c = arr.length;
+                return [Math.round(tr / c), Math.round(tg / c), Math.round(tb / c)];
+            }
+            return {
+                avg: totalLum / px.length,
+                dark: avgOf(px.slice(0, n)),          // darkest ~15%
+                light: avgOf(px.slice(px.length - n)) // lightest ~15%
+            };
         } catch (e) {
             return null;
         }
     }
 
-    // Soft, layered shadow that fades out — legible but not distracting.
-    function buildShadow(rgb) {
-        var c = rgb
-            ? 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ','
-            : 'rgba(0,0,0,';
-        return '0 0 3px ' + c + '0.95), 0 1px 10px ' + c + '0.6), 0 1px 24px ' + c + '0.35)';
+    function mix(c, target, t) {
+        return [
+            Math.round(c[0] + (target[0] - c[0]) * t),
+            Math.round(c[1] + (target[1] - c[1]) * t),
+            Math.round(c[2] + (target[2] - c[2]) * t)
+        ];
     }
 
-    function applyShadow(caption, media) {
-        caption.style.textShadow = buildShadow(darkestRegionColor(media));
+    // Soft, layered glow that fades out — strong enough to read, not a hard box.
+    function softShadow(rgb) {
+        var c = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',';
+        return '0 0 4px ' + c + '0.98), 0 1px 12px ' + c + '0.8), 0 2px 26px ' + c + '0.5)';
+    }
+
+    // Pick text colour + glow from the media actually behind the caption:
+    //   dark media  → white text + dark glow
+    //   light media → dark text  + light glow
+    function styleCaption(media, caption) {
+        var s = sampleCaptionRegion(media);
+        if (!s) {
+            caption.style.color = '#ffffff';
+            caption.style.textShadow = softShadow([0, 0, 0]);
+            return;
+        }
+        if (s.avg < 0.5) {
+            caption.style.color = '#ffffff';
+            caption.style.textShadow = softShadow(mix(s.dark, [0, 0, 0], 0.55));
+        } else {
+            caption.style.color = '#111111';
+            caption.style.textShadow = softShadow(mix(s.light, [255, 255, 255], 0.6));
+        }
     }
 
     var isHoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
@@ -365,39 +370,29 @@
             var caption = item.querySelector('.project-title-hover');
             if (!caption) return;
             var thumb = item.querySelector('img:not(.emoji):not(.hp-hover-media)');
-            var media = item.querySelector('.hp-hover-media') || thumb;
+            var hoverMedia = item.querySelector('.hp-hover-media');
+            // Sample whatever is actually behind the title when it's visible:
+            // the hover hero/video on hover devices, otherwise the tile thumbnail
+            // (mobile, and the /projects grid which has no hover swap).
+            var media = (isHoverDevice && hoverMedia) ? hoverMedia : thumb;
+            if (!media) return;
 
-            // Always start with a neutral soft shadow so text is legible immediately.
-            caption.style.textShadow = buildShadow(null);
+            // Neutral fallback (white text, dark glow) until the media is ready.
+            caption.style.color = '#ffffff';
+            caption.style.textShadow = softShadow([0, 0, 0]);
 
-            // Text colour (white/black) from the card thumbnail.
-            if (thumb) {
-                if (thumb.complete && thumb.naturalWidth > 0) {
-                    colorFromThumb(thumb, caption);
+            var run = function() { styleCaption(media, caption); };
+            if (media.tagName === 'VIDEO') {
+                if (media.readyState >= 2) {
+                    run();
                 } else {
-                    thumb.addEventListener('load', function() {
-                        colorFromThumb(thumb, caption);
-                    }, { once: true });
+                    media.addEventListener('loadeddata', run, { once: true });
+                    media.addEventListener('playing', run, { once: true });
                 }
-            }
-
-            // Shadow colour from the darkest part of the visible media.
-            if (media) {
-                if (media.tagName === 'VIDEO') {
-                    var sampleVid = function() { applyShadow(caption, media); };
-                    if (media.readyState >= 2) {
-                        sampleVid();
-                    } else {
-                        media.addEventListener('loadeddata', sampleVid, { once: true });
-                        media.addEventListener('playing', sampleVid, { once: true });
-                    }
-                } else if (media.complete && media.naturalWidth > 0) {
-                    applyShadow(caption, media);
-                } else {
-                    media.addEventListener('load', function() {
-                        applyShadow(caption, media);
-                    }, { once: true });
-                }
+            } else if (media.complete && media.naturalWidth > 0) {
+                run();
+            } else {
+                media.addEventListener('load', run, { once: true });
             }
         });
         if (!isHoverDevice) {
