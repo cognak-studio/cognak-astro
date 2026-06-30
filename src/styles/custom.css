@@ -2926,7 +2926,9 @@ a[href*="cookieyes.com"],
     font-weight: 400;
     color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
-    margin-bottom: 2px;
+    /* Negative to tighten only the gap under the label so "Decline" lines up with
+       "Studio" in the nav. Doesn't affect Decline->Accept spacing. */
+    margin-bottom: -2px;
 }
 .cognak-cookie-opt {
     display: flex;
