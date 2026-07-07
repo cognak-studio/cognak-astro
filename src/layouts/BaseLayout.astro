@@ -202,15 +202,21 @@ import '../styles/site.css';
       -webkit-backdrop-filter: blur(6px) !important;
       backdrop-filter: blur(6px) !important;
     }
+    /* Same reason: the studio corner cookie banner's glass blur must survive
+       minification too. */
+    #cognak-cookie.cognak-cookie--corner {
+      -webkit-backdrop-filter: blur(6px) !important;
+      backdrop-filter: blur(6px) !important;
+    }
   </style>
 </head>
 <body id="cognak" class={bodyClass}>
   <a href="#cognak-main" class="skip-to-main">Skip to main content</a>
   <div id="cognak-cursor"><span id="cognak-cursor-label"></span><img id="cognak-cursor-img" src="" alt="" /><video id="cognak-cursor-video" src="" muted loop playsinline webkit-playsinline preload="auto" aria-hidden="true"></video></div>
 
-  {isHome && (
+  {(isHome || page === 'studio') && (
     <Fragment>
-    <div id="cognak-cookie" role="dialog" aria-label="Cookie consent" aria-modal="true" aria-describedby="cognak-cookie-desc">
+    <div id="cognak-cookie" class={page === 'studio' ? 'cognak-cookie--corner' : ''} role="dialog" aria-label="Cookie consent" aria-modal="true" aria-describedby="cognak-cookie-desc">
       <span class="cognak-cookie-label" id="cognak-cookie-desc">This site uses <a href="/privacy-policy" class="cognak-cookie-link">cookies</a></span>
       <button class="cognak-cookie-opt" id="cognak-decline" type="button">
         <span class="cognak-cookie-radio"></span>Decline
@@ -219,12 +225,14 @@ import '../styles/site.css';
         <span class="cognak-cookie-radio cognak-cookie-radio--on"></span>Accept
       </button>
     </div>
-    <script is:inline>
+    <script is:inline define:vars={{ isCornerVariant: page === 'studio' }}>
       (function () {
         var el = document.getElementById('cognak-cookie');
         if (!el) return;
         if (document.cookie.indexOf('cognak_consent=') !== -1) { el.style.display = 'none'; return; }
-        if (window.innerWidth > 720) { document.documentElement.appendChild(el); }
+        // The corner (studio) variant stays put, locked to the viewport corner —
+        // only the homepage banner gets reparented onto <html> for its hero-scroll fade.
+        if (!isCornerVariant && window.innerWidth > 720) { document.documentElement.appendChild(el); }
         function setCookie(val) {
           var d = new Date(); d.setFullYear(d.getFullYear() + 1);
           document.cookie = 'cognak_consent=' + val + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
@@ -243,6 +251,19 @@ import '../styles/site.css';
           setCookie('declined');
           dismiss();
         });
+        // Corner variant: hidden until the visitor starts scrolling, then fades in
+        // once and stays — it doesn't hide again if they scroll back to the top.
+        if (isCornerVariant) {
+          var revealed = false;
+          function reveal() {
+            if (revealed) return;
+            revealed = true;
+            el.classList.add('cognak-cookie--visible');
+            window.removeEventListener('scroll', reveal);
+          }
+          if (window.scrollY > 0) { reveal(); }
+          else { window.addEventListener('scroll', reveal, { passive: true }); }
+        }
       })();
     </script>
     </Fragment>

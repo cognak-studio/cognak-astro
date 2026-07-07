@@ -301,23 +301,6 @@ body { overflow-x: clip; }
         <span class="availability-sub" style="color: rgba(255,255,255,0.6);"><span class="avail-dot" style="color: #AAFF00;" aria-hidden="true"></span> Currently booking 30&#x2013;60 days out</span>
     </div>
     <script is:inline>
-      /* Studio "Start a project" conversion (replaces an inline onclick handler, for CSP). */
-      (function () {
-        var cta = document.querySelector('.studio-manifesto-cta .projects-start-link');
-        if (!cta) return;
-        cta.addEventListener('click', function () {
-          if (typeof gtag === 'function') gtag('event', 'ads_conversion_Request_quote_1', {});
-        });
-      })();
-    </script>
-
-                <!-- Page view conversion -->
-    <script is:inline>
-      gtag('event', 'conversion', {'send_to': 'AW-876403750/xmGnCNTYt7scEKa486ED'});
-    </script>
-
-
-    <script is:inline>
     // Stagger-fade capabilities on scroll
     (function() {
         var items = document.querySelectorAll('.capabilities-list li');
