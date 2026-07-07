@@ -2984,10 +2984,10 @@ a[href*="cookieyes.com"],
 }
 }
 
-/* ── Cookie banner (corner variant — Studio page) ──
-   Dark glass card matching the studio nav (rgba(14,14,14,.75) + 6px blur),
-   pinned to the bottom-right corner. Hidden until the visitor starts
-   scrolling, then fades in once and stays locked to the corner. */
+/* ── Cookie banner (corner variant — Studio / Projects) ──
+   Glass card pinned to the bottom-right corner, colored to match each page's
+   own nav (dark on Studio, light frosted on Projects). Hidden until the
+   visitor starts scrolling, then fades in once and stays locked to the corner. */
 #cognak-cookie.cognak-cookie--corner {
     top: auto;
     left: auto;
@@ -2998,7 +2998,6 @@ a[href*="cookieyes.com"],
     gap: 20px;
     padding: 14px 20px;
     border-radius: 16px;
-    background: rgba(14, 14, 14, 0.75);
     /* backdrop-filter is set inline in BaseLayout.astro's <head> — see
        reference_astro_html_comment_backtick / the frosted-nav-blur comment there
        for why it can't live in the bundled CSS. */
@@ -3014,6 +3013,38 @@ a[href*="cookieyes.com"],
 #cognak-cookie.cognak-cookie--corner.cognak-cookie--visible {
     opacity: 1;
     pointer-events: auto;
+}
+/* Dark glass — matches the studio nav (rgba(14,14,14,.75)). Text/radio colors
+   already default to the light-on-dark values used elsewhere in this file. */
+#cognak-cookie.cognak-cookie--corner-dark {
+    background: rgba(14, 14, 14, 0.75);
+}
+/* Light frosted glass — matches the Projects/inner-page nav (rgba(247,241,255,.75)),
+   so text needs the dark-on-light equivalents of the default cookie styles. */
+#cognak-cookie.cognak-cookie--corner-light {
+    background: rgba(247, 241, 255, 0.75);
+}
+#cognak-cookie.cognak-cookie--corner-light .cognak-cookie-label,
+#cognak-cookie.cognak-cookie--corner-light .cognak-cookie-opt {
+    color: rgba(58, 49, 59, 0.7);
+}
+#cognak-cookie.cognak-cookie--corner-light .cognak-cookie-opt--on {
+    color: #3A313B;
+}
+#cognak-cookie.cognak-cookie--corner-light .cognak-cookie-radio {
+    border-color: rgba(58, 49, 59, 0.3);
+}
+#cognak-cookie.cognak-cookie--corner-light .cognak-cookie-radio--on {
+    border-color: var(--cognak-purple-text);
+    background: var(--cognak-purple-text);
+}
+@media (hover: hover) {
+    #cognak-cookie.cognak-cookie--corner-light .cognak-cookie-opt:hover {
+        color: #3A313B;
+    }
+    #cognak-cookie.cognak-cookie--corner-light #cognak-accept:hover {
+        color: var(--cognak-purple-text) !important;
+    }
 }
 @media (max-width: 720px) {
     #cognak-cookie.cognak-cookie--corner {

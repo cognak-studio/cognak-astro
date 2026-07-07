@@ -47,6 +47,17 @@ const innerNavVariant =
   page === 'privacy' ? ' privacy-nav' :
   page === '404' ? ' fourofour-nav' : '';
 
+// Corner cookie banner (non-home pages): dark glass on Studio (dark bg, dark nav),
+// light glass on the Projects listing (light bg, light frosted nav). Individual
+// project case-study pages are skipped for now — GA/Ads consent mode already
+// defaults every non-essential cookie to denied sitewide, so there's no tracking
+// gap, just less prompting on those pages.
+const cornerVariant =
+  page === 'studio' ? 'dark' :
+  page === 'projects' ? 'light' : null;
+const showCookieBanner = isHome || cornerVariant;
+const cornerClass = cornerVariant ? `cognak-cookie--corner cognak-cookie--corner-${cornerVariant}` : '';
+
 const professionalService = {
   '@context': 'https://schema.org',
   '@type': 'ProfessionalService',
@@ -214,9 +225,9 @@ import '../styles/site.css';
   <a href="#cognak-main" class="skip-to-main">Skip to main content</a>
   <div id="cognak-cursor"><span id="cognak-cursor-label"></span><img id="cognak-cursor-img" src="" alt="" /><video id="cognak-cursor-video" src="" muted loop playsinline webkit-playsinline preload="auto" aria-hidden="true"></video></div>
 
-  {(isHome || page === 'studio') && (
+  {showCookieBanner && (
     <Fragment>
-    <div id="cognak-cookie" class={page === 'studio' ? 'cognak-cookie--corner' : ''} role="dialog" aria-label="Cookie consent" aria-modal="true" aria-describedby="cognak-cookie-desc">
+    <div id="cognak-cookie" class={cornerClass} role="dialog" aria-label="Cookie consent" aria-modal="true" aria-describedby="cognak-cookie-desc">
       <span class="cognak-cookie-label" id="cognak-cookie-desc">This site uses <a href="/privacy-policy" class="cognak-cookie-link">cookies</a></span>
       <button class="cognak-cookie-opt" id="cognak-decline" type="button">
         <span class="cognak-cookie-radio"></span>Decline
@@ -225,7 +236,7 @@ import '../styles/site.css';
         <span class="cognak-cookie-radio cognak-cookie-radio--on"></span>Accept
       </button>
     </div>
-    <script is:inline define:vars={{ isCornerVariant: page === 'studio' }}>
+    <script is:inline define:vars={{ isCornerVariant: Boolean(cornerVariant) }}>
       (function () {
         var el = document.getElementById('cognak-cookie');
         if (!el) return;
