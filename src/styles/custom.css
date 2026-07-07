@@ -3039,6 +3039,11 @@ a[href*="cookieyes.com"],
     background: var(--cognak-purple-text);
 }
 @media (hover: hover) {
+    /* Global .cognak-cookie-link:hover goes white (right for the dark banners) —
+       on the light Projects glass that would lighten, so override to go darker. */
+    #cognak-cookie.cognak-cookie--corner-light .cognak-cookie-link:hover {
+        color: #3A313B;
+    }
     #cognak-cookie.cognak-cookie--corner-light .cognak-cookie-opt:hover {
         color: #3A313B;
     }
