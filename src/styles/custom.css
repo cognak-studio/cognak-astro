@@ -2023,6 +2023,28 @@ html.pv-grid .projects-list,
     white-space: nowrap !important;
     letter-spacing: 0.02em !important;
 }
+
+/* View-projects cursor — purple pill over the studio logo wheel */
+#cognak-cursor.is-view-projects {
+    width: auto !important;
+    height: 28px !important;
+    padding: 0 14px !important;
+    border-radius: 14px !important;
+    background: #8B1FFF !important;
+    mix-blend-mode: normal !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+#cognak-cursor.is-view-projects #cognak-cursor-label {
+    opacity: 1 !important;
+    font-family: 'Diatype Variable', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: #fff !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.02em !important;
+}
 .studio-columns .studio-subhead {
     flex: 0 0 auto;
     margin: 0 0 0 clamp(24px, 9vw, 130px);

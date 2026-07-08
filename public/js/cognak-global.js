@@ -161,8 +161,15 @@
 
     document.addEventListener('mouseover', function(e) {
         if (cursor.classList.contains('is-founder')) return;
+        if (e.target.closest('#logo-ring-section')) {
+            cursor.classList.remove('is-link', 'is-home', 'is-project');
+            cursor.classList.add('is-view-projects');
+            label.textContent = 'VIEW ALL PROJECTS';
+            scheduleClearImg();
+            return;
+        }
         if (e.target.closest('.home-bottom-logo')) {
-            cursor.classList.remove('is-link', 'is-project');
+            cursor.classList.remove('is-link', 'is-project', 'is-view-projects');
             cursor.classList.add('is-home');
             label.textContent = 'HOME';
             scheduleClearImg();
@@ -172,7 +179,7 @@
         if (pane) {
             cancelClearImg();
             onProject = true;
-            cursor.classList.remove('is-link', 'is-home');
+            cursor.classList.remove('is-link', 'is-home', 'is-view-projects');
             cursor.classList.add('is-project');
             if (cursorVideo && pane.dataset.heroVideo) {
                 // Project has a hero video — play it in the cursor instead of the still.
@@ -193,13 +200,13 @@
         }
         onProject = false;
         if (e.target.closest('a, button')) {
-            cursor.classList.remove('is-home', 'is-project');
+            cursor.classList.remove('is-home', 'is-project', 'is-view-projects');
             cursor.classList.add('is-link');
             scheduleClearImg();
             label.textContent = '';
             return;
         }
-        cursor.classList.remove('is-link', 'is-home', 'is-project');
+        cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-view-projects');
         scheduleClearImg();
         label.textContent = '';
     });
