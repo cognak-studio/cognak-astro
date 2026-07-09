@@ -156,6 +156,27 @@ Other docs: **`SUBLIME-SETUP.md`** (editor setup) · **`ACCESSIBILITY-AUDIT.md`*
 
 ---
 
+## SEO / entity disambiguation (2026-07-08)
+
+To help Google treat "COGNAK" as a distinct entity rather than an autocorrect
+target for "cognac":
+
+- Created two Wikidata items: **COGNAK** ([Q140469493](https://www.wikidata.org/wiki/Q140469493))
+  and **Pierce Liefeld** ([Q140469514](https://www.wikidata.org/wiki/Q140469514)),
+  linked via founder (P112).
+- Added the COGNAK Wikidata URL to the `sameAs` array in the `ProfessionalService`
+  JSON-LD schema in `src/layouts/BaseLayout.astro`.
+- Wrapped the three CSSDA award badges on the studio page
+  (`src/pages/studio.astro`, `#award-badges-pop`) in links to the
+  [CSS Design Awards listing](https://www.cssdesignawards.com/sites/cognak/35561/).
+  Intentionally left non-interactive in practice (`pointer-events: none` except
+  during the brief `.is-active` hover/tap state, and even then the hover
+  trigger is bound only to the "award-winning" text, not the badges) — the
+  links exist for crawlers without visually announcing that the award is for
+  cognak.com itself.
+
+---
+
 ## Migration summary (for context)
 
 cognak.com was migrated off WordPress + GoDaddy hosting onto this static Astro

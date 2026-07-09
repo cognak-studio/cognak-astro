@@ -17,7 +17,7 @@
         navLinks.style.cssText = 'display:none;gap:24px;align-items:center;';
         homeNav.querySelectorAll('a').forEach(function(a) {
             var clone = a.cloneNode(true);
-            clone.style.cssText = "font-family:'Diatype Variable',sans-serif;font-size:13px;font-weight:400;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:0.04em;";
+            clone.style.cssText = "font-family:'Diatype Variable',sans-serif;font-size:14px;font-weight:400;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:0.04em;";
             navLinks.appendChild(clone);
         });
         bar.appendChild(navLinks);
@@ -51,20 +51,37 @@
         // reaches the top bar). The cookie halo is excluded — it stays always.
         document.documentElement.classList.toggle('home-scrolled', stageBottom <= barH);
 
-        if (stageBottom <= barH) {
-            // Hero scrolled fully past: pin bar to top
+        if (isMobile) {
+            // Mobile: two-phase only — no intermediate tracking.
+            // During the hero, use position:absolute so the bar scrolls
+            // naturally with the page (locked to the hero's bottom edge).
+            // Once the hero is gone, switch to position:fixed at the top.
+            if (stageBottom <= barH) {
+                bar.classList.add('nav-mode');
+                bar.style.position = 'fixed';
+                bar.style.top = '0';
+                bar.style.bottom = 'auto';
+            } else {
+                bar.classList.remove('nav-mode');
+                bar.style.position = 'absolute';
+                // stageBottom (viewport-relative) + pageYOffset = document-relative
+                // position of the stage's bottom edge — constant as user scrolls,
+                // so the bar stays locked to the hero's bottom and scrolls with it.
+                bar.style.top = (stageBottom + window.pageYOffset - barH) + 'px';
+                bar.style.bottom = 'auto';
+            }
+        } else if (stageBottom <= barH) {
+            // Desktop: Hero scrolled fully past — pin bar to top
             bar.classList.add('nav-mode');
             bar.style.top = '0';
             bar.style.bottom = 'auto';
         } else if (stageBottom < window.innerHeight) {
-            // Hero partially visible: follow stage bottom upward
+            // Desktop: Hero partially visible — follow stage bottom upward
             bar.classList.add('nav-mode');
             bar.style.top = Math.max(0, stageBottom - barH) + 'px';
             bar.style.bottom = 'auto';
         } else {
-            // Hero fully visible: let CSS bottom:0 handle it — don't use
-            // window.innerHeight here because it changes when Chrome's address
-            // bar shows/hides, causing the bar to jolt.
+            // Desktop: Hero fully visible — let CSS bottom:0 handle it
             bar.classList.remove('nav-mode');
             bar.style.top = '';
             bar.style.bottom = '';
