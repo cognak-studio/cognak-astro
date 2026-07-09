@@ -359,16 +359,24 @@ body { overflow-x: clip; }
         for (var i = 0; i < mutations.length; i++) {
             if (mutations[i].addedNodes.length) {
                 observer.disconnect();
+                // 600ms (was 100ms) — gives Unicorn Studio time to render the
+                // first frame before the canvas is revealed. Too short = white flash.
                 setTimeout(function() {
                     webglEl.classList.add('webgl-ready');
-                }, 100);
+                }, 600);
                 return;
             }
         }
     });
     observer.observe(webglEl, { childList: true });
-    // Fallback: if nothing appears within 3s, fade in anyway
-    setTimeout(function() { webglEl.classList.add('webgl-ready'); }, 3000);
+    // Fallback: only reveal if a canvas actually exists — if the scene failed
+    // to load, leave the container hidden so the dark background shows through
+    // rather than flashing a blank white canvas.
+    setTimeout(function() {
+        if (webglEl.querySelector('canvas')) {
+            webglEl.classList.add('webgl-ready');
+        }
+    }, 3000);
 })();
 </script>
 
