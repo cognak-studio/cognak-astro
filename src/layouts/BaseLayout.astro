@@ -39,6 +39,13 @@ const {
 const isHome = page === 'home';
 const bodyClass = isHome ? 'non-fixed-nav' : 'fixed-nav';
 
+// Cache-buster for the unhashed /js/ scripts, stable across the whole build:
+// the deploy's commit SHA on Vercel, else an hour-rounded timestamp locally.
+// Every deploy gets a fresh ?v=, so phones stop running day-old cached JS
+// against fresh HTML/CSS (Vercel serves /js/ with max-age=86400 + SWR 30d).
+const jsV = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 8)
+  || Math.floor(Date.now() / 3600000).toString(36);
+
 // Inner-page top nav (home-bottom-bar inner-page-nav) renders on these pages.
 const innerNavPages = ['studio', 'projects', 'project', 'privacy', '404'];
 const showInnerNav = innerNavPages.includes(page);
@@ -363,17 +370,17 @@ import '../styles/site.css';
 
   <!-- Global scripts (deferred) -->
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
-  <script src="/js/cognak-lenis-init.js" defer></script>
-  <script src="/js/cognak-global.js" defer></script>
+  <script src={`/js/cognak-lenis-init.js?v=${jsV}`} defer></script>
+  <script src={`/js/cognak-global.js?v=${jsV}`} defer></script>
 
   {/* UnicornStudio: the init script lazy-loads the WebGL library itself
       (on idle, once the hero is near the viewport) — see cognak-unicorn-init.js. */}
   {(page === 'home' || page === 'studio') && (
-    <script src="/js/cognak-unicorn-init.js" defer></script>
+    <script src={`/js/cognak-unicorn-init.js?v=${jsV}`} defer></script>
   )}
-  {page === 'home' && <script src="/js/cognak-home.js" defer></script>}
-  {page === 'projects' && <script src="/js/cognak-projects.js" defer></script>}
-  {page === 'project' && <script src="/js/cognak-single.js" defer></script>}
+  {page === 'home' && <script src={`/js/cognak-home.js?v=${jsV}`} defer></script>}
+  {page === 'projects' && <script src={`/js/cognak-projects.js?v=${jsV}`} defer></script>}
+  {page === 'project' && <script src={`/js/cognak-single.js?v=${jsV}`} defer></script>}
   <Analytics />
   <SpeedInsights />
 </body>
