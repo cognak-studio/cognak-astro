@@ -177,6 +177,26 @@ target for "cognac":
 
 ---
 
+## JS cache busting (2026-07-09)
+
+The scripts in `public/js/` aren't content-hashed by the build, but Vercel serves
+them with a 24-hour cache (+30-day stale-while-revalidate, see `vercel.json`).
+After a deploy, phones could keep running day-old cached JS against fresh
+HTML/CSS — this is what broke the WebGL backgrounds on the mobile homepage and
+`/studio` (a private tab worked; the normal tab served stale scripts).
+
+Fix: `src/layouts/BaseLayout.astro` appends `?v=${jsV}` to every `/js/` script
+tag, where `jsV` is the first 8 chars of the deploy's commit SHA
+(`VERCEL_GIT_COMMIT_SHA`, falling back to an hour-rounded timestamp locally).
+The value is stable across a build, changes every deploy, and makes browsers
+fetch fresh copies immediately.
+
+**If you add a new script under `public/js/`, load it through BaseLayout with
+the same `?v=${jsV}` pattern** — a bare `<script src="/js/...">` tag reintroduces
+the stale-cache problem.
+
+---
+
 ## Migration summary (for context)
 
 cognak.com was migrated off WordPress + GoDaddy hosting onto this static Astro

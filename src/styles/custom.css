@@ -101,7 +101,7 @@ a, button, [role="button"] {
 #cognak-cursor-label {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 400;
     color: #fff;
     opacity: 0;
     letter-spacing: 0.08em;
@@ -401,8 +401,6 @@ padding-right: 30px;
     background-color: #3A313B !important;
     border: 0 !important;
     color: #fff !important;
-    font-family: 'Diatype Variable', sans-serif !important;
-    font-weight: 600 !important;
     font-size: 14px !important;
     line-height: 1.2 !important;
     letter-spacing: normal !important;
@@ -492,7 +490,7 @@ body.non-fixed-nav {
 .hero-center-headline p {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 500;
+    font-weight: 600;
     color: rgba(255,255,255,0.85);
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -879,9 +877,6 @@ html.home-scrolled #cognak-cookie {
     .projects-archive {
         padding: 0 24px 80px !important;
     }
-    .projects-archive-heading {
-        margin-top: 60px !important;
-    }
     .projects-grid {
         grid-template-columns: 1fr !important;
         gap: 12px !important;
@@ -1173,7 +1168,7 @@ html.home-scrolled #cognak-cookie {
 .hp-projects-heading {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 500;
+    font-weight: 600;
     color: rgba(255,255,255,0.4);
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -1455,7 +1450,7 @@ html.home-scrolled #cognak-cookie {
 .projects-display-headline {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 500;
+    font-weight: 600;
     color: #7A6E9A;
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -1493,15 +1488,6 @@ html.home-scrolled #cognak-cookie {
     .sort-icon-alpha svg {
         transform: translateY(-2px);
     }
-}
-.projects-archive-heading {
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: clamp(52px, 7vw, 92px);
-    font-weight: 600;
-    color: #3A313B;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    margin: 0 0 32px;
 }
 .projects-intro-text p {
     font-family: 'Diatype Variable', sans-serif;
@@ -1631,17 +1617,6 @@ html.home-scrolled #cognak-cookie {
     100% { color: var(--cognak-purple-text); }
 }
 .rl.rl-go { animation: letter-rainbow-loop 1.8s linear infinite; }
-
-/* ── Project count label ── */
-.projects-count-label {
-    display: block;
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    color: rgba(58, 49, 59, 0.4);
-    letter-spacing: 0.04em;
-    margin-top: 14px;
-}
 
 /* ── Homepage card tilt ── */
 #hp-grid .project-excerpt {
@@ -1812,7 +1787,7 @@ html.pv-grid .projects-list,
 .list-item-tag {
     font-family: 'Diatype Mono Variable', monospace;
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
     color: #6d6d6d;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1851,7 +1826,7 @@ html.pv-grid .projects-list,
 .studio-display-headline {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 500;
+    font-weight: 600;
     color: rgba(255,255,255,0.85);
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -2037,7 +2012,7 @@ html.pv-grid .projects-list,
     opacity: 1 !important;
     font-family: 'Diatype Variable', sans-serif !important;
     font-size: 11px !important;
-    font-weight: 500 !important;
+    font-weight: 400 !important;
     color: #fff !important;
     white-space: nowrap !important;
     letter-spacing: 0.02em !important;
@@ -2059,7 +2034,7 @@ html.pv-grid .projects-list,
     opacity: 1 !important;
     font-family: 'Diatype Variable', sans-serif !important;
     font-size: 11px !important;
-    font-weight: 500 !important;
+    font-weight: 400 !important;
     color: #fff !important;
     white-space: nowrap !important;
     letter-spacing: 0.02em !important;
@@ -2203,7 +2178,7 @@ html.pv-grid .projects-list,
 .studio-manifesto {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(18px, 2.4vw, 30px);
-    font-weight: 500;
+    font-weight: 600;
     color: rgba(255,255,255,0.85);
     line-height: 1.45;
     letter-spacing: -0.02em;
@@ -2254,15 +2229,6 @@ html.pv-grid .projects-list,
     row-gap: 0;
     align-items: end;
 }
-.studio-caps-list li {
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: 17px;
-    color: rgba(255,255,255,0.6);
-    line-height: 1.6;
-    display: flex;
-    align-items: flex-end;
-    padding-bottom: 6px;
-}
 .studio-caps-list .cap-desc {
     color: rgba(255,255,255,0.35);
 }
@@ -2293,23 +2259,6 @@ html.pv-grid .projects-list,
     gap: 16px;
     padding: 11px 0;
     border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-.scr-name {
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: 15px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.55);
-    line-height: 1.7;
-    letter-spacing: 0;
-}
-.scr-desc {
-    font-family: 'Diatype Mono Variable', monospace;
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--cognak-purple-text);
-    letter-spacing: 0.04em;
-    text-align: right;
-    white-space: nowrap;
 }
 
 /* ── Studio capabilities table ── */
@@ -2584,7 +2533,7 @@ html.pv-grid .projects-list,
 .inner-nav-links a {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 400;
     color: #3A313B;
     text-decoration: none;
     letter-spacing: 0.04em;
@@ -2799,22 +2748,6 @@ body.pagers-idle a[rel="next"] {
     gap: 24px !important;
     flex-wrap: nowrap !important;
 }
-.cky-title {
-    font-family: 'Diatype Variable', sans-serif !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: #ffffff !important;
-    margin: 0 0 4px !important;
-    letter-spacing: 0.02em !important;
-}
-.cky-notice-des,
-.cky-notice-des p {
-    font-family: 'Diatype Variable', sans-serif !important;
-    font-size: 12px !important;
-    color: rgba(255, 255, 255, 0.45) !important;
-    line-height: 1.5 !important;
-    margin: 0 !important;
-}
 .cky-notice-des a {
     color: rgba(255, 255, 255, 0.45) !important;
     text-decoration: underline !important;
@@ -2831,9 +2764,7 @@ body.pagers-idle a[rel="next"] {
     align-items: center !important;
 }
 .cky-btn {
-    font-family: 'Diatype Variable', sans-serif !important;
     font-size: 12px !important;
-    font-weight: 600 !important;
     letter-spacing: 0.04em !important;
     border-radius: 4px !important;
     padding: 8px 18px !important;
@@ -2940,7 +2871,7 @@ a[href*="cookieyes.com"],
 .cognak-cookie-label {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1;
     color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
@@ -2951,7 +2882,7 @@ a[href*="cookieyes.com"],
     gap: 7px;
     font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1;
     color: rgba(255,255,255,0.55);
     letter-spacing: 0.04em;
@@ -3147,7 +3078,7 @@ html body.page-template-page-privacy-policy,
 .privacy-headline {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: #815275;
@@ -3161,7 +3092,7 @@ html body.page-template-page-privacy-policy,
 .privacy-body h2 {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #815275;
@@ -3465,7 +3396,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     background: none;
     font-family: 'Diatype Variable', sans-serif;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.12em;
     line-height: 1.6;
     text-transform: uppercase;
@@ -3542,7 +3473,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
         flex-shrink: 0;
         font-family: 'Diatype Variable', sans-serif;
         font-size: 12px;
-        font-weight: 500;
+        font-weight: 600;
         color: #3A313B;
         letter-spacing: 0.03em;
         white-space: nowrap;
@@ -3600,7 +3531,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .fourofour-headline {
     font-family: "Diatype Variable", sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.08;
     letter-spacing: -0.02em;
     color: #FFFFFF;

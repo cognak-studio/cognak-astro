@@ -397,16 +397,6 @@ body.fixed-nav {
   float: right;
 }
 
-.primary-navigation .links li {
-  float: left;
-  font-family: 'Diatype Variable',sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: .20em;
-  text-transform: uppercase;
-  margin: 0 0 0 35px;
-}
-
 .primary-navigation .links li a {
   text-decoration: none;
 }
@@ -722,15 +712,6 @@ article img {
   transition: transform .7s, -webkit-transform .7s;
 }
 
-.overlay h1 {
-  font-family: 'Diatype Mono Variable', monospace;
-  font-weight: 800;
-  font-size: 25px;
-  line-height: 1.2;
-  margin: 0 0 10px 0;
-  text-align: center;
-}
-
 .cognak-front-page {
   position: relative;
   width: 40%;
@@ -749,31 +730,6 @@ article img {
   order: 0;
 }
 
-.cognak-front-page h1 {
-  color: #fff;
-  text-align: center;
-  font-family: 'Diatype Mono Variable', monospace;
-  font-weight: 600;
-  font-size: 22px;
-  line-height: 1.2;
-  margin: -20px 0 4% 0;
-}
-
-.cognak-front-page h1 b {
-  font-family: 'Diatype Mono Variable', monospace;
-  font-weight: 200;
-  font-style: italic;
-}
-
-.cognak-front-page h2 {
-  color: #fff;
-  text-align: center;
-  font-family: 'Diatype Variable', serif;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1.2;
-  margin-bottom: 50px;
-}
 
 .cognak-front-page .button {
   text-align: center;
@@ -784,8 +740,6 @@ article img {
   background-color: #fff;
   color: #000;
   text-align: center;
-  font-family: 'Diatype Variable',sans-serif;
-  font-weight: 600;
   font-size: 14px;
   line-height: 1.2;
   text-decoration: none;
@@ -857,14 +811,11 @@ article img {
 .template-front-page .blog-front-page time {
   color: #fff;
   display: block;
-  font-family: 'Diatype Variable',sans-serif;
-  font-weight: 300;
   font-size: 14px;
   margin: 0 0 10px 0;
 }
 
 .template-front-page .blog-front-page h1 {
-  font-family: 'Diatype Mono Variable', monospace;
   font-size: 44px;
 }
 
@@ -1040,8 +991,6 @@ article img {
 }
 
 .template-archive-project .project-excerpt .title {
-  font-family: 'Diatype Mono Variable', monospace;
-  font-weight: 800;
   font-size: 24px;
   line-height: 1.3;
   margin: 0 0 5px 0;
@@ -1049,7 +998,6 @@ article img {
 }
 
 .template-archive-project .project-excerpt .categories {
-  font-family: 'Diatype Variable',sans-serif;
   color: #4E464F;
   font-size: 12px;
   font-style: italic;
@@ -1341,8 +1289,6 @@ a[rel="next"] {
 }
 .contact-template .title {
   color: #3A313B;
-  font-family: 'Diatype Mono Variable', monospace;
-  font-weight: 800;
   font-size: clamp(50px, 5vw, 72px);
   display: inline-block;
   padding-bottom: 24px;
@@ -1360,7 +1306,6 @@ a[rel="next"] {
 }
 .contact-template h3 {
   color: #3A313B;
-  font-family: 'Diatype Variable',sans-serif;
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 3px;
@@ -1369,7 +1314,6 @@ a[rel="next"] {
 }
 .contact-template p {
   color: #3A313B;
-  font-family: 'Diatype Variable',sans-serif;
   font-size: 13px;
   line-height: 1.5;
   margin: 0 0 20px 0;
@@ -1377,8 +1321,6 @@ a[rel="next"] {
 
 input[type="text"], textarea {
   color: #6d6d6d;
-  font-family: 'Diatype Variable',sans-serif;
-  font-weight: 600;
   font-size: 14px;
   line-height: 1.5;
   padding: 10px;
@@ -1416,8 +1358,6 @@ input[type="submit"] {
   border-width: 0px;
   color: #fff;
   text-align: center;
-  font-family: 'Diatype Variable',sans-serif;
-  font-weight: 600;
   font-size: 12px;
   line-height: 1.2;
   text-decoration: none;
@@ -1457,8 +1397,6 @@ label {
 
 .ninja-forms-cont p {
   color: #BE2625;
-  font-family: 'Diatype Variable',sans-serif;
-  font-weight: 700;
   font-size: 14px;
   line-height: 1.5;
   -moz-transition: all 0.7s ease;
