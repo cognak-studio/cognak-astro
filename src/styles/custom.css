@@ -1961,6 +1961,11 @@ html.pv-grid .projects-list,
 .award-badges-wrap.is-active {
     opacity: 1;
     transform: translateY(-50%) translateX(20px);
+    pointer-events: auto;
+}
+.award-badge-pop-link {
+    display: block;
+    cursor: pointer;
 }
 .award-badge-pop {
     display: block;
@@ -1976,9 +1981,9 @@ html.pv-grid .projects-list,
     opacity: 1;
     transform: scale(1) translateY(0);
 }
-.award-badges-wrap .award-badge-pop:nth-child(1) { transition-delay: 0.04s; }
-.award-badges-wrap .award-badge-pop:nth-child(2) { transition-delay: 0.10s; }
-.award-badges-wrap .award-badge-pop:nth-child(3) { transition-delay: 0.16s; }
+.award-badges-wrap .award-badge-pop-link:nth-child(1) .award-badge-pop { transition-delay: 0.04s; }
+.award-badges-wrap .award-badge-pop-link:nth-child(2) .award-badge-pop { transition-delay: 0.10s; }
+.award-badges-wrap .award-badge-pop-link:nth-child(3) .award-badge-pop { transition-delay: 0.16s; }
 
 
 
@@ -2472,6 +2477,7 @@ html.pv-grid .projects-list,
     }
     .award-badges-wrap.is-active {
         opacity: 1 !important;
+        pointer-events: auto !important;
     }
     /* Purple highlight on the tapped trigger word — fades when popup dismisses */
     .founder-name.is-tapped,
