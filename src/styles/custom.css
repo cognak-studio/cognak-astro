@@ -458,7 +458,7 @@ body.non-fixed-nav {
 .hero-center-headline p {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 600;
+    font-weight: 500;
     color: rgba(255,255,255,0.85);
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -993,7 +993,7 @@ html.home-scrolled #cognak-cookie {
     display: block;
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 2.2vw, 34px);
-    font-weight: 600;
+    font-weight: 500;
     color: #3A313B;
     text-decoration: none;
     line-height: 1.2;
@@ -1012,7 +1012,7 @@ html.home-scrolled #cognak-cookie {
 .footer-social a {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 2.2vw, 34px);
-    font-weight: 600;
+    font-weight: 500;
     color: #3A313B;
     text-decoration: none;
     line-height: 1.2;
@@ -1136,7 +1136,7 @@ html.home-scrolled #cognak-cookie {
 .hp-projects-heading {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 600;
+    font-weight: 500;
     color: rgba(255,255,255,0.4);
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -1418,7 +1418,7 @@ html.home-scrolled #cognak-cookie {
 .projects-display-headline {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 600;
+    font-weight: 500;
     color: #7A6E9A;
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -1794,7 +1794,7 @@ html.pv-grid .projects-list,
 .studio-display-headline {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 600;
+    font-weight: 500;
     color: rgba(255,255,255,0.85);
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -2146,7 +2146,7 @@ html.pv-grid .projects-list,
 .studio-manifesto {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(18px, 2.4vw, 30px);
-    font-weight: 600;
+    font-weight: 500;
     color: rgba(255,255,255,0.85);
     line-height: 1.45;
     letter-spacing: -0.02em;
@@ -2446,7 +2446,7 @@ html.pv-grid .projects-list,
 }
 .template-single-project .information .title {
     font-family: 'Diatype Variable', sans-serif !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
 }
 
 /* ── Hero video ── */
@@ -2958,7 +2958,7 @@ html body.page-template-page-privacy-policy,
 .privacy-headline {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: #815275;
@@ -2972,7 +2972,7 @@ html body.page-template-page-privacy-policy,
 .privacy-body h2 {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #815275;
@@ -3103,7 +3103,7 @@ html body.page-template-page-privacy-policy,
     color: #fff;
     font-family: 'Diatype Variable', sans-serif;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     padding: 10px 20px;
     border-radius: 4px;
     text-decoration: none;
@@ -3275,7 +3275,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     background: none;
     font-family: 'Diatype Variable', sans-serif;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.12em;
     line-height: 1.6;
     text-transform: uppercase;
@@ -3352,7 +3352,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
         flex-shrink: 0;
         font-family: 'Diatype Variable', sans-serif;
         font-size: 12px;
-        font-weight: 600;
+        font-weight: 500;
         color: #3A313B;
         letter-spacing: 0.03em;
         white-space: nowrap;
@@ -3410,7 +3410,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .fourofour-headline {
     font-family: "Diatype Variable", sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.08;
     letter-spacing: -0.02em;
     color: #FFFFFF;
