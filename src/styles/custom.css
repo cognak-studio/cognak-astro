@@ -1965,7 +1965,11 @@ html.pv-grid .projects-list,
 }
 .award-badge-pop-link {
     display: block;
-    cursor: pointer;
+    /* Visually present but never navigates — prevents iOS scroll-jump on mobile
+       and accidental CSSDA navigation on desktop. The link href stays in the
+       DOM for crawlers/credibility but is not user-interactive. */
+    pointer-events: none;
+    cursor: default;
 }
 .award-badge-pop {
     display: block;
@@ -2477,6 +2481,7 @@ html.pv-grid .projects-list,
     }
     .award-badges-wrap.is-active {
         opacity: 1 !important;
+        pointer-events: none !important; /* override desktop rule that sets auto */
     }
     /* Purple highlight on the tapped trigger word — fades when popup dismisses */
     .founder-name.is-tapped,
