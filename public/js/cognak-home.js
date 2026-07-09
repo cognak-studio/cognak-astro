@@ -223,10 +223,22 @@
         var title = card.dataset.projectTitle || '';
         var type  = card.dataset.projectType  || '';
         var year  = card.dataset.projectYear  || '';
+        var dateS = parseInt(card.dataset.projectDate || '0', 10);
         var fields = [];
         if (title) fields.push('  "project": "' + title.toLowerCase() + '"');
         if (type)  fields.push('  "type": "' + type + '"');
         if (year)  fields.push('  "year": ' + year);
+        /* Real values, unlike the set-dressing below: vintage + cask grade from
+           the project date. VS < 4y, VSOP 4-10y, XO 10y+ (BNIC, roughly). */
+        if (dateS > 0 && dateS < Date.now() / 1000) {
+            var yrs   = (Date.now() / 1000 - dateS) / 31557600;
+            var grade = yrs >= 10 ? 'xo' : yrs >= 4 ? 'vsop' : 'vs';
+            var w     = Math.floor(yrs);
+            var m     = Math.floor((yrs - w) * 12);
+            fields.push('  "vintage": ' + new Date(dateS * 1000).getFullYear());
+            fields.push('  "aged": "' + (w > 0 ? w + 'y ' : '') + m + 'm"');
+            fields.push('  "cask": "' + grade + '"');
+        }
         fields.push('  "render_id": "' + randHex(6) + '"');
         fields.push('  "revisions": ' + (Math.floor(Math.random() * 8) + 1));
         fields.push('  "nda": ' + (Math.random() > 0.5 ? 'true' : 'false'));

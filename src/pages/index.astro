@@ -21,6 +21,7 @@ const cards = await Promise.all(
       title: p.data.title,
       type: p.data.projectType ?? '',
       year: p.data.projectYear ?? '',
+      dateUnix: p.data.date ? Math.floor(p.data.date.getTime() / 1000) : 0,
       thumb: thumb.src,
       squareHero: squareHero.src,
       cursorPanel: cursorPanel.src,
@@ -79,7 +80,8 @@ const cards = await Promise.all(
             data-hero={c.cursorPanel}
             data-project-title={c.title}
             data-project-type={c.type}
-            data-project-year={c.year}>
+            data-project-year={c.year}
+            data-project-date={c.dateUnix}>
             <figure style={`view-transition-name: project-thumb-${c.slug}`}>
               <a href={`/projects/${c.slug}`}>
                 <img src={c.thumb} class="cover hp-lazy" loading="lazy" alt={c.title} />

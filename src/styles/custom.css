@@ -1825,6 +1825,16 @@ html.pv-grid .projects-list,
     color: var(--cognak-purple-text);
 }
 }
+/* Cognac age grade appended to the tag — one shade quieter than the tag itself. */
+.list-item-vintage {
+    color: rgba(58, 49, 59, 0.34);
+    transition: color 0.15s ease;
+}
+@media (hover: hover) {
+.projects-list-item:hover .list-item-vintage {
+    color: var(--cognak-purple-text);
+}
+}
 
 /* ── Studio page overrides ── */
 .studio-archive {

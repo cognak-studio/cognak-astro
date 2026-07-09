@@ -8,6 +8,19 @@ const all = (await getCollection('projects', (p) => !p.data.draft)).sort((a, b) 
   a.data.title.localeCompare(b.data.title)
 );
 
+// Cognac age grades, computed at build time from the project date. Real BNIC
+// thresholds: VS is at least 2 years in oak, VSOP at least 4, XO at least 10.
+// We grade the whole cellar: under 4y pours as VS.
+const NOW_UNIX = Math.floor(Date.now() / 1000);
+const YEAR_SECONDS = 31557600;
+function vintageOf(dateUnix) {
+  if (!dateUnix || dateUnix > NOW_UNIX) return '';
+  const years = (NOW_UNIX - dateUnix) / YEAR_SECONDS;
+  const grade = years >= 10 ? 'XO' : years >= 4 ? 'VSOP' : 'VS';
+  const aged = years < 1 ? '<1y' : Math.floor(years) + 'y';
+  return grade + ' · ' + aged;
+}
+
 const unsorted = await Promise.all(
   all.map(async (p) => {
     const thumb = await getImage({ src: p.data.thumbnail, format: 'webp', width: 800 });
@@ -27,6 +40,7 @@ const unsorted = await Promise.all(
       thumb: thumb.src,
       cursorHero: cursorHero.src,
       dateUnix,
+      vintage: vintageOf(dateUnix),
     };
   })
 );
@@ -121,7 +135,7 @@ const LAZY_AFTER = 8;
       {items.map((p) => (
         <a href={`/projects/${p.slug}`} class="projects-list-item" data-hero={p.cursorHero} data-date={p.dateUnix} data-title={p.title}>
           <span class="list-item-title">{p.title}</span>
-          {p.category && <span class="list-item-tag">{p.category}</span>}
+          {p.category && <span class="list-item-tag">{p.category}{p.vintage && <span class="list-item-vintage">&nbsp;· {p.vintage}</span>}</span>}
         </a>
       ))}
     </div>
