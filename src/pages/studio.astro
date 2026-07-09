@@ -307,50 +307,6 @@ body { overflow-x: clip; }
         <a href="mailto:hello@cognak.com" class="projects-start-link">Start a project</a>
         <span class="availability-sub" style="color: rgba(255,255,255,0.6);"><span class="avail-dot" style="color: #AAFF00;" aria-hidden="true"></span> Currently booking 30&#x2013;60 days out</span>
     </div>
-    <script is:inline>
-    // Stagger-fade capabilities on scroll
-    (function() {
-        var items = document.querySelectorAll('.capabilities-list li');
-        if (!items.length || !('IntersectionObserver' in window)) {
-            items.forEach(function(li) { li.classList.add('capability-visible'); });
-            return;
-        }
-        var observer = new IntersectionObserver(function(entries) {
-            entries.forEach(function(entry) {
-                if (!entry.isIntersecting) return;
-                var li = entry.target;
-                var idx = Array.prototype.indexOf.call(items, li);
-                setTimeout(function() { li.classList.add('capability-visible'); }, idx * 45);
-                observer.unobserve(li);
-            });
-        }, { threshold: 0, rootMargin: '0px 0px -5% 0px' });
-        items.forEach(function(li) { observer.observe(li); });
-    })();
-    </script>
-
-    <script is:inline>
-    (function() {
-        var el = document.getElementById('capability-emoji');
-        if (!el) return; // emoji cursor-follower is disabled (element removed) — bail out
-        var items = document.querySelectorAll('.capabilities-list li[data-emoji]');
-
-        document.addEventListener('mousemove', function(e) {
-            el.style.left = e.clientX + 'px';
-            el.style.top  = e.clientY + 'px';
-        });
-
-        items.forEach(function(item) {
-            item.addEventListener('mouseenter', function() {
-                // el.textContent = this.dataset.emoji; // emoji disabled
-                // el.style.opacity = '1';
-            });
-            item.addEventListener('mouseleave', function() {
-                el.style.opacity = '0';
-            });
-        });
-    })();
-    </script>
-
 <script is:inline>
 (function() {
     var webglEl = document.querySelector('.about-webgl');

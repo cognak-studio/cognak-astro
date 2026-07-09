@@ -11,38 +11,6 @@ a, button, [role="button"] {
     touch-action: manipulation;
 }
 
-/* ── Capability descriptor slide ── */
-.cap-desc {
-    display: inline;
-    margin-left: 0.5em;
-    font-style: italic;
-    font-size: 0.47em;
-    font-weight: 400;
-    color: #FFB2E4;
-    opacity: 0;
-    transform: translateX(-6px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    pointer-events: none;
-    white-space: nowrap;
-}@media (hover: hover) {
-
-.capabilities-list li:hover .cap-desc {
-    opacity: 1;
-    transform: translateX(0);
-}
-}
-
-/* ── Capabilities stagger ── */
-.capabilities-list li {
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.capabilities-list li.capability-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-
 ::selection {
     background: #AAFF00;
     color: #000;
@@ -2217,62 +2185,6 @@ html.pv-grid .projects-list,
     margin-bottom: 0;
 }
 
-/* ── Capabilities tab panel list ── */
-.studio-caps-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: 1fr;
-    column-gap: 40px;
-    row-gap: 0;
-    align-items: end;
-}
-.studio-caps-list .cap-desc {
-    color: rgba(255,255,255,0.35);
-}
-
-/* ── Capability emoji cursor ── */
-#capability-emoji {
-    position: fixed;
-    pointer-events: none;
-    font-size: 25px;
-    line-height: 1;
-    z-index: 9999999;
-    transform: translate(-50%, -50%);
-    opacity: 0;
-    transition: opacity 0.15s ease;
-}
-
-/* ── Capabilities rows (right column) ── */
-.studio-caps-rows {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border-top: 1px solid rgba(255,255,255,0.1);
-}
-.studio-caps-rows li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 11px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-/* ── Studio capabilities table ── */
-.studio-capabilities {
-    margin-top: 0;
-    position: relative;
-    z-index: 1;
-    margin-left: 0;
-}
-.studio-capabilities--offset {
-    margin-left: 0;
-    position: relative;
-    z-index: 1;
-}
 .studio-start-wrap {
     margin-left: 0;
     margin-top: 80px;
@@ -2311,34 +2223,6 @@ html.pv-grid .projects-list,
 }
 .studio-start-wrap .availability-sub    { color: rgba(255,255,255,0.6) !important; }
 .studio-start-wrap .avail-dot           { color: #FFB2E4; }
-.capabilities-header {
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin: 0 0 0;
-}
-.capabilities-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    max-width: 600px;
-}
-.capabilities-list li {
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: 27px;
-    font-weight: 400;
-    color: #fff;
-    padding: 18px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
-}
-.capabilities-list li:first-child {
-    border-top: 1px solid rgba(255,255,255,0.15);
-    margin-top: 24px;
-}
 /* ── Intermediate: tablet / narrow desktop ── */
 @media (max-width: 1024px) and (min-width: 721px) {
     .studio-columns .studio-subhead {
@@ -2351,9 +2235,6 @@ html.pv-grid .projects-list,
     #tab-approach,
     #tab-founder {
         max-width: clamp(280px, 40vw, 480px);
-    }
-    .capabilities-list li {
-        font-size: clamp(18px, 2.2vw, 27px);
     }
     .founder-portrait-wrap {
         width: clamp(160px, 16vw, 242px);
@@ -2467,7 +2348,6 @@ html.pv-grid .projects-list,
         margin-top: 60px;
         margin-bottom: 80px;
     }
-    .studio-caps-list .cap-desc { display: none !important; }
 }
 
 /* ── Studio archive: allow logo ring to extend past viewport edges ── */
@@ -3369,7 +3249,6 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
         display: none !important;
     }
     /* Show stagger-animated items instantly */
-    .capabilities-list li,
     .privacy-body h2,
     .privacy-body p {
         opacity: 1 !important;
