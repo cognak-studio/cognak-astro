@@ -17,7 +17,7 @@
         navLinks.style.cssText = 'display:none;gap:24px;align-items:center;';
         homeNav.querySelectorAll('a').forEach(function(a) {
             var clone = a.cloneNode(true);
-            clone.style.cssText = "font-family:'Diatype Variable',sans-serif;font-size:16px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:0.04em;";
+            clone.style.cssText = "font-family:'Diatype Variable',sans-serif;font-size:15px;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:0.04em;";
             navLinks.appendChild(clone);
         });
         bar.appendChild(navLinks);

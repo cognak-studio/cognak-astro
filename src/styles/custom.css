@@ -2583,8 +2583,8 @@ html.pv-grid .projects-list,
 }
 .inner-nav-links a {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 15px;
+    font-weight: 500;
     color: #3A313B;
     text-decoration: none;
     letter-spacing: 0.04em;
@@ -2939,8 +2939,8 @@ a[href*="cookieyes.com"],
 }
 .cognak-cookie-label {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 15px;
+    font-weight: 500;
     line-height: 1;
     color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
@@ -2950,8 +2950,8 @@ a[href*="cookieyes.com"],
     align-items: center;
     gap: 7px;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 15px;
+    font-weight: 500;
     line-height: 1;
     color: rgba(255,255,255,0.55);
     letter-spacing: 0.04em;
