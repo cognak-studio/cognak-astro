@@ -2477,7 +2477,6 @@ html.pv-grid .projects-list,
     }
     .award-badges-wrap.is-active {
         opacity: 1 !important;
-        pointer-events: auto !important;
     }
     /* Purple highlight on the tapped trigger word — fades when popup dismisses */
     .founder-name.is-tapped,
