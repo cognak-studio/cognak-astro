@@ -1592,11 +1592,14 @@ html.home-scrolled #cognak-cookie {
 }
 
 /* ── Homepage scroll discover indicator ── */
+/* z-index above the top-right nav halo (body.non-fixed-nav::after, z-index 9998)
+   which otherwise paints over this at scroll 0, hiding it entirely. Stays below
+   the nav itself (z-index 10000000) and awwwards badge (9999). */
 .scroll-discover {
     position: absolute;
     top: 32px;
     right: 20px;
-    z-index: 10;
+    z-index: 9999;
     pointer-events: none;
 }
 .scroll-discover-track {
