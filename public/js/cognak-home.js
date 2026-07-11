@@ -665,7 +665,7 @@
 
     /* Sparse "dust in a projector beam" density, scaled to section area */
     function targetCount() {
-        return Math.max(80, Math.min(360, Math.round(W * H / 11000)));
+        return Math.max(120, Math.min(520, Math.round(W * H / 7500)));
     }
 
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -691,7 +691,7 @@
         /* Sharp little points: mostly ~1px, a few slightly larger */
         this.r     = 0.4 + Math.random() * 0.8;
         this.a     = 0.25 + Math.random() * 0.55;
-        this.col   = Math.random() > 0.35 ? '178,110,255' : '235,225,255';
+        this.col   = Math.random() > 0.2 ? '159,80,255' : '235,225,255';
         this.timer = 60 + Math.random() * 140;
         this.tw    = Math.random() * Math.PI * 2;      /* glint phase */
         this.twSpd = 0.008 + Math.random() * 0.03;     /* glint speed */
