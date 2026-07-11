@@ -821,10 +821,6 @@ html.home-scrolled #cognak-cookie {
         padding-right: 24px !important;
         padding-top: 42px !important;
     }
-    #hp-particles-canvas {
-        left: -24px;
-        width: calc(100% + 48px);
-    }
     .hp-def {
         font-size: clamp(16px, 5vw, 22px) !important;
         white-space: normal !important;
@@ -1090,6 +1086,7 @@ html.home-scrolled #cognak-cookie {
 .homepage-main {
     background: #242129;
     padding: 70px 70px 100px;
+    position: relative;
 }
 
 /* Intro: definition only */
@@ -1373,19 +1370,29 @@ html.home-scrolled #cognak-cookie {
     position: relative;
     overflow: visible;
 }
+/* Dust motes now sit behind the ENTIRE dark homepage section (canvas is a
+   direct child of .homepage-main) and still bleed 180px into the gap above
+   the footer. Short fade at the top so the dust eases in under the hero. */
 #hp-particles-canvas {
     position: absolute;
     top: 0;
-    /* Break out of .homepage-main's 70px side padding so particles reach the
-       viewport edges instead of stopping short. */
-    left: -70px;
-    width: calc(100% + 140px);
-    height: calc(100% + 180px); /* extend into gap below hp-bottom */
+    left: 0;
+    width: 100%;
+    height: calc(100% + 180px);
     display: block;
     pointer-events: none;
     z-index: 0;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
-    mask-image: linear-gradient(to bottom, transparent 0%, black 40%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 160px);
+    mask-image: linear-gradient(to bottom, transparent 0, black 160px);
+}
+/* Keep section content painting above the canvas */
+.hp-intro,
+.hp-grid-section {
+    position: relative;
+    z-index: 1;
+}
+.hp-bottom {
+    z-index: 1;
 }
 .hp-bottom > * {
     position: relative;

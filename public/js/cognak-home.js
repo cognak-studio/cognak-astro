@@ -652,9 +652,9 @@
     });
 })();
 
-/* ── Homepage particle section (from index.php) ───────────────────────────── */
+/* ── Homepage dust motes — full dark section (canvas in .homepage-main) ───── */
 (function() {
-    var section = document.querySelector('.hp-bottom');
+    var section = document.querySelector('.homepage-main');
     var canvas  = document.getElementById('hp-particles-canvas');
     if (!section || !canvas) return;
 
@@ -663,9 +663,17 @@
     var mouse    = { x: -9999, y: -9999 };
     var isMobile = window.innerWidth <= 720;
 
+    /* Sparse "dust in a projector beam" density, scaled to section area */
+    function targetCount() {
+        return Math.max(80, Math.min(360, Math.round(W * H / 11000)));
+    }
+
     function resize() {
         W = canvas.width  = section.offsetWidth;
         H = canvas.height = section.offsetHeight + 180;
+        var n = targetCount();
+        while (particles.length < n) particles.push(new Particle());
+        if (particles.length > n) particles.length = n;
     }
 
     function Particle() { this.init(true); }
@@ -678,6 +686,8 @@
         this.a     = 0.1 + Math.random() * 0.45;
         this.col   = Math.random() > 0.5 ? '255,255,255' : '200,140,255';
         this.timer = 60 + Math.random() * 140;
+        this.tw    = Math.random() * Math.PI * 2;      /* twinkle phase */
+        this.twSpd = 0.01 + Math.random() * 0.025;     /* twinkle speed */
     };
     Particle.prototype.update = function() {
         this.timer--;
@@ -702,14 +712,15 @@
         if (this.x > W) this.x = 0;
     };
     Particle.prototype.draw = function() {
+        this.tw += this.twSpd;
+        var a = this.a * (0.7 + 0.3 * Math.sin(this.tw));
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(' + this.col + ',' + this.a + ')';
+        ctx.fillStyle = 'rgba(' + this.col + ',' + a + ')';
         ctx.fill();
     };
 
     resize();
-    for (var i = 0; i < 100; i++) particles.push(new Particle());
 
     (function loop() {
         ctx.clearRect(0, 0, W, H);
@@ -728,4 +739,12 @@
         isMobile = window.innerWidth <= 720;
         resize();
     });
+    /* Section height changes when the "+ more" grid expands / images lazy-load */
+    if ('ResizeObserver' in window) {
+        var roT;
+        new ResizeObserver(function() {
+            clearTimeout(roT);
+            roT = setTimeout(resize, 150);
+        }).observe(section);
+    }
 })();
