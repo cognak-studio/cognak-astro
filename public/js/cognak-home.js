@@ -689,7 +689,7 @@
         this.vx    = (Math.random() - 0.5) * 0.7;
         this.vy    = -(0.08 + Math.random() * 0.3);
         /* Sharp little points: mostly ~1px, a few slightly larger */
-        this.r     = 0.4 + Math.random() * 0.8;
+        this.r     = 0.5 + Math.random() * 1.1;
         this.a     = 0.25 + Math.random() * 0.55;
         this.col   = Math.random() > 0.2 ? '159,80,255' : '235,225,255';
         this.timer = 60 + Math.random() * 140;
