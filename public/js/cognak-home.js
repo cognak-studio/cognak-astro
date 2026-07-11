@@ -668,9 +668,15 @@
         return Math.max(80, Math.min(360, Math.round(W * H / 11000)));
     }
 
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
     function resize() {
-        W = canvas.width  = section.offsetWidth;
-        H = canvas.height = section.offsetHeight + 180;
+        W = section.offsetWidth;
+        H = section.offsetHeight + 180;
+        /* Render at device resolution so the points stay sharp on retina */
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         var n = targetCount();
         while (particles.length < n) particles.push(new Particle());
         if (particles.length > n) particles.length = n;
@@ -682,12 +688,13 @@
         this.y     = scatter ? Math.random() * H : H + Math.random() * 30;
         this.vx    = (Math.random() - 0.5) * 0.7;
         this.vy    = -(0.08 + Math.random() * 0.3);
-        this.r     = 0.5 + Math.random() * 1.8;
-        this.a     = 0.1 + Math.random() * 0.45;
-        this.col   = Math.random() > 0.5 ? '255,255,255' : '200,140,255';
+        /* Sharp little points: mostly ~1px, a few slightly larger */
+        this.r     = 0.4 + Math.random() * 0.8;
+        this.a     = 0.25 + Math.random() * 0.55;
+        this.col   = Math.random() > 0.35 ? '178,110,255' : '235,225,255';
         this.timer = 60 + Math.random() * 140;
-        this.tw    = Math.random() * Math.PI * 2;      /* twinkle phase */
-        this.twSpd = 0.01 + Math.random() * 0.025;     /* twinkle speed */
+        this.tw    = Math.random() * Math.PI * 2;      /* glint phase */
+        this.twSpd = 0.008 + Math.random() * 0.03;     /* glint speed */
     };
     Particle.prototype.update = function() {
         this.timer--;
@@ -713,10 +720,12 @@
     };
     Particle.prototype.draw = function() {
         this.tw += this.twSpd;
-        var a = this.a * (0.7 + 0.3 * Math.sin(this.tw));
+        /* Dim most of the time, brief bright glints — dust catching the light */
+        var g = 0.5 + 0.5 * Math.sin(this.tw);
+        var a = this.a * (0.3 + 0.9 * g * g * g);
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(' + this.col + ',' + a + ')';
+        ctx.fillStyle = 'rgba(' + this.col + ',' + Math.min(a, 1) + ')';
         ctx.fill();
     };
 
