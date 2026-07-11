@@ -665,7 +665,7 @@
 
     /* Sparse "dust in a projector beam" density, scaled to section area */
     function targetCount() {
-        return Math.max(120, Math.min(520, Math.round(W * H / 7500)));
+        return Math.max(200, Math.min(900, Math.round(W * H / 4500)));
     }
 
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
