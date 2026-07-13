@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2019/07/hbr-letter.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2330" src="/uploads/2019/07/hbr-letter.jpg" alt="Harvard Business Review — hbr letter" width="1500" height="1001" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2019/07/hbr-letter.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2330" src="/media/2019/07/hbr-letter.jpg" alt="Harvard Business Review — hbr letter" width="1500" height="1001" /></picture></p>
 

@@ -13,7 +13,7 @@ export async function getStaticPaths() {
     return tb - ta;
   });
   return ordered.map((entry, i) => {
-    // WordPress: "previous" = older (next in newest-first list),
+    // "previous" = older (next in newest-first list),
     // "next" = newer (previous in list); newest wraps to oldest.
     const prev = ordered[i + 1] ?? null; // older
     let next = ordered[i - 1] ?? null;   // newer

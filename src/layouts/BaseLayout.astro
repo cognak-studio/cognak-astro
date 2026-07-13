@@ -125,11 +125,11 @@ import '../styles/site.css';
   <title set:html={title}></title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://assets.unicorn.studio" />
-  <!-- Site icon / favicon (matches WordPress site-icon output) -->
-  <link rel="icon" href="/uploads/2026/05/cropped-org-logo-32x32.png" sizes="32x32" />
-  <link rel="icon" href="/uploads/2026/05/cropped-org-logo-192x192.png" sizes="192x192" />
-  <link rel="apple-touch-icon" href="/uploads/2026/05/cropped-org-logo-180x180.png" />
-  <meta name="msapplication-TileImage" content="/uploads/2026/05/cropped-org-logo-270x270.png" />
+  <!-- Site icons -->
+  <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" href="/favicon-192x192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="msapplication-TileImage" content="/mstile-270x270.png" />
   <link rel="preload" href={`${THEME}/assets/images/cognak-logo.svg`} as="image" type="image/svg+xml" />
   {heroPreload && <link rel="preload" href={heroPreload} as="image" fetchpriority="high" />}
 

@@ -2,8 +2,38 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
+      "source": "/uploads/2026/05/cropped-org-logo-32x32.png",
+      "destination": "/favicon-32x32.png",
+      "permanent": true
+    },
+    {
+      "source": "/uploads/2026/05/cropped-org-logo-192x192.png",
+      "destination": "/favicon-192x192.png",
+      "permanent": true
+    },
+    {
+      "source": "/uploads/2026/05/cropped-org-logo-180x180.png",
+      "destination": "/apple-touch-icon.png",
+      "permanent": true
+    },
+    {
+      "source": "/uploads/2026/05/cropped-org-logo-270x270.png",
+      "destination": "/mstile-270x270.png",
+      "permanent": true
+    },
+    {
+      "source": "/uploads/2026/05/cropped-org-logo.png",
+      "destination": "/icon.png",
+      "permanent": true
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "/media/:path*",
+      "permanent": true
+    },
+    {
       "source": "/wp-content/uploads/:path*",
-      "destination": "/uploads/:path*",
+      "destination": "/media/:path*",
       "permanent": true
     },
     {
@@ -41,7 +71,7 @@
       ]
     },
     {
-      "source": "/(uploads|theme|js)/(.*)",
+      "source": "/(media|theme|js)/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=2592000" }
       ]

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * Compress oversized gallery images in public/uploads/.
+ * Compress oversized gallery images in public/media/.
  *
  * Project thumbnails/heroes (in src/content/projects/) are already optimized by
  * Astro at build time. This script handles the full-size gallery images that are
- * referenced by absolute /wp-content/uploads/... URLs and served as-is.
+ * referenced by absolute /media/... URLs and served as-is.
  *
  * What it does: caps very large images at 2000px wide and re-encodes JP/PNG at a
  * high-but-efficient quality. It only rewrites a file if the result is smaller,
@@ -19,7 +19,7 @@ import sharp from 'sharp';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const DIR = path.join(ROOT, 'public/uploads');
+const DIR = path.join(ROOT, 'public/media');
 const MAX_W = 2000;
 const SKIP_BELOW = 180 * 1024; // leave files under ~180KB alone
 

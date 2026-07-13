@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2019/10/COGNAK_Somernova-Website-Mockup.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2371" src="/uploads/2019/10/COGNAK_Somernova-Website-Mockup.png" alt="Somernova — website" width="1700" height="1062" /></picture><picture><source type="image/webp" srcset="/uploads/2019/10/somernova-wall-logo.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2356" src="/uploads/2019/10/somernova-wall-logo.jpg" alt="Somernova — wall logo" width="2048" height="1448" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2019/10/COGNAK_Somernova-Website-Mockup.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2371" src="/media/2019/10/COGNAK_Somernova-Website-Mockup.png" alt="Somernova — website" width="1700" height="1062" /></picture><picture><source type="image/webp" srcset="/media/2019/10/somernova-wall-logo.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2356" src="/media/2019/10/somernova-wall-logo.jpg" alt="Somernova — wall logo" width="2048" height="1448" /></picture></p>
 

@@ -3,7 +3,7 @@ import { glob } from 'astro/loaders';
 
 // Project content collection — one markdown file per project at
 // src/content/projects/<slug>/index.md.
-// Mirrors the WordPress ACF fields used by the cognak-black theme:
+// Field names mirror the legacy content model:
 //   hero_image, hover_image, project_type, project_year,
 //   homepage_feature, homepage_position, about_the_client
 const projects = defineCollection({

@@ -29,5 +29,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2015/12/swissnex-wireframe.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-180 size-full" src="/uploads/2015/12/swissnex-wireframe.jpg" alt="swissnex-wireframe" width="2048" height="1365" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2015/12/swissnex-wireframe.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-180 size-full" src="/media/2015/12/swissnex-wireframe.jpg" alt="swissnex-wireframe" width="2048" height="1365" /></picture></p>
 

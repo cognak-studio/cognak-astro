@@ -82,7 +82,7 @@ metaDescription: One line for SEO + social.
 aboutTheClient: <p>Who they are.</p>
 theWork: <p>What COGNAK did.</p>
 moreDetails: <p>• Point one</p><p>• Point two</p>
-# heroVideo: /uploads/2026/06/acme.mp4   # optional video hero
+# heroVideo: /media/2026/06/acme.mp4   # optional video hero
 # noindex: true                   # hide from Google + sitemap
 # draft: true                     # build but hide
 ---
@@ -96,7 +96,7 @@ moreDetails: <p>• Point one</p><p>• Point two</p>
 
 - `thumbnail` / `hero` / `hover` are optimized automatically (resized + WebP).
 - Gallery images referenced relatively as `./file.jpg` are optimized like the
-  hero. Images referenced as `/uploads/...` must exist under `public/uploads/...`
+  hero. Images referenced as `/media/...` must exist under `public/media/...`
   and are served as-is — run `npm run optimize` to generate their WebP versions.
 
 ---
@@ -143,7 +143,7 @@ src/
 public/
   js/               ported site behaviors (cursor, lenis, animations) — edit with care
   theme/            fonts, CSS, theme assets ported from the old site
-  uploads/          gallery images (mirrors the old /wp-content/uploads paths)
+  media/            gallery images + hero videos, served as-is
   og/               generated social share cards
 scripts/            new-project.mjs, generate-og.py, optimize-images.mjs
 dev.command         double-click launcher for local preview

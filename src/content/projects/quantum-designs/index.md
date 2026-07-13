@@ -33,5 +33,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2016/08/QUANTUMLetterhead.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-259 size-full" src="/uploads/2016/08/QUANTUMLetterhead.jpg" alt="Microsoft Word - AeroDesigns 2013 Letterhead.dotx" width="750" height="990" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2016/08/QUANTUMLetterhead.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-259 size-full" src="/media/2016/08/QUANTUMLetterhead.jpg" alt="Microsoft Word - AeroDesigns 2013 Letterhead.dotx" width="750" height="990" /></picture></p>
 

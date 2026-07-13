@@ -7,7 +7,7 @@ projectType: Web Design
 projectYear: 2025-2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
-heroVideo: /uploads/2026/06/hex-hero.mp4
+heroVideo: /media/2026/06/hex-hero.mp4
 aboutTheClient: '<p><a href="http://www.hex.tech">Hex</a> is a collaborative data workspace that lets teams write SQL and Python, build interactive apps, and share insights — all in one unified environment. Built for modern data teams, the platform is trusted by hundreds of companies to move from raw data to shareable decisions, fast.</p>
 
   '
@@ -28,6 +28,6 @@ homepageFeature: true
 homepagePosition: 2
 ---
 
-<p><picture><source type="image/webp" srcset="/uploads/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2922" src="/uploads/2025/08/hex-homepage-cognak-scaled.jpg" alt="Hex — homepage" width="2560" height="1920" /></picture></p>
-<p><picture><source type="image/webp" srcset="/uploads/2026/06/hex-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full" src="/uploads/2026/06/hex-hero-cognak-scaled.jpg" alt="Hex — hero" width="2560" height="1920" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2922" src="/media/2025/08/hex-homepage-cognak-scaled.jpg" alt="Hex — homepage" width="2560" height="1920" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2026/06/hex-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full" src="/media/2026/06/hex-hero-cognak-scaled.jpg" alt="Hex — hero" width="2560" height="1920" /></picture></p>
 
