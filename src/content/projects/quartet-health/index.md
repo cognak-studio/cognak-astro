@@ -24,7 +24,7 @@ moreDetails: '<p>• 2+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for Quartet Health, a behavioral health startup improving the lives of people with mental health conditions via technology and services.
-homepageFeature: true
+homepageFeature: false
 homepagePosition: 1
 ---
 
