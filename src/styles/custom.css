@@ -192,7 +192,7 @@ a, button, [role="button"] {
     position: fixed;
     bottom: 32px;
     left: 32px;
-    font-family: 'Diatype Mono Variable', monospace;
+    font-family: 'Diatype Mono', monospace;
     font-size: 10px;
     line-height: 1.7;
     color: rgba(255,255,255,0.22);
@@ -219,12 +219,11 @@ body.is-midnight .home-bottom-bar.inner-page-nav .pulse-dot {
 :root { --cognak-purple-text: #9F50FF; }
 body.fixed-nav { --cognak-purple-text: #9647F0; }
 
-/* ===== DIATYPE VARIABLE =====
-   Site type is ABC Diatype. Variable weight axis 100-900; the trial has no
-   italic axis, so italics are browser-synthesised (faux) — acceptable for
-   evaluation.
-   'Diatype Variable'      -> ABC Diatype Plus Variable
-   'Diatype Mono Variable' -> ABC Diatype Mono Variable */
+/* ===== DIATYPE =====
+   Licensed static weights: Regular (400), Medium (500), Bold (700).
+   Mono: Regular (400). Italics are browser-synthesised.
+   'Diatype Variable' -> ABC Diatype (Regular / Medium / Bold)
+   'Diatype Mono'     -> ABC Diatype Mono (Regular) */
 
 @font-face {
     font-family: 'Diatype Variable';
@@ -248,7 +247,7 @@ body.fixed-nav { --cognak-purple-text: #9647F0; }
     font-display: swap;
 }
 @font-face {
-    font-family: 'Diatype Mono Variable';
+    font-family: 'Diatype Mono';
     src: url('/theme/assets/fonts/diatype/ABCDiatypeMono-Regular.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
@@ -1777,7 +1776,7 @@ html.pv-grid .projects-list,
 }
 }
 .list-item-tag {
-    font-family: 'Diatype Mono Variable', monospace;
+    font-family: 'Diatype Mono', monospace;
     font-size: 12px;
     font-weight: 400;
     color: #6d6d6d;
@@ -2129,7 +2128,7 @@ html.pv-grid .projects-list,
     left: 0;
     top: 0;
     width: 280px;
-    font-family: 'Diatype Mono Variable', monospace;
+    font-family: 'Diatype Mono', monospace;
     font-size: 10px;
     line-height: 1.7;
     color: rgba(255,255,255,0.25);
@@ -2611,7 +2610,7 @@ body.pagers-idle a[rel="next"] {
     max-width: 400px !important;
 }
 .template-single-project .information .category {
-    font-family: 'Diatype Mono Variable', monospace !important;
+    font-family: 'Diatype Mono', monospace !important;
     color: var(--cognak-purple-text) !important;
     letter-spacing: 0.08em !important;
 }
@@ -3030,7 +3029,7 @@ html body.page-template-page-privacy-policy,
 }
 .privacy-body code,
 .privacy-body code * {
-    font-family: 'Diatype Mono Variable', monospace !important;
+    font-family: 'Diatype Mono', monospace !important;
     font-size: 13px !important;
     color: #815275 !important;
     background: rgba(129,82,117,0.1) !important;

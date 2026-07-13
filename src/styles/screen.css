@@ -1029,8 +1029,8 @@ article img {
 }
 .template-single-project .information .title {
   color: #3A313B;
-  font-family: 'Diatype Mono Variable', monospace;
-  font-weight: 800;
+  font-family: 'Diatype Mono', monospace;
+  font-weight: 400;
   font-size: 70px;
   margin: 0 0 15px 0;
 }
