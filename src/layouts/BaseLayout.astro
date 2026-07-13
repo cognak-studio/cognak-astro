@@ -176,6 +176,9 @@ import '../styles/site.css';
           });
         }
       } catch (e) {}
+      // Preserve gclid in URLs for consent-denied visitors so ad-driven
+      // page views can still be recorded as conversions (consent mode).
+      gtag('set', 'url_passthrough', true);
       gtag('js', new Date());
       gtag('config', 'G-SE5WX8VYF3');
       gtag('config', 'AW-876403750');

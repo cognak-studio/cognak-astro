@@ -80,6 +80,7 @@ body { overflow-x: clip; }
         cursor: default;
         pointer-events: none;
         transform-origin: center center;
+        will-change: transform, opacity;
     }
     .logo-ring-item svg {
         display: block;
@@ -171,14 +172,30 @@ body { overflow-x: clip; }
         var cosTilt  = Math.cos(TILT);
         var sinTilt  = Math.sin(TILT);
 
-        function measure() {
+        // Cached document-relative coords — updated on init + resize only.
+        // In the RAF loop we use only arithmetic (scrollY) so there's no
+        // getBoundingClientRect() call per frame, which was forcing a layout
+        // reflow on every tick and causing jitter during mobile scroll.
+        var trackDocTop, trackDocLeft, trackH, trackW;
+
+        function measureStatic() {
             var rect = track.getBoundingClientRect();
-            cx = rect.left + rect.width  / 2;
-            cy = rect.top  + rect.height / 2;
+            trackDocTop  = rect.top  + window.scrollY;
+            trackDocLeft = rect.left + window.scrollX;
+            trackH = rect.height;
+            trackW = rect.width;
             var isMobile = window.innerWidth <= 720;
-            rx = isMobile ? window.innerWidth * 0.85 : rect.width * 0.612;
+            rx = isMobile ? window.innerWidth * 0.85 : trackW * 0.612;
             ry = rx * 0.09;
+            updateCenterFromScroll();
         }
+
+        function updateCenterFromScroll() {
+            cy = trackDocTop  - window.scrollY  + trackH / 2;
+            cx = trackDocLeft - window.scrollX  + trackW / 2;
+        }
+
+        window.addEventListener('scroll', updateCenterFromScroll, { passive: true });
 
         var items = logos.map(function(logo) {
             var a = document.createElement('span');
@@ -189,7 +206,7 @@ body { overflow-x: clip; }
             return a;
         });
 
-        window.addEventListener('resize', measure);
+        window.addEventListener('resize', measureStatic);
 
         section.addEventListener('mouseenter', function() { targetSpeed = SPEED_HOVER; });
         section.addEventListener('mouseleave', function() { targetSpeed = SPEED_NORMAL; });
@@ -208,7 +225,7 @@ body { overflow-x: clip; }
             var ringRaw = Math.max(0, Math.min(1, (ts - ringFadeStart) / RING_FADE_DURATION));
             var ringOpacity = ringRaw * ringRaw * (3 - 2 * ringRaw); // smoothstep
 
-            measure(); // update cx/cy as page scrolls
+            // cx/cy are kept current by the scroll listener — no DOM read needed here
 
             currentSpeed += (targetSpeed - currentSpeed) * 0.055;
             globalAngle  += currentSpeed * dt;
@@ -245,6 +262,7 @@ body { overflow-x: clip; }
             requestAnimationFrame(frame);
         }
 
+        measureStatic();
         requestAnimationFrame(frame);
     })();
     </script>

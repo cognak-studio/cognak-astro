@@ -228,15 +228,29 @@ body.fixed-nav { --cognak-purple-text: #9647F0; }
 
 @font-face {
     font-family: 'Diatype Variable';
-    src: url('/theme/assets/fonts/diatype/diatype-var.ttf') format('truetype-variations');
-    font-weight: 100 900;
+    src: url('/theme/assets/fonts/diatype/ABCDiatype-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Diatype Variable';
+    src: url('/theme/assets/fonts/diatype/ABCDiatype-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Diatype Variable';
+    src: url('/theme/assets/fonts/diatype/ABCDiatype-Bold.woff2') format('woff2');
+    font-weight: 700;
     font-style: normal;
     font-display: swap;
 }
 @font-face {
     font-family: 'Diatype Mono Variable';
-    src: url('/theme/assets/fonts/diatype/diatype-mono-var.ttf') format('truetype-variations');
-    font-weight: 100 900;
+    src: url('/theme/assets/fonts/diatype/ABCDiatypeMono-Regular.woff2') format('woff2');
+    font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
