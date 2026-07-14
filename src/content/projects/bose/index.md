@@ -5,6 +5,7 @@ category: Animated Ads, HTML5
 date: '2012-12-07T22:35:38+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
+heroVideo: /media/2026/06/bose-hero.mp4
 aboutTheClient: '<p><a href="https://www.bose.com">Bose</a> is a Massachusetts-based company best known for its critically-acclaimed personal and professional audio equipment sold around the world.</p>
 
   '
