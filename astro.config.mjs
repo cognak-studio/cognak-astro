@@ -1,18 +1,25 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-// Project slugs that are noindex on live (header.php noindex list) — kept out of the sitemap.
-const NOINDEX = new Set([
-  'accorin', 'aerodesigns', 'alchemy-peppers', 'assetaware', 'buckaroos-cycling-club',
-  'chain', 'ciao-bella-gelato', 'fablevision-studios', 'formulate', 'gulf-electricity',
-  'harvard-business-review', 'incredible-foods', 'kenston-capital-partners', 'kidsluv',
-  'maya-brenner', 'national-alliance-end-homelessness', 'norbella', 'olivio', 'ossio',
-  'palisades-neuropsychology', 'quantum-designs', 'redd', 'scleraworx',
-  'seafood-nutrition-partnership', 'snow-monkey', 'somernova', 'startup-institute',
-  'stonyfield-organic', 'swissnex-boston', 'vice-cream', 'voltiv', 'whole-cluster',
-  'xtract-group',
-]);
+// Noindex project slugs, derived from each project's own frontmatter
+// (noindex: true in src/content/projects/<slug>/index.md) so the sitemap
+// filter and the per-page robots meta always agree — no hand-kept list.
+const projectsDir = fileURLToPath(new URL('./src/content/projects', import.meta.url));
+const NOINDEX = new Set();
+for (const dir of fs.readdirSync(projectsDir)) {
+  if (dir.startsWith('_') || dir.startsWith('.')) continue; // _template, .DS_Store
+  const md = path.join(projectsDir, dir, 'index.md');
+  if (!fs.existsSync(md)) continue;
+  const fm = fs.readFileSync(md, 'utf8').split(/^---\s*$/m)[1] || '';
+  if (/^\s*noindex:\s*true\s*(#.*)?$/m.test(fm)) {
+    const slug = fm.match(/^\s*slug:\s*([^\s#]+)/m); // frontmatter slug overrides folder name
+    NOINDEX.add(slug ? slug[1] : dir);
+  }
+}
 
 // Static output — host-agnostic. The /dist folder deploys as-is to
 // Vercel, Cloudflare Pages, Netlify, or any static host. No adapter needed

@@ -66,6 +66,9 @@
     targets.forEach(function(el) {
         if (!el) return;
         var orig = el.textContent.trim();
+        // Per-letter spans can make screen readers spell the link out — keep the
+        // accessible name intact on the element itself.
+        el.setAttribute('aria-label', orig);
         el.innerHTML = orig.split('').map(function(ch) {
             return ch === ' ' ? ' ' : '<span class="rl">' + ch + '</span>';
         }).join('');

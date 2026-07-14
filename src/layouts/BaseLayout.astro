@@ -1,9 +1,9 @@
 ---
 /**
- * BaseLayout — ported from cognak-black header.php + footer.php.
- * Reproduces <head> (consent mode, meta, JSON-LD, fonts, CSS), the global
+ * BaseLayout — the site's shared shell.
+ * Renders <head> (consent mode, meta, JSON-LD, fonts, CSS), the global
  * cursor + cookie banner, the site footer, and the conditional script loads
- * that functions.php used to enqueue per page type.
+ * per page type.
  */
 const THEME = '/theme';
 
@@ -17,7 +17,7 @@ export interface Props {
   noindex?: boolean;
   /** Extra JSON-LD object (e.g. CreativeWork on project pages) */
   jsonLd?: Record<string, unknown> | null;
-  /** Forced page background color (matches per-template wp_head injection) */
+  /** Forced page background color, injected per template */
   pageBg?: string | null;
   /** Absolute/optimized URL of the LCP hero image to preload (project pages) */
   heroPreload?: string | null;
@@ -138,6 +138,10 @@ import '../styles/site.css';
   {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
 
   <meta name="description" content={description} />
+  {/* Canonical: dedupes URL variants (gclid/UTM params from Ads clicks, trailing
+      slash, etc.) so ranking signals collect on one URL. Skipped on noindex
+      pages — a canonical on a page told not to index is contradictory. */}
+  {!noindex && <link rel="canonical" href={ogUrl} />}
   {noindex && <meta name="robots" content="noindex, nofollow" />}
   {isHome && <meta name="p:domain_verify" content="ffad2dc262e467b3e80d13ee1449d794" />}
 
@@ -239,7 +243,9 @@ import '../styles/site.css';
 
   {showCookieBanner && (
     <Fragment>
-    <div id="cognak-cookie" class={cornerClass} role="dialog" aria-label="Cookie consent" aria-modal="true" aria-describedby="cognak-cookie-desc">
+    {/* No aria-modal: the banner is non-blocking (no focus trap, page stays interactive),
+        so marking it modal would wrongly tell screen readers the rest of the page is inert. */}
+    <div id="cognak-cookie" class={cornerClass} role="dialog" aria-label="Cookie consent" aria-describedby="cognak-cookie-desc">
       <span class="cognak-cookie-label" id="cognak-cookie-desc">This site uses <a href="/privacy-policy" class="cognak-cookie-link">cookies</a></span>
       <button class="cognak-cookie-opt" id="cognak-decline" type="button">
         <span class="cognak-cookie-radio"></span>Decline
@@ -337,7 +343,7 @@ import '../styles/site.css';
     </div>
   </footer>
 
-  <!-- Sitewide click conversion tracking (footer.php) -->
+  <!-- Sitewide click conversion tracking -->
   <script is:inline>
     function gtag_report_conversion(sendTo, url) {
       var callback = function () { if (typeof url !== 'undefined') { window.location = url; } };

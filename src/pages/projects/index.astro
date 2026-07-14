@@ -38,6 +38,8 @@ const unsorted = await Promise.all(
       year: p.data.projectYear ?? '',
       category: p.data.category ?? '',
       thumb: thumb.src,
+      thumbW: thumb.attributes.width,
+      thumbH: thumb.attributes.height,
       cursorHero: cursorHero.src,
       dateUnix,
       vintage: vintageOf(dateUnix),
@@ -74,14 +76,14 @@ const LAZY_AFTER = 8;
 
     <div class="projects-sort-bar">
       <div class="projects-view-toggle">
-        <button class="view-toggle-btn view-toggle-btn--list is-active" id="view-toggle-list" aria-label="List view" title="List view">
+        <button class="view-toggle-btn view-toggle-btn--list is-active" id="view-toggle-list" aria-label="List view" title="List view" aria-pressed="true">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
             <line x1="1" y1="4.5" x2="17" y2="4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
             <line x1="1" y1="9" x2="17" y2="9" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
             <line x1="1" y1="13.5" x2="17" y2="13.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
           </svg>
         </button>
-        <button class="view-toggle-btn view-toggle-btn--grid" id="view-toggle-grid" aria-label="Grid view" title="Grid view">
+        <button class="view-toggle-btn view-toggle-btn--grid" id="view-toggle-grid" aria-label="Grid view" title="Grid view" aria-pressed="false">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="1" y="1" width="7" height="7" rx="0.5" stroke="currentColor" stroke-width="1.25"/>
             <rect x="10" y="1" width="7" height="7" rx="0.5" stroke="currentColor" stroke-width="1.25"/>
@@ -123,7 +125,7 @@ const LAZY_AFTER = 8;
                  data-category={p.category}>
           <a href={`/projects/${p.slug}`} class="projects-grid-link">
             <figure class="projects-grid-figure" style={`view-transition-name: project-thumb-${p.slug}`}>
-              <img src={p.thumb} class="projects-grid-img" alt={p.title} />
+              <img src={p.thumb} class="projects-grid-img" alt={p.title} width={p.thumbW} height={p.thumbH} loading={i >= LAZY_AFTER ? 'lazy' : undefined} />
               <figcaption class="project-title-hover">{p.title}</figcaption>
             </figure>
           </a>

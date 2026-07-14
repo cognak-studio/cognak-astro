@@ -451,9 +451,13 @@ body { overflow-x: clip; }
 <script is:inline>
 // ── Studio feature reel ────────────────────────────────────────────
 (function() {
-    // POOL is driven by ACF — edit via WP Admin → Studio page → Studio Reel
+    // POOL drives the studio feature reel — edit this array directly to change it
     var POOL = [{"type": "video", "src": "/media/2026/06/cognak-studio-video.mp4", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/hex_blog.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2026/06/chefs-kiss-mockup-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/verde-hero.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2015/12/ctp-website-cognak.jpg", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/sweetgains-studio-1.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2019/07/strawberry.png", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2024/02/hypr-wall-logo-cognak-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/1920x1080-Refresh_1.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2024/02/letterhead-cover-palisades.png", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2026/04/sidekick-component-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2022/08/nightowl-vodka-espresso-martini-bar-scaled.png", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2025/08/noreaster-riverview-school-design-cognak-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2015/12/zynlo-mockup.jpg", "client": "", "kind": "", "year": ""}];
 
+
+    // Reel videos are created after DOMContentLoaded, so the global
+    // reduced-motion stopper (cognak-global.js) never sees them — gate here too.
+    var PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Sequential index — click advances through POOL in order, wraps around
     var reelIdx = 1; // 0 is already in the DOM
@@ -527,9 +531,11 @@ body { overflow-x: clip; }
         } else {
             el = document.createElement('video');
             el.className = 'studio-feature-media studio-feature-video';
-            el.loop = true; el.muted = true;
+            el.loop = !PRM; el.muted = true;
             el.setAttribute('playsinline', '');
-            el.setAttribute('preload', 'metadata');
+            // Under reduced motion the video never plays, so load enough
+            // to at least paint a first frame instead of an empty box.
+            el.setAttribute('preload', PRM ? 'auto' : 'metadata');
             var s = document.createElement('source');
             s.src = item.src; s.type = 'video/mp4';
             el.appendChild(s);
@@ -703,7 +709,7 @@ body { overflow-x: clip; }
             stage.style.transition = '';
             stage.style.height     = '';
 
-            if (incoming.tagName === 'VIDEO') incoming.play().catch(function() {});
+            if (incoming.tagName === 'VIDEO' && !PRM) incoming.play().catch(function() {});
             currentEl = incoming;
             animating = false;
 
@@ -760,6 +766,7 @@ body { overflow-x: clip; }
             var active = stage.querySelector('.studio-feature-media');
             if (!active || active.tagName !== 'VIDEO') return;
             if (entry.isIntersecting) {
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
                 active.play().catch(function() {});
             } else {
                 active.pause();

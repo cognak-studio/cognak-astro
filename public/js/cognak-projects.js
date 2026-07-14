@@ -66,14 +66,21 @@
     var mode = 'newest';
     var view = localStorage.getItem('cognak-projects-view') || 'list';
 
+    function setPressed(grid) {
+        btnGrid.setAttribute('aria-pressed', grid ? 'true' : 'false');
+        btnList.setAttribute('aria-pressed', grid ? 'false' : 'true');
+    }
+
     if (view === 'grid') {
         archive.classList.add('is-grid-view');
         btnGrid.classList.add('is-active');
         btnList.classList.remove('is-active');
+        setPressed(true);
     } else {
         archive.classList.remove('is-grid-view');
         btnList.classList.add('is-active');
         btnGrid.classList.remove('is-active');
+        setPressed(false);
     }
 
     btnGrid.addEventListener('click', function() {
@@ -84,6 +91,7 @@
         document.documentElement.classList.add('pv-grid');
         btnGrid.classList.add('is-active');
         btnList.classList.remove('is-active');
+        setPressed(true);
         localStorage.setItem('cognak-projects-view', 'grid');
     });
 
@@ -95,6 +103,7 @@
         document.documentElement.classList.remove('pv-grid');
         btnList.classList.add('is-active');
         btnGrid.classList.remove('is-active');
+        setPressed(false);
         localStorage.setItem('cognak-projects-view', 'list');
     });
 
@@ -153,6 +162,24 @@
         lazyItems.forEach(function(item) { lazyObserver.observe(item); });
     }
     initLazyLoad();
+})();
+
+/* ── Live vintage badge refresh ───────────────────────────────────────────────
+   The list's "VSOP · 6y" badge is baked in at build time, so it goes stale
+   between deploys. Recompute from data-date on load; the server value stays
+   as the no-JS fallback. Thresholds match projects/index.astro (BNIC-ish). */
+(function() {
+    var YEAR_SECONDS = 31557600;
+    var now = Date.now() / 1000;
+    document.querySelectorAll('.projects-list-item[data-date]').forEach(function(item) {
+        var span = item.querySelector('.list-item-vintage');
+        var d = parseInt(item.dataset.date, 10);
+        if (!span || !d || d > now) return;
+        var years = (now - d) / YEAR_SECONDS;
+        var grade = years >= 10 ? 'XO' : years >= 4 ? 'VSOP' : 'VS';
+        var aged  = years < 1 ? '<1y' : Math.floor(years) + 'y';
+        span.textContent = ' · ' + grade + ' · ' + aged;
+    });
 })();
 
 /* ── Matrix glow canvas (cursor-follow) ───────────────────────────────────── */

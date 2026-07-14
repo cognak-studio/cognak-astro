@@ -143,11 +143,13 @@ src/
 public/
   js/               ported site behaviors (cursor, lenis, animations) — edit with care
   theme/            fonts, CSS, theme assets ported from the old site
-  media/            gallery images + hero videos, served as-is
+  media/            gallery images + hero videos, served as-is (absolute /media/… URLs)
   og/               generated social share cards
+  humans.txt        credits / authorship
+  favicon-*.png · apple-touch-icon.png · mstile-270x270.png · icon.png   site icons (root)
 scripts/            new-project.mjs, generate-og.py, optimize-images.mjs
 dev.command         double-click launcher for local preview
-vercel.json         301 redirects (/project/* → /projects/*, /wp-content/* → current paths) + headers/CSP
+vercel.json         301 redirects (/uploads/* + /wp-content/* → /media/*, /project/* → /projects/*) + headers/CSP
 astro.config.mjs    site config + sitemap
 ```
 
@@ -194,6 +196,34 @@ fetch fresh copies immediately.
 **If you add a new script under `public/js/`, load it through BaseLayout with
 the same `?v=${jsV}` pattern** — a bare `<script src="/js/...">` tag reintroduces
 the stale-cache problem.
+
+---
+
+## De-WordPressing — no CMS fingerprints (2026-07-13)
+
+The rebuild originally kept WordPress-shaped paths for an easy migration. Those
+were removed so nothing served identifies the site as (ex-)WordPress:
+
+- **Media** moved from `public/uploads/` (the WP media-library path) to
+  **`public/media/`**, served as-is. New project media goes under `/media/`.
+- **Favicons** moved from the WP Site-Icon `cropped-org-logo-*` set to neutral
+  root names: `/favicon-32x32.png`, `/favicon-192x192.png`,
+  `/apple-touch-icon.png`, `/mstile-270x270.png`, `/icon.png`.
+- **`vercel.json`** 301-redirects every legacy URL so nothing breaks: `/uploads/*`
+  and `/wp-content/uploads/*` → `/media/*`, plus per-file redirects for the old
+  favicon URLs. Keep these — they protect old inbound/indexed links.
+- WordPress/ACF mentions in code comments were reworded. Legit portfolio copy
+  describing *clients'* WordPress builds (Somernova, Quartet Health) is left as-is.
+
+**Don't reintroduce** `/uploads/`, `cropped-`, `wp-content`, or the word
+"WordPress" into anything served (src, `public/js`, `public/theme`, `<head>`).
+The `/media/YYYY/MM/` date buckets are kept deliberately — one clean redirect
+rule covers them; per-slug folders would need a ~200-entry redirect map.
+
+Authorship signals added the same day: a hand-written **`/humans.txt`** (with a
+`<link rel="author">` in `<head>`), the devtools console signature in
+`public/js/cognak-global.js`, and descriptive alt text modeled in the project
+template.
 
 ---
 

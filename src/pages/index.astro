@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
 
-// Featured homepage projects, ordered by homepagePosition (ACF homepage_position).
+// Featured homepage projects, ordered by homepagePosition.
 const featured = (await getCollection('projects', (p) => p.data.homepageFeature && !p.data.draft))
   .sort((a, b) => (a.data.homepagePosition ?? 99) - (b.data.homepagePosition ?? 99));
 
@@ -23,7 +23,11 @@ const cards = await Promise.all(
       year: p.data.projectYear ?? '',
       dateUnix: p.data.date ? Math.floor(p.data.date.getTime() / 1000) : 0,
       thumb: thumb.src,
+      thumbW: thumb.attributes.width,
+      thumbH: thumb.attributes.height,
       squareHero: squareHero.src,
+      squareW: squareHero.attributes.width,
+      squareH: squareHero.attributes.height,
       cursorPanel: cursorPanel.src,
       heroVideo: p.data.hoverVideo ?? p.data.heroVideo ?? null,
     };
@@ -85,11 +89,11 @@ const cards = await Promise.all(
             data-project-date={c.dateUnix}>
             <figure style={`view-transition-name: project-thumb-${c.slug}`}>
               <a href={`/projects/${c.slug}`}>
-                <img src={c.thumb} class="cover hp-lazy" loading="lazy" alt={c.title} />
+                <img src={c.thumb} class="cover hp-lazy" loading="lazy" alt={c.title} width={c.thumbW} height={c.thumbH} />
                 {c.heroVideo ? (
                   <video class="hp-hover-media" src={c.heroVideo} muted loop playsinline webkit-playsinline preload="none" aria-hidden="true"></video>
                 ) : (
-                  <img class="hp-hover-media" src={c.squareHero} loading="lazy" alt="" aria-hidden="true" />
+                  <img class="hp-hover-media" src={c.squareHero} loading="lazy" alt="" aria-hidden="true" width={c.squareW} height={c.squareH} />
                 )}
                 <figcaption class="project-title-hover">{c.title}</figcaption>
               </a>

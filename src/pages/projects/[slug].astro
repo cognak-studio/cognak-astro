@@ -32,7 +32,7 @@ export async function getStaticPaths() {
 const { entry, prev, next } = Astro.props;
 const d = entry.data;
 const slug = d.slug ?? entry.id;
-// The project's gallery (ACF "figures") lives in the markdown body.
+// The project's gallery lives in the markdown body.
 const { Content } = await render(entry);
 
 const heroImg = await getImage({ src: d.hero, format: 'webp', width: 2000 });
