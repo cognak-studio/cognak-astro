@@ -33,9 +33,11 @@ moreDetails: <p>• Bullet one</p><p>• Bullet two</p>
 ---
 
 <!-- Everything below the --- is the project's image gallery.
-     Use Markdown for images stored in THIS folder: -->
-![](./01.jpg)
-![](./02.jpg)
+     Use Markdown for images stored in THIS folder.
+     Always write descriptive alt text between the brackets — describe
+     what's shown (e.g. "Acme Co — packaging system on shelf"), not "image". -->
+![Project Name — describe this image](./01.jpg)
+![Project Name — describe this image](./02.jpg)
 
 <!-- ...or raw HTML for full-width images already in /public/media/: -->
 <p><img src="/media/2026/06/project-wide.jpg" alt="Project Name — wide" width="2048" height="1200" /></p>

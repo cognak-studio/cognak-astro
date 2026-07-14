@@ -1,0 +1,25 @@
+/* TEAM */
+
+  Studio: COGNAK — design & development studio
+  Contact: hello@cognak.com
+  Location: Los Angeles, California
+  Founder: Pierce Liefeld
+
+/* THANKS */
+
+  To the clients, collaborators, and startups who trust us to
+  make things that feel premium, intentional, and human.
+
+/* SITE */
+
+  Built by hand. No page builders, no templates.
+  Last updated: 2026/07/13
+  Language: English
+  Standards: HTML5, CSS3, JavaScript, WebGL
+  Stack: Astro, Vercel
+  Motion: Lenis (smooth scroll), UnicornStudio (WebGL), custom canvas
+  Typography: ABC Diatype
+
+              .--.
+             ( -- )    made in LA
+              `--'
