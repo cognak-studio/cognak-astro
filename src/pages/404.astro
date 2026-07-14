@@ -56,7 +56,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       window.addEventListener('resize', resize);
       resize();
 
-      var dot = { x: W * 0.72, y: H * 0.6, vx: 0, vy: 0, tx: 0, ty: 0, trail: [], pulse: 0, pause: 0, scare: 0 };
+      var dot = { x: W * 0.72, y: H * 0.6, vx: 0, vy: 0, tx: 0, ty: 0, trail: [], pause: 0, scare: 0 };
       function pick() {
         dot.tx = 40 + Math.random() * (W - 80);
         dot.ty = 40 + Math.random() * (H - 80);
@@ -121,14 +121,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ctx.fill();
         }
 
-        dot.pulse += 0.05;
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, 3.2, 0, Math.PI * 2);
         ctx.fillStyle = 'rgb(' + GREEN + ')';
         ctx.fill();
+        // Blip ring, matching the sitewide .avail-dot::after dot-blip keyframes:
+        // ring emerges from the dot, expands to ~2.8x, fades 0.8 -> 0, 2.5s ease-out.
+        var p = (performance.now() % 2500) / 2500;
+        var eased = 1 - Math.pow(1 - p, 3); // ease-out
         ctx.beginPath();
-        ctx.arc(dot.x, dot.y, 10 + Math.sin(dot.pulse) * 1.5, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(' + GREEN + ',' + (0.3 + 0.18 * Math.sin(dot.pulse)).toFixed(3) + ')';
+        ctx.arc(dot.x, dot.y, 3.2 + eased * 8, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(' + GREEN + ',' + (0.8 * (1 - p)).toFixed(3) + ')';
         ctx.lineWidth = 1;
         ctx.stroke();
 
