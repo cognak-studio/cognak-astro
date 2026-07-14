@@ -8,6 +8,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   noindex={true}
   pageBg="#6F6F6F"
 >
+  <style is:inline>
+    /* Lost pulse-dot canvas: fixed full-viewport like the projects matrix glow,
+       but layered UNDER the content so the dot never wanders across the copy. */
+    #fourofour-dot-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .fourofour-template { position: relative; z-index: 1; }
+  </style>
+  <canvas id="fourofour-dot-canvas" aria-hidden="true"></canvas>
   <main id="cognak-main">
     <section class="fourofour-template">
       <h1 class="fourofour-headline">You've caught us in a <span class="fourofour-accent">404 error.</span><br>This page doesn't exist <span class="fourofour-frown" aria-hidden="true">:(</span></h1>
@@ -18,4 +32,85 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </section>
   </main>
+
+  <script is:inline>
+    // ── Lost pulse-dot: a lone avail-dot-green dot wanders the page looking
+    //    for the missing page, leaving a fading trail. Pauses now and then
+    //    and shows a small "?" while it thinks. Skipped for reduced motion.
+    (function () {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var canvas = document.getElementById('fourofour-dot-canvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var GREEN = '170,255,0'; // #AAFF00 — same green as the availability dot
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var W, H;
+
+      function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      var dot = { x: W * 0.72, y: H * 0.6, tx: 0, ty: 0, trail: [], pulse: 0, pause: 0 };
+      function pick() {
+        dot.tx = 40 + Math.random() * (W - 80);
+        dot.ty = 40 + Math.random() * (H - 80);
+      }
+      pick();
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+
+        if (dot.pause > 0) {
+          dot.pause--;
+        } else {
+          var dx = dot.tx - dot.x;
+          var dy = dot.ty - dot.y;
+          if (Math.sqrt(dx * dx + dy * dy) < 6) {
+            dot.pause = 60 + Math.random() * 160; // stop and look around
+            pick();
+          } else {
+            dot.x += dx * 0.012;
+            dot.y += dy * 0.012;
+          }
+        }
+
+        dot.trail.push({ x: dot.x, y: dot.y, a: 0.5 });
+        if (dot.trail.length > 90) dot.trail.shift();
+        for (var i = 0; i < dot.trail.length; i++) {
+          var t = dot.trail[i];
+          t.a *= 0.985;
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, 1.4, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(' + GREEN + ',' + (t.a * (i / dot.trail.length)).toFixed(3) + ')';
+          ctx.fill();
+        }
+
+        dot.pulse += 0.05;
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgb(' + GREEN + ')';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(dot.x, dot.y, 10 + Math.sin(dot.pulse) * 1.5, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(' + GREEN + ',' + (0.3 + 0.18 * Math.sin(dot.pulse)).toFixed(3) + ')';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        if (dot.pause > 30) {
+          ctx.font = '12px "Diatype Mono", ui-monospace, monospace';
+          ctx.fillStyle = 'rgba(255,255,255,0.55)';
+          ctx.fillText('?', dot.x + 11, dot.y - 11);
+        }
+
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
 </BaseLayout>
