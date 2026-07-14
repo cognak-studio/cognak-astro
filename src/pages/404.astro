@@ -56,19 +56,49 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       window.addEventListener('resize', resize);
       resize();
 
-      var dot = { x: W * 0.72, y: H * 0.6, tx: 0, ty: 0, trail: [], pulse: 0, pause: 0 };
+      var dot = { x: W * 0.72, y: H * 0.6, vx: 0, vy: 0, tx: 0, ty: 0, trail: [], pulse: 0, pause: 0, scare: 0 };
       function pick() {
         dot.tx = 40 + Math.random() * (W - 80);
         dot.ty = 40 + Math.random() * (H - 80);
       }
       pick();
 
+      // The dot is lost and skittish — get the cursor close and it darts away.
+      var mouse = { x: -9999, y: -9999 };
+      document.addEventListener('mousemove', function (e) {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      }, { passive: true });
+
       function frame() {
         ctx.clearRect(0, 0, W, H);
 
+        // Flee the cursor: burst of velocity away from it, pause interrupted.
+        var mx = dot.x - mouse.x;
+        var my = dot.y - mouse.y;
+        var md = Math.sqrt(mx * mx + my * my);
+        if (md < 130 && md > 0) {
+          var f = ((130 - md) / 130) * 1.6;
+          dot.vx += (mx / md) * f;
+          dot.vy += (my / md) * f;
+          dot.pause = 0;
+          if (dot.scare === 0) pick(); // change its mind about where it was going
+          dot.scare = 40; // suppress the calm waypoint easing while spooked
+        }
+        if (dot.scare > 0) dot.scare--;
+        dot.vx *= 0.92;
+        dot.vy *= 0.92;
+        dot.x += dot.vx;
+        dot.y += dot.vy;
+        // Keep it on screen when it darts toward an edge.
+        if (dot.x < 14) { dot.x = 14; dot.vx = Math.abs(dot.vx); }
+        if (dot.x > W - 14) { dot.x = W - 14; dot.vx = -Math.abs(dot.vx); }
+        if (dot.y < 14) { dot.y = 14; dot.vy = Math.abs(dot.vy); }
+        if (dot.y > H - 14) { dot.y = H - 14; dot.vy = -Math.abs(dot.vy); }
+
         if (dot.pause > 0) {
           dot.pause--;
-        } else {
+        } else if (dot.scare === 0) {
           var dx = dot.tx - dot.x;
           var dy = dot.ty - dot.y;
           if (Math.sqrt(dx * dx + dy * dy) < 6) {
