@@ -612,6 +612,7 @@ body.non-fixed-nav::after {
     padding: 24px 40px;
     pointer-events: none;
     transition: background 0.3s ease;
+    overflow: hidden; /* clips the ::before halos on email/location so they don't bleed below the bar */
 }
 .home-bottom-bar > * {
     pointer-events: auto;    
