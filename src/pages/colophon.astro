@@ -7,7 +7,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="A note on how this site is set — the type, the tools, the hands."
   ogUrl="https://cognak.com/colophon/"
   noindex={true}
-  pageBg="#0e0d10"
+  pageBg="#ff0a78"
 >
   <main id="cognak-main"><section class="colophon">
 
@@ -34,12 +34,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color: #0e0d10 !important; }
+    html, body { background-color: #ff0a78 !important; }
+
+    /* Nav: darker pink bar, white text */
+    .home-bottom-bar.inner-page-nav {
+      background: #b8004e !important;
+    }
+    .home-bottom-bar.inner-page-nav .home-bottom-email,
+    .home-bottom-bar.inner-page-nav .home-bottom-location,
+    .home-bottom-bar.inner-page-nav .inner-nav-links a {
+      color: #ffffff !important;
+    }
+    .home-bottom-bar.inner-page-nav .home-bottom-logo img {
+      filter: brightness(0) invert(1) !important;
+    }
+
     .colophon {
       max-width: 720px;
       margin: 0 auto;
-      padding: 28vh 6vw 22vh;
-      color: #f3f0ee;
+      padding: 7vh 6vw 22vh;
+      color: #fff8fb;
       font-family: 'Diatype Variable', sans-serif;
     }
     .colophon-eyebrow {
@@ -47,7 +61,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       font-size: 0.72rem;
       letter-spacing: 0.28em;
       text-transform: uppercase;
-      color: #8b8790;
+      color: #ffd6ea;
       margin: 0 0 2.4rem;
     }
     .colophon-headline {
@@ -56,29 +70,31 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       line-height: 1.02;
       letter-spacing: -0.02em;
       margin: 0 0 3.2rem;
+      color: #fffef0;
     }
     .colophon-headline em {
       font-style: italic;
       font-weight: 400;
+      color: #b6ff2e;
     }
     .colophon-body p {
       font-size: 1.06rem;
       line-height: 1.7;
-      color: #c9c5cd;
+      color: #ffe3f1;
       margin: 0 0 1.6rem;
       max-width: 58ch;
     }
     .colophon-body a {
-      color: #f3f0ee;
+      color: #b6ff2e;
       text-decoration: underline;
       text-underline-offset: 3px;
       text-decoration-thickness: 1px;
     }
-    .colophon-body strong { color: #f3f0ee; font-weight: 500; }
+    .colophon-body strong { color: #ffffff; font-weight: 500; }
     .colophon-body code {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.88em;
-      color: #f3f0ee;
+      color: #b6ff2e;
     }
     .colophon-spec {
       display: grid;
@@ -87,21 +103,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       font-family: 'Diatype Mono', monospace;
       font-size: 0.82rem;
       line-height: 1.5;
-      color: #c9c5cd;
-      border-top: 1px solid #2a2830;
-      border-bottom: 1px solid #2a2830;
+      color: #ffe3f1;
+      border-top: 1px solid #ff7ab5;
+      border-bottom: 1px solid #ff7ab5;
       padding: 2rem 0;
       margin: 2.6rem 0 !important;
     }
     .colophon-spec span:nth-child(odd) {
-      color: #79757e;
+      color: #ffb3d6;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-size: 0.72rem;
     }
     .colophon-sign {
       font-size: 0.98rem !important;
-      color: #a7a3ac !important;
+      color: #ffcbe4 !important;
     }
     @media (max-width: 600px) {
       .colophon-spec { grid-template-columns: 1fr; gap: 0.15rem; }
