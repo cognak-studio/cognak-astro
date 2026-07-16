@@ -21,10 +21,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <p>The faces are self-hosted as <code>woff2</code> (Regular, Medium, Bold, and the Mono) so nothing about your visit is handed to a font CDN.</p>
 
       <p class="colophon-spec">
-        <span>Typeface</span><span>ABC Diatype &amp; ABC Diatype Mono — Dinamo</span>
-        <span>Built with</span><span>Astro, hand-written HTML/CSS/JS, WebGL</span>
-        <span>Motion</span><span>Lenis smooth scroll, UnicornStudio, custom canvas</span>
-        <span>Served from</span><span>Vercel</span>
+        <span>Typeface</span><span>ABC Diatype &amp; ABC Diatype Mono — <a href="https://abcdinamo.com/typefaces/diatype" target="_blank" rel="noopener">Dinamo</a></span>
+        <span>Built with</span><span><a href="https://astro.build" target="_blank" rel="noopener">Astro</a>, hand-written HTML/CSS/JS, WebGL</span>
+        <span>Motion</span><span><a href="https://lenis.darkroom.engineering" target="_blank" rel="noopener">Lenis</a> smooth scroll, <a href="https://www.unicorn.studio" target="_blank" rel="noopener">UnicornStudio</a>, custom canvas</span>
+        <span>Served from</span><span><a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a></span>
         <span>Made in</span><span>Los Angeles, California</span>
       </p>
 
@@ -130,6 +130,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       padding: 2rem 0;
       margin: 2.6rem 0 !important;
     }
+    .colophon-spec a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.25s ease;
+    }
+    .colophon-spec a:hover { color: #b6ff2e; }
     .colophon-spec span:nth-child(odd) {
       color: #a9abbd;
       text-transform: uppercase;
