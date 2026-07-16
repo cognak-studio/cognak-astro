@@ -8,7 +8,7 @@
 const THEME = '/theme';
 
 export interface Props {
-  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | '404' | 'page';
+  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | 'colophon' | '404' | 'page';
   title?: string;
   description?: string;
   ogType?: string;
@@ -47,11 +47,12 @@ const jsV = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 8)
   || Math.floor(Date.now() / 3600000).toString(36);
 
 // Inner-page top nav (home-bottom-bar inner-page-nav) renders on these pages.
-const innerNavPages = ['studio', 'projects', 'project', 'privacy', '404'];
+const innerNavPages = ['studio', 'projects', 'project', 'privacy', 'colophon', '404'];
 const showInnerNav = innerNavPages.includes(page);
 const innerNavVariant =
   page === 'studio' ? ' studio-nav' :
   page === 'privacy' ? ' privacy-nav' :
+  page === 'colophon' ? ' privacy-nav' :
   page === '404' ? ' fourofour-nav' : '';
 
 // Corner cookie banner (non-home pages): dark glass on Studio (dark bg, dark nav),
