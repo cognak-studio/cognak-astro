@@ -45,14 +45,31 @@ body { overflow-x: clip; }
     color: rgba(255,255,255,0.55);
 }
 .studio-colophon-note a {
-    color: rgba(255,255,255,0.85);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 1px;
+    color: rgba(255,255,255,0.9);
+    text-decoration: none;
     cursor: none;
-    transition: color 0.25s ease;
+    text-shadow:
+        -2px 0 0 rgba(80,70,255,0.5),
+        2px 0 0 rgba(20,120,255,0.42);
+    animation: colophon-chroma 5s ease-in-out infinite;
 }
-.studio-colophon-note a:hover { color: #8F8AFF; }
+@keyframes colophon-chroma {
+    0%, 100% {
+        text-shadow: -2px 0 0 rgba(80,70,255,0.5), 2px 0 0 rgba(20,120,255,0.42);
+    }
+    25% {
+        text-shadow: -3px 0.5px 0 rgba(80,70,255,0.58), 2.5px -0.5px 0 rgba(20,120,255,0.5);
+    }
+    50% {
+        text-shadow: -1.5px 1px 0 rgba(80,70,255,0.38), 1.5px -1px 0 rgba(20,120,255,0.34);
+    }
+    75% {
+        text-shadow: -2.5px -0.5px 0 rgba(80,70,255,0.54), 3px 0.5px 0 rgba(20,120,255,0.46);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .studio-colophon-note a { animation: none; }
+}
 /* "record" hover — blue pill cursor (colophon bg), reusing the is-founder pill shape */
 #cognak-cursor.is-founder.is-colophon { background: #0E06D2 !important; }
 @keyframes letter-rainbow-in {

@@ -54,6 +54,28 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color: #f4f4ee;
       font-family: 'Diatype Variable', sans-serif;
     }
+    .colophon-eyebrow,
+    .colophon-headline,
+    .colophon-body > * {
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .colophon-eyebrow.is-in,
+    .colophon-headline.is-in,
+    .colophon-body > *.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .colophon-eyebrow,
+      .colophon-headline,
+      .colophon-body > * {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
     .colophon-eyebrow {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
@@ -128,6 +150,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <script is:inline>
     if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
     window.scrollTo(0, 0);
+    (function () {
+      var els = document.querySelectorAll('.colophon-eyebrow, .colophon-headline, .colophon-body > *');
+      if (!els.length || !('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('is-in'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var el = entry.target;
+          var idx = Array.prototype.indexOf.call(els, el);
+          setTimeout(function () { el.classList.add('is-in'); }, idx * 70);
+          observer.unobserve(el);
+        });
+      }, { threshold: 0.1 });
+      els.forEach(function (el) { observer.observe(el); });
+    })();
     console.log(
       '%cCOGNAK%c  set in ABC Diatype — Dinamo.\nBuilt by hand in Los Angeles. hello@cognak.com',
       'font: 600 13px "Diatype Mono", monospace; letter-spacing:.24em; color:#f3f0ee;',
