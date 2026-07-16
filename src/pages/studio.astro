@@ -35,20 +35,26 @@ body { overflow-x: clip; }
 .studio-start-wrap .availability-sub    { color: rgba(255,255,255,0.6) !important; }
 .studio-start-wrap .avail-dot           { color: #AAFF00 !important; }
 .studio-colophon-note {
-    margin-top: 1.4rem;
-    font-family: 'Diatype Mono', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 0.04em;
-    color: rgba(255,255,255,0.42);
+    margin: 1.6rem auto 0;
+    max-width: 46ch;
+    font-family: 'Diatype Variable', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.65;
+    letter-spacing: -0.01em;
+    color: rgba(255,255,255,0.55);
 }
 .studio-colophon-note a {
-    color: rgba(255,255,255,0.62);
+    color: rgba(255,255,255,0.85);
     text-decoration: underline;
     text-underline-offset: 3px;
     text-decoration-thickness: 1px;
+    cursor: none;
     transition: color 0.25s ease;
 }
-.studio-colophon-note a:hover { color: #FFB2E4; }
+.studio-colophon-note a:hover { color: #8F8AFF; }
+/* "record" hover — blue pill cursor (colophon bg), reusing the is-founder pill shape */
+#cognak-cursor.is-founder.is-colophon { background: #0E06D2 !important; }
 @keyframes letter-rainbow-in {
     0%   { color: inherit; }
     20%  { color: #FFD6F2; }
@@ -334,7 +340,7 @@ body { overflow-x: clip; }
 
     <div class="studio-manifesto-wrap">
         <p class="studio-manifesto">Every digital and print experience we make is <span class="manifesto-premium">built</span> <span class="manifesto-intentional">with</span> <span class="manifesto-human">intent</span>. Work that doesn't need to announce itself.</p>
-        <p class="studio-colophon-note">Considered down to the typeface &mdash; <a href="/colophon">read the colophon</a>.</p>
+        <p class="studio-colophon-note">The parts most people never notice are where the real work happens &mdash; how the type sits on a line, how a page loads, what runs underneath. We keep a <a href="/colophon" class="colophon-name">record</a> of it.</p>
     </div>
 
     <div class="hp-start-wrap studio-start-wrap studio-manifesto-cta">
@@ -667,6 +673,20 @@ body { overflow-x: clip; }
             cursor.classList.remove('is-founder');
             if (label) label.textContent = '';
             if (awardBadges) awardBadges.classList.remove('is-active');
+        });
+    });
+
+    // ── "record" hover — blue pill cursor linking to the colophon ──
+    var colophonNames = document.querySelectorAll('.colophon-name');
+    colophonNames.forEach(function(el) {
+        el.addEventListener('mouseenter', function() {
+            cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-next');
+            cursor.classList.add('is-founder', 'is-colophon');
+            if (label) label.textContent = 'The colophon';
+        });
+        el.addEventListener('mouseleave', function() {
+            cursor.classList.remove('is-founder', 'is-colophon');
+            if (label) label.textContent = '';
         });
     });
 
