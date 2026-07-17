@@ -271,20 +271,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           var h = 16;
           var pulse = 0.6 + 0.4 * Math.sin(t * 0.0012 + i * 0.7);
 
-          ctx.strokeStyle = 'rgba(182,255,46,' + (0.11 * pulse) + ')';
+          ctx.strokeStyle = 'rgba(182,255,46,' + (0.12 * pulse) + ')';
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(p.x - dx * h, p.y - dy * h);
           ctx.lineTo(p.x + dx * h, p.y + dy * h);
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(182,255,46,' + (0.15 * pulse) + ')';
+          ctx.fillStyle = 'rgba(182,255,46,' + (0.17 * pulse) + ')';
           ctx.beginPath();
           ctx.arc(p.x - dx * h, p.y - dy * h, 2, 0, 6.2832);
           ctx.arc(p.x + dx * h, p.y + dy * h, 2, 0, 6.2832);
           ctx.fill();
 
-          ctx.fillStyle = 'rgba(244,244,238,' + (0.18 * pulse) + ')';
+          ctx.fillStyle = 'rgba(244,244,238,' + (0.20 * pulse) + ')';
           ctx.fillRect(p.x - 2.5, p.y - 2.5, 5, 5);
         }
       }
@@ -305,7 +305,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var A = glyphs[order[idx]], B = glyphs[order[next]];
         for (var c = 0; c < 2; c++) {
           var pts = lerpContour(A[c], B[c], t, L);
-          drawContour(pts, 0.10);
+          drawContour(pts, 0.11);
           drawNodes(pts, now);
         }
         if (!reduced) requestAnimationFrame(frame);
