@@ -1803,6 +1803,20 @@ html.pv-grid .projects-list,
 }
 }
 
+/* List view, narrow widths: long category tags crowd the title (desktop has
+   plenty of room, but ~721–1200px collapses the gap to the 24px flex min).
+   Hold a larger minimum gap and fade the tag's left edge so the categories
+   dissolve toward the title while the XO/VSOP grade stays anchored at right. */
+@media (max-width: 1200px) and (min-width: 721px) {
+    .projects-list-item {
+        gap: clamp(32px, 5vw, 80px);
+    }
+    .list-item-tag {
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 clamp(28px, 6vw, 72px));
+                mask-image: linear-gradient(to right, transparent 0, #000 clamp(28px, 6vw, 72px));
+    }
+}
+
 /* ── Studio page overrides ── */
 .studio-archive {
     background: transparent !important;
@@ -2249,6 +2263,21 @@ html.pv-grid .projects-list,
 .studio-start-wrap .avail-dot           { color: #FFB2E4; }
 /* ── Intermediate: tablet / narrow desktop ── */
 @media (max-width: 1024px) and (min-width: 721px) {
+    /* Projects archive: 3-up instead of a cramped 4-up */
+    .projects-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    /* Project detail: tighten the 3-column gap so copy isn't a sliver */
+    .template-single-project .information .details {
+        gap: 40px !important;
+    }
+    /* Feature reel: keep the right-indented placement but reclaim enough of the
+       297px desktop indent (and the 100px right pad) to enlarge the video,
+       which pushes the manifesto + CTA further down the page */
+    .studio-feature-video-wrap {
+        padding-left: clamp(120px, 18vw, 220px) !important;
+        padding-right: clamp(24px, 4vw, 56px) !important;
+    }
     .studio-columns .studio-subhead {
         margin-left: clamp(24px, 5vw, 80px);
     }

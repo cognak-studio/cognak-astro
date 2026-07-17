@@ -138,6 +138,12 @@ body { overflow-x: clip; }
         opacity: 0.55;
         transition: opacity 0.25s ease;
     }
+    /* Tablet: smaller logos so the tightened ring reads cleanly and fits */
+    @media (max-width: 1024px) and (min-width: 721px) {
+        .logo-ring-item svg { width: 96px; height: 32px; }
+        .logo-ring-item--sm svg { width: 50px !important; height: 17px !important; }
+        .logo-ring-item--xs svg { width: 42px !important; height: 17px !important; }
+    }
     </style>
     <script is:inline>
     (function() {
@@ -222,8 +228,12 @@ body { overflow-x: clip; }
             trackDocLeft = rect.left + window.scrollX;
             trackH = rect.height;
             trackW = rect.width;
-            var isMobile = window.innerWidth <= 720;
-            rx = isMobile ? window.innerWidth * 0.85 : trackW * 0.612;
+            var vw = window.innerWidth;
+            var isMobile = vw <= 720;
+            var isTablet = vw > 720 && vw <= 1024;
+            // Tablet: tighten the radius so the ring stays inside the viewport
+            // instead of bleeding off both edges (desktop factor 0.612 is too wide here)
+            rx = isMobile ? vw * 0.85 : (isTablet ? trackW * 0.40 : trackW * 0.612);
             ry = rx * 0.09;
             updateCenterFromScroll();
         }
