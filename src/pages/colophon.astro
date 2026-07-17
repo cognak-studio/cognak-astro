@@ -211,6 +211,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var meta = DATA.meta;
       var N = glyphs[order[0]][0].length;
 
+      // The text column ('.colophon') so the glyph can be locked to its right
+      // edge on desktop instead of a fixed % of viewport width — at very wide
+      // viewports, vw*0.74 kept sliding the glyph further from the (max-width,
+      // left-anchored) text column, opening up a growing gap. Measured fresh
+      // on every resize; horizontal position doesn't change with scroll (only
+      // vertical scroll affects this page), so a resize-time cache is enough,
+      // no need to re-measure every animation frame.
+      var contentEl = document.querySelector('.colophon');
+      var contentRight = 0;
+      var GAP = 80; // px between the text column's right edge and the glyph
+
       var dpr = 1, vw = 0, vh = 0;
       function resize() {
         dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -218,16 +229,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         vh = window.innerHeight;
         canvas.width = Math.round(vw * dpr);
         canvas.height = Math.round(vh * dpr);
+        if (contentEl) contentRight = contentEl.getBoundingClientRect().right;
       }
       resize();
       window.addEventListener('resize', resize);
 
-      // layout: glyph drawing box, offset right on desktop, centered on mobile
+      // layout: glyph drawing box, locked beside the text column on desktop,
+      // centered on mobile
       function layout() {
         var gh = vh * 0.82;
         var scale = gh / (meta.maxy - meta.miny);
         var gw = (meta.maxx - meta.minx) * scale;
-        var cx = vw > 900 ? vw * 0.74 : vw * 0.5;
+        // Clamped so the glyph never fully leaves the viewport on the
+        // narrower end of the desktop breakpoint (it's a faint z-index:0
+        // background behind the text either way, so slight overlap there is
+        // fine — matches how it already briefly overlapped near vw~900 before).
+        var cx = vw > 900 ? Math.min(contentRight + GAP + gw / 2, vw - 24) : vw * 0.5;
         var cy = vh * 0.52;
         return {
           scale: scale,
