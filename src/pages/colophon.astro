@@ -67,7 +67,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
     @media (min-width: 900px) {
       .colophon {
-        margin-left: clamp(24px, 7vw, 130px);
+        margin-left: clamp(48px, 11vw, 210px);
         margin-right: auto;
       }
     }
@@ -238,7 +238,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       function px(p, L) { return { x: p[0] * L.scale + L.ox, y: -p[1] * L.scale + L.oy }; }
 
-      var HOLD = 9000, MORPH = 2400;
+      var HOLD = 4000, MORPH = 2400;
       function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
       function lerpContour(a, b, t, L) {
