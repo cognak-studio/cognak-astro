@@ -65,6 +65,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color: #f4f4ee;
       font-family: 'Diatype Variable', sans-serif;
     }
+    @media (min-width: 900px) {
+      .colophon {
+        margin-left: clamp(24px, 7vw, 130px);
+        margin-right: auto;
+      }
+    }
     .colophon-eyebrow,
     .colophon-headline,
     .colophon-body > * {
@@ -221,7 +227,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var gh = vh * 0.82;
         var scale = gh / (meta.maxy - meta.miny);
         var gw = (meta.maxx - meta.minx) * scale;
-        var cx = vw > 900 ? vw * 0.72 : vw * 0.5;
+        var cx = vw > 900 ? vw * 0.74 : vw * 0.5;
         var cy = vh * 0.52;
         return {
           scale: scale,

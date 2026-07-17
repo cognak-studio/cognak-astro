@@ -167,7 +167,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         for (var y = offset - spacing; y < vh + spacing; y += spacing) {
           var breath = reduced ? 1 : (0.7 + 0.3 * Math.sin(t * 0.45 - y * 0.006));
-          drawLine(y, 0.13 * breath, !reduced && !touch);
+          drawLine(y, 0.065 * breath, !reduced && !touch);
         }
 
         var body = document.querySelector('.privacy-body');
