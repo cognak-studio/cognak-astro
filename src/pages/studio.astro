@@ -231,10 +231,10 @@ body { overflow-x: clip; }
             var vw = window.innerWidth;
             var isMobile = vw <= 720;
             var isTablet = vw > 720 && vw <= 1024;
-            // Tablet: use the SAME radius factor as desktop so the ring sweeps
-            // past both edges just like desktop (logos are already scaled down
-            // for this breakpoint via the .logo-ring-item CSS override)
-            rx = isMobile ? vw * 0.85 : trackW * 0.612;
+            // Tablet: a touch wider than desktop's 0.612 so the ring sweeps a
+            // bit further past both edges (logos already scaled down via the
+            // .logo-ring-item CSS override at this breakpoint)
+            rx = isMobile ? vw * 0.85 : (isTablet ? trackW * 0.68 : trackW * 0.612);
             ry = rx * 0.09;
             updateCenterFromScroll();
         }

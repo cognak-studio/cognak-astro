@@ -8,6 +8,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   ogUrl="https://cognak.com/privacy-policy/"
   pageBg="#F1D6EA"
 >
+  <canvas id="privacy-grid" aria-hidden="true"></canvas>
+
   <main id="cognak-main"><section class="privacy-template">
 
     <h1 class="privacy-headline">Privacy Policy</h1>
@@ -38,6 +40,32 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   </section></main>
 
+  <style is:inline>
+    #privacy-grid {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+    #privacy-grid.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #privacy-grid {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+    #cognak-main { position: relative; z-index: 1; }
+  </style>
+
   <script is:inline>
     if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
     window.scrollTo(0, 0);
@@ -57,6 +85,119 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
       }, { threshold: 0.1 });
       els.forEach(function (el) { observer.observe(el); });
+    })();
+  </script>
+
+  <script is:inline>
+    (function () {
+      var canvas = document.getElementById('privacy-grid');
+      if (!canvas || !canvas.getContext) return;
+      var ctx = canvas.getContext('2d');
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var touch = window.matchMedia('(hover: none)').matches;
+
+      var dpr = 1, vw = 0, vh = 0, spacing = 28.8;
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        vw = window.innerWidth;
+        vh = window.innerHeight;
+        canvas.width = Math.round(vw * dpr);
+        canvas.height = Math.round(vh * dpr);
+        var p = document.querySelector('.privacy-body p');
+        if (p) {
+          var lh = parseFloat(getComputedStyle(p).lineHeight);
+          if (lh > 8) spacing = lh;
+        }
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      var mx = -9999, my = -9999, tx = -9999, ty = -9999;
+      if (!touch) {
+        window.addEventListener('mousemove', function (e) { tx = e.clientX; ty = e.clientY; });
+        document.addEventListener('mouseleave', function () { tx = -9999; ty = -9999; });
+      }
+
+      var SIGMA = 95, AMP = 7, STEP = 22;
+
+      function drawLine(y, alpha, rippling) {
+        ctx.strokeStyle = 'rgba(129,82,117,' + alpha + ')';
+        ctx.beginPath();
+        if (!rippling || my < -999 || Math.abs(y - my) > SIGMA * 2.2) {
+          ctx.moveTo(0, y);
+          ctx.lineTo(vw, y);
+        } else {
+          var first = true;
+          for (var x = 0; x <= vw + STEP; x += STEP) {
+            var dx = x - mx, dy = y - my;
+            var d2 = dx * dx + dy * dy;
+            var off = -AMP * Math.sign(dy || 1) * Math.exp(-d2 / (2 * SIGMA * SIGMA));
+            if (first) { ctx.moveTo(x, y + off); first = false; }
+            else ctx.lineTo(x, y + off);
+          }
+        }
+        ctx.stroke();
+      }
+
+      function cropMark(x, y) {
+        var L = 9, G = 4;
+        ctx.strokeStyle = 'rgba(74,40,64,0.35)';
+        ctx.beginPath();
+        ctx.moveTo(x - G - L, y); ctx.lineTo(x - G, y);
+        ctx.moveTo(x + G, y); ctx.lineTo(x + G + L, y);
+        ctx.moveTo(x, y - G - L); ctx.lineTo(x, y - G);
+        ctx.moveTo(x, y + G); ctx.lineTo(x, y + G + L);
+        ctx.stroke();
+      }
+
+      function frame(now) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, vw, vh);
+        ctx.lineWidth = 1;
+
+        mx += (tx - mx) * 0.12;
+        my += (ty - my) * 0.12;
+
+        var scrollY = window.scrollY || 0;
+        var offset = spacing - (scrollY % spacing);
+        var t = now * 0.001;
+
+        for (var y = offset - spacing; y < vh + spacing; y += spacing) {
+          var breath = reduced ? 1 : (0.7 + 0.3 * Math.sin(t * 0.45 - y * 0.006));
+          drawLine(y, 0.13 * breath, !reduced && !touch);
+        }
+
+        var body = document.querySelector('.privacy-body');
+        if (body) {
+          var r = body.getBoundingClientRect();
+          var ga = reduced ? 0.20 : (0.16 + 0.07 * Math.sin(t * 0.3));
+          ctx.strokeStyle = 'rgba(129,82,117,' + ga + ')';
+          ctx.beginPath();
+          ctx.moveTo(r.left - 24, 0); ctx.lineTo(r.left - 24, vh);
+          ctx.moveTo(r.right + 24, 0); ctx.lineTo(r.right + 24, vh);
+          ctx.stroke();
+
+          var head = document.querySelector('.privacy-headline');
+          if (head) {
+            var hr = head.getBoundingClientRect();
+            cropMark(r.left - 24, hr.top - 18);
+            cropMark(r.right + 24, hr.top - 18);
+          }
+          cropMark(r.left - 24, r.bottom + 26);
+          cropMark(r.right + 24, r.bottom + 26);
+        }
+
+        if (!reduced) requestAnimationFrame(frame);
+      }
+
+      requestAnimationFrame(function (now) {
+        frame(now);
+        canvas.classList.add('is-in');
+      });
+      if (reduced) {
+        window.addEventListener('resize', function () { frame(performance.now()); });
+        window.addEventListener('scroll', function () { frame(performance.now()); }, { passive: true });
+      }
     })();
   </script>
 </BaseLayout>
