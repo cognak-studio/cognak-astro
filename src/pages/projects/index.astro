@@ -137,7 +137,7 @@ const LAZY_AFTER = 8;
       {items.map((p) => (
         <a href={`/projects/${p.slug}`} class="projects-list-item" data-hero={p.cursorHero} data-date={p.dateUnix} data-title={p.title}>
           <span class="list-item-title">{p.title}</span>
-          {p.category && <span class="list-item-tag">{p.category}{p.vintage && <span class="list-item-vintage">&nbsp;· {p.vintage}</span>}</span>}
+          {p.category && <span class="list-item-tag"><span class="list-item-cats">{p.category}</span>{p.vintage && <span class="list-item-vintage">&nbsp;· {p.vintage}</span>}</span>}
         </a>
       ))}
     </div>

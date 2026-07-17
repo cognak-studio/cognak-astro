@@ -1805,15 +1805,16 @@ html.pv-grid .projects-list,
 
 /* List view, narrow widths: long category tags crowd the title (desktop has
    plenty of room, but ~721–1200px collapses the gap to the 24px flex min).
-   Hold a larger minimum gap and fade the tag's left edge so the categories
-   dissolve toward the title while the XO/VSOP grade stays anchored at right. */
+   Hold a larger minimum gap, and fade the category list out on its RIGHT edge
+   so the words dissolve into the VS/VSOP/XO grade, which stays crisp at right. */
 @media (max-width: 1200px) and (min-width: 721px) {
     .projects-list-item {
         gap: clamp(32px, 5vw, 80px);
     }
-    .list-item-tag {
-        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 clamp(28px, 6vw, 72px));
-                mask-image: linear-gradient(to right, transparent 0, #000 clamp(28px, 6vw, 72px));
+    .list-item-cats {
+        display: inline-block;
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - clamp(28px, 5vw, 56px)), transparent 100%);
+                mask-image: linear-gradient(to right, #000 calc(100% - clamp(28px, 5vw, 56px)), transparent 100%);
     }
 }
 
@@ -2267,9 +2268,15 @@ html.pv-grid .projects-list,
     .projects-grid {
         grid-template-columns: repeat(3, 1fr) !important;
     }
-    /* Project detail: tighten the 3-column gap so copy isn't a sliver */
+    /* Project detail: tighten the 3-column gap further so copy gets more measure */
     .template-single-project .information .details {
-        gap: 40px !important;
+        gap: 24px !important;
+    }
+    /* Homepage heading: force the two-line break "Some of our / favorite projects" */
+    .hp-heading-break { display: block; }
+    .hp-projects-heading {
+        max-width: none !important;
+        white-space: nowrap;
     }
     /* Feature reel: keep the right-indented placement but reclaim enough of the
        297px desktop indent (and the 100px right pad) to enlarge the video,

@@ -1,0 +1,280 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  page="colophon"
+  title="Colophon – COGNAK"
+  description="A note on how this site is set — the type, the tools, the hands."
+  ogUrl="https://cognak.com/colophon2/"
+  noindex={true}
+  pageBg="#0E06D2"
+>
+  <div id="colophon-specimen" aria-hidden="true"></div>
+
+  <main id="cognak-main"><section class="colophon">
+
+    <p class="colophon-eyebrow">Colophon</p>
+
+    <h1 class="colophon-headline">Set in <em>ABC&nbsp;Diatype</em>.</h1>
+
+    <div class="colophon-body">
+      <p>You found the quiet page. Every word on cognak.com is set in <strong>ABC&nbsp;Diatype</strong>, a grotesque drawn by <a href="https://abcdinamo.com/typefaces/diatype" target="_blank" rel="noopener">Dinamo</a> in Basel &amp; Berlin, chosen for the way it stays neutral until you look closely, then reveals a little warmth in the curves. Code and figures fall back to <strong>ABC&nbsp;Diatype Mono</strong>.</p>
+
+      <p>The faces are self-hosted as <code>woff2</code> (Regular, Medium, Bold, and the Mono) so nothing about your visit is handed to a font CDN.</p>
+
+      <p class="colophon-spec">
+        <span>Typeface</span><span>ABC Diatype &amp; ABC Diatype Mono — <a href="https://abcdinamo.com/typefaces/diatype" target="_blank" rel="noopener">Dinamo</a></span>
+        <span>Built with</span><span><a href="https://astro.build" target="_blank" rel="noopener">Astro</a>, hand-written HTML/CSS/JS, WebGL</span>
+        <span>Motion</span><span><a href="https://lenis.darkroom.engineering" target="_blank" rel="noopener">Lenis</a> smooth scroll, <a href="https://www.unicorn.studio" target="_blank" rel="noopener">UnicornStudio</a>, custom canvas</span>
+        <span>Served from</span><span><a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a></span>
+        <span>Made in</span><span>Los Angeles, California</span>
+      </p>
+
+      <p class="colophon-sign">No page builders. No templates. Built by hand at COGNAK. If you care about this sort of thing, so do we: <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
+    </div>
+
+  </section></main>
+
+  <style is:inline>
+    html, body { background-color: #0E06D2 !important; }
+
+    #colophon-specimen {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+    #colophon-specimen span {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-family: 'Diatype Variable', sans-serif;
+      line-height: 1;
+      white-space: nowrap;
+      color: rgba(163,168,255,0.10);
+      will-change: transform;
+    }
+    #cognak-main { position: relative; z-index: 1; }
+
+    .home-bottom-bar.inner-page-nav.colophon-nav {
+      background: rgba(7, 0, 172, 0.80) !important;
+    }
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-location,
+    .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a,
+    .home-bottom-bar.inner-page-nav.colophon-nav .pulse-dot {
+      color: #ffffff !important;
+    }
+
+    .colophon {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: calc(7vh + 75px) 6vw 22vh;
+      color: #f4f4ee;
+      font-family: 'Diatype Variable', sans-serif;
+    }
+    .colophon-eyebrow,
+    .colophon-headline,
+    .colophon-body > * {
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .colophon-eyebrow.is-in,
+    .colophon-headline.is-in,
+    .colophon-body > *.is-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .colophon-eyebrow,
+      .colophon-headline,
+      .colophon-body > * {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+    .colophon-eyebrow {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #c7c9d8;
+      margin: 0 0 2.4rem;
+    }
+    .colophon-headline {
+      font-size: clamp(2.6rem, 7vw, 4.6rem);
+      font-weight: 500;
+      line-height: 1.02;
+      letter-spacing: -0.02em;
+      margin: 0 0 3.2rem;
+      color: #f6f6f0;
+    }
+    .colophon-headline em {
+      font-style: italic;
+      font-weight: 400;
+      color: #b6ff2e;
+    }
+    .colophon-body p {
+      font-size: 1.06rem;
+      line-height: 1.7;
+      color: #e8e8de;
+      margin: 0 0 1.6rem;
+      max-width: 58ch;
+    }
+    .colophon-body a {
+      color: #b6ff2e;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 1px;
+    }
+    .colophon-body strong { color: #ffffff; font-weight: 500; }
+    .colophon-body code {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.88em;
+      color: #b6ff2e;
+    }
+    .colophon-spec {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      align-items: baseline;
+      gap: 0.55rem 2rem;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #e8e8de;
+      border-top: 1px solid rgba(244,244,238,0.28);
+      border-bottom: 1px solid rgba(244,244,238,0.28);
+      padding: 2rem 0;
+      margin: 2.6rem 0 !important;
+    }
+    .colophon-spec a {
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.25s ease;
+    }
+    .colophon-spec a:hover { color: #b6ff2e; }
+    .colophon-spec span:nth-child(odd) {
+      color: #a9abbd;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.72rem;
+    }
+    .colophon-sign {
+      font-size: 0.98rem !important;
+      color: #c7c9d8 !important;
+    }
+    @media (max-width: 600px) {
+      .colophon-spec { grid-template-columns: 1fr; gap: 0.15rem; }
+      .colophon-spec span:nth-child(odd) { margin-top: 1rem; }
+      .colophon-spec span:nth-child(2) { margin-top: 0; }
+    }
+  </style>
+
+  <script is:inline>
+    if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
+    window.scrollTo(0, 0);
+    (function () {
+      var els = document.querySelectorAll('.colophon-eyebrow, .colophon-headline, .colophon-body > *');
+      if (!els.length || !('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('is-in'); });
+        return;
+      }
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var el = entry.target;
+          var idx = Array.prototype.indexOf.call(els, el);
+          setTimeout(function () { el.classList.add('is-in'); }, idx * 70);
+          observer.unobserve(el);
+        });
+      }, { threshold: 0.1 });
+      els.forEach(function (el) { observer.observe(el); });
+    })();
+    console.log(
+      '%cCOGNAK%c  set in ABC Diatype — Dinamo.\nBuilt by hand in Los Angeles. hello@cognak.com',
+      'font: 600 13px "Diatype Mono", monospace; letter-spacing:.24em; color:#f3f0ee;',
+      'font: 12px/1.6 "Diatype Mono", monospace; color:#8b8790;'
+    );
+  </script>
+
+  <script is:inline>
+    (function () {
+      var host = document.getElementById('colophon-specimen');
+      if (!host) return;
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      var CHARS = ['Aa', 'g', 'R', '&', 'Gg', '?', 'e', 'Qu', 'fi', 'k', '§', '2', 'Rr', '*', '¶'];
+      var seeds = [0.13, 0.71, 0.42, 0.89, 0.05, 0.57, 0.33, 0.96, 0.24, 0.62, 0.48, 0.81, 0.17, 0.69, 0.38];
+      var glyphs = [];
+      var vw = window.innerWidth, vh = window.innerHeight;
+
+      for (var i = 0; i < CHARS.length; i++) {
+        var s1 = seeds[i];
+        var s2 = seeds[(i + 4) % seeds.length];
+        var s3 = seeds[(i + 9) % seeds.length];
+        var el = document.createElement('span');
+        el.textContent = CHARS[i];
+        var size = 18 + s1 * 92; // vh
+        el.style.fontSize = size + 'vh';
+        el.style.fontWeight = s2 > 0.5 ? '500' : '400';
+        var big = size > 60;
+        el.style.color = 'rgba(163,168,255,' + (big ? 0.055 : 0.095) + ')';
+        host.appendChild(el);
+        var angle = s3 * 6.2832;
+        var speed = 3 + s2 * 4.5; // px per second
+        glyphs.push({
+          el: el,
+          x: s2 * vw,
+          y: s3 * vh,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed * 0.6,
+          depth: 0.05 + s1 * 0.2,
+          w: 0, h: size
+        });
+      }
+
+      function measure() {
+        vw = window.innerWidth; vh = window.innerHeight;
+        glyphs.forEach(function (g) { g.w = g.el.offsetWidth; });
+      }
+      measure();
+      window.addEventListener('resize', measure);
+
+      function place(g, scrollY) {
+        var py = g.y - scrollY * g.depth;
+        g.el.style.transform = 'translate3d(' + g.x + 'px,' + py + 'px,0)';
+      }
+
+      if (reduced) {
+        glyphs.forEach(function (g) { place(g, 0); });
+        return;
+      }
+
+      var last = performance.now();
+      function frame(now) {
+        var dt = Math.min((now - last) / 1000, 0.1);
+        last = now;
+        var scrollY = window.scrollY || 0;
+        var margin = 200;
+        for (var i = 0; i < glyphs.length; i++) {
+          var g = glyphs[i];
+          g.x += g.vx * dt;
+          g.y += g.vy * dt;
+          var gw = g.w || 200;
+          var gh = g.h * vh / 100;
+          if (g.x > vw + margin) g.x = -gw - margin;
+          if (g.x < -gw - margin) g.x = vw + margin;
+          if (g.y > vh + margin + gh) g.y = -gh - margin;
+          if (g.y < -gh - margin) g.y = vh + margin;
+          place(g, scrollY);
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</BaseLayout>
