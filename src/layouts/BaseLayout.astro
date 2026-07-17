@@ -189,6 +189,20 @@ import '../styles/site.css';
       gtag('config', 'G-SE5WX8VYF3');
       gtag('config', 'AW-876403750');
       gtag('event', 'conversion', { 'send_to': 'AW-876403750/xmGnCNTYt7scEKa486ED' });
+      // Cosmetic cleanup for url_passthrough: by window load, gtag.js (async in
+      // head) has already executed and read the _gl linker param, so stripping
+      // it from the address bar does not affect attribution. If gtag is blocked
+      // client-side, stripping loses nothing. Only _gl is removed; gclid etc. stay.
+      window.addEventListener('load', function () {
+        try {
+          if (location.search.indexOf('_gl=') !== -1) {
+            var u = new URL(location.href);
+            u.searchParams.delete('_gl');
+            var q = u.searchParams.toString();
+            history.replaceState(history.state, '', u.pathname + (q ? '?' + q : '') + u.hash);
+          }
+        } catch (e) {}
+      });
     })();
   </script>
   <script is:inline define:vars={{ page }}>window.COGNAK_PAGE = page; document.documentElement.classList.add('js');</script>
