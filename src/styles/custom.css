@@ -599,6 +599,18 @@ body.non-fixed-nav::after {
 }
 }
 
+/* Cloned nav links shown in the bottom bar once scrolled past the hero
+   (see cognak-home.js .home-nav-links-mobile). These have an inline
+   color style with no hover state, so this needs !important to win. */
+.home-nav-links-mobile a {
+    transition: color 0.2s ease;
+}
+@media (hover: hover) {
+.home-nav-links-mobile a:hover {
+    color: var(--cognak-purple-text) !important;
+}
+}
+
 /* ── Homepage bottom bar ── */
 .home-bottom-bar {
     position: fixed;
@@ -2995,9 +3007,14 @@ html body.page-template-page-privacy-policy,
     background: rgba(250, 226, 243, 0.8) !important;
 }
 .home-bottom-bar.inner-page-nav.privacy-nav .home-bottom-email,
-.home-bottom-bar.inner-page-nav.privacy-nav .home-bottom-location,
-.home-bottom-bar.inner-page-nav.privacy-nav .inner-nav-links a {
+.home-bottom-bar.inner-page-nav.privacy-nav .home-bottom-location {
     color: #4A2840 !important;
+}
+/* Lightened as far as possible while staying WCAG AA (>=4.5:1) against the
+   bar's pink background, so the hover-to-near-black jump below actually reads
+   as a visible change instead of dark-on-dark. */
+.home-bottom-bar.inner-page-nav.privacy-nav .inner-nav-links a {
+    color: #824671 !important;
 }
 .home-bottom-bar.inner-page-nav.privacy-nav .pulse-dot {
     color: #4A2840 !important;
