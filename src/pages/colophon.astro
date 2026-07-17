@@ -290,6 +290,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
 
       var start = performance.now();
+      var rafId = null;
       function frame(now) {
         var L = layout();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -308,15 +309,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           drawContour(pts, 0.11);
           drawNodes(pts, now);
         }
-        if (!reduced) requestAnimationFrame(frame);
+        rafId = reduced ? null : requestAnimationFrame(frame);
+      }
+
+      // (Re)starts the loop from a clean state: re-measures the canvas and
+      // kicks off the first frame. Run on initial load AND on every
+      // 'pageshow' — a back/forward-cache restore, or this site's sitewide
+      // cross-document view-transition (@view-transition{navigation:auto} in
+      // custom.css — the "record" link is this page's only entry point, so
+      // essentially every visit arrives through it), can leave the rAF loop
+      // stalled or the canvas bitmap blank even though the DOM looks
+      // untouched. That's what was making the artwork miss on some loads;
+      // re-arming on pageshow makes it self-heal instead of staying dark.
+      function boot() {
+        resize();
+        if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+        start = performance.now();
+        if (reduced) {
+          frame(start);
+        } else {
+          rafId = requestAnimationFrame(frame);
+        }
       }
 
       if (reduced) {
-        frame(start);
-        window.addEventListener('resize', function () { frame(start); });
-      } else {
-        requestAnimationFrame(frame);
+        window.addEventListener('resize', function () { resize(); frame(start); });
       }
+      window.addEventListener('pageshow', boot);
+      boot();
     })();
   </script>
 </BaseLayout>
