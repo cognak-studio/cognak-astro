@@ -244,7 +244,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // narrower end of the desktop breakpoint (it's a faint z-index:0
         // background behind the text either way, so slight overlap there is
         // fine — matches how it already briefly overlapped near vw~900 before).
-        var cx = vw > 900 ? Math.min(contentRight + GAP + gw / 2, vw - 24) : vw * 0.5;
+        // Shifted 300px further left (Pierce's call) from the locked position.
+        var cx = vw > 900 ? Math.min(contentRight + GAP + gw / 2, vw - 24) - 300 : vw * 0.5;
         var cy = vh * 0.52;
         return {
           scale: scale,
