@@ -59,30 +59,50 @@
 
     // ── LA temperature pill on the cursor ──
     // Hovering the location/time readout turns the custom cursor into the same
-    // purple pill as the /studio founder/award hovers, showing the current temp.
-    // It rides the cursor (position retained), exactly like those pills.
-    // Delegated on document so navs recreated by view transitions keep working.
-    // These listeners register before the global-cursor IIFE's mouseover handler,
-    // which early-returns while is-founder is set — so the two never fight.
+    // pill as the /studio founder/award hovers (position retained — it rides
+    // the cursor). Pill bg/text match each page's NAV HOVER color, passed to
+    // custom.css as inline custom props (--temp-pill-bg/fg on #cognak-cursor).
+    // Delegated on document so navs recreated by view transitions keep working;
+    // these listeners register before the global-cursor IIFE's mouseover
+    // handler, which early-returns while is-founder is set, so they never fight.
+    var TEMP_PILL_COLORS = {
+        colophon: ['#A9C4FF', '#0700AC'],  // light periwinkle / klein blue
+        privacy:  ['#1A0E18', '#FFFFFF'],  // near-black plum / white
+        '404':    ['#9EED3D', '#17151A']   // acid green / near-black
+    };
     document.addEventListener('mouseover', function(e) {
         if (!tempLabel) return;
-        if (!e.target.closest) return;
-        if (!e.target.closest('.home-bottom-location')) return;
+        if (!e.target.closest || !e.target.closest('.home-bottom-location')) return;
         var cursor = document.getElementById('cognak-cursor');
         var label  = document.getElementById('cognak-cursor-label');
         if (!cursor || !label) return;
+        var colors = TEMP_PILL_COLORS[window.COGNAK_PAGE || ''];
+        var bg, fg;
+        if (colors) {
+            bg = colors[0];
+            fg = colors[1];
+        } else {
+            // Everywhere else the nav hover color is the purple text token
+            // (#9F50FF on the dark home, #9647F0 on light inner pages).
+            bg = (getComputedStyle(document.body).getPropertyValue('--cognak-purple-text') || '').trim() || '#8B1FFF';
+            fg = '#FFFFFF';
+        }
+        cursor.style.setProperty('--temp-pill-bg', bg);
+        cursor.style.setProperty('--temp-pill-fg', fg);
         cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-view-projects', 'is-next');
-        cursor.classList.add('is-founder');
+        cursor.classList.add('is-founder', 'is-temp');
         label.textContent = tempLabel;
     });
     document.addEventListener('mouseout', function(e) {
         if (!e.target.closest || !e.target.closest('.home-bottom-location')) return;
-        // Still inside the location (child-to-child move)? Keep the pill.
+        // Child-to-child move inside the location? Keep the pill.
         if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.home-bottom-location')) return;
         var cursor = document.getElementById('cognak-cursor');
         var label  = document.getElementById('cognak-cursor-label');
-        if (cursor && cursor.classList.contains('is-founder')) {
-            cursor.classList.remove('is-founder');
+        if (cursor && cursor.classList.contains('is-temp')) {
+            cursor.classList.remove('is-founder', 'is-temp');
+            cursor.style.removeProperty('--temp-pill-bg');
+            cursor.style.removeProperty('--temp-pill-fg');
             if (label) label.textContent = '';
         }
     });
