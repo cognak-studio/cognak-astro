@@ -57,6 +57,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .home-bottom-bar.inner-page-nav.colophon-nav .pulse-dot {
       color: #ffffff !important;
     }
+    /* Nav links dip to a light periwinkle on hover — reads as a clear state
+       change against the klein-blue bar without leaving the page's palette.
+       The inner-page-nav base sets transition:none on the email, so re-enable
+       a color transition here for both. */
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
+    .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a {
+      transition: color 0.2s ease;
+    }
+    @media (hover: hover) {
+      .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email:hover,
+      .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a:hover {
+        color: #A9C4FF !important;
+      }
+    }
 
     .colophon {
       max-width: 720px;

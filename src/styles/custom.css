@@ -757,6 +757,39 @@ html.home-scrolled #cognak-cookie {
     transform: translate(-50%, -50%);
 }
 
+/* ── LA temperature pill ─────────────────────────────────────────────────────
+   Hovering the location/time readout reveals a small pill with the current LA
+   temperature (data-la-temp is set by the weather fetch in cognak-global.js).
+   The pill sits INSIDE the bar, to the left of the text — .home-bottom-bar has
+   overflow:hidden (it clips the hero halos), so anything hanging below/above
+   the bar would be cut off. Dark glass reads on every nav variant, light or
+   dark. Hover-only devices; the ::after never renders without the attribute. */
+.home-bottom-location[data-la-temp]::after {
+    content: attr(data-la-temp);
+    position: absolute;
+    right: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%) translateX(6px);
+    padding: 5px 12px 6px;
+    border-radius: 999px;
+    background: rgba(23, 21, 26, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+@media (hover: hover) {
+    .home-bottom-location[data-la-temp]:hover::after {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+    }
+}
+
 .pulse-dot {
     display: inline-block;
     color: #FFB2E4;

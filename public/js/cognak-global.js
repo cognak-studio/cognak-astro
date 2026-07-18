@@ -5,6 +5,21 @@
 /* ── LA clock + weather emoji ─────────────────────────────────────────────── */
 (function() {
     var weatherEmoji = '🐃';
+    var tempLabel = '';
+
+    // Stamp the current LA temperature onto every location readout — CSS shows
+    // it as a hover pill (.home-bottom-location[data-la-temp]::after). Re-run
+    // from updateTime() each tick so navs recreated by view transitions get
+    // re-stamped; the attribute write is guarded, so steady state is a no-op.
+    function applyTemp() {
+        if (!tempLabel) return;
+        var nodes = document.querySelectorAll('.home-bottom-location');
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].getAttribute('data-la-temp') !== tempLabel) {
+                nodes[i].setAttribute('data-la-temp', tempLabel);
+            }
+        }
+    }
 
     function getWeatherEmoji(code, isDay) {
         if (code === 0)            return isDay ? '☀️' : '🌘';
@@ -28,6 +43,8 @@
                 var isDay = data.current.is_day === 1;
                 var tempF = tempC * 9 / 5 + 32;
                 weatherEmoji = (tempF >= 90) ? '🔥' : getWeatherEmoji(code, isDay);
+                tempLabel = Math.round(tempF) + '°F / ' + Math.round(tempC) + '°C';
+                applyTemp();
             })
             .catch(function() { /* keep current emoji on error */ });
     }
@@ -51,6 +68,7 @@
         if (el) el.textContent = timeStr + ' ' + weatherEmoji;
         var els = document.getElementById('la-time-sticky');
         if (els) els.textContent = timeStr + ' ' + weatherEmoji;
+        applyTemp();
     }
     updateTime();
     setInterval(updateTime, 1000);
