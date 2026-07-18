@@ -7,20 +7,6 @@
     var weatherEmoji = '🐃';
     var tempLabel = '';
 
-    // Stamp the current LA temperature onto every location readout — CSS shows
-    // it as a hover pill (.home-bottom-location[data-la-temp]::after). Re-run
-    // from updateTime() each tick so navs recreated by view transitions get
-    // re-stamped; the attribute write is guarded, so steady state is a no-op.
-    function applyTemp() {
-        if (!tempLabel) return;
-        var nodes = document.querySelectorAll('.home-bottom-location');
-        for (var i = 0; i < nodes.length; i++) {
-            if (nodes[i].getAttribute('data-la-temp') !== tempLabel) {
-                nodes[i].setAttribute('data-la-temp', tempLabel);
-            }
-        }
-    }
-
     function getWeatherEmoji(code, isDay) {
         if (code === 0)            return isDay ? '☀️' : '🌘';
         if (code <= 2)             return isDay ? '🌤️' : '🌥️';
@@ -43,8 +29,7 @@
                 var isDay = data.current.is_day === 1;
                 var tempF = tempC * 9 / 5 + 32;
                 weatherEmoji = (tempF >= 90) ? '🔥' : getWeatherEmoji(code, isDay);
-                tempLabel = Math.round(tempF) + '°F / ' + Math.round(tempC) + '°C';
-                applyTemp();
+                tempLabel = Math.round(tempF) + '°F';
             })
             .catch(function() { /* keep current emoji on error */ });
     }
@@ -68,10 +53,39 @@
         if (el) el.textContent = timeStr + ' ' + weatherEmoji;
         var els = document.getElementById('la-time-sticky');
         if (els) els.textContent = timeStr + ' ' + weatherEmoji;
-        applyTemp();
     }
     updateTime();
     setInterval(updateTime, 1000);
+
+    // ── LA temperature pill on the cursor ──
+    // Hovering the location/time readout turns the custom cursor into the same
+    // purple pill as the /studio founder/award hovers, showing the current temp.
+    // It rides the cursor (position retained), exactly like those pills.
+    // Delegated on document so navs recreated by view transitions keep working.
+    // These listeners register before the global-cursor IIFE's mouseover handler,
+    // which early-returns while is-founder is set — so the two never fight.
+    document.addEventListener('mouseover', function(e) {
+        if (!tempLabel) return;
+        if (!e.target.closest) return;
+        if (!e.target.closest('.home-bottom-location')) return;
+        var cursor = document.getElementById('cognak-cursor');
+        var label  = document.getElementById('cognak-cursor-label');
+        if (!cursor || !label) return;
+        cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-view-projects', 'is-next');
+        cursor.classList.add('is-founder');
+        label.textContent = tempLabel;
+    });
+    document.addEventListener('mouseout', function(e) {
+        if (!e.target.closest || !e.target.closest('.home-bottom-location')) return;
+        // Still inside the location (child-to-child move)? Keep the pill.
+        if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.home-bottom-location')) return;
+        var cursor = document.getElementById('cognak-cursor');
+        var label  = document.getElementById('cognak-cursor-label');
+        if (cursor && cursor.classList.contains('is-founder')) {
+            cursor.classList.remove('is-founder');
+            if (label) label.textContent = '';
+        }
+    });
 })();
 
 /* ── Rainbow letter sweep on "Start a project" ────────────────────────────── */
