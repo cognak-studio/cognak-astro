@@ -47,6 +47,16 @@
       "permanent": true
     },
     {
+      "source": "/about",
+      "destination": "/studio",
+      "permanent": true
+    },
+    {
+      "source": "/services",
+      "destination": "/studio",
+      "permanent": true
+    },
+    {
       "source": "/",
       "has": [{ "type": "query", "key": "portfolio" }],
       "destination": "/projects",
