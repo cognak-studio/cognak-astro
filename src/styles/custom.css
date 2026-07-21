@@ -1182,7 +1182,7 @@ html.home-scrolled #cognak-cookie {
 }
 }
 .hp-heading-break {
-    display: none;
+    display: block;
 }
 .hp-projects-arrow {
     display: inline-block;
