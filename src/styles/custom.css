@@ -1163,10 +1163,10 @@ html.home-scrolled #cognak-cookie {
     color: rgba(255,255,255,0.4);
     line-height: 1.1;
     letter-spacing: -0.02em;
-    max-width: calc(50% - 35px);
+    max-width: none;
+    white-space: nowrap;
     text-align: right;
     transition: color 0.2s ease;
-    text-align: right;
     display: block;
     margin-bottom: 37px;
 }
