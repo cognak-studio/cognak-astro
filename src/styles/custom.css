@@ -2048,6 +2048,25 @@ html.pv-grid .projects-list,
     color: var(--temp-pill-fg, #fff) !important;
 }
 
+/* Over 90°F in LA: the temperature pill turns into a fiery red gradient with a
+   slow heat-shimmer. cognak-global.js adds .is-temp-hot when the fetched temp
+   clears 90 — this applies on every page, overriding the per-page pill color. */
+#cognak-cursor.is-founder.is-temp.is-temp-hot {
+    background: linear-gradient(135deg, #FFC42B 0%, #FF7A18 32%, #FF2D1F 64%, #C50E1F 100%) !important;
+    background-size: 220% 220% !important;
+    animation: temp-pill-fire 2.6s ease-in-out infinite;
+}
+#cognak-cursor.is-founder.is-temp.is-temp-hot #cognak-cursor-label {
+    color: #fff !important;
+}
+@keyframes temp-pill-fire {
+    0%, 100% { background-position: 12% 50%; }
+    50%      { background-position: 88% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #cognak-cursor.is-founder.is-temp.is-temp-hot { animation: none; }
+}
+
 /* View-projects cursor — purple pill over the studio logo wheel */
 #cognak-cursor.is-view-projects {
     width: auto !important;

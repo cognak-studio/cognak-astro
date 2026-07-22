@@ -6,6 +6,7 @@
 (function() {
     var weatherEmoji = '🐃';
     var tempLabel = '';
+    var tempHot = false;   // true when LA is over 90°F — triggers the fiery pill
 
     function getWeatherEmoji(code, isDay) {
         if (code === 0)            return isDay ? '☀️' : '🌘';
@@ -28,7 +29,8 @@
                 var tempC = data.current.temperature_2m;
                 var isDay = data.current.is_day === 1;
                 var tempF = tempC * 9 / 5 + 32;
-                weatherEmoji = (tempF >= 90) ? '🔥' : getWeatherEmoji(code, isDay);
+                tempHot = tempF >= 90;
+                weatherEmoji = tempHot ? '🔥' : getWeatherEmoji(code, isDay);
                 tempLabel = Math.round(tempF) + '°F';
             })
             .catch(function() { /* keep current emoji on error */ });
@@ -91,6 +93,8 @@
         cursor.style.setProperty('--temp-pill-fg', fg);
         cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-view-projects', 'is-next');
         cursor.classList.add('is-founder', 'is-temp');
+        // Over 90°F: swap in the fiery red gradient pill (see .is-temp-hot in CSS).
+        cursor.classList.toggle('is-temp-hot', tempHot);
         label.textContent = tempLabel;
     });
     document.addEventListener('mouseout', function(e) {
@@ -100,7 +104,7 @@
         var cursor = document.getElementById('cognak-cursor');
         var label  = document.getElementById('cognak-cursor-label');
         if (cursor && cursor.classList.contains('is-temp')) {
-            cursor.classList.remove('is-founder', 'is-temp');
+            cursor.classList.remove('is-founder', 'is-temp', 'is-temp-hot');
             cursor.style.removeProperty('--temp-pill-bg');
             cursor.style.removeProperty('--temp-pill-fg');
             if (label) label.textContent = '';
