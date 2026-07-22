@@ -108,13 +108,40 @@
     });
 })();
 
-/* ── Rainbow letter sweep on "Start a project" ────────────────────────────── */
+/* ── Cursor-anchored pink→purple glow on "Start a project" ────────────────── */
+/* Letters are lit pink where the cursor is and fade out to the purple text
+   token as they get farther from it — a soft spotlight that tracks the mouse
+   across the word, instead of the old time-based left-to-right rainbow sweep.
+   Per-letter colour is painted here; the eased colour transition lives in the
+   .rl CSS rule, which is what makes the shift glide smoothly. */
 (function() {
     var isStudio = !!document.querySelector('.studio-archive');
     var targets = [
         document.querySelector('.hp-start'),
         isStudio ? null : document.querySelector('.projects-start-link')
     ];
+
+    // Peak colour directly under the cursor.
+    var PINK = [255, 159, 230];              // #FF9FE6
+
+    // The colour letters settle to away from the cursor — the site's purple
+    // text token (#9F50FF on the dark home, #9647F0 on light inner pages).
+    function purpleRGB() {
+        var v = (getComputedStyle(document.body).getPropertyValue('--cognak-purple-text') || '').trim();
+        var m = /^#?([0-9a-fA-F]{6})$/.exec(v);
+        if (m) {
+            var n = parseInt(m[1], 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        }
+        return [159, 80, 255];               // #9F50FF fallback
+    }
+
+    // How far (px) the pink bleeds out from the cursor before it has fully
+    // become purple. Smoothstep eases the falloff so there's no hard edge.
+    var RADIUS = 150;
+    function smooth(t) { return t * t * (3 - 2 * t); }
+    function mix(a, b, t) { return Math.round(a + (b - a) * t); }
+
     targets.forEach(function(el) {
         if (!el) return;
         var orig = el.textContent.trim();
@@ -124,20 +151,30 @@
         el.innerHTML = orig.split('').map(function(ch) {
             return ch === ' ' ? ' ' : '<span class="rl">' + ch + '</span>';
         }).join('');
-        var letters = el.querySelectorAll('.rl');
-        el.addEventListener('mouseenter', function() {
-            letters.forEach(function(l, i) {
-                l.classList.remove('rl-go');
-                void l.offsetWidth;
-                l.style.animationDelay = (i * 120) + 'ms';
-                l.classList.add('rl-go');
+        var letters = Array.prototype.slice.call(el.querySelectorAll('.rl'));
+
+        function paint(mouseX) {
+            var purple = purpleRGB();
+            letters.forEach(function(l) {
+                var r  = l.getBoundingClientRect();
+                var cx = r.left + r.width / 2;
+                var t  = smooth(Math.min(1, Math.abs(cx - mouseX) / RADIUS));
+                l.style.color = 'rgb(' + mix(PINK[0], purple[0], t) + ','
+                                       + mix(PINK[1], purple[1], t) + ','
+                                       + mix(PINK[2], purple[2], t) + ')';
             });
+        }
+
+        el.addEventListener('mouseenter', function(e) {
+            el.classList.add('rl-lit');
+            paint(e.clientX);
+        });
+        el.addEventListener('mousemove', function(e) {
+            paint(e.clientX);
         });
         el.addEventListener('mouseleave', function() {
-            letters.forEach(function(l) {
-                l.classList.remove('rl-go');
-                l.style.animationDelay = '';
-            });
+            el.classList.remove('rl-lit');
+            letters.forEach(function(l) { l.style.color = ''; });
         });
     });
 })();

@@ -1604,21 +1604,13 @@ html.home-scrolled #cognak-cookie {
 }
 }
 
-/* ── Rainbow letter sweep ── */
-.rl { display: inline; transition: color 0.2s ease; }
-/* Seamless loop: start and end colors match so each revolution flows into the
-   next with no snap. Linear timing + evenly spaced stops keep it smooth, and
-   the per-letter stagger (set in JS) makes it wave across the word. */
-@keyframes letter-rainbow-loop {
-    0%   { color: var(--cognak-purple-text); }
-    16%  { color: #E8A0FF; }
-    33%  { color: #D580FF; }
-    50%  { color: #CC99FF; }
-    66%  { color: #B266FF; }
-    83%  { color: #8B1FFF; }
-    100% { color: var(--cognak-purple-text); }
-}
-.rl.rl-go { animation: letter-rainbow-loop 1.8s linear infinite; }
+/* ── Cursor-anchored pink→purple glow ── */
+/* JS (cognak-global.js) paints each letter's colour from the cursor position:
+   pink under the mouse, easing out to the purple text token away from it. This
+   transition is what makes the colour glide with the cursor and ease back out
+   on leave rather than snapping. Keep it long enough to feel smooth, short
+   enough that the pink still tracks the mouse. */
+.rl { display: inline; transition: color 0.28s ease-out; }
 
 /* ── Homepage card tilt ── */
 #hp-grid .project-excerpt {
