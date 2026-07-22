@@ -2052,16 +2052,20 @@ html.pv-grid .projects-list,
    slow heat-shimmer. cognak-global.js adds .is-temp-hot when the fetched temp
    clears 90 — this applies on every page, overriding the per-page pill color. */
 #cognak-cursor.is-founder.is-temp.is-temp-hot {
-    background: linear-gradient(135deg, #FFC42B 0%, #FF7A18 32%, #FF2D1F 64%, #C50E1F 100%) !important;
-    background-size: 220% 220% !important;
-    animation: temp-pill-fire 2.6s ease-in-out infinite;
+    background: linear-gradient(135deg, #FFD23B 0%, #FF831C 30%, #FF351D 60%, #C50E1F 100%) !important;
+    background-size: 250% 250% !important;
+    animation: temp-pill-fire 1.9s ease-in-out infinite;
 }
 #cognak-cursor.is-founder.is-temp.is-temp-hot #cognak-cursor-label {
     color: #fff !important;
 }
+/* Gentle position drift + a soft brightness/saturation pulse — a flame flicker
+   dialed to the middle: present but not busy. */
 @keyframes temp-pill-fire {
-    0%, 100% { background-position: 12% 50%; }
-    50%      { background-position: 88% 50%; }
+    0%   { background-position: 12% 50%; filter: brightness(1.12) saturate(1.10); }
+    33%  { background-position: 60% 44%; filter: brightness(0.96) saturate(1.20); }
+    66%  { background-position: 40% 56%; filter: brightness(1.14) saturate(1.08); }
+    100% { background-position: 12% 50%; filter: brightness(1.05) saturate(1.10); }
 }
 @media (prefers-reduced-motion: reduce) {
     #cognak-cursor.is-founder.is-temp.is-temp-hot { animation: none; }
