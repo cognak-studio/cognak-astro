@@ -69,8 +69,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        ============================================================ */
     .brief {
       --bg:#3F2F18; --nav:#372914; --navtext:#A89372;
-      --field:rgba(26,18,8,0.86); --field-focus:rgba(26,18,8,0.94); --card:rgba(26,18,8,0.72);
-      --field-line:rgba(12,8,3,0.65); /* very faint dark-based stroke for the boxes */
+      --field:rgba(12,8,3,0.55); --field-focus:rgba(12,8,3,0.72); --card:rgba(12,8,3,0.5);
+      --field-line:rgba(0,0,0,0.5); /* very faint dark-based stroke for the boxes */
       --ink:#CFBB9B; --ink-soft:#BCA787; --accent:#DECBAF;
       --cream:#2A2010; --btn:#D6C3A4; --sel:#D6C3A4;
       --line:rgba(207,187,155,0.20); --line-strong:rgba(207,187,155,0.40);
@@ -90,7 +90,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Opaque warm espresso-black bar with a strong blur, matching the other
        dark page navs (home/studio use rgba(23,21,26,.75)); deep + blurred so it
        obscures the WebGL background underneath and keeps the nav text legible. */
-    .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(26,18,8,0.86) !important;
+    .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(12,8,3,0.6) !important;
       backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; }
     .brief-nav .home-bottom-email,
     .brief-nav .home-bottom-location,
@@ -118,7 +118,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .stepmeta .bar i{ position:absolute; inset:0; background:var(--accent); width:0; transition:width .5s ease; }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
-    .brief .picker{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:.4rem; }
+    .brief .picker{ display:grid; grid-template-columns:repeat(2,1fr); grid-auto-rows:1fr; gap:14px; margin-top:.4rem; }
     @media (max-width:620px){ .brief .picker{ grid-template-columns:1fr; } }
     .brief .pcard{ position:relative; text-align:left; cursor:pointer; background:var(--card);
       border:none; border-radius:2px; padding:22px 22px 20px; color:var(--ink);
