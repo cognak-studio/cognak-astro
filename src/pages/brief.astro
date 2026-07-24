@@ -69,7 +69,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        ============================================================ */
     .brief {
       --bg:#3F2F18; --nav:#372914; --navtext:#A89372;
-      --field:#493920; --field-focus:#574526; --card:#4A3A20;
+      --field:rgba(26,18,8,0.86); --field-focus:rgba(26,18,8,0.94); --card:rgba(26,18,8,0.72);
+      --field-line:rgba(12,8,3,0.65); /* very faint dark-based stroke for the boxes */
       --ink:#CFBB9B; --ink-soft:#BCA787; --accent:#DECBAF;
       --cream:#2A2010; --btn:#D6C3A4; --sel:#D6C3A4;
       --line:rgba(207,187,155,0.20); --line-strong:rgba(207,187,155,0.40);
@@ -86,7 +87,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief label.pill, .brief label.chip{ display:inline-flex !important; align-items:center; }
 
     /* nav themed to the olive colorway (shared inner-page nav) */
-    .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(55,41,20,0.88) !important; }
+    /* Opaque warm espresso-black bar with a strong blur, matching the other
+       dark page navs (home/studio use rgba(23,21,26,.75)); deep + blurred so it
+       obscures the WebGL background underneath and keeps the nav text legible. */
+    .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(26,18,8,0.86) !important;
+      backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; }
     .brief-nav .home-bottom-email,
     .brief-nav .home-bottom-location,
     .brief-nav .inner-nav-links a,
@@ -117,6 +122,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (max-width:620px){ .brief .picker{ grid-template-columns:1fr; } }
     .brief .pcard{ position:relative; text-align:left; cursor:pointer; background:var(--card);
       border:none; border-radius:2px; padding:22px 22px 20px; color:var(--ink);
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       box-shadow:0 2px 10px rgba(0,0,0,.20);
       transition:transform .18s cubic-bezier(.2,.7,.3,1),background .25s ease,box-shadow .25s ease;
       font-family:inherit; }
@@ -146,10 +152,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .q{ display:block; margin-bottom:.85rem; }
     .brief .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
     .brief .q-sub{ display:block; font-size:.88rem; font-weight:400; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; }
-    @keyframes briefReqPulse{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.28; transform:scale(.7); } }
-    .brief .req{ display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent);
-      vertical-align:super; margin-right:.4em; animation:briefReqPulse 1.5s ease-in-out infinite; }
-    @media (prefers-reduced-motion:reduce){ .brief .req{ animation:none; } }
+    /* required fields are validated on submit — no visual dot */
     .brief .hint{ display:block; font-size:.8rem; color:var(--ink-soft); margin:-.35rem 0 .85rem; font-style:italic; }
     .brief .group-desc{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); margin:-1.1rem 0 1.7rem; }
     .brief .rangewrap{ padding-top:.2rem; }
@@ -160,8 +163,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .rangeends{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-soft); margin-top:.55rem; }
 
     .brief input[type=text], .brief input[type=email], .brief input[type=url], .brief textarea{
-      width:100%; background:var(--field); border:1px solid var(--line-strong); border-radius:10px;
+      width:100%; background:var(--field); border:1px solid var(--field-line); border-radius:10px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       transition:border-color .2s ease,background .2s ease,box-shadow .2s ease; outline:none; }
     .brief input::placeholder, .brief textarea::placeholder{ color:var(--placeholder); }
     .brief input:focus, .brief textarea:focus{ border-color:var(--accent); background:var(--field-focus); box-shadow:0 0 0 3px rgba(222,203,175,.20); }
@@ -229,7 +233,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       border:2px solid var(--bg); pointer-events:none; }
     .brief .ce-hint{ font-size:.74rem; color:var(--ink-soft); }
     .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; background:var(--field-focus);
-      border:1px solid var(--line-strong); border-radius:10px; padding:12px 14px; font-family:'Diatype Mono', monospace; color:var(--ink); }
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+      border:1px solid var(--field-line); border-radius:10px; padding:12px 14px; font-family:'Diatype Mono', monospace; color:var(--ink); }
     .brief .ce-hashwrap .ce-hex{ width:7ch; background:none; border:none; outline:none; box-shadow:none; color:var(--ink);
       font-family:inherit; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
     .brief .ce-hashwrap .ce-hex:focus{ background:none; border:none; box-shadow:none; }
@@ -406,7 +411,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function fmt(n){ return Number(n).toLocaleString('en-US'); }
     function fieldHTML(f){
-      var reqDot=f.req?'<span class="req" aria-hidden="true"></span>':'';
+      var reqDot='';
       var title=f.t?'<span class="q-title">'+reqDot+esc(f.t)+'</span>':'';
       var sub=f.q?'<span class="q-sub">'+esc(f.q)+'</span>':'';
       var hint=f.hint?'<span class="hint">'+esc(f.hint)+'</span>':'';
