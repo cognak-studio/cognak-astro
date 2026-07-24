@@ -71,6 +71,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (min-width:960px){ .brief{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
     .brief .mono{ font-family:'Diatype Mono', monospace; }
 
+    /* screen.css hides every <label> globally (Ninja Forms leftover:
+       label{display:none!important}). Restore the labels this form relies on. */
+    .brief label.q{ display:block !important; }
+    .brief label.pill, .brief label.chip{ display:inline-flex !important; align-items:center; }
+
     /* nav themed to the olive colorway (shared inner-page nav) */
     .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(55,41,20,0.88) !important; }
     .brief-nav .home-bottom-email,
@@ -133,6 +138,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .q-sub{ display:block; font-size:.88rem; font-weight:400; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; }
     .brief .req{ color:var(--accent); margin-left:.3rem; font-weight:700; }
     .brief .hint{ display:block; font-size:.8rem; color:var(--ink-soft); margin:-.35rem 0 .85rem; font-style:italic; }
+    .brief .group-desc{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); margin:-1.1rem 0 1.7rem; }
+    .brief .rangewrap{ padding-top:.2rem; }
+    .brief .rangeval{ font-size:1.15rem; font-weight:500; color:var(--ink); margin-bottom:.7rem; }
+    .brief input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:999px; background:var(--field-focus); outline:none; cursor:pointer; }
+    .brief input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%; background:var(--btn); border:1px solid var(--ink); cursor:pointer; }
+    .brief input[type=range]::-moz-range-thumb{ width:22px; height:22px; border-radius:50%; background:var(--btn); border:1px solid var(--ink); cursor:pointer; }
+    .brief .rangeends{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-soft); margin-top:.55rem; }
 
     .brief input[type=text], .brief input[type=email], .brief input[type=url], .brief textarea{
       width:100%; background:var(--field); border:1px solid var(--line-strong); border-radius:10px;
@@ -231,14 +243,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     var DELIVER_TO = 'pierce@cognak.com';
 
     /* Lead capture shown at the top of every discipline's questionnaire */
-    var LEAD = {title:'You',fields:[
-      {id:'your_name',type:'text',t:'Your name',q:'',req:true,ph:'First and last'},
-      {id:'your_email',type:'email',t:'Email',q:'So we can reply to you.',req:true,ph:'you@company.com'}
+    var LEAD = {title:'Your details',fields:[
+      {id:'your_name',type:'text',t:'Name',q:'',req:true,ph:'First and last'},
+      {id:'your_email',type:'email',t:'Email',q:'',req:true,ph:'you@company.com'}
     ]};
     /* Logistics closer shown at the bottom of every questionnaire */
     var TAIL = {title:'Timeline & budget',fields:[
       {id:'timeline',type:'single',t:'Timeline',q:'When do you want this done?',options:['ASAP / urgent','1–3 months','3–6 months','Flexible / exploratory']},
-      {id:'budget',type:'single',t:'Budget',q:'Rough range — helps us scope it right.',options:['Under $10k','$10–25k','$25–50k','$50k+','Not sure yet']},
+      {id:'budget',type:'range',t:'Budget',q:'Drag to set your rough budget.',min:1000,max:8000,step:250,def:4000,prefix:'$'},
       {id:'anything',type:'textarea',t:'Anything else',q:'Anything else we should know?'}
     ]};
 
@@ -249,23 +261,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         groups:[
           {title:'The brand',fields:[
             {id:'brand_name',type:'text',t:'Brand name',q:"What's the name we're designing around?",req:true,ph:'e.g. COGNAK'},
-            {id:'alt_names',type:'text',t:'Alternate names or abbreviations',q:'Shortened forms, sub-brands, or how people refer to you.',ph:'Optional'},
-            {id:'what',type:'textarea',t:'What you do',q:'In a sentence or two, what does the company do?',req:true},
-            {id:'stage',type:'single',t:'Starting point',q:'Where are you starting from?',options:['Brand-new, from scratch','Rebrand of an established business','Refresh of the current look']},
-            {id:'audience',type:'textarea',t:'Audience',q:'Who are you trying to reach? Describe your ideal customer.'},
-            {id:'details',type:'textarea',t:'Any other details',q:'Anything else that helps us understand the brand.',ph:'Optional'}
+            {id:'alt_names',type:'text',t:'Alternate names, abbreviations to consider',q:'',ph:'Optional'},
+            {id:'stage',type:'single',t:'Starting point',q:'Where are you starting from?',options:['Brand-new, from scratch','Rebrand of an established business','Refresh of the current look']}
           ]},
           {title:'Feel & direction',fields:[
-            {id:'personality',type:'multi',t:'Personality',q:'Pick the words that should describe the brand.',hint:'Around five is ideal.',options:['Bold','Refined','Playful','Minimal','Premium','Approachable','Technical','Warm','Trustworthy','Expressive','Editorial','Timeless','Modern','Handmade']},
-            {id:'colors',type:'colors',t:'Colors',q:'Pick up to three colors you’re drawn to.'},
-            {id:'colors_comments',type:'textarea',t:'Notes on color',q:'Shades to avoid, meanings, or existing brand colors.',ph:'Optional'},
-            {id:'admire',type:'textarea',t:'Brands you admire',q:'Identities you like — and what you like about them.'},
-            {id:'competitors',type:'textarea',t:'Competitors',q:'Who are your main competitors?'}
+            {id:'personality',type:'multi',t:'Personality',q:'Pick the words that should describe the brand.',hint:'Choose a handful.',options:['Bold','Refined','Playful','Minimal','Premium','Approachable','Technical','Warm','Trustworthy','Expressive','Editorial','Timeless','Modern','Handmade']},
+            {id:'colors',type:'colors',t:'Colors',q:'Please choose up to 5 colors.'},
+            {id:'colors_comments',type:'textarea',t:'Any additional thoughts or comments on color',q:'',ph:'Optional'}
           ]},
-          {title:'Scope',fields:[
-            {id:'deliverables',type:'multi',t:'Deliverables',q:'What do you need designed?',options:['Logo / wordmark','Full identity system','Typography','Color palette','Brand guidelines','Business cards & stationery','Social templates','Packaging','Signage','Icon / symbol','Merch','Pitch / deck template']},
-            {id:'assets',type:'single',t:'Existing assets',q:'Do you have existing brand assets?',options:['Nothing yet','Some (logo / colors)','Full brand to evolve']},
-            {id:'musthaves',type:'textarea',t:'Must-haves',q:'Non-negotiables, elements to keep, or things to avoid?'}
+          {title:'Versions',desc:"Let us know how many concepts you'd like to see.",fields:[
+            {id:'versions',type:'single',elabel:'Number of concepts',options:['1','2','3']}
           ]}
         ]
       },
@@ -374,6 +379,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function groupsFor(key){ return [LEAD].concat(DISCIPLINES[key].groups,[TAIL]); }
 
+    function fmt(n){ return Number(n).toLocaleString('en-US'); }
     function fieldHTML(f){
       var reqDot=f.req?'<span class="req">•</span>':'';
       var title=f.t?'<span class="q-title">'+esc(f.t)+reqDot+'</span>':'';
@@ -395,9 +401,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }).join('')+'</div>';
       }else if(f.type==='colors'){
         inner=colorsHTML();
+      }else if(f.type==='range'){
+        var pfx=f.prefix||'';var atmax=f.def>=f.max?'+':'';
+        inner='<div class="rangewrap" data-id="'+f.id+'" data-prefix="'+pfx+'" data-max="'+f.max+'">'+
+          '<div class="rangeval mono"><span class="rv">'+pfx+fmt(f.def)+atmax+'</span></div>'+
+          '<input type="range" id="f_'+f.id+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" value="'+f.def+'">'+
+          '<div class="rangeends mono"><span>'+pfx+fmt(f.min)+'</span><span>'+pfx+fmt(f.max)+'+</span></div>'+
+        '</div>';
       }
+      var labelInner=title+sub;
+      var labelHTML=labelInner?('<label class="q" for="f_'+f.id+'">'+labelInner+'</label>'):'';
       return '<div class="field" data-field="'+f.id+'"'+(f.req?' data-req="1"':'')+
-        ' data-type="'+f.type+'"><label class="q" for="f_'+f.id+'">'+title+sub+'</label>'+hint+inner+'</div>';
+        ' data-type="'+f.type+'">'+labelHTML+hint+inner+'</div>';
     }
 
     function colorsHTML(){
@@ -413,7 +428,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var groups=groupsFor(key);
       var form=document.getElementById('briefForm');
       form.innerHTML=groups.map(function(g){
-        return '<div class="group"><div class="group-title">'+esc(g.title)+'</div>'+
+        var desc=g.desc?'<p class="group-desc">'+esc(g.desc)+'</p>':'';
+        return '<div class="group"><div class="group-title">'+esc(g.title)+'</div>'+desc+
           g.fields.map(fieldHTML).join('')+'</div>';
       }).join('');
       document.getElementById('form-headline').textContent=d.headline;
@@ -459,6 +475,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       form.querySelectorAll('input,textarea').forEach(function(el){
         el.addEventListener('input',function(){
           var fld=el.closest('.field');if(fld)fld.classList.remove('invalid');updateProgress();
+        });
+      });
+      form.querySelectorAll('input[type=range]').forEach(function(r){
+        r.addEventListener('input',function(){
+          var wrap=r.closest('.rangewrap');if(!wrap)return;var rv=wrap.querySelector('.rv');
+          var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;
+          rv.textContent=pfx+fmt(v)+(v>=mx?'+':'');
         });
       });
     }
@@ -546,6 +569,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function fieldValue(fld){
       var type=fld.getAttribute('data-type');
       if(type==='colors'){var v=state.colors.filter(Boolean);return v.length?v.join(', '):'';}
+      if(type==='range'){var wrap=fld.querySelector('.rangewrap');var r=fld.querySelector('input[type=range]');if(!r||!wrap)return '';var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;return pfx+fmt(v)+(v>=mx?'+':'');}
       if(type==='single'){var c=fld.querySelector('input:checked');return c?c.value:'';}
       if(type==='multi'){var v=[];fld.querySelectorAll('input:checked').forEach(function(i){v.push(i.value);});return v.join(', ');}
       var el=fld.querySelector('input,textarea');return el?el.value.trim():'';
@@ -565,7 +589,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         g.fields.forEach(function(f){
           var fld=gEl.querySelector('[data-field="'+f.id+'"]');
           var val=fld?fieldValue(fld):'';
-          if(val){section.push((f.t||f.q)+'\n  '+val);}
+          if(val){section.push((f.t||f.q||f.elabel||f.id)+'\n  '+val);}
         });
         if(section.length){
           lines.push('-- '+g.title.toUpperCase()+' --');
