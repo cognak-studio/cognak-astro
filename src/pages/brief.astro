@@ -1,0 +1,567 @@
+---
+/**
+ * /brief — hidden, unlinked client discovery questionnaire.
+ * Not in nav, footer, or sitemap; noindex. Pierce sends the URL
+ * (optionally /brief?type=branding is NOT wired — the picker is the entry).
+ * On submit the answers are assembled into a plaintext brief and handed to
+ * the client's mail app via mailto (no backend). A "Copy answers" fallback
+ * covers mail clients that truncate long mailto bodies.
+ * Palette: adjusted olive-brown, dark ink — verified WCAG AA (see :root).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  page="brief"
+  title="Project Brief – COGNAK"
+  description="Start a project with COGNAK."
+  ogUrl="https://cognak.com/brief/"
+  noindex={true}
+  pageBg="#AD9167"
+>
+  <main id="cognak-main"><section class="brief">
+
+    <div id="step-pick">
+      <p class="eyebrow rise">Project Brief</p>
+      <h1 class="headline rise">Let's start something <em>good</em>.</h1>
+      <p class="lede rise">A few focused questions so we understand exactly what you need before we talk. Pick what you're here for &mdash; it takes about three minutes.</p>
+      <div class="picker rise" id="picker"></div>
+    </div>
+
+    <div id="formwrap">
+      <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
+      <div class="stepmeta"><span id="disc-label" class="mono"></span><span class="bar"><i id="progbar"></i></span></div>
+      <h2 class="headline form-headline" id="form-headline"></h2>
+      <form id="briefForm" novalidate></form>
+      <div class="actions">
+        <button class="btn" id="sendBtn" type="button">Send brief &rarr;</button>
+        <button class="btn btn-ghost" id="copyBtn" type="button">Copy answers instead</button>
+        <span class="copied" id="copiedMsg">Copied &#10003;</span>
+      </div>
+      <div class="formerr" id="formErr">Please fill in the required fields (marked with a dot).</div>
+    </div>
+
+    <div id="sent">
+      <p class="eyebrow">Sent</p>
+      <h2 class="headline">Thank you &mdash; <em>got it</em>.</h2>
+      <p class="lede">Your brief is on its way to us. We'll review it and get back to you within a day or two. If your email app didn't open, use &ldquo;Copy answers&rdquo; and send it to <a href="mailto:pierce@cognak.com" class="sent-mail">pierce@cognak.com</a>.</p>
+      <button class="btn btn-ghost" id="restartBtn" type="button">Start another brief</button>
+    </div>
+
+  </section></main>
+
+  <style is:inline>
+    html, body { background-color:#AD9167 !important; }
+    #cognak-main { position:relative; z-index:1; }
+
+    /* ============================================================
+       COGNAK Project Brief — adjusted olive-brown palette.
+       Dark-almost-black ink on olive surfaces, tuned to clear
+       WCAG AA (verified): ink/bg 5.36:1, ink/nav 4.59:1,
+       ink-soft/bg 4.8:1, cream/button 7.7:1.
+       ============================================================ */
+    .brief {
+      --bg:#AD9167; --nav:#A2854F; --field:#BCA37C; --field-focus:#C6B48F;
+      --card:#B79E77; --ink:#282017; --ink-soft:#33281D; --accent:#4E3D23;
+      --cream:#F6F0E2; --btn:#5C4829; --sel:#614D2C;
+      --line:rgba(40,32,23,0.24); --line-strong:rgba(40,32,23,0.44);
+      --placeholder:#7A6A4C; --err:#8E2E22;
+      max-width:760px; margin:0 auto; padding:calc(8vh + 80px) 6vw 22vh;
+      color:var(--ink); font-family:'Diatype Variable', sans-serif;
+    }
+    @media (min-width:960px){ .brief{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
+    .brief .mono{ font-family:'Diatype Mono', monospace; }
+
+    /* nav themed to the olive colorway (shared inner-page nav) */
+    .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(162,133,79,0.85) !important; }
+    .brief-nav .home-bottom-email,
+    .brief-nav .home-bottom-location,
+    .brief-nav .inner-nav-links a,
+    .brief-nav .pulse-dot{ color:#282017 !important; }
+    .brief-nav .home-bottom-email,
+    .brief-nav .inner-nav-links a{ transition:color .2s ease; }
+    @media (hover:hover){
+      .brief-nav .home-bottom-email:hover,
+      .brief-nav .inner-nav-links a:hover{ color:#4E3D23 !important; }
+    }
+
+    .brief .eyebrow{ font-family:'Diatype Mono', monospace; font-size:.72rem;
+      letter-spacing:.28em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.2rem; }
+    .brief .headline{ font-size:clamp(2.4rem,6.5vw,4.2rem); font-weight:500; line-height:1.02;
+      letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+    .brief .form-headline{ font-size:clamp(2rem,5vw,3.2rem); margin-bottom:2.4rem; }
+    .brief .headline em{ font-style:italic; font-weight:500; color:var(--accent); }
+    .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
+    .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
+
+    .brief .stepmeta{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.18em;
+      text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.4rem; display:flex; align-items:center; gap:.8rem; }
+    .brief .stepmeta .bar{ flex:1; height:2px; background:var(--line); position:relative; overflow:hidden; border-radius:2px; }
+    .brief .stepmeta .bar i{ position:absolute; inset:0; background:var(--accent); width:0; transition:width .5s ease; }
+
+    .brief .picker{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:.4rem; }
+    @media (max-width:620px){ .brief .picker{ grid-template-columns:1fr; } }
+    .brief .pcard{ position:relative; text-align:left; cursor:pointer; background:var(--card);
+      border:1px solid var(--line); border-radius:14px; padding:22px 22px 20px; color:var(--ink);
+      transition:transform .18s cubic-bezier(.2,.7,.3,1),border-color .25s ease,background .25s ease,box-shadow .25s ease;
+      font-family:inherit; }
+    .brief .pcard:hover{ border-color:var(--ink); background:var(--field-focus); transform:translateY(-3px);
+      box-shadow:0 10px 30px rgba(40,32,23,.16); }
+    .brief .pcard:active{ transform:translateY(-1px) scale(.99); }
+    .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; }
+    .brief .pcard h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; margin:.7rem 0 .35rem; }
+    .brief .pcard p{ font-size:.9rem; line-height:1.45; color:var(--ink-soft); }
+    .brief .pcard .arrow{ position:absolute; top:22px; right:22px; color:var(--ink-soft); transition:transform .25s ease,color .25s ease; }
+    .brief .pcard:hover .arrow{ transform:translateX(4px); color:var(--accent); }
+
+    #formwrap{ display:none; }
+    .brief .backlink{ display:inline-flex; align-items:center; gap:.5rem; background:none; border:none;
+      color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.16em;
+      text-transform:uppercase; cursor:pointer; padding:8px 0; margin-bottom:1.6rem; transition:color .2s ease; }
+    .brief .backlink:hover{ color:var(--accent); }
+
+    .brief .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
+    .brief .group:first-of-type{ border-top:none; padding-top:0; margin-top:.6rem; }
+    .brief .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
+      text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; }
+
+    .brief .field{ margin-bottom:2.1rem; }
+    .brief .field:last-child{ margin-bottom:0; }
+    .brief .field label.q{ display:block; font-size:1.06rem; line-height:1.45; font-weight:450; margin-bottom:.9rem; color:var(--ink); }
+    .brief .field .req{ color:var(--accent); margin-left:.3rem; font-weight:700; }
+    .brief .field .hint{ display:block; font-size:.82rem; color:var(--ink-soft); margin-top:-.5rem; margin-bottom:.9rem; }
+
+    .brief input[type=text], .brief input[type=email], .brief input[type=url], .brief textarea{
+      width:100%; background:var(--field); border:1px solid var(--line-strong); border-radius:10px;
+      color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
+      transition:border-color .2s ease,background .2s ease,box-shadow .2s ease; outline:none; }
+    .brief input::placeholder, .brief textarea::placeholder{ color:var(--placeholder); }
+    .brief input:focus, .brief textarea:focus{ border-color:var(--accent); background:var(--field-focus); box-shadow:0 0 0 3px rgba(78,61,35,.18); }
+    .brief textarea{ min-height:96px; resize:vertical; }
+    .brief .field.invalid input, .brief .field.invalid textarea{ border-color:var(--err); }
+
+    .brief .pills{ display:flex; flex-wrap:wrap; gap:10px; }
+    .brief .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
+      border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
+      transition:transform .14s cubic-bezier(.2,.7,.3,1),border-color .2s ease,color .2s ease,background .2s ease; }
+    .brief .pill:hover{ border-color:var(--ink); }
+    .brief .pill:active{ transform:scale(.96); }
+    .brief .pill input{ position:absolute; opacity:0; pointer-events:none; }
+    .brief .pill.on{ border-color:var(--ink); color:var(--cream); background:var(--sel); font-weight:500; }
+
+    .brief .chips{ display:flex; flex-wrap:wrap; gap:10px; }
+    .brief .chip{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
+      border-radius:999px; padding:9px 15px 9px 34px; font-size:.9rem; color:var(--ink); background:var(--field);
+      transition:transform .14s cubic-bezier(.2,.7,.3,1),border-color .2s ease,background .2s ease; }
+    .brief .chip:hover{ border-color:var(--ink); }
+    .brief .chip:active{ transform:scale(.96); }
+    .brief .chip input{ position:absolute; opacity:0; pointer-events:none; }
+    .brief .chip::before{ content:""; position:absolute; left:13px; top:50%; transform:translateY(-50%);
+      width:12px; height:12px; border-radius:4px; border:1px solid var(--ink-soft); transition:all .18s ease; }
+    .brief .chip.on{ border-color:var(--ink); background:var(--field-focus); }
+    .brief .chip.on::before{ background:var(--sel); border-color:var(--sel); }
+    .brief .chip.on::after{ content:""; position:absolute; left:16px; top:calc(50% - 4px); width:6px; height:3px;
+      border-left:1.5px solid var(--cream); border-bottom:1.5px solid var(--cream); transform:rotate(-45deg); }
+
+    .brief .swatch-slots{ display:flex; gap:12px; margin-bottom:1.4rem; }
+    .brief .slot{ flex:1; height:66px; border-radius:12px; border:1px dashed var(--line-strong);
+      display:flex; align-items:flex-end; justify-content:space-between; padding:9px 11px;
+      font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.06em; color:var(--ink-soft);
+      position:relative; overflow:hidden; transition:border-color .25s ease; }
+    .brief .slot .num{ opacity:.8; }
+    .brief .slot.filled{ border-style:solid; border-color:transparent; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+    .brief .slot.filled .num{ opacity:.95; }
+    .brief .slot .x{ cursor:pointer; font-size:.9rem; line-height:1; opacity:.9; padding:2px 4px; }
+    .brief .swatches{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .brief .sw{ width:40px; height:40px; border-radius:50%; cursor:pointer; position:relative; border:2px solid rgba(40,32,23,.22);
+      transition:transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .2s ease,border-color .2s ease; }
+    .brief .sw:hover{ transform:scale(1.12); }
+    .brief .sw:active{ transform:scale(.94); }
+    .brief .sw.on{ border-color:#fff; box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--ink); }
+    .brief .sw.on::after{ content:""; position:absolute; inset:0; margin:auto; width:12px; height:7px;
+      border-left:2px solid #fff; border-bottom:2px solid #fff; transform:rotate(-45deg) translate(1px,-2px);
+      filter:drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+    .brief .sw-custom{ width:40px; height:40px; border-radius:50%; cursor:pointer; position:relative; overflow:hidden;
+      border:2px dashed var(--line-strong); display:flex; align-items:center; justify-content:center;
+      background:conic-gradient(from 0deg,#ff5f6d,#ffc371,#7ee8fa,#a685e2,#ff5f6d); transition:transform .16s ease; }
+    .brief .sw-custom:hover{ transform:scale(1.12); }
+    .brief .sw-custom span{ font-size:20px; line-height:1; color:#fff; font-weight:300; mix-blend-mode:difference; }
+    .brief .sw-custom input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+    .brief .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem;
+      display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+    .brief .btn{ font-family:inherit; font-size:1rem; cursor:pointer; border-radius:999px; padding:15px 30px;
+      border:1px solid var(--ink); background:var(--btn); color:var(--cream); font-weight:500;
+      transition:transform .16s cubic-bezier(.2,.7,.3,1),box-shadow .25s ease,background .2s ease; }
+    .brief .btn:hover{ box-shadow:0 8px 30px rgba(40,32,23,.28); transform:translateY(-2px); background:#4A3A20; }
+    .brief .btn:active{ transform:translateY(0) scale(.98); }
+    .brief .btn-ghost{ background:none; color:var(--ink); border:1px solid var(--ink); }
+    .brief .btn-ghost:hover{ background:rgba(40,32,23,.06); box-shadow:none; }
+    .brief .formerr{ color:var(--err); font-size:.88rem; margin-top:1rem; display:none; }
+    .brief .copied{ color:var(--accent); font-size:.82rem; font-family:'Diatype Mono', monospace;
+      letter-spacing:.08em; opacity:0; transition:opacity .3s ease; font-weight:500; }
+    .brief .copied.show{ opacity:1; }
+
+    #sent{ display:none; text-align:left; }
+    #sent .headline{ margin-bottom:1.2rem; }
+    #sent .lede{ margin-bottom:2rem; }
+
+    .brief .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease,transform .6s ease; }
+    .brief .rise.in{ opacity:1; transform:none; }
+    @media (prefers-reduced-motion:reduce){ .brief .rise{ opacity:1; transform:none; transition:none; } }
+  </style>
+
+  <script is:inline>
+    if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
+    window.scrollTo(0, 0);
+
+    var DELIVER_TO = 'pierce@cognak.com';
+
+    var SWATCHES = ['#111111','#F5F1E6','#E8452B','#F27127','#F2C14E','#3DA35D',
+      '#1E7F6E','#1B4D8E','#4C5FD5','#7A4FD1','#C63C8E','#E58FB0','#8C7B6B','#C9A227'];
+
+    var DISCIPLINES = {
+      branding:{
+        label:'Branding',
+        headline:'Tell us about the brand.',
+        groups:[
+          {title:'The brand',fields:[
+            {id:'brand_name',type:'text',q:"What's the brand name we're designing around?",req:true,ph:'e.g. COGNAK'},
+            {id:'what',type:'textarea',q:'In a sentence or two, what does the company do?',req:true},
+            {id:'stage',type:'single',q:'Where are you starting from?',options:['Brand-new, from scratch','Rebrand of an established business','Refresh of the current look']},
+            {id:'audience',type:'textarea',q:'Who are you trying to reach? Describe your ideal customer.'}
+          ]},
+          {title:'Feel & direction',fields:[
+            {id:'personality',type:'multi',q:'Pick the words that should describe the brand.',hint:'Choose a handful — around five is ideal.',options:['Bold','Refined','Playful','Minimal','Premium','Approachable','Technical','Warm','Trustworthy','Expressive','Editorial','Timeless','Modern','Handmade']},
+            {id:'colors',type:'colors',q:"Colors you're drawn to — pick up to three.",hint:'Tap a swatch, or use the last one to pick any custom color.'},
+            {id:'colors_avoid',type:'text',q:'Any colors to avoid?',ph:'Optional'},
+            {id:'admire',type:'textarea',q:'Brands or identities you admire — and what you like about them.'},
+            {id:'competitors',type:'textarea',q:'Who are your main competitors?'}
+          ]},
+          {title:'Scope',fields:[
+            {id:'deliverables',type:'multi',q:'What do you need designed?',options:['Logo / wordmark','Full identity system','Typography','Color palette','Brand guidelines','Business cards & stationery','Social templates','Packaging','Signage','Icon / symbol','Merch','Pitch / deck template']},
+            {id:'assets',type:'single',q:'Do you have existing brand assets?',options:['Nothing yet','Some (logo / colors)','Full brand to evolve']},
+            {id:'musthaves',type:'textarea',q:'Any non-negotiables, elements to keep, or things to avoid?'}
+          ]}
+        ]
+      },
+      packaging:{
+        label:'Packaging',
+        headline:'Tell us about the product.',
+        groups:[
+          {title:'The product',fields:[
+            {id:'product_name',type:'text',q:"What's the product (and brand) we're packaging?",req:true,ph:'e.g. Alchemy Peppers — Hot Sauce'},
+            {id:'category',type:'text',q:'What category is it?',ph:'Food, beverage, beauty, supplement…'},
+            {id:'what',type:'textarea',q:'What is it, and what makes it different?',req:true},
+            {id:'audience',type:'textarea',q:"Who's it for?"}
+          ]},
+          {title:'Format & specs',fields:[
+            {id:'formats',type:'multi',q:'What formats are we designing?',options:['Box / carton','Bottle','Can','Jar','Pouch / bag','Label','Tube','Blister / clamshell','Shipper / mailer','Set / kit']},
+            {id:'sku_count',type:'text',q:'How many SKUs / variants?',ph:'e.g. 3 flavors'},
+            {id:'dimensions',type:'textarea',q:'Known dimensions, materials, or dielines? (paste specs, or leave blank)'},
+            {id:'sustainability',type:'single',q:'Sustainability requirements?',options:['Not a priority','Nice to have','Required / core to the brand']}
+          ]},
+          {title:'Practical',fields:[
+            {id:'brand_exists',type:'single',q:'Is there an existing brand to work within?',options:['Yes, established brand','Partial','No — needs branding too']},
+            {id:'regulatory',type:'textarea',q:'Any regulatory / legal requirements? (nutrition panels, compliance, barcodes)'},
+            {id:'shelf',type:'textarea',q:'Where will it sell, and what does it sit next to on shelf?'},
+            {id:'references',type:'textarea',q:'Packaging you admire (competitor or otherwise).'},
+            {id:'printer',type:'single',q:'Print / production vendor?',options:['Lined up already','Need a recommendation','Not sure yet']},
+            {id:'deliverables',type:'multi',q:'Deliverables you need.',options:['Print-ready dielines','3D renders','Flat mockups','Photography direction','Multiple SKUs','Structural design']}
+          ]}
+        ]
+      },
+      web:{
+        label:'Web Design',
+        headline:'Tell us about the site.',
+        groups:[
+          {title:'The site',fields:[
+            {id:'company',type:'text',q:'Company / brand name?',req:true},
+            {id:'current_url',type:'url',q:'Current website, if any?',ph:'https://'},
+            {id:'goal',type:'single',q:"What's the site's main job?",options:['Generate leads / inquiries','Sell products (e-commerce)','Showcase work / portfolio','Inform / educate','Raise funding / credibility']},
+            {id:'what',type:'textarea',q:"What does the business do, and who's it for?",req:true}
+          ]},
+          {title:'Scope & content',fields:[
+            {id:'pages',type:'multi',q:'Which pages / sections do you need?',options:['Home','About','Services','Work / Portfolio','Products / Shop','Pricing','Blog / Journal','Case studies','Contact','Careers','FAQ']},
+            {id:'functionality',type:'multi',q:'Any special functionality?',options:['CMS / blog','E-commerce','Booking / scheduling','Membership / login','Forms','Multilingual','Animation / interactivity','Integrations','Search']},
+            {id:'content_ready',type:'single',q:'Is your content ready?',options:['Copy & images ready','Some of it','Need help creating it']}
+          ]},
+          {title:'Look & feel',fields:[
+            {id:'personality',type:'multi',q:'How should it feel?',options:['Bold','Minimal','Editorial','Playful','Premium','Corporate','Warm','Technical','Immersive','Clean','Expressive']},
+            {id:'references',type:'textarea',q:'2–3 sites you love — and why.'},
+            {id:'brand_ready',type:'single',q:'Do you have brand assets (logo, colors, fonts)?',options:['Yes, ready to use','Partial','Need branding too']}
+          ]},
+          {title:'Build',fields:[
+            {id:'platform',type:'single',q:'Any platform preference?',options:['No preference — recommend one','Custom build','Webflow','WordPress','Shopify','Framer']},
+            {id:'deliverables',type:'multi',q:'What do you want from us?',options:['Design only','Design + build','Copywriting','Photography','SEO setup','Ongoing maintenance']}
+          ]}
+        ]
+      },
+      development:{
+        label:'Development',
+        headline:"Tell us what we're building.",
+        groups:[
+          {title:'The build',fields:[
+            {id:'company',type:'text',q:'Company / project name?',req:true},
+            {id:'what_kind',type:'single',q:'What are we building?',options:['Marketing / brochure site','Web app','E-commerce store','Internal tool / dashboard','API / integration','Not sure yet']},
+            {id:'what',type:'textarea',q:'Describe what it needs to do.',req:true},
+            {id:'design_status',type:'single',q:'Is there a design?',options:['Figma design ready','Rough wireframes','Nothing yet — need design too']},
+            {id:'figma_url',type:'url',q:'Link to designs / Figma, if any?',ph:'https://'}
+          ]},
+          {title:'Functionality',fields:[
+            {id:'features',type:'multi',q:'Core features?',options:['User accounts / auth','Payments','CMS','Dashboard / admin','Search','Notifications','File uploads','Real-time / live data','AI / LLM features','Maps / location']},
+            {id:'integrations',type:'textarea',q:'Third-party integrations or APIs? (Stripe, HubSpot, etc.)'},
+            {id:'existing_code',type:'single',q:'Is there an existing codebase?',options:['Greenfield / brand new','Existing code to extend','Migration / rebuild']}
+          ]},
+          {title:'Practical',fields:[
+            {id:'stack',type:'text',q:'Any tech stack preferences or constraints?',ph:'Optional'},
+            {id:'hosting',type:'text',q:'Hosting / infra preferences, if any?',ph:'Optional'},
+            {id:'requirements',type:'multi',q:'Priorities?',options:['Performance','SEO','Accessibility','Scalability','Security / compliance','Analytics']},
+            {id:'maintenance',type:'single',q:'Ongoing support after launch?',options:['Yes, ongoing','Handoff to our team','Not sure']}
+          ]}
+        ]
+      }
+    };
+
+    var CONTACT = {title:'Your details',fields:[
+      {id:'your_name',type:'text',q:'Your name',req:true},
+      {id:'your_email',type:'email',q:'Email',req:true,ph:'you@company.com'},
+      {id:'timeline',type:'single',q:'Ideal timeline?',options:['ASAP / urgent','1–3 months','3–6 months','Flexible / exploratory']},
+      {id:'budget',type:'single',q:'Rough budget range? (helps us scope it right)',options:['Under $10k','$10–25k','$25–50k','$50k+','Not sure yet']},
+      {id:'anything',type:'textarea',q:'Anything else we should know?'}
+    ]};
+
+    var PICKER_META=[
+      ['branding','Identity, logo, art direction & guidelines'],
+      ['packaging','Structure, dielines, print-ready & renders'],
+      ['web','Sites, landing pages, UX & interaction'],
+      ['development','Web apps, e-commerce, tools & builds']
+    ];
+
+    var state={discipline:null,colors:[]};
+
+    (function(){
+      var p=document.getElementById('picker');
+      PICKER_META.forEach(function(m,i){
+        var key=m[0],desc=m[1],d=DISCIPLINES[key];
+        var b=document.createElement('button');
+        b.type='button';b.className='pcard';b.setAttribute('data-key',key);
+        b.innerHTML='<span class="idx mono">0'+(i+1)+'</span><span class="arrow">&rarr;</span>'+
+          '<h3>'+d.label+'</h3><p>'+desc+'</p>';
+        b.addEventListener('click',function(){selectDiscipline(key);});
+        p.appendChild(b);
+      });
+    })();
+
+    function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+    function fieldHTML(f){
+      var req=f.req?'<span class="req">•</span>':'';
+      var hint=f.hint?'<span class="hint">'+esc(f.hint)+'</span>':'';
+      var inner='';
+      if(f.type==='text'||f.type==='email'||f.type==='url'){
+        var t=f.type==='text'?'text':f.type;
+        inner='<input type="'+t+'" id="f_'+f.id+'" data-id="'+f.id+'" placeholder="'+esc(f.ph||'')+'">';
+      }else if(f.type==='textarea'){
+        inner='<textarea id="f_'+f.id+'" data-id="'+f.id+'" placeholder="'+esc(f.ph||'')+'"></textarea>';
+      }else if(f.type==='single'){
+        inner='<div class="pills" data-id="'+f.id+'">'+f.options.map(function(o){
+          return '<label class="pill"><input type="radio" name="'+f.id+'" value="'+esc(o)+'">'+esc(o)+'</label>';
+        }).join('')+'</div>';
+      }else if(f.type==='multi'){
+        inner='<div class="chips" data-id="'+f.id+'">'+f.options.map(function(o){
+          return '<label class="chip"><input type="checkbox" value="'+esc(o)+'">'+esc(o)+'</label>';
+        }).join('')+'</div>';
+      }else if(f.type==='colors'){
+        inner=colorsHTML();
+      }
+      return '<div class="field" data-field="'+f.id+'"'+(f.req?' data-req="1"':'')+
+        ' data-type="'+f.type+'"><label class="q" for="f_'+f.id+'">'+esc(f.q)+req+'</label>'+hint+inner+'</div>';
+    }
+
+    function colorsHTML(){
+      var slots='<div class="swatch-slots">'+
+        '<div class="slot" data-slot="0"><span class="num mono">01</span></div>'+
+        '<div class="slot" data-slot="1"><span class="num mono">02</span></div>'+
+        '<div class="slot" data-slot="2"><span class="num mono">03</span></div></div>';
+      var sws=SWATCHES.map(function(c){return '<span class="sw" data-color="'+c+'" style="background:'+c+'"></span>';}).join('');
+      var custom='<label class="sw-custom" title="Pick a custom color"><span>+</span><input type="color" id="customColor" value="#888888"></label>';
+      return '<div class="colorpick" data-id="colors">'+slots+'<div class="swatches">'+sws+custom+'</div></div>';
+    }
+
+    function selectDiscipline(key){
+      state.discipline=key;state.colors=[];
+      var d=DISCIPLINES[key];
+      var groups=d.groups.concat([CONTACT]);
+      var form=document.getElementById('briefForm');
+      form.innerHTML=groups.map(function(g){
+        return '<div class="group"><div class="group-title">'+esc(g.title)+'</div>'+
+          g.fields.map(fieldHTML).join('')+'</div>';
+      }).join('');
+      document.getElementById('form-headline').textContent=d.headline;
+      document.getElementById('disc-label').textContent=d.label;
+      document.getElementById('step-pick').style.display='none';
+      document.getElementById('formwrap').style.display='block';
+      document.getElementById('sent').style.display='none';
+      wireForm();
+      window.scrollTo(0,0);
+      updateProgress();
+    }
+
+    function wireForm(){
+      var form=document.getElementById('briefForm');
+      form.querySelectorAll('.pills').forEach(function(box){
+        box.querySelectorAll('.pill').forEach(function(pill){
+          pill.addEventListener('click',function(){
+            box.querySelectorAll('.pill').forEach(function(p){p.classList.remove('on');});
+            pill.classList.add('on');pill.querySelector('input').checked=true;updateProgress();
+          });
+        });
+      });
+      form.querySelectorAll('.chip').forEach(function(chip){
+        chip.addEventListener('click',function(e){
+          e.preventDefault();
+          var inp=chip.querySelector('input');inp.checked=!inp.checked;
+          chip.classList.toggle('on',inp.checked);updateProgress();
+        });
+      });
+      var cp=form.querySelector('.colorpick');
+      if(cp){
+        cp.querySelectorAll('.sw').forEach(function(sw){
+          sw.addEventListener('click',function(){toggleColor(sw.getAttribute('data-color'));});
+        });
+        var cc=cp.querySelector('#customColor');
+        if(cc){cc.addEventListener('input',function(){addColor(cc.value);});}
+      }
+      form.querySelectorAll('input,textarea').forEach(function(el){
+        el.addEventListener('input',function(){
+          var fld=el.closest('.field');if(fld)fld.classList.remove('invalid');updateProgress();
+        });
+      });
+    }
+
+    function toggleColor(c){
+      var i=state.colors.indexOf(c);
+      if(i>-1){state.colors.splice(i,1);}
+      else{if(state.colors.length>=3){state.colors.shift();}state.colors.push(c);}
+      renderColors();
+    }
+    function addColor(c){
+      c=c.toLowerCase();
+      if(state.colors.indexOf(c)>-1)return;
+      if(state.colors.length>=3){state.colors.shift();}
+      state.colors.push(c);renderColors();
+    }
+    function renderColors(){
+      var cp=document.querySelector('.colorpick');if(!cp)return;
+      cp.querySelectorAll('.sw').forEach(function(sw){
+        sw.classList.toggle('on',state.colors.indexOf(sw.getAttribute('data-color'))>-1);
+      });
+      cp.querySelectorAll('.slot').forEach(function(slot,idx){
+        var c=state.colors[idx];
+        if(c){slot.classList.add('filled');slot.style.background=c;
+          slot.innerHTML='<span class="num mono">'+c.toUpperCase()+'</span><span class="x" data-c="'+c+'">&times;</span>';
+          slot.querySelector('.x').addEventListener('click',function(){
+            var j=state.colors.indexOf(c);if(j>-1)state.colors.splice(j,1);renderColors();
+          });
+        }else{slot.className='slot';slot.style.background='';
+          slot.innerHTML='<span class="num mono">0'+(idx+1)+'</span>';}
+      });
+      updateProgress();
+    }
+
+    function updateProgress(){
+      var form=document.getElementById('briefForm');if(!form)return;
+      var fields=form.querySelectorAll('.field');var filled=0;
+      fields.forEach(function(fld){if(fieldValue(fld))filled++;});
+      var pct=fields.length?Math.round(filled/fields.length*100):0;
+      document.getElementById('progbar').style.width=pct+'%';
+    }
+
+    function fieldValue(fld){
+      var type=fld.getAttribute('data-type');
+      if(type==='colors'){return state.colors.length?state.colors.join(', '):'';}
+      if(type==='single'){var c=fld.querySelector('input:checked');return c?c.value:'';}
+      if(type==='multi'){var v=[];fld.querySelectorAll('input:checked').forEach(function(i){v.push(i.value);});return v.join(', ');}
+      var el=fld.querySelector('input,textarea');return el?el.value.trim():'';
+    }
+
+    function buildBrief(){
+      var d=DISCIPLINES[state.discipline];
+      var form=document.getElementById('briefForm');
+      var groups=form.querySelectorAll('.group');
+      var groupData=d.groups.concat([CONTACT]);
+      var lines=[];
+      lines.push('COGNAK — PROJECT BRIEF');
+      lines.push('Discipline: '+d.label);
+      lines.push('');
+      groups.forEach(function(gEl,gi){
+        var g=groupData[gi];var section=[];
+        g.fields.forEach(function(f){
+          var fld=gEl.querySelector('[data-field="'+f.id+'"]');
+          var val=fld?fieldValue(fld):'';
+          if(val){section.push(f.q+'\n  '+val);}
+        });
+        if(section.length){
+          lines.push('-- '+g.title.toUpperCase()+' --');
+          lines.push(section.join('\n\n'));
+          lines.push('');
+        }
+      });
+      return lines.join('\n');
+    }
+
+    function validate(){
+      var form=document.getElementById('briefForm');var ok=true;var first=null;
+      form.querySelectorAll('.field[data-req="1"]').forEach(function(fld){
+        if(!fieldValue(fld)){ok=false;fld.classList.add('invalid');if(!first)first=fld;}
+      });
+      if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+      return ok;
+    }
+
+    document.getElementById('sendBtn').addEventListener('click',function(){
+      if(!validate()){document.getElementById('formErr').style.display='block';return;}
+      document.getElementById('formErr').style.display='none';
+      var d=DISCIPLINES[state.discipline];
+      var who=firstFilled(['brand_name','product_name','company','your_name'])||'New';
+      var subject='New '+d.label+' brief — '+who;
+      var body=buildBrief();
+      var href='mailto:'+DELIVER_TO+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+      window.location.href=href;
+      setTimeout(showSent,600);
+    });
+    document.getElementById('copyBtn').addEventListener('click',function(){
+      var body=buildBrief();var msg=document.getElementById('copiedMsg');
+      function done(){msg.classList.add('show');setTimeout(function(){msg.classList.remove('show');},2200);}
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(body).then(done,done);}
+      else{var ta=document.createElement('textarea');ta.value=body;document.body.appendChild(ta);ta.select();
+        try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);done();}
+    });
+    function firstFilled(ids){
+      var form=document.getElementById('briefForm');
+      for(var i=0;i<ids.length;i++){var fld=form.querySelector('[data-field="'+ids[i]+'"]');
+        if(fld){var v=fieldValue(fld);if(v)return v;}}
+      return '';
+    }
+    function showSent(){
+      document.getElementById('formwrap').style.display='none';
+      document.getElementById('sent').style.display='block';
+      window.scrollTo(0,0);
+    }
+    document.getElementById('backBtn').addEventListener('click',function(){
+      document.getElementById('formwrap').style.display='none';
+      document.getElementById('step-pick').style.display='block';
+      window.scrollTo(0,0);
+    });
+    document.getElementById('restartBtn').addEventListener('click',function(){
+      document.getElementById('sent').style.display='none';
+      document.getElementById('step-pick').style.display='block';
+      window.scrollTo(0,0);
+    });
+
+    (function(){
+      var els=document.querySelectorAll('.rise');
+      els.forEach(function(el,i){setTimeout(function(){el.classList.add('in');},120+i*90);});
+    })();
+  </script>
+</BaseLayout>
