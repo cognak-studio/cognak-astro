@@ -16,6 +16,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   noindex={true}
   pageBg="#3F2F18"
 >
+  <div class="brief-webgl" data-us-project="MYx6GEJ4hZQRnWnBgCQ9" aria-hidden="true"></div>
+
   <main id="cognak-main"><section class="brief">
 
     <div id="step-pick">
@@ -27,8 +29,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <div id="formwrap">
       <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
-      <div class="stepmeta"><span id="disc-label" class="mono"></span><span class="bar"><i id="progbar"></i></span></div>
       <h2 class="headline form-headline" id="form-headline"></h2>
+      <div class="stepmeta"><span id="disc-label" class="mono"></span><span class="bar"><i id="progbar"></i></span></div>
       <form id="briefForm" novalidate></form>
       <div class="actions">
         <button class="btn" id="sendBtn" type="button">Send brief &rarr;</button>
@@ -50,6 +52,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <style is:inline>
     html, body { background-color:#3F2F18 !important; }
     #cognak-main { position:relative; z-index:1; }
+
+    /* WebGL background (UnicornStudio) — fixed behind the content, fades in when
+       the canvas mounts. Mirrors the home/studio setup; skipped on reduced-motion. */
+    .brief-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0; pointer-events:none;
+      opacity:0; transition:opacity 1.6s ease; }
+    .brief-webgl.webgl-ready{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){ .brief-webgl{ display:none; } }
 
     /* ============================================================
        COGNAK Project Brief — dark espresso palette.
@@ -89,17 +98,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .brief-nav .inner-nav-links a:hover{ color:#DECBAF !important; }
     }
 
-    .brief .eyebrow{ font-family:'Diatype Mono', monospace; font-size:.72rem;
+    .brief .eyebrow{ font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3;
       letter-spacing:.28em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.2rem; }
     .brief .headline{ font-size:clamp(2.4rem,6.5vw,4.2rem); font-weight:500; line-height:1.02;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
-    .brief .form-headline{ font-size:clamp(2rem,5vw,3.2rem); margin-bottom:2.4rem; }
+    .brief .form-headline{ font-size:clamp(2rem,5vw,3.2rem); margin-bottom:1.3rem; }
     .brief .headline em{ font-style:italic; font-weight:500; color:var(--accent); }
     .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
     .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
 
     .brief .stepmeta{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.18em;
-      text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.4rem; display:flex; align-items:center; gap:.8rem; }
+      text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.4rem; display:flex; align-items:center; gap:.8rem; }
     .brief .stepmeta .bar{ flex:1; height:2px; background:var(--line); position:relative; overflow:hidden; border-radius:2px; }
     .brief .stepmeta .bar i{ position:absolute; inset:0; background:var(--accent); width:0; transition:width .5s ease; }
 
@@ -120,10 +129,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .pcard:hover .arrow{ transform:translateX(4px); color:var(--accent); }
 
     #formwrap{ display:none; }
-    .brief .backlink{ display:inline-flex; align-items:center; gap:.5rem; background:none; border:none;
-      color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.16em;
-      text-transform:uppercase; cursor:pointer; padding:8px 0; margin-bottom:1.6rem; transition:color .2s ease; }
-    .brief .backlink:hover{ color:var(--accent); }
+    .brief .backlink{ position:relative; display:inline-flex; align-items:center; gap:.5rem; background:none; border:none;
+      color:#EF9146; font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3; letter-spacing:.16em;
+      text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 2.2rem; transition:color .2s ease; }
+    .brief .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
+    .brief .backlink:hover{ color:#F5A65E; }
 
     .brief .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .brief .group:first-of-type{ border-top:none; padding-top:0; margin-top:.6rem; }
@@ -136,7 +146,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .q{ display:block; margin-bottom:.85rem; }
     .brief .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
     .brief .q-sub{ display:block; font-size:.88rem; font-weight:400; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; }
-    .brief .req{ color:var(--accent); margin-left:.3rem; font-weight:700; }
+    @keyframes briefReqPulse{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.28; transform:scale(.7); } }
+    .brief .req{ display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent);
+      vertical-align:super; margin-right:.4em; animation:briefReqPulse 1.5s ease-in-out infinite; }
+    @media (prefers-reduced-motion:reduce){ .brief .req{ animation:none; } }
     .brief .hint{ display:block; font-size:.8rem; color:var(--ink-soft); margin:-.35rem 0 .85rem; font-style:italic; }
     .brief .group-desc{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); margin:-1.1rem 0 1.7rem; }
     .brief .rangewrap{ padding-top:.2rem; }
@@ -201,14 +214,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .coloradd:hover{ border-color:var(--ink); color:var(--ink); }
     .brief .coloradd[hidden]{ display:none; }
     .brief .coloredit[hidden]{ display:none; }
-    .brief .coloredit{ margin-top:14px; background:var(--field); border:1px solid var(--line-strong); border-radius:12px; padding:14px 16px; }
-    .brief .ce-inner{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .brief .coloredit{ margin-top:16px; }
+    .brief .ce-inner{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
     .brief .ce-label{ font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
-    .brief .ce-native{ width:46px; height:46px; border:1px solid var(--line-strong); border-radius:10px; background:none; padding:2px; cursor:pointer; }
+    /* swatch = one filled circle; the color input is a transparent overlay that
+       opens the OS picker. Pencil badge + hint show it is clickable. */
+    .brief .ce-swatch{ position:relative; width:54px; height:54px; border-radius:50%; cursor:pointer; flex:0 0 auto;
+      box-shadow:0 0 0 1px var(--line-strong); transition:transform .16s ease, box-shadow .2s ease; }
+    .brief .ce-swatch:hover{ transform:scale(1.06); box-shadow:0 0 0 2px var(--accent); }
+    .brief .ce-fill{ position:absolute; inset:0; border-radius:50%; }
+    .brief .ce-native{ position:absolute; inset:0; width:100%; height:100%; opacity:0; border:none; padding:0; margin:0; cursor:pointer; }
+    .brief .ce-badge{ position:absolute; right:-3px; bottom:-3px; width:21px; height:21px; border-radius:50%;
+      background:var(--btn); color:#2A2010; display:flex; align-items:center; justify-content:center;
+      border:2px solid var(--bg); pointer-events:none; }
+    .brief .ce-hint{ font-size:.74rem; color:var(--ink-soft); }
     .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; background:var(--field-focus);
-      border:1px solid var(--line-strong); border-radius:8px; padding:9px 12px; font-family:'Diatype Mono', monospace; color:var(--ink); }
-    .brief .ce-hex{ width:7ch; background:none; border:none; outline:none; color:var(--ink); font-family:inherit;
-      font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
+      border:1px solid var(--line-strong); border-radius:10px; padding:12px 14px; font-family:'Diatype Mono', monospace; color:var(--ink); }
+    .brief .ce-hashwrap .ce-hex{ width:7ch; background:none; border:none; outline:none; box-shadow:none; color:var(--ink);
+      font-family:inherit; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
+    .brief .ce-hashwrap .ce-hex:focus{ background:none; border:none; box-shadow:none; }
     .brief .ce-done{ margin-left:auto; background:var(--btn); color:var(--cream); border:1px solid var(--ink);
       border-radius:999px; padding:9px 20px; font-size:.85rem; cursor:pointer; font-family:inherit; }
     .brief .ce-done:active{ transform:scale(.97); }
@@ -361,6 +385,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     var state={discipline:null,colors:[null,null,null],editing:-1};
     var DEFAULT_HEX='#8A7556';
+    var PENCIL_SVG='<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 
     (function(){
       var p=document.getElementById('picker');
@@ -381,8 +406,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function fmt(n){ return Number(n).toLocaleString('en-US'); }
     function fieldHTML(f){
-      var reqDot=f.req?'<span class="req">•</span>':'';
-      var title=f.t?'<span class="q-title">'+esc(f.t)+reqDot+'</span>':'';
+      var reqDot=f.req?'<span class="req" aria-hidden="true"></span>':'';
+      var title=f.t?'<span class="q-title">'+reqDot+esc(f.t)+'</span>':'';
       var sub=f.q?'<span class="q-sub">'+esc(f.q)+'</span>':'';
       var hint=f.hint?'<span class="hint">'+esc(f.hint)+'</span>':'';
       var inner='';
@@ -529,14 +554,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var ed=cp.querySelector('[data-role="edit"]');
       ed.innerHTML='<div class="ce-inner">'+
         '<span class="ce-label mono">Color 0'+(i+1)+'</span>'+
-        '<input type="color" class="ce-native" value="'+val+'">'+
+        '<span class="ce-swatch" title="Click to open the color picker">'+
+          '<span class="ce-fill" style="background:'+val+'"></span>'+
+          '<input type="color" class="ce-native" value="'+val+'">'+
+          '<span class="ce-badge" aria-hidden="true">'+PENCIL_SVG+'</span>'+
+        '</span>'+
+        '<span class="ce-hint mono">Click to pick</span>'+
         '<span class="ce-hashwrap"># <input type="text" class="ce-hex" maxlength="6" spellcheck="false" value="'+val.replace('#','').toUpperCase()+'"></span>'+
         '<button type="button" class="ce-done">Done</button></div>';
       ed.hidden=false;
       var native=ed.querySelector('.ce-native');
       var hex=ed.querySelector('.ce-hex');
+      var fill=ed.querySelector('.ce-fill');
       native.addEventListener('input',function(){
-        var v=native.value.toUpperCase();state.colors[i]=v;hex.value=v.replace('#','');
+        var v=native.value.toUpperCase();state.colors[i]=v;hex.value=v.replace('#','');fill.style.background=v;
         buildSlots(cp);updateProgress();
       });
       hex.addEventListener('input',function(){
@@ -545,7 +576,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var norm=null;
         if(raw.length===6)norm='#'+raw;
         else if(raw.length===3)norm='#'+raw[0]+raw[0]+raw[1]+raw[1]+raw[2]+raw[2];
-        if(norm){state.colors[i]=norm;native.value=norm;buildSlots(cp);updateProgress();}
+        if(norm){state.colors[i]=norm;native.value=norm;fill.style.background=norm;buildSlots(cp);updateProgress();}
       });
       ed.querySelector('.ce-done').addEventListener('click',function(){closeEditor(cp);});
       buildSlots(cp);
@@ -652,6 +683,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     (function(){
       var els=document.querySelectorAll('.rise');
       els.forEach(function(el,i){setTimeout(function(){el.classList.add('in');},120+i*90);});
+    })();
+  </script>
+
+  <script is:inline>
+    /* Fade the WebGL background in once UnicornStudio mounts its canvas
+       (with a timed fallback), matching the site's hero fade. */
+    (function(){
+      var el=document.querySelector('.brief-webgl');
+      if(!el) return;
+      if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      function ready(){ el.classList.add('webgl-ready'); }
+      if('MutationObserver' in window){
+        var mo=new MutationObserver(function(){ if(el.querySelector('canvas')){ ready(); mo.disconnect(); } });
+        mo.observe(el,{childList:true,subtree:true});
+        setTimeout(function(){ ready(); mo.disconnect(); }, 4000);
+      } else {
+        setTimeout(ready, 1200);
+      }
     })();
   </script>
 </BaseLayout>
