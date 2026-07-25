@@ -128,11 +128,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Left-edge completion rail — fixed so it stays visible while scrolling.
        Fills bottom-to-top and shifts from tan toward orange as the brief
        nears complete (height + color set in JS). */
-    .brief .prograil{ position:fixed; left:24px; top:50%; transform:translateY(-50%); width:5px; height:44vh; max-height:380px;
-      background:rgba(207,187,155,0.16); border-radius:999px; z-index:6; overflow:hidden; }
-    .brief .prograil i{ position:absolute; left:0; right:0; bottom:0; height:0; border-radius:999px;
-      background:var(--accent); transition:height .5s ease, background .5s ease; }
-    @media (max-width:720px){ .brief .prograil{ left:10px; width:4px; height:40vh; } }
+    .brief .prograil{ position:fixed; left:24px; top:50%; transform:translateY(-50%); width:2px; height:44vh; max-height:380px;
+      background:rgba(207,187,155,0.16); z-index:6; }
+    .brief .prograil i{ position:absolute; left:0; right:0; bottom:0; height:0;
+      background:var(--accent); transition:height .5s ease, background .5s ease, box-shadow .5s ease; }
+    @media (max-width:720px){ .brief .prograil{ width:2px; height:40vh; } }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
     /* stacked, strokeless frosted panels; hover turns all text orange (no raise) */
@@ -520,6 +520,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       wireForm();
       window.scrollTo(0,0);
       refreshScroll();
+      positionRail();
       updateProgress();
     }
 
@@ -655,6 +656,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       r.style.background='linear-gradient(90deg, #EF9146 0%, #EF9146 '+pct+'%, rgba(207,187,155,0.22) '+pct+'%, rgba(207,187,155,0.22) 100%)';
     }
 
+    /* Sit the rail just left of the text column, responsive to its margin/padding. */
+    function positionRail(){
+      var rail=document.getElementById('progRail'); var brief=document.querySelector('.brief');
+      if(!rail||!brief) return;
+      var cs=getComputedStyle(brief);
+      var left=brief.getBoundingClientRect().left + parseFloat(cs.paddingLeft||'0');
+      rail.style.left=Math.max(10, left - 28) + 'px';
+    }
+
     function updateProgress(){
       var form=document.getElementById('briefForm');if(!form)return;
       var fields=form.querySelectorAll('.field');var filled=0;
@@ -664,7 +674,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(fill){
         fill.style.height=pct+'%';
         var t=pct/100;
-        fill.style.background='rgb('+Math.round(222+(239-222)*t)+','+Math.round(203+(145-203)*t)+','+Math.round(175+(70-175)*t)+')';
+        var r=Math.round(222+(239-222)*t), g=Math.round(203+(145-203)*t), b=Math.round(175+(70-175)*t);
+        fill.style.background='rgb('+r+','+g+','+b+')';
+        fill.style.boxShadow='0 0 10px rgba('+r+','+g+','+b+',0.65)';
       }
     }
 
@@ -766,6 +778,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(!modal) return;
       modal.querySelector('[data-role="backdrop"]').addEventListener('click',function(){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); });
       document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !modal.hidden){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); } });
+      window.addEventListener('resize',positionRail);
     })();
 
     (function(){
