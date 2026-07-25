@@ -122,7 +122,7 @@ import '../styles/site.css';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#3a313b" />
-  {isHome && <style is:inline>{`html,body{background:#17151a!important}`}</style>}
+  {isHome && <style is:inline set:html={`html,body{background:#17151a!important}`}></style>}
   {pageBg && <style is:inline set:html={`html,body{background-color:${pageBg}!important}`}></style>}
   <title set:html={title}></title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
