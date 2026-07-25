@@ -21,9 +21,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <main id="cognak-main"><section class="brief">
 
     <div id="step-pick">
-      <p class="eyebrow rise">Project Brief</p>
-      <h1 class="headline rise">Let's start something <em>good</em>.</h1>
-      <p class="lede rise">A few focused questions so we understand exactly what you need before we talk. Pick what you're here for. It takes about three minutes.</p>
+      <h1 class="headline rise">The <em>brief</em>, distilled.</h1>
+      <p class="lede rise">The idea, the audience, the way it should feel. Give us the essentials and we'll have the shape of it before we ever get on a call.</p>
       <div class="picker rise" id="picker"></div>
     </div>
 
@@ -42,7 +41,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <div id="sent">
       <p class="eyebrow">Sent</p>
-      <h2 class="headline">Thank you &mdash; <em>got it</em>.</h2>
+      <h2 class="headline">Thank you. <em>Got it</em>.</h2>
       <p class="lede">Your brief is on its way to us. We'll review it and get back to you within a day or two. If your email app didn't open, use &ldquo;Copy answers&rdquo; and send it to <a href="mailto:pierce@cognak.com" class="sent-mail">pierce@cognak.com</a>.</p>
       <button class="btn btn-ghost" id="restartBtn" type="button">Start another brief</button>
     </div>
@@ -107,7 +106,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .headline{ font-size:clamp(2.4rem,6.5vw,4.2rem); font-weight:500; line-height:1.02;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .brief .form-headline{ font-size:clamp(2rem,5vw,3.2rem); margin-bottom:1.3rem; }
-    .brief .headline em{ font-style:italic; font-weight:500; color:var(--accent); }
+    .brief .headline em{ font-style:italic; font-weight:500; color:#EF9146; }
     .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
     .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
 
@@ -168,7 +167,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       transition:border-color .2s ease,background .2s ease,box-shadow .2s ease; outline:none; }
     .brief input::placeholder, .brief textarea::placeholder{ color:var(--placeholder); }
-    .brief input:focus, .brief textarea:focus{ border-color:#EF9146; background:var(--field-focus); box-shadow:0 0 0 3px rgba(239,145,70,.30); }
+    .brief input:focus, .brief textarea:focus{ border-color:#EF9146; background:var(--field-focus); }
+    /* Recolor the site's global :focus-visible outline (custom.css sets it to
+       purple #9F50FF !important) to the brief's orange, page-wide. */
+    .brief a:focus-visible, .brief button:focus-visible, .brief input:focus-visible,
+    .brief textarea:focus-visible, .brief select:focus-visible, .brief [tabindex]:focus-visible{
+      outline-color:#EF9146 !important; }
     .brief textarea{ min-height:92px; resize:vertical; }
     .brief .field.invalid input, .brief .field.invalid textarea{ border-color:var(--err); }
 
@@ -308,7 +312,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         headline:'Tell us about the product.',
         groups:[
           {title:'The product',fields:[
-            {id:'product_name',type:'text',t:'Product & brand',q:"What's the product we're packaging?",req:true,ph:'e.g. Alchemy Peppers — Hot Sauce'},
+            {id:'product_name',type:'text',t:'Product & brand',q:"What's the product we're packaging?",req:true,ph:'e.g. Alchemy Peppers, Hot Sauce'},
             {id:'category',type:'text',t:'Category',q:'What category is it?',ph:'Food, beverage, beauty, supplement…'},
             {id:'what',type:'textarea',t:'What it is',q:'What is it, and what makes it different?',req:true},
             {id:'audience',type:'textarea',t:'Audience',q:"Who's it for?"}
@@ -320,7 +324,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             {id:'sustainability',type:'single',t:'Sustainability',q:'Any requirements?',options:['Not a priority','Nice to have','Required / core to the brand']}
           ]},
           {title:'Practical',fields:[
-            {id:'brand_exists',type:'single',t:'Existing brand',q:'Is there a brand to work within?',options:['Yes, established brand','Partial','No — needs branding too']},
+            {id:'brand_exists',type:'single',t:'Existing brand',q:'Is there a brand to work within?',options:['Yes, established brand','Partial','No, needs branding too']},
             {id:'regulatory',type:'textarea',t:'Regulatory',q:'Nutrition panels, compliance, barcodes, etc.'},
             {id:'shelf',type:'textarea',t:'Where it sells',q:'Where will it sell, and what does it sit next to on shelf?'},
             {id:'references',type:'textarea',t:'References',q:'Packaging you admire (competitor or otherwise).'},
@@ -346,11 +350,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ]},
           {title:'Look & feel',fields:[
             {id:'personality',type:'multi',t:'Feel',q:'How should it feel?',options:['Bold','Minimal','Editorial','Playful','Premium','Corporate','Warm','Technical','Immersive','Clean','Expressive']},
-            {id:'references',type:'textarea',t:'Sites you love',q:'2–3 sites you love — and why.'},
+            {id:'references',type:'textarea',t:'Sites you love',q:'A few sites you love, and why.'},
             {id:'brand_ready',type:'single',t:'Brand assets',q:'Logo, colors, fonts?',options:['Yes, ready to use','Partial','Need branding too']}
           ]},
           {title:'Build',fields:[
-            {id:'platform',type:'single',t:'Platform',q:'Any preference?',options:['No preference — recommend one','Custom build','Webflow','WordPress','Shopify','Framer']},
+            {id:'platform',type:'single',t:'Platform',q:'Any preference?',options:['No preference, recommend one','Custom build','Webflow','WordPress','Shopify','Framer']},
             {id:'deliverables',type:'multi',t:'Scope',q:'What do you want from us?',options:['Design only','Design + build','Copywriting','Photography','SEO setup','Ongoing maintenance']}
           ]}
         ]
@@ -363,7 +367,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             {id:'company',type:'text',t:'Company / project',q:'What should we call it?',req:true},
             {id:'what_kind',type:'single',t:"What we're building",q:'Pick the closest.',options:['Marketing / brochure site','Web app','E-commerce store','Internal tool / dashboard','API / integration','Not sure yet']},
             {id:'what',type:'textarea',t:'What it does',q:'Describe what it needs to do.',req:true},
-            {id:'design_status',type:'single',t:'Design status',q:'Is there a design?',options:['Figma design ready','Rough wireframes','Nothing yet — need design too']},
+            {id:'design_status',type:'single',t:'Design status',q:'Is there a design?',options:['Figma design ready','Rough wireframes','Nothing yet, needs design too']},
             {id:'figma_url',type:'url',t:'Design link',q:'Figma or files, if any.',ph:'https://'}
           ]},
           {title:'Functionality',fields:[
@@ -617,7 +621,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var groups=form.querySelectorAll('.group');
       var groupData=groupsFor(state.discipline);
       var lines=[];
-      lines.push('COGNAK — PROJECT BRIEF');
+      lines.push('COGNAK PROJECT BRIEF');
       lines.push('Discipline: '+d.label);
       lines.push('');
       groups.forEach(function(gEl,gi){
@@ -650,7 +654,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       document.getElementById('formErr').style.display='none';
       var d=DISCIPLINES[state.discipline];
       var who=firstFilled(['brand_name','product_name','company','your_name'])||'New';
-      var subject='New '+d.label+' brief — '+who;
+      var subject='New '+d.label+' brief: '+who;
       var body=buildBrief();
       var href='mailto:'+DELIVER_TO+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
       window.location.href=href;
