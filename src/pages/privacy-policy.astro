@@ -12,7 +12,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <main id="cognak-main"><section class="privacy-template">
 
-    <h1 class="privacy-headline">Privacy Policy</h1>
+    <h1 class="privacy-headline">Our <span class="pp-accent">privacy policy</span>, minus the legalese.</h1>
 
     <div class="privacy-body">
       <p>COGNAK LLC is a design and development studio based in Los Angeles, California. This page explains how we handle data when you visit cognak.com.</p>
@@ -43,6 +43,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <style is:inline>
     html, body { background-color: #F1D6EA !important; }
     .privacy-template { background-color: transparent !important; }
+    .privacy-headline .pp-accent { color: #6E2050; }
 
     #privacy-grid {
       position: fixed;
