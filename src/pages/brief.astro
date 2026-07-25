@@ -620,7 +620,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(cp){ initColors(cp); }
       form.querySelectorAll('input,textarea').forEach(function(el){
         el.addEventListener('input',function(){
-          var fld=el.closest('.field');if(fld)fld.classList.remove('invalid');updateProgress();
+          var fld=el.closest('.field');
+          if(fld){ fld.classList.remove('invalid'); if(el.type==='range') fld.setAttribute('data-touched','1'); }
+          updateProgress();
         });
       });
       form.querySelectorAll('input[type=range]').forEach(function(r){
@@ -749,9 +751,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function updateProgress(){
       var form=document.getElementById('briefForm');if(!form)return;
-      /* Every field except the optional ones (data-opt) counts toward completion. */
+      /* Every field except the optional ones (data-opt) counts toward completion.
+         The budget range ships with a default, so it only counts once the visitor
+         has actually moved it (data-touched). */
       var fields=form.querySelectorAll('.field:not([data-opt="1"])');var filled=0;
-      fields.forEach(function(fld){if(fieldValue(fld))filled++;});
+      fields.forEach(function(fld){
+        var done=(fld.getAttribute('data-type')==='range')?(fld.getAttribute('data-touched')==='1'):!!fieldValue(fld);
+        if(done)filled++;
+      });
       var pct=fields.length?Math.round(filled/fields.length*100):0;
       var fill=document.getElementById('progFill');
       if(fill){
