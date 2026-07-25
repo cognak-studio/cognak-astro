@@ -2,8 +2,8 @@
 /**
  * /brief — hidden, unlinked client discovery questionnaire.
  * Not in nav, footer, or sitemap; noindex. Pierce sends the URL per project.
- * Delivery: mailto (no backend) — JS assembles a plaintext brief and hands it
- * to the client's mail app; "Copy answers" fallback covers long-body clients.
+ * Delivery: JS assembles a plaintext brief and POSTs it to /api/brief (a Vercel
+ * serverless function that emails it via Resend, reply-to = the client's email).
  * Palette: adjusted olive-brown, dark ink — verified WCAG AA (see :root).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -33,8 +33,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <form id="briefForm" novalidate></form>
       <div class="actions">
         <button class="btn" id="sendBtn" type="button">Send brief &rarr;</button>
-        <button class="btn btn-ghost" id="copyBtn" type="button">Copy answers instead</button>
-        <span class="copied" id="copiedMsg">Copied &#10003;</span>
       </div>
       <div class="formerr" id="formErr">Please fill in the required fields (marked with a dot).</div>
     </div>
@@ -130,8 +128,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        nears complete (height + color set in JS). */
     .brief .prograil{ position:fixed; left:24px; top:50%; transform:translateY(-50%); width:2px; height:44vh; max-height:380px;
       background:rgba(207,187,155,0.16); z-index:6; }
-    .brief .prograil i{ position:absolute; left:0; right:0; bottom:0; height:0;
-      background:var(--accent); transition:height .5s ease, background .5s ease, box-shadow .5s ease; }
+    .brief .prograil i{ position:absolute; left:0; right:0; top:0; height:0; border-radius:2px;
+      background:linear-gradient(180deg, rgba(222,203,175,0.4) 0%, #EF9146 100%);
+      transition:height .5s ease, background .5s ease; }
+    /* Glowing leading tip that marks the current completion point. */
+    .brief .prograil i::after{ content:""; position:absolute; left:50%; bottom:0; transform:translate(-50%,50%);
+      width:9px; height:9px; border-radius:50%; background:var(--tip,#EF9146);
+      box-shadow:0 0 10px 3px rgba(239,145,70,.85), 0 0 22px 7px rgba(239,145,70,.35); }
     @media (max-width:720px){ .brief .prograil{ width:2px; height:40vh; } }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
@@ -249,7 +252,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .coloredit{ margin-top:14px; background:rgba(12,8,3,0.55); border:1px solid var(--line-strong);
       border-radius:12px; padding:18px 20px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
       box-shadow:0 10px 34px rgba(0,0,0,.30); }
-    .brief .ce-inner{ display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+    .brief .ce-inner{ display:flex; align-items:center; gap:24px; flex-wrap:wrap;
       animation:ceIn .26s cubic-bezier(.2,.7,.3,1) both; }
     @keyframes ceIn{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
     @media (prefers-reduced-motion:reduce){ .brief .ce-inner{ animation:none; } }
@@ -327,12 +330,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       {id:'your_name',type:'text',t:'Name',q:'',req:true,ph:'First and last'},
       {id:'your_email',type:'email',t:'Email',q:'',req:true,ph:'you@company.com'}
     ]};
-    /* Logistics closer shown at the bottom of every questionnaire */
-    var TAIL = {title:'Timeline & budget',fields:[
-      {id:'timeline',type:'single',t:'Timeline',q:'When do you want this done?',options:['ASAP / urgent','1–3 months','3–6 months','Flexible / exploratory']},
-      {id:'budget',type:'range',t:'Budget',q:'Drag to set your rough budget.',min:0,max:10000,step:250,def:5000,prefix:'$'},
-      {id:'anything',type:'textarea',t:'Anything else',q:'Anything else we should know?'}
-    ]};
+    /* Rough-budget slider range per discipline (min, max, step, default). */
+    var BUDGETS = {
+      branding:    {min:0, max:10000,  step:250,  def:5000},
+      packaging:   {min:0, max:50000,  step:500,  def:15000},
+      web:         {min:0, max:100000, step:1000, def:25000},
+      development: {min:0, max:200000, step:2500, def:50000}
+    };
+    /* Logistics closer shown at the bottom of every questionnaire. The budget
+       slider range depends on the chosen discipline (see BUDGETS). */
+    function tailFor(key){
+      var b = BUDGETS[key] || BUDGETS.branding;
+      return {title:'Timeline & budget',fields:[
+        {id:'timeline',type:'single',t:'Timeline',q:'When do you want this done?',options:['ASAP / urgent','1–3 months','3–6 months','Flexible / exploratory']},
+        {id:'budget',type:'range',t:'Budget',q:'Drag to set your rough budget.',min:b.min,max:b.max,step:b.step,def:b.def,prefix:'$'},
+        {id:'anything',type:'textarea',t:'Anything else',q:'Anything else we should know?'}
+      ]};
+    }
 
     var DISCIPLINES = {
       branding:{
@@ -458,7 +472,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-    function groupsFor(key){ return [LEAD].concat(DISCIPLINES[key].groups,[TAIL]); }
+    function groupsFor(key){ return [LEAD].concat(DISCIPLINES[key].groups,[tailFor(key)]); }
 
     function fmt(n){ return Number(n).toLocaleString('en-US'); }
     function fieldHTML(f){
@@ -608,18 +622,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
     function openEditor(cp,i){
       state.editing=i;
-      var val=state.colors[i]||DEFAULT_HEX;
+      var has=state.colors[i];              // color already chosen for this slot, if any
+      var val=has||DEFAULT_HEX;             // seed value for the OS picker only
       var modal=document.getElementById('ceModal');
       var ed=modal.querySelector('[data-role="edit"]');
       ed.innerHTML='<div class="ce-inner">'+
         '<span class="ce-label mono">Color 0'+(i+1)+'</span>'+
         '<span class="ce-swatch" title="Click to open the color picker">'+
-          '<span class="ce-fill" style="background:'+val+'"></span>'+
+          '<span class="ce-fill" style="background:'+(has||'transparent')+'"></span>'+
           '<input type="color" class="ce-native" value="'+val+'">'+
           '<span class="ce-badge" aria-hidden="true">'+PENCIL_SVG+'</span>'+
         '</span>'+
         '<span class="ce-hint mono">Click to pick</span>'+
-        '<span class="ce-hashwrap"># <input type="text" class="ce-hex" maxlength="6" spellcheck="false" value="'+val.replace('#','').toUpperCase()+'"></span>'+
+        '<span class="ce-hashwrap"># <input type="text" class="ce-hex" maxlength="6" spellcheck="false" value="'+(has?has.replace('#','').toUpperCase():'')+'"></span>'+
         '<button type="button" class="ce-done">Done</button></div>';
       modal.hidden=false; modal.setAttribute('aria-hidden','false');
       try{ if(window._lenis && window._lenis.stop) window._lenis.stop(); }catch(e){}
@@ -640,7 +655,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       });
       ed.querySelector('.ce-done').addEventListener('click',function(){closeEditor(cp);});
       buildSlots(cp);
-      hex.focus();
     }
     function closeEditor(cp){
       state.editing=-1;
@@ -662,7 +676,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(!rail||!brief) return;
       var cs=getComputedStyle(brief);
       var left=brief.getBoundingClientRect().left + parseFloat(cs.paddingLeft||'0');
-      rail.style.left=Math.max(10, left - 28) + 'px';
+      rail.style.left=Math.max(6, left - 68) + 'px';
     }
 
     function updateProgress(){
@@ -672,11 +686,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var pct=fields.length?Math.round(filled/fields.length*100):0;
       var fill=document.getElementById('progFill');
       if(fill){
-        fill.style.height=pct+'%';
+        /* Grows downward from the top; always keeps a small glowing tip.
+           The fill shifts from tan toward orange as completion climbs. */
+        fill.style.height='max(10px,'+pct+'%)';
         var t=pct/100;
         var r=Math.round(222+(239-222)*t), g=Math.round(203+(145-203)*t), b=Math.round(175+(70-175)*t);
-        fill.style.background='rgb('+r+','+g+','+b+')';
-        fill.style.boxShadow='0 0 10px rgba('+r+','+g+','+b+',0.65)';
+        var tip='rgb('+r+','+g+','+b+')';
+        fill.style.background='linear-gradient(180deg, rgba(222,203,175,0.4) 0%, '+tip+' 100%)';
+        fill.style.setProperty('--tip', tip);
       }
     }
 
@@ -739,17 +756,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         .then(function(r){if(!r.ok)throw new Error('send failed');return r.json();})
         .then(function(){showSent();})
         .catch(function(){
-          errEl.textContent='Something went wrong sending your brief. Please use "Copy answers" below and email it to hello@cognak.com.';
+          errEl.textContent='Something went wrong sending your brief. Please try again, or email us directly at pierce@cognak.com.';
           errEl.style.display='block';
           btn.disabled=false;btn.textContent=label;
         });
-    });
-    document.getElementById('copyBtn').addEventListener('click',function(){
-      var body=buildBrief();var msg=document.getElementById('copiedMsg');
-      function done(){msg.classList.add('show');setTimeout(function(){msg.classList.remove('show');},2200);}
-      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(body).then(done,done);}
-      else{var ta=document.createElement('textarea');ta.value=body;document.body.appendChild(ta);ta.select();
-        try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);done();}
     });
     function firstFilled(ids){
       var form=document.getElementById('briefForm');
