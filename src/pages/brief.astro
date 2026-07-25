@@ -374,13 +374,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         groups:[
           {title:'The brand',fields:[
             {id:'brand_name',type:'text',t:'Brand name',q:"What's the name we're designing around?",req:true,ph:'e.g. COGNAK'},
-            {id:'alt_names',type:'text',t:'Alternate names, abbreviations to consider',q:'',ph:'Optional'},
+            {id:'alt_names',type:'text',t:'Alternate names, abbreviations to consider',q:'',opt:true},
             {id:'stage',type:'single',t:'Starting point',q:'Where are you starting from?',options:['Brand-new, from scratch','Rebrand of an established business','Refresh of the current look']}
           ]},
           {title:'Feel & direction',fields:[
             {id:'personality',type:'multi',t:'Personality',q:'Pick the words that should describe the brand.',hint:'Choose a handful.',options:['Bold','Refined','Playful','Minimal','Premium','Approachable','Technical','Warm','Trustworthy','Expressive','Editorial','Timeless','Modern','Handmade']},
             {id:'colors',type:'colors',t:'Colors',q:'Please choose up to 5 colors.'},
-            {id:'colors_comments',type:'textarea',t:'Any additional thoughts or comments on color',q:'',ph:'Optional'}
+            {id:'colors_comments',type:'textarea',t:'Any additional thoughts or comments on color',q:'',opt:true}
           ]},
           {title:'Versions',desc:"Let us know how many concepts you'd like to see.",fields:[
             {id:'versions',type:'single',elabel:'Number of concepts',options:['1','2','3']}
@@ -456,8 +456,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             {id:'existing_code',type:'single',t:'Codebase',q:'Starting from?',options:['Greenfield / brand new','Existing code to extend','Migration / rebuild']}
           ]},
           {title:'Practical',fields:[
-            {id:'stack',type:'text',t:'Tech stack',q:'Preferences or constraints?',ph:'Optional'},
-            {id:'hosting',type:'text',t:'Hosting',q:'Infra preferences, if any.',ph:'Optional'},
+            {id:'stack',type:'text',t:'Tech stack',q:'Preferences or constraints?',opt:true},
+            {id:'hosting',type:'text',t:'Hosting',q:'Infra preferences, if any.',opt:true},
             {id:'requirements',type:'multi',t:'Priorities',q:'What matters most?',options:['Performance','SEO','Accessibility','Scalability','Security / compliance','Analytics']},
             {id:'maintenance',type:'single',t:'Support',q:'After launch?',options:['Yes, ongoing','Handoff to our team','Not sure']}
           ]}
@@ -525,7 +525,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
       var labelInner=title+sub;
       var labelHTML=labelInner?('<label class="q" for="f_'+f.id+'">'+labelInner+'</label>'):'';
-      return '<div class="field" data-field="'+f.id+'"'+(f.req?' data-req="1"':'')+
+      /* Optional boxes don't count toward completion %: those flagged opt, the
+         "if any" URL fields, and the free-form "Anything else". */
+      var isOpt = f.opt || f.type==='url' || f.id==='anything';
+      return '<div class="field" data-field="'+f.id+'"'+(f.req?' data-req="1"':'')+(isOpt?' data-opt="1"':'')+
         ' data-type="'+f.type+'">'+labelHTML+hint+inner+'</div>';
     }
 
@@ -746,8 +749,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function updateProgress(){
       var form=document.getElementById('briefForm');if(!form)return;
-      /* Only required fields count toward completion — optional fields don't. */
-      var fields=form.querySelectorAll('.field[data-req="1"]');var filled=0;
+      /* Every field except the optional ones (data-opt) counts toward completion. */
+      var fields=form.querySelectorAll('.field:not([data-opt="1"])');var filled=0;
       fields.forEach(function(fld){if(fieldValue(fld))filled++;});
       var pct=fields.length?Math.round(filled/fields.length*100):0;
       var fill=document.getElementById('progFill');
