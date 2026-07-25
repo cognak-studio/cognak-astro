@@ -128,13 +128,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        nears complete (height + color set in JS). */
     .brief .prograil{ position:fixed; left:24px; top:50%; transform:translateY(-50%); width:2px; height:44vh; max-height:380px;
       background:rgba(207,187,155,0.16); z-index:6; }
+    /* Filled line from the top: cream at the top, orange at the growing end,
+       glowing along the completed segment (color + glow set in JS). */
     .brief .prograil i{ position:absolute; left:0; right:0; top:0; height:0; border-radius:2px;
-      background:linear-gradient(180deg, rgba(222,203,175,0.4) 0%, #EF9146 100%);
-      transition:height .5s ease, background .5s ease; }
-    /* Glowing leading tip that marks the current completion point. */
-    .brief .prograil i::after{ content:""; position:absolute; left:50%; bottom:0; transform:translate(-50%,50%);
-      width:9px; height:9px; border-radius:50%; background:var(--tip,#EF9146);
-      box-shadow:0 0 10px 3px rgba(239,145,70,.85), 0 0 22px 7px rgba(239,145,70,.35); }
+      background:linear-gradient(180deg, #EDE0C8 0%, #EF9146 100%);
+      box-shadow:0 0 8px 1px rgba(239,145,70,.5);
+      transition:height .5s ease, background .5s ease, box-shadow .5s ease; }
     @media (max-width:720px){ .brief .prograil{ width:2px; height:40vh; } }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
@@ -317,6 +316,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease,transform .6s ease; }
     .brief .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .brief .rise{ opacity:1; transform:none; transition:none; } }
+
+    /* ---- step crossfade: project picker <-> questionnaire ---- */
+    #step-pick, #formwrap{ transition:opacity .26s ease, transform .26s ease; }
+    #step-pick.step-hide, #formwrap.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
+    @media (prefers-reduced-motion:reduce){
+      #step-pick, #formwrap{ transition:none; }
+      #step-pick.step-hide, #formwrap.step-hide{ transform:none; }
+    }
   </style>
 
   <script is:inline>
@@ -528,14 +535,38 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }).join('');
       document.getElementById('form-headline').textContent=d.headline;
       document.getElementById('disc-label').textContent=d.label;
-      document.getElementById('step-pick').style.display='none';
-      document.getElementById('formwrap').style.display='block';
       document.getElementById('sent').style.display='none';
       wireForm();
-      window.scrollTo(0,0);
-      refreshScroll();
-      positionRail();
-      updateProgress();
+      showForm();
+    }
+
+    function reduceMotion(){ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    function afterFormShown(){ window.scrollTo(0,0); refreshScroll(); positionRail(); updateProgress(); }
+
+    /* Crossfade the picker out, then rise the questionnaire's header + groups in,
+       staggered top-to-bottom. Instant for prefers-reduced-motion. */
+    function showForm(){
+      var pick=document.getElementById('step-pick');
+      var wrap=document.getElementById('formwrap');
+      if(reduceMotion()){
+        pick.style.display='none'; wrap.style.display='block'; afterFormShown(); return;
+      }
+      pick.classList.add('step-hide');
+      setTimeout(function(){
+        pick.style.display='none'; pick.classList.remove('step-hide');
+        wrap.style.display='block';
+        var items=wrap.querySelectorAll('.backlink, .form-headline, .stepmeta, .group');
+        items.forEach(function(el,i){
+          el.style.opacity='0'; el.style.transform='translateY(10px)';
+          var dl=(i*0.06).toFixed(2)+'s';
+          el.style.transition='opacity .5s ease '+dl+', transform .5s ease '+dl;
+        });
+        afterFormShown();
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          items.forEach(function(el){ el.style.opacity='1'; el.style.transform='none'; });
+        }); });
+        setTimeout(function(){ items.forEach(function(el){ el.style.transition=''; el.style.transform=''; el.style.opacity=''; }); }, 1100);
+      }, 260);
     }
 
     /* The form is injected after load, so Lenis' cached scroll limit is stale
@@ -686,14 +717,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var pct=fields.length?Math.round(filled/fields.length*100):0;
       var fill=document.getElementById('progFill');
       if(fill){
-        /* Grows downward from the top; always keeps a small glowing tip.
-           The fill shifts from tan toward orange as completion climbs. */
-        fill.style.height='max(10px,'+pct+'%)';
+        /* A filled line down from the top: cream at the top, the growing end
+           shifting cream -> orange as the brief nears complete; the completed
+           segment glows, brighter as it fills. */
+        fill.style.height='max(6px,'+pct+'%)';
         var t=pct/100;
-        var r=Math.round(222+(239-222)*t), g=Math.round(203+(145-203)*t), b=Math.round(175+(70-175)*t);
-        var tip='rgb('+r+','+g+','+b+')';
-        fill.style.background='linear-gradient(180deg, rgba(222,203,175,0.4) 0%, '+tip+' 100%)';
-        fill.style.setProperty('--tip', tip);
+        var r=Math.round(237+(239-237)*t), g=Math.round(224+(145-224)*t), b=Math.round(200+(70-200)*t);
+        var end='rgb('+r+','+g+','+b+')';
+        fill.style.background='linear-gradient(180deg, #EDE0C8 0%, '+end+' 100%)';
+        fill.style.boxShadow='0 0 8px 1px rgba(239,145,70,'+(0.25+0.5*t).toFixed(2)+')';
       }
     }
 
@@ -773,9 +805,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       window.scrollTo(0,0);refreshScroll();
     }
     document.getElementById('backBtn').addEventListener('click',function(){
-      document.getElementById('formwrap').style.display='none';
-      document.getElementById('step-pick').style.display='block';
-      window.scrollTo(0,0);refreshScroll();
+      var wrap=document.getElementById('formwrap');
+      var pick=document.getElementById('step-pick');
+      if(reduceMotion()){
+        wrap.style.display='none'; pick.style.display='block'; window.scrollTo(0,0); refreshScroll(); return;
+      }
+      wrap.classList.add('step-hide');
+      setTimeout(function(){
+        wrap.style.display='none'; wrap.classList.remove('step-hide');
+        pick.style.display='block'; pick.style.opacity='0'; pick.style.transform='translateY(8px)';
+        window.scrollTo(0,0); refreshScroll();
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          pick.style.transition='opacity .4s ease, transform .4s ease';
+          pick.style.opacity='1'; pick.style.transform='none';
+        }); });
+        setTimeout(function(){ pick.style.transition=''; pick.style.transform=''; pick.style.opacity=''; }, 700);
+      }, 260);
     });
     document.getElementById('restartBtn').addEventListener('click',function(){
       document.getElementById('sent').style.display='none';
