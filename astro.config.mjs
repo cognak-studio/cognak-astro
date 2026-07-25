@@ -34,8 +34,6 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => {
-        // Hidden, unlinked intake page — keep it out of the sitemap entirely.
-        if (/\/brief\/?$/.test(page)) return false;
         // Drop noindex project pages from the sitemap (match live SEO).
         const m = page.match(/\/projects\/([^/]+)\/?$/);
         if (m && NOINDEX.has(m[1])) return false;

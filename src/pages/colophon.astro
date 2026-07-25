@@ -71,7 +71,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     .colophon {
-      max-width: 720px;
+      max-width: 1040px;
       margin: 0 auto;
       padding: calc(7vh + 75px) 6vw 22vh;
       color: #f4f4ee;
@@ -126,6 +126,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       font-weight: 400;
       color: #b6ff2e;
     }
+    /* Match the projects/studio headline scale on mobile (they drop to
+       clamp(24px,7vw,42px) at ≤720px; colophon had no override, read smaller). */
+    @media (max-width: 720px) {
+      .colophon-headline { font-size: clamp(24px, 7vw, 42px); }
+    }
     .colophon-body p {
       font-size: 1.06rem;
       line-height: 1.7;
@@ -158,6 +163,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       border-bottom: 1px solid rgba(244,244,238,0.28);
       padding: 2rem 0;
       margin: 2.6rem 0 !important;
+      max-width: 620px;
     }
     .colophon-spec a {
       color: inherit;

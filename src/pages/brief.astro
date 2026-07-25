@@ -10,10 +10,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   page="brief"
-  title="Project Brief – COGNAK"
-  description="Start a project with COGNAK."
+  title="Start a Project – COGNAK"
+  description="Tell us about your project. The idea, the audience, the way it should feel. We'll have the shape of it before we ever get on a call."
   ogUrl="https://cognak.com/brief/"
-  noindex={true}
   pageBg="#140E07"
 >
   <div class="brief-webgl" data-us-project="MYx6GEJ4hZQRnWnBgCQ9" aria-hidden="true"></div>
@@ -42,7 +41,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div id="sent">
       <p class="eyebrow">Sent</p>
       <h2 class="headline">Thank you. <em>Got it</em>.</h2>
-      <p class="lede">Your brief is on its way to us. We'll review it and get back to you within a day or two. If your email app didn't open, use &ldquo;Copy answers&rdquo; and send it to <a href="mailto:pierce@cognak.com" class="sent-mail">pierce@cognak.com</a>.</p>
+      <p class="lede">Your brief just landed with us. We'll read it properly and get back to you within a day or two.</p>
       <button class="btn btn-ghost" id="restartBtn" type="button">Start another brief</button>
     </div>
 
@@ -109,6 +108,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .headline em{ font-style:normal; font-weight:500; color:#EF9146; }
     .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
     .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
+    /* Match the projects/studio headline scale on mobile — they drop to
+       clamp(24px,7vw,42px) at ≤720px; brief had no override so it read smaller. */
+    @media (max-width:720px){
+      .brief .headline{ font-size:clamp(24px,7vw,42px); }
+      .brief .form-headline{ font-size:clamp(24px,7vw,42px); }
+    }
 
     .brief .stepmeta{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.18em;
       text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.4rem; display:flex; align-items:center; gap:.8rem; }
@@ -221,13 +226,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       cursor:pointer; transition:border-color .2s ease,color .2s ease; }
     .brief .coloradd:hover{ border-color:var(--ink); color:var(--ink); }
     .brief .coloradd[hidden]{ display:none; }
+    /* ---- color editor: a single frosted card that opens under the slots.
+       The card is the only container, so the hex sits bare inside it (no
+       box-within-a-box). ---- */
     .brief .coloredit[hidden]{ display:none; }
-    .brief .coloredit{ margin-top:16px; }
-    .brief .ce-inner{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-    .brief .ce-label{ font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+    .brief .coloredit{ margin-top:14px; background:rgba(12,8,3,0.55); border:1px solid var(--line-strong);
+      border-radius:12px; padding:18px 20px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+      box-shadow:0 10px 34px rgba(0,0,0,.30); }
+    .brief .ce-inner{ display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+      animation:ceIn .26s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes ceIn{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
+    @media (prefers-reduced-motion:reduce){ .brief .ce-inner{ animation:none; } }
+    .brief .ce-label{ flex:1 1 100%; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.18em;
+      text-transform:uppercase; color:var(--ink-soft); margin-bottom:2px; }
     /* swatch = one filled circle; the color input is a transparent overlay that
        opens the OS picker. Pencil badge + hint show it is clickable. */
-    .brief .ce-swatch{ position:relative; width:54px; height:54px; border-radius:50%; cursor:pointer; flex:0 0 auto;
+    .brief .ce-swatch{ position:relative; width:52px; height:52px; border-radius:50%; cursor:pointer; flex:0 0 auto;
       box-shadow:0 0 0 1px var(--line-strong); transition:transform .16s ease, box-shadow .2s ease; }
     .brief .ce-swatch:hover{ transform:scale(1.06); box-shadow:0 0 0 2px var(--accent); }
     .brief .ce-fill{ position:absolute; inset:0; border-radius:50%; }
@@ -236,14 +250,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       background:var(--btn); color:#2A2010; display:flex; align-items:center; justify-content:center;
       border:2px solid var(--bg); pointer-events:none; }
     .brief .ce-hint{ font-size:.74rem; color:var(--ink-soft); }
-    .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; background:var(--field-focus);
-      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-      border:1px solid var(--line-strong); border-radius:10px; padding:12px 14px; font-family:'Diatype Mono', monospace; color:var(--ink); }
+    /* hex sits bare inside the card — a thin underline is the only affordance,
+       so there's no container-within-a-container around it. */
+    .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; color:var(--ink);
+      font-family:'Diatype Mono', monospace; border-bottom:1px solid var(--line-strong);
+      padding:6px 2px; transition:border-color .2s ease; }
+    .brief .ce-hashwrap:focus-within{ border-color:#EF9146; }
     .brief .ce-hashwrap .ce-hex{ width:7ch; background:none; border:none; outline:none; box-shadow:none; color:var(--ink);
       font-family:inherit; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
     .brief .ce-hashwrap .ce-hex:focus{ background:none; border:none; box-shadow:none; }
     .brief .ce-done{ margin-left:auto; background:var(--btn); color:var(--cream); border:1px solid var(--ink);
-      border-radius:999px; padding:9px 20px; font-size:.85rem; cursor:pointer; font-family:inherit; }
+      border-radius:999px; padding:9px 20px; font-size:.85rem; cursor:pointer; font-family:inherit;
+      transition:box-shadow .2s ease,background .2s ease; }
+    .brief .ce-done:hover{ background:var(--accent); }
     .brief .ce-done:active{ transform:scale(.97); }
 
     .brief .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem;
@@ -452,8 +471,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function colorsHTML(){
       return '<div class="colorpick" data-id="colors">'+
         '<div class="color3" data-role="slots"></div>'+
-        '<button type="button" class="coloradd" data-role="add">+ Add color</button>'+
-        '<div class="coloredit" data-role="edit" hidden></div></div>';
+        '<div class="coloredit" data-role="edit" hidden></div>'+
+        '<button type="button" class="coloradd" data-role="add">+ Add color</button></div>';
     }
 
     function selectDiscipline(key){
@@ -650,15 +669,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     document.getElementById('sendBtn').addEventListener('click',function(){
-      if(!validate()){document.getElementById('formErr').style.display='block';return;}
-      document.getElementById('formErr').style.display='none';
+      var errEl=document.getElementById('formErr');
+      if(!validate()){errEl.textContent='Please fill in the required fields.';errEl.style.display='block';return;}
+      errEl.style.display='none';
       var d=DISCIPLINES[state.discipline];
       var who=firstFilled(['brand_name','product_name','company','your_name'])||'New';
-      var subject='New '+d.label+' brief: '+who;
+      var email=firstFilled(['your_email'])||'';
       var body=buildBrief();
-      var href='mailto:'+DELIVER_TO+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-      window.location.href=href;
-      setTimeout(showSent,600);
+      var btn=document.getElementById('sendBtn');
+      var label=btn.textContent;
+      btn.disabled=true;btn.textContent='Sending…';
+      fetch('/api/brief',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({discipline:d.label,who:who,email:email,text:body})})
+        .then(function(r){if(!r.ok)throw new Error('send failed');return r.json();})
+        .then(function(){showSent();})
+        .catch(function(){
+          errEl.textContent='Something went wrong sending your brief. Please use "Copy answers" below and email it to hello@cognak.com.';
+          errEl.style.display='block';
+          btn.disabled=false;btn.textContent=label;
+        });
     });
     document.getElementById('copyBtn').addEventListener('click',function(){
       var body=buildBrief();var msg=document.getElementById('copiedMsg');
