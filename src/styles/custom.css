@@ -1853,9 +1853,17 @@ html.pv-grid .projects-list,
     from { opacity: 0; }
     to   { opacity: 1; }
 }
+/* Accent words on colophon / privacy / brief headlines fade in with the
+   stagger, mirroring projects/studio's accent-fade. */
+.colophon-headline em,
+.privacy-headline .pp-accent,
+#step-pick .headline em { animation: headline-accent-fade 0.6s ease 0.15s both; }
 @media (prefers-reduced-motion: reduce) {
     .studio-display-headline .headline-pink,
-    .projects-display-headline .headline-dark-lavender { animation: none; }
+    .projects-display-headline .headline-dark-lavender,
+    .colophon-headline em,
+    .privacy-headline .pp-accent,
+    #step-pick .headline em { animation: none; }
 }
 
 /* ── Studio two-column layout: subhead left, capabilities right ── */
@@ -3088,9 +3096,6 @@ html body.page-template-page-privacy-policy,
     text-transform: uppercase;
     color: #815275;
     margin: 56px 0 16px;
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .privacy-body p {
     font-family: 'Diatype Variable', sans-serif;
@@ -3098,9 +3103,6 @@ html body.page-template-page-privacy-policy,
     line-height: 1.8;
     color: #3A313B;
     margin: 0 0 20px;
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .privacy-body a {
     color: #3A313B;
@@ -3124,11 +3126,7 @@ html body.page-template-page-privacy-policy,
     padding: 2px 6px !important;
     border-radius: 3px !important;
 }
-.privacy-body h2.privacy-visible,
-.privacy-body p.privacy-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
+/* (reveal now handled by the site-wide word-stagger in cognak-global.js) */
 @media (max-width: 720px) {
     .privacy-template {
         padding: 28px 28px 80px;
@@ -3249,12 +3247,26 @@ select:focus-visible,
    full line never flashes in before the animation (JS adds html.js in <head>).
    No-JS / pre-JS keeps them visible; reduced-motion shows them immediately. */
 html.js .studio-display-headline,
-html.js .projects-display-headline {
+html.js .projects-display-headline,
+html.js .colophon-headline,
+html.js .privacy-headline,
+html.js #step-pick .headline,
+html.js .colophon-body > p:not(.colophon-spec):not(.colophon-sign),
+html.js #step-pick .lede,
+html.js .privacy-body p,
+html.js .privacy-body h2 {
     opacity: 0;
 }
 @media (prefers-reduced-motion: reduce) {
     html.js .studio-display-headline,
-    html.js .projects-display-headline { opacity: 1; }
+    html.js .projects-display-headline,
+    html.js .colophon-headline,
+    html.js .privacy-headline,
+    html.js #step-pick .headline,
+    html.js .colophon-body > p:not(.colophon-spec):not(.colophon-sign),
+    html.js #step-pick .lede,
+    html.js .privacy-body p,
+    html.js .privacy-body h2 { opacity: 1; }
 }
 .stagger-word {
     display: inline-block;
@@ -3266,10 +3278,15 @@ html.js .projects-display-headline {
     opacity: 1;
     transform: translateY(0);
 }
-/* Body text on studio + projects: fade only, no slide */
+/* Body text on studio + projects: fade only, no slide.
+   Colophon + privacy body + brief lede join the same fade-only treatment;
+   the colophon/privacy/brief *headlines* keep the default slide-up. */
 .studio-subhead p .stagger-word,
 .projects-below-right .stagger-word,
-.hp-bottom-right .stagger-word {
+.hp-bottom-right .stagger-word,
+.colophon-body .stagger-word,
+.privacy-body .stagger-word,
+#step-pick .lede .stagger-word {
     transform: none;
     transition: opacity 0.55s ease;
 }

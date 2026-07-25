@@ -83,23 +83,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         margin-right: auto;
       }
     }
+    /* Headline + prose paragraphs reveal via the site-wide word-stagger
+       (cognak-global.js), same as projects/studio. The eyebrow + the mono
+       credits block + the sign-off keep this local whole-element rise. */
     .colophon-eyebrow,
-    .colophon-headline,
-    .colophon-body > * {
+    .colophon-spec,
+    .colophon-sign {
       opacity: 0;
       transform: translateY(6px);
       transition: opacity 0.6s ease, transform 0.6s ease;
     }
     .colophon-eyebrow.is-in,
-    .colophon-headline.is-in,
-    .colophon-body > *.is-in {
+    .colophon-spec.is-in,
+    .colophon-sign.is-in {
       opacity: 1;
       transform: translateY(0);
     }
     @media (prefers-reduced-motion: reduce) {
       .colophon-eyebrow,
-      .colophon-headline,
-      .colophon-body > * {
+      .colophon-spec,
+      .colophon-sign {
         opacity: 1;
         transform: none;
         transition: none;
@@ -194,7 +197,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
     window.scrollTo(0, 0);
     (function () {
-      var els = document.querySelectorAll('.colophon-eyebrow, .colophon-headline, .colophon-body > *');
+      var els = document.querySelectorAll('.colophon-eyebrow, .colophon-spec, .colophon-sign');
       if (!els.length || !('IntersectionObserver' in window)) {
         els.forEach(function (el) { el.classList.add('is-in'); });
         return;

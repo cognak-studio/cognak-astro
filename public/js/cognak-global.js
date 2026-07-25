@@ -534,6 +534,11 @@
         '.fourofour-body',
         '.privacy-headline',
         '.privacy-body p',
+        '.privacy-body h2',
+        '.colophon-headline',
+        '.colophon-body > p:not(.colophon-spec):not(.colophon-sign)',
+        '#step-pick .headline',
+        '#step-pick .lede',
     ];
 
     function splitWords(el) {

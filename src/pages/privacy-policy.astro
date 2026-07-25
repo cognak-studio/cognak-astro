@@ -73,23 +73,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <script is:inline>
     if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
     window.scrollTo(0, 0);
-    (function () {
-      var els = document.querySelectorAll('.privacy-body h2, .privacy-body p');
-      if (!els.length || !('IntersectionObserver' in window)) {
-        els.forEach(function (el) { el.classList.add('privacy-visible'); });
-        return;
-      }
-      var observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          var el = entry.target;
-          var idx = Array.prototype.indexOf.call(els, el);
-          setTimeout(function () { el.classList.add('privacy-visible'); }, idx * 50);
-          observer.unobserve(el);
-        });
-      }, { threshold: 0.1 });
-      els.forEach(function (el) { observer.observe(el); });
-    })();
+    /* Headline + body text reveal is handled by the site-wide word-stagger in
+       cognak-global.js (same as projects/studio) — no local observer here. */
   </script>
 
   <script is:inline>

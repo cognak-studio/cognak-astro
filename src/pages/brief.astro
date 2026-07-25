@@ -20,8 +20,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <main id="cognak-main"><section class="brief">
 
     <div id="step-pick">
-      <h1 class="headline rise">Good work starts with a good <em>brief</em>. Let's write yours.</h1>
-      <p class="lede rise">The idea, the audience, the way it should feel. Give us the essentials and we'll have the shape of it before we ever get on a call.</p>
+      <h1 class="headline">Good work starts with a good <em>brief</em>. Let's write yours.</h1>
+      <p class="lede">The idea, the audience, the way it should feel. Give us the essentials and we'll have the shape of it before we ever get on a call.</p>
       <div class="picker rise" id="picker"></div>
     </div>
 
@@ -92,8 +92,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* nav themed to the olive colorway (shared inner-page nav) */
     /* Opaque warm espresso-black bar with a strong blur, matching the other
        dark page navs (home/studio use rgba(23,21,26,.75)); deep + blurred so it
-       obscures the WebGL background underneath and keeps the nav text legible. */
-    .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(12,8,3,0.6) !important;
+       obscures the WebGL background underneath and keeps the nav text legible.
+       Lightened warm brown (was rgba(12,8,3,0.6), near-black + too stark vs the
+       WebGL): effective ~#2C2214, keeps the #A89372 nav text at ~5.3:1 (ADA AA,
+       small text needs 4.5:1 — a warm bar this light is about the max headroom). */
+    .home-bottom-bar.inner-page-nav.brief-nav{ background:rgba(48,37,22,0.78) !important;
       backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; }
     .brief-nav .home-bottom-email,
     .brief-nav .home-bottom-location,
