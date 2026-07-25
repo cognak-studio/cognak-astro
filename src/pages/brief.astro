@@ -14,7 +14,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="Start a project with COGNAK."
   ogUrl="https://cognak.com/brief/"
   noindex={true}
-  pageBg="#3F2F18"
+  pageBg="#140E07"
 >
   <div class="brief-webgl" data-us-project="MYx6GEJ4hZQRnWnBgCQ9" aria-hidden="true"></div>
 
@@ -50,7 +50,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#3F2F18 !important; }
+    html, body { background-color:#140E07 !important; }
     #cognak-main { position:relative; z-index:1; }
 
     /* WebGL background (UnicornStudio) — fixed behind the content, fades in when
@@ -68,10 +68,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        dark-ink/tan-button 9.3:1.  (--cream = dark text ON tan controls)
        ============================================================ */
     .brief {
-      --bg:#3F2F18; --nav:#372914; --navtext:#A89372;
+      --bg:#140E07; --nav:#372914; --navtext:#A89372;
       --field:rgba(12,8,3,0.55); --field-focus:rgba(12,8,3,0.72); --card:rgba(12,8,3,0.5);
-      --field-line:rgba(0,0,0,0.5); /* very faint dark-based stroke for the boxes */
-      --stroke-grad:linear-gradient(135deg,#7E3F1F 0%,#C08A45 48%,#5F5228 100%); /* rich-brown stroke, drawn from the WebGL bg */
       --ink:#CFBB9B; --ink-soft:#BCA787; --accent:#DECBAF;
       --cream:#2A2010; --btn:#D6C3A4; --sel:#D6C3A4;
       --line:rgba(207,187,155,0.20); --line-strong:rgba(207,187,155,0.40);
@@ -122,12 +120,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .picker{ display:grid; grid-template-columns:repeat(2,1fr); grid-auto-rows:1fr; gap:14px; margin-top:.4rem; }
     @media (max-width:620px){ .brief .picker{ grid-template-columns:1fr; } }
     .brief .pcard{ position:relative; text-align:left; cursor:pointer; background:var(--card);
-      border:1.5px solid transparent; border-image:var(--stroke-grad) 1; padding:22px 22px 20px; color:var(--ink);
+      border:1px solid var(--line-strong); border-radius:6px; padding:22px 22px 20px; color:var(--ink);
       -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       box-shadow:0 2px 10px rgba(0,0,0,.20);
       transition:transform .18s cubic-bezier(.2,.7,.3,1),background .25s ease,box-shadow .25s ease;
       font-family:inherit; }
-    .brief .pcard:hover{ background:var(--field-focus); transform:translateY(-3px); box-shadow:0 12px 30px rgba(0,0,0,.32); }
+    .brief .pcard:hover{ background:var(--field-focus); border-color:var(--ink); transform:translateY(-3px); box-shadow:0 12px 30px rgba(0,0,0,.32); }
     .brief .pcard:active{ transform:translateY(-1px) scale(.99); }
     .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; }
     .brief .pcard h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; margin:.7rem 0 .35rem; }
@@ -164,10 +162,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .rangeends{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-soft); margin-top:.55rem; }
 
     .brief input[type=text], .brief input[type=email], .brief input[type=url], .brief textarea{
-      width:100%; background:var(--field); border:1.5px solid transparent; border-image:var(--stroke-grad) 1;
+      width:100%; background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
       -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-      transition:background .2s ease,box-shadow .2s ease; outline:none; }
+      transition:border-color .2s ease,background .2s ease,box-shadow .2s ease; outline:none; }
     .brief input::placeholder, .brief textarea::placeholder{ color:var(--placeholder); }
     .brief input:focus, .brief textarea:focus{ border-color:var(--accent); background:var(--field-focus); box-shadow:0 0 0 3px rgba(222,203,175,.20); }
     .brief textarea{ min-height:92px; resize:vertical; }
@@ -235,7 +233,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .ce-hint{ font-size:.74rem; color:var(--ink-soft); }
     .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; background:var(--field-focus);
       -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-      border:1px solid var(--field-line); border-radius:10px; padding:12px 14px; font-family:'Diatype Mono', monospace; color:var(--ink); }
+      border:1px solid var(--line-strong); border-radius:10px; padding:12px 14px; font-family:'Diatype Mono', monospace; color:var(--ink); }
     .brief .ce-hashwrap .ce-hex{ width:7ch; background:none; border:none; outline:none; box-shadow:none; color:var(--ink);
       font-family:inherit; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
     .brief .ce-hashwrap .ce-hex:focus{ background:none; border:none; box-shadow:none; }
