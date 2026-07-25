@@ -55,7 +55,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <style is:inline>
     html, body { background-color:#140E07 !important; }
-    #cognak-main { position:relative; z-index:1; }
+    /* Keep the main column at least a full viewport tall so the footer stays
+       pinned to the bottom on the short "Sent" screen (otherwise the page is
+       shorter than the viewport and the bg shows below the footer).
+       overflow-anchor:none stops WebKit/Arc/Dia from scroll-anchoring to the
+       footer and jumping to the bottom when the picker swaps to the tall form. */
+    #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; overflow-anchor:none; }
 
     /* WebGL background (UnicornStudio) — fixed behind the content, fades in when
        the canvas mounts. Mirrors the home/studio setup; skipped on reduced-motion. */
@@ -113,6 +118,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .form-headline{ font-size:clamp(2rem,5vw,3.2rem); margin-bottom:1.3rem; }
     .brief .headline em{ font-style:normal; font-weight:500; color:#EF9146; }
     .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
+    /* Nudge the intro copy above the picker slightly right of the headline. */
+    #step-pick .lede{ margin-left:40px; }
     .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
     /* Match the projects/studio headline scale on mobile — they drop to
        clamp(24px,7vw,42px) at ≤720px; brief had no override so it read smaller. */
@@ -573,9 +580,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        and the page won't scroll. Re-measure it (and nudge a resize) once the
        new content is laid out. */
     function refreshScroll(){
+      window.scrollTo(0,0);
       requestAnimationFrame(function(){
-        try{ if(window._lenis && window._lenis.resize) window._lenis.resize(); }catch(e){}
+        try{ if(window._lenis){ if(window._lenis.resize) window._lenis.resize();
+          if(window._lenis.scrollTo) window._lenis.scrollTo(0,{immediate:true,force:true}); } }catch(e){}
         window.dispatchEvent(new Event('resize'));
+        window.scrollTo(0,0);
       });
     }
 

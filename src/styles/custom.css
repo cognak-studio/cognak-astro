@@ -330,7 +330,7 @@ padding-right: 30px;
 }
 @media only screen and (max-width: 720px) {
     .main-intro {
-      background: #17151a !important;
+      background: #121016 !important;
     }
 }
 /** Footer **/
@@ -361,9 +361,10 @@ padding-right: 30px;
 .main-intro #primary-navigation {
     z-index: 4;
 }
-/* WebGL state background — fills the gaps when the WebGL is scaled on mobile */
+/* WebGL state background — fills the gaps when the WebGL is scaled on mobile.
+   Nudged slightly darker (was #17151a) to sit better under the hero WebGL. */
 .main-intro {
-    background-color: #17151a;
+    background-color: #121016;
 }
 /* Mobile home: nav at bottom of hero (scrolls with it), menu pops upward, dvh fixes iOS URL bar */
 @media screen and (max-width: 720px) {
@@ -3081,8 +3082,8 @@ html body.page-template-page-privacy-policy,
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: #815275;
-    margin: 0 0 56px 160px;
-    max-width: 1040px;
+    margin: 0 0 56px 18%;
+    max-width: 600px;
 }
 .privacy-body {
     margin-left: 18%;

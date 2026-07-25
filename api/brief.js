@@ -58,14 +58,19 @@ export default async function handler(req, res) {
   const TO = process.env.BRIEF_TO || 'pierce@cognak.com';
   const subject = 'New ' + discipline + ' brief: ' + who;
 
+  // Header styled to match Pierce's email signature: neutral sans, a small
+  // grey uppercase eyebrow, a bold near-black title, and a purple reply link.
+  // The brief body stays in the beige monospace box.
+  const SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+  const PURPLE = '#5B4FE6';
   const html =
-    '<div style="font-family:Georgia,\'Times New Roman\',serif;max-width:640px;color:#1a1a1a;line-height:1.5">' +
-    '<p style="font:600 12px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:#8a7556;margin:0 0 6px">COGNAK &middot; New brief</p>' +
-    '<h2 style="margin:0 0 16px;font-size:20px">' + esc(subject) + '</h2>' +
+    '<div style="font-family:' + SANS + ';max-width:640px;color:#1a1a1a;line-height:1.5">' +
+    '<p style="margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a">COGNAK &middot; New brief</p>' +
+    '<h2 style="margin:0 0 6px;font-size:24px;font-weight:700;letter-spacing:-.01em;color:#111">' + esc(subject) + '</h2>' +
     (email
-      ? '<p style="margin:0 0 16px;font-size:14px">Reply to: <a href="mailto:' + esc(email) + '">' + esc(email) + '</a></p>'
-      : '') +
-    '<pre style="white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.6;background:#f6f4ef;border:1px solid #e6e1d8;border-radius:8px;padding:18px;margin:0">' +
+      ? '<p style="margin:0 0 22px;font-size:14px;color:#8a8a8a">Reply to: <a href="mailto:' + esc(email) + '" style="color:' + PURPLE + ';font-weight:600;text-decoration:none">' + esc(email) + '</a></p>'
+      : '<div style="height:22px"></div>') +
+    '<pre style="white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.6;color:#1a1a1a;background:#f6f4ef;border:1px solid #e6e1d8;border-radius:8px;padding:18px;margin:0">' +
     esc(text) +
     '</pre></div>';
 
