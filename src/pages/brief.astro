@@ -29,7 +29,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="prograil" id="progRail" aria-hidden="true"><span class="prograil-cap prograil-cap--top">0%</span><i id="progFill"></i><span class="prograil-cap prograil-cap--bot">100%</span></div>
       <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
       <h2 class="headline form-headline" id="form-headline"></h2>
-      <div class="stepmeta"><span id="disc-label" class="mono"></span></div>
       <form id="briefForm" novalidate></form>
       <div class="actions">
         <button class="btn" id="sendBtn" type="button">Send brief &rarr;</button>
@@ -547,7 +546,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           g.fields.map(fieldHTML).join('')+'</div>';
       }).join('');
       document.getElementById('form-headline').textContent=d.headline;
-      document.getElementById('disc-label').textContent=d.label;
       document.getElementById('sent').style.display='none';
       wireForm();
       showForm();
