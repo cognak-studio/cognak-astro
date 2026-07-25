@@ -330,7 +330,7 @@ padding-right: 30px;
 }
 @media only screen and (max-width: 720px) {
     .main-intro {
-      background: #121016 !important;
+      background: #17151a !important;
     }
 }
 /** Footer **/
@@ -361,10 +361,9 @@ padding-right: 30px;
 .main-intro #primary-navigation {
     z-index: 4;
 }
-/* WebGL state background — fills the gaps when the WebGL is scaled on mobile.
-   Nudged slightly darker (was #17151a) to sit better under the hero WebGL. */
+/* WebGL state background — fills the gaps when the WebGL is scaled on mobile */
 .main-intro {
-    background-color: #121016;
+    background-color: #17151a;
 }
 /* Mobile home: nav at bottom of hero (scrolls with it), menu pops upward, dvh fixes iOS URL bar */
 @media screen and (max-width: 720px) {
@@ -1111,7 +1110,7 @@ html.home-scrolled #cognak-cookie {
 
 /* ── New Homepage Main Section ── */
 .homepage-main {
-    background: #242129;
+    background: #1E1B24;
     padding: 70px 70px 100px;
     position: relative;
 }

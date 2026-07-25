@@ -548,7 +548,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     function reduceMotion(){ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-    function afterFormShown(){ window.scrollTo(0,0); refreshScroll(); positionRail(); updateProgress(); }
+    function afterFormShown(){ window.scrollTo(0,0); refreshScroll(); positionRail(); clampRail(); updateProgress(); }
 
     /* Crossfade the picker out, then rise the questionnaire's header + groups in,
        staggered top-to-bottom. Instant for prefers-reduced-motion. */
@@ -720,6 +720,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       rail.style.left=Math.max(6, left - 68) + 'px';
     }
 
+    /* Keep the fixed rail within the form's vertical bounds so it can never sit
+       past the bottom of the form (below the Send button) when scrolled. It stays
+       viewport-centered until the form's top/bottom would clip it, then clamps. */
+    function clampRail(){
+      var rail=document.getElementById('progRail');
+      var wrap=document.getElementById('formwrap');
+      if(!rail||!wrap||wrap.style.display==='none') return;
+      var r=wrap.getBoundingClientRect();
+      var vh=window.innerHeight||document.documentElement.clientHeight;
+      var railH=rail.offsetHeight||0;
+      var top=(vh-railH)/2;
+      var minTop=r.top+8, maxTop=r.bottom-railH-8;
+      top=(maxTop<=minTop) ? (r.top+(r.height-railH)/2) : Math.min(Math.max(top,minTop),maxTop);
+      rail.style.top=Math.round(top)+'px';
+      rail.style.transform='none';
+    }
+
     function updateProgress(){
       var form=document.getElementById('briefForm');if(!form)return;
       var fields=form.querySelectorAll('.field');var filled=0;
@@ -843,7 +860,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(!modal) return;
       modal.querySelector('[data-role="backdrop"]').addEventListener('click',function(){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); });
       document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !modal.hidden){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); } });
-      window.addEventListener('resize',positionRail);
+      window.addEventListener('resize',function(){ positionRail(); clampRail(); });
+      window.addEventListener('scroll',clampRail,{passive:true});
     })();
 
     (function(){
