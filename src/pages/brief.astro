@@ -26,9 +26,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
 
     <div id="formwrap">
+      <div class="prograil" id="progRail" aria-hidden="true"><i id="progFill"></i></div>
       <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
       <h2 class="headline form-headline" id="form-headline"></h2>
-      <div class="stepmeta"><span id="disc-label" class="mono"></span><span class="bar"><i id="progbar"></i></span></div>
+      <div class="stepmeta"><span id="disc-label" class="mono"></span></div>
       <form id="briefForm" novalidate></form>
       <div class="actions">
         <button class="btn" id="sendBtn" type="button">Send brief &rarr;</button>
@@ -43,6 +44,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <h2 class="headline">Thank you. <em>Got it</em>.</h2>
       <p class="lede">Your brief just landed with us. We'll read it properly and get back to you within a day or two.</p>
       <button class="btn btn-ghost" id="restartBtn" type="button">Start another brief</button>
+    </div>
+
+    <div class="ce-modal" id="ceModal" hidden aria-hidden="true">
+      <div class="ce-backdrop" data-role="backdrop"></div>
+      <div class="ce-dialog" role="dialog" aria-modal="true" aria-label="Choose a color">
+        <div class="ce-body" data-role="edit"></div>
+      </div>
     </div>
 
   </section></main>
@@ -117,8 +125,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .brief .stepmeta{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.18em;
       text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.4rem; display:flex; align-items:center; gap:.8rem; }
-    .brief .stepmeta .bar{ flex:1; height:2px; background:var(--line); position:relative; overflow:hidden; border-radius:2px; }
-    .brief .stepmeta .bar i{ position:absolute; inset:0; background:var(--accent); width:0; transition:width .5s ease; }
+    /* Left-edge completion rail — fixed so it stays visible while scrolling.
+       Fills bottom-to-top and shifts from tan toward orange as the brief
+       nears complete (height + color set in JS). */
+    .brief .prograil{ position:fixed; left:24px; top:50%; transform:translateY(-50%); width:5px; height:44vh; max-height:380px;
+      background:rgba(207,187,155,0.16); border-radius:999px; z-index:6; overflow:hidden; }
+    .brief .prograil i{ position:absolute; left:0; right:0; bottom:0; height:0; border-radius:999px;
+      background:var(--accent); transition:height .5s ease, background .5s ease; }
+    @media (max-width:720px){ .brief .prograil{ left:10px; width:4px; height:40vh; } }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
     /* stacked, strokeless frosted panels; hover turns all text orange (no raise) */
@@ -161,9 +175,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .group-desc{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); margin:-1.1rem 0 1.7rem; }
     .brief .rangewrap{ padding-top:.2rem; }
     .brief .rangeval{ font-size:1.15rem; font-weight:500; color:var(--ink); margin-bottom:.7rem; }
-    .brief input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:999px; background:var(--field-focus); outline:none; cursor:pointer; }
-    .brief input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:22px; height:22px; border-radius:50%; background:var(--btn); border:1px solid var(--ink); cursor:pointer; }
-    .brief input[type=range]::-moz-range-thumb{ width:22px; height:22px; border-radius:50%; background:var(--btn); border:1px solid var(--ink); cursor:pointer; }
+    /* Track is lightened and thicker; JS paints an orange fill up to the value
+       so the slider reads clearly against the dark WebGL background. */
+    .brief input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:999px; background:rgba(207,187,155,0.22); outline:none; cursor:pointer; }
+    .brief input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid #EF9146; box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
+    .brief input[type=range]::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid #EF9146; box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
     .brief .rangeends{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-soft); margin-top:.55rem; }
 
     .brief input[type=text], .brief input[type=email], .brief input[type=url], .brief textarea{
@@ -264,6 +280,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:box-shadow .2s ease,background .2s ease; }
     .brief .ce-done:hover{ background:var(--accent); }
     .brief .ce-done:active{ transform:scale(.97); }
+
+    /* color editor presented as a centered modal */
+    .brief .ce-modal[hidden]{ display:none; }
+    .brief .ce-modal{ position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .brief .ce-backdrop{ position:absolute; inset:0; background:rgba(8,5,2,0.62); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); animation:ceFade .2s ease both; }
+    .brief .ce-dialog{ position:relative; width:100%; max-width:440px; background:rgba(20,14,7,0.92); border:1px solid var(--line-strong);
+      border-radius:16px; padding:26px 26px 24px; box-shadow:0 30px 80px rgba(0,0,0,.55); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
+      animation:ceRise .26s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes ceFade{ from{opacity:0} to{opacity:1} }
+    @keyframes ceRise{ from{opacity:0; transform:translateY(10px) scale(.98)} to{opacity:1; transform:none} }
+    @media (prefers-reduced-motion:reduce){ .brief .ce-backdrop, .brief .ce-dialog{ animation:none; } }
+    .brief .ce-modal .ce-inner{ animation:none; }
 
     .brief .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem;
       display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
@@ -471,7 +499,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function colorsHTML(){
       return '<div class="colorpick" data-id="colors">'+
         '<div class="color3" data-role="slots"></div>'+
-        '<div class="coloredit" data-role="edit" hidden></div>'+
         '<button type="button" class="coloradd" data-role="add">+ Add color</button></div>';
     }
 
@@ -531,10 +558,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
       });
       form.querySelectorAll('input[type=range]').forEach(function(r){
+        setRangeFill(r);
         r.addEventListener('input',function(){
           var wrap=r.closest('.rangewrap');if(!wrap)return;var rv=wrap.querySelector('.rv');
           var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;
           rv.textContent=pfx+fmt(v)+(v>=mx?'+':'');
+          setRangeFill(r);
         });
       });
     }
@@ -579,7 +608,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function openEditor(cp,i){
       state.editing=i;
       var val=state.colors[i]||DEFAULT_HEX;
-      var ed=cp.querySelector('[data-role="edit"]');
+      var modal=document.getElementById('ceModal');
+      var ed=modal.querySelector('[data-role="edit"]');
       ed.innerHTML='<div class="ce-inner">'+
         '<span class="ce-label mono">Color 0'+(i+1)+'</span>'+
         '<span class="ce-swatch" title="Click to open the color picker">'+
@@ -590,7 +620,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         '<span class="ce-hint mono">Click to pick</span>'+
         '<span class="ce-hashwrap"># <input type="text" class="ce-hex" maxlength="6" spellcheck="false" value="'+val.replace('#','').toUpperCase()+'"></span>'+
         '<button type="button" class="ce-done">Done</button></div>';
-      ed.hidden=false;
+      modal.hidden=false; modal.setAttribute('aria-hidden','false');
+      try{ if(window._lenis && window._lenis.stop) window._lenis.stop(); }catch(e){}
       var native=ed.querySelector('.ce-native');
       var hex=ed.querySelector('.ce-hex');
       var fill=ed.querySelector('.ce-fill');
@@ -612,9 +643,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
     function closeEditor(cp){
       state.editing=-1;
-      var ed=cp.querySelector('[data-role="edit"]');
-      if(ed){ ed.hidden=true; ed.innerHTML=''; }
-      buildSlots(cp);
+      var modal=document.getElementById('ceModal');
+      if(modal){ modal.hidden=true; modal.setAttribute('aria-hidden','true'); var ed=modal.querySelector('[data-role="edit"]'); if(ed) ed.innerHTML=''; }
+      try{ if(window._lenis && window._lenis.start) window._lenis.start(); }catch(e){}
+      if(cp) buildSlots(cp);
+    }
+
+    function setRangeFill(r){
+      var min=+r.min, max=+r.max, v=+r.value;
+      var pct=max>min?((v-min)/(max-min))*100:0;
+      r.style.background='linear-gradient(90deg, #EF9146 0%, #EF9146 '+pct+'%, rgba(207,187,155,0.22) '+pct+'%, rgba(207,187,155,0.22) 100%)';
     }
 
     function updateProgress(){
@@ -622,7 +660,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var fields=form.querySelectorAll('.field');var filled=0;
       fields.forEach(function(fld){if(fieldValue(fld))filled++;});
       var pct=fields.length?Math.round(filled/fields.length*100):0;
-      document.getElementById('progbar').style.width=pct+'%';
+      var fill=document.getElementById('progFill');
+      if(fill){
+        fill.style.height=pct+'%';
+        var t=pct/100;
+        fill.style.background='rgb('+Math.round(222+(239-222)*t)+','+Math.round(203+(145-203)*t)+','+Math.round(175+(70-175)*t)+')';
+      }
     }
 
     function fieldValue(fld){
@@ -717,6 +760,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       document.getElementById('step-pick').style.display='block';
       window.scrollTo(0,0);refreshScroll();
     });
+
+    (function(){
+      var modal=document.getElementById('ceModal');
+      if(!modal) return;
+      modal.querySelector('[data-role="backdrop"]').addEventListener('click',function(){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); });
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !modal.hidden){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); } });
+    })();
 
     (function(){
       var els=document.querySelectorAll('.rise');
