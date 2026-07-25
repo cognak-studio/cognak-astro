@@ -26,7 +26,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
 
     <div id="formwrap">
-      <div class="prograil" id="progRail" aria-hidden="true"><i id="progFill"></i></div>
+      <div class="prograil" id="progRail" aria-hidden="true"><span class="prograil-cap prograil-cap--top">0%</span><i id="progFill"></i><span class="prograil-cap prograil-cap--bot">100%</span></div>
       <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
       <h2 class="headline form-headline" id="form-headline"></h2>
       <div class="stepmeta"><span id="disc-label" class="mono"></span></div>
@@ -141,6 +141,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       background:linear-gradient(180deg, #EDE0C8 0%, #EF9146 100%);
       box-shadow:0 0 8px 1px rgba(239,145,70,.5);
       transition:height .5s ease, background .5s ease, box-shadow .5s ease; }
+    /* Tiny mono end-caps: 0% at the top, 100% at the bottom of the rail. */
+    .brief .prograil-cap{ position:absolute; left:50%; transform:translateX(-50%);
+      font-family:'Diatype Mono', monospace; font-size:.52rem; letter-spacing:.06em;
+      color:var(--ink-soft); pointer-events:none; white-space:nowrap; }
+    .brief .prograil-cap--top{ top:-15px; }
+    .brief .prograil-cap--bot{ bottom:-15px; }
     @media (max-width:720px){ .brief .prograil{ width:2px; height:40vh; } }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
@@ -742,7 +748,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function updateProgress(){
       var form=document.getElementById('briefForm');if(!form)return;
-      var fields=form.querySelectorAll('.field');var filled=0;
+      /* Only required fields count toward completion — optional fields don't. */
+      var fields=form.querySelectorAll('.field[data-req="1"]');var filled=0;
       fields.forEach(function(fld){if(fieldValue(fld))filled++;});
       var pct=fields.length?Math.round(filled/fields.length*100):0;
       var fill=document.getElementById('progFill');
