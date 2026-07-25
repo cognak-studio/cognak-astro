@@ -21,7 +21,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <div id="step-pick">
       <h1 class="headline">Good work starts with a good <em>brief</em>. Let's write yours.</h1>
-      <p class="lede">The idea, the audience, the way it should feel. Give us the essentials and we'll have the shape of it before we ever get on a call.</p>
+      <p class="lede">The idea, the audience, the way it should feel. Give us the essentials and we'll have the sum of it before we ever get on a call.</p>
       <div class="picker rise" id="picker"></div>
     </div>
 
@@ -325,11 +325,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (prefers-reduced-motion:reduce){ .brief .rise{ opacity:1; transform:none; transition:none; } }
 
     /* ---- step crossfade: project picker <-> questionnaire ---- */
-    #step-pick, #formwrap{ transition:opacity .26s ease, transform .26s ease; }
-    #step-pick.step-hide, #formwrap.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
+    #step-pick, #formwrap, #sent{ transition:opacity .26s ease, transform .26s ease; }
+    #step-pick.step-hide, #formwrap.step-hide, #sent.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
     @media (prefers-reduced-motion:reduce){
-      #step-pick, #formwrap{ transition:none; }
-      #step-pick.step-hide, #formwrap.step-hide{ transform:none; }
+      #step-pick, #formwrap, #sent{ transition:none; }
+      #step-pick.step-hide, #formwrap.step-hide, #sent.step-hide{ transform:none; }
     }
   </style>
 
@@ -555,6 +555,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function showForm(){
       var pick=document.getElementById('step-pick');
       var wrap=document.getElementById('formwrap');
+      /* Push a history entry so the browser Back button returns to the picker
+         instead of leaving /brief. */
+      try{ history.pushState({briefStep:'form'}, ''); }catch(e){}
       if(reduceMotion()){
         pick.style.display='none'; wrap.style.display='block'; afterFormShown(); return;
       }
@@ -831,15 +834,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       document.getElementById('sent').style.display='block';
       window.scrollTo(0,0);refreshScroll();
     }
-    document.getElementById('backBtn').addEventListener('click',function(){
+    /* Return to the project picker (from the form OR the sent screen), matching
+       the forward crossfade. Called by browser Back via the popstate handler. */
+    function goToPicker(){
       var wrap=document.getElementById('formwrap');
+      var sent=document.getElementById('sent');
       var pick=document.getElementById('step-pick');
+      var cur=(sent&&sent.style.display!=='none')?sent:wrap;
       if(reduceMotion()){
-        wrap.style.display='none'; pick.style.display='block'; window.scrollTo(0,0); refreshScroll(); return;
+        if(wrap) wrap.style.display='none'; if(sent) sent.style.display='none';
+        pick.style.display='block'; window.scrollTo(0,0); refreshScroll(); return;
       }
-      wrap.classList.add('step-hide');
+      if(cur) cur.classList.add('step-hide');
       setTimeout(function(){
-        wrap.style.display='none'; wrap.classList.remove('step-hide');
+        if(wrap) wrap.style.display='none'; if(sent) sent.style.display='none';
+        if(cur) cur.classList.remove('step-hide');
         pick.style.display='block'; pick.style.opacity='0'; pick.style.transform='translateY(8px)';
         window.scrollTo(0,0); refreshScroll();
         requestAnimationFrame(function(){ requestAnimationFrame(function(){
@@ -848,11 +857,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }); });
         setTimeout(function(){ pick.style.transition=''; pick.style.transform=''; pick.style.opacity=''; }, 700);
       }, 260);
-    });
-    document.getElementById('restartBtn').addEventListener('click',function(){
-      document.getElementById('sent').style.display='none';
-      document.getElementById('step-pick').style.display='block';
-      window.scrollTo(0,0);refreshScroll();
+    }
+    /* The on-page "back" link and "start another" just step history back one entry;
+       the popstate handler does the actual swap, so the browser Back button and
+       the on-page controls stay in sync and both land on the picker. */
+    document.getElementById('backBtn').addEventListener('click',function(){ history.back(); });
+    document.getElementById('restartBtn').addEventListener('click',function(){ history.back(); });
+    window.addEventListener('popstate',function(){
+      var wrap=document.getElementById('formwrap');
+      var sent=document.getElementById('sent');
+      var onStep=(wrap&&wrap.style.display!=='none')||(sent&&sent.style.display!=='none');
+      if(onStep) goToPicker();
     });
 
     (function(){

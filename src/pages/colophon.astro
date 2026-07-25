@@ -82,9 +82,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         margin-left: clamp(48px, 11vw, 210px);
         margin-right: auto;
       }
-      /* Push just the header text left of the content column, and let it run
-       wider to the right (past the narrowed body container, toward the C). */
-      .colophon-headline { margin-left: -56px; margin-right: -300px; }
     }
     /* Headline + prose paragraphs reveal via the site-wide word-stagger
        (cognak-global.js), same as projects/studio. The eyebrow + the mono
@@ -128,6 +125,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color: #f6f6f0;
       /* Header text sized to the projects (1100) / studio (1300) band. */
       max-width: 1200px;
+    }
+    /* Desktop: push the header left of the content column and let it run wider
+       to the right (toward the C). Placed AFTER the base rule so its `margin`
+       shorthand can't reset these left/right margins back to 0. */
+    @media (min-width: 900px) {
+      .colophon-headline { margin-left: -56px; margin-right: -300px; }
     }
     .colophon-headline em {
       font-style: normal;
