@@ -2900,19 +2900,24 @@ a[href*="cookieyes.com"],
         top: 20px;
         left: 20px;
     }
-    /* On mobile the desktop ::before is 520px wide and overflows the viewport.
-       Override it with a compact blurred blob — filter:blur on a rounded shape
-       produces a genuine soft shadow, not the sharp rectangle that box-shadow gives. */
+    /* On mobile the desktop ::before is 520px wide and overflows the viewport, so
+       it's shrunk here. Use the SAME smooth radial as the top-right location halo
+       (just anchored top-left) — the old filter:blur solid blob had a defined edge
+       that read as a shadow patch trailing the word "cookies". A radial fades
+       edgelessly, matching the location readout. */
     #cognak-cookie::before {
-        width: 240px;
-        height: 180px;
+        width: 360px;
+        height: 300px;
         top: -50px;
-        left: -40px;
-        background: rgba(23, 21, 26, 0.88);
-        border-radius: 50%;
-        filter: blur(36px);
-        /* Override the desktop radial-gradient so the blob reads as a shadow */
-        background-image: none;
+        left: -50px;
+        background: radial-gradient(ellipse at top left,
+            rgba(23,21,26,1) 0%,
+            rgba(23,21,26,0.96) 22%,
+            rgba(23,21,26,0.78) 40%,
+            rgba(23,21,26,0.45) 56%,
+            rgba(23,21,26,0) 75%);
+        filter: none;
+        border-radius: 0;
     }
 }
 
