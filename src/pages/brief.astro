@@ -153,15 +153,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        mobile/tablet until it's reimagined for small screens. */
     @media (max-width:959px){ .brief .prograil{ display:none; } }
 
-    /* Mobile counterpart of the completion rail: a horizontal bar locked to
-       the top of the viewport, directly under the fixed nav (offset measured
-       in JS — see positionBarM). The strip is frosted like the brief nav
-       (espresso tint + blur) so form content scrolling beneath it blurs out
-       while the bar stays readable. No % caps or section notes here. */
+    /* Mobile counterpart of the completion rail: a slim horizontal strip
+       floating a little below the fixed nav (offset measured in JS — see
+       positionBarM), locked there while the page scrolls. Frosted like the
+       brief nav (espresso tint + blur) so any form content that passes
+       beneath it blurs out while the bar stays readable. No % caps or
+       section notes here. */
     .brief .progbar-m{ display:none; }
     @media (max-width:959px){
-      .brief .progbar-m{ display:block; position:fixed; top:88px; left:0; right:0; z-index:6;
-        padding:11px 24px 13px; background:rgba(12,8,3,0.6);
+      .brief .progbar-m{ display:block; position:fixed; top:100px; left:24px; right:24px; z-index:6;
+        padding:11px 14px 13px; border-radius:999px; background:rgba(12,8,3,0.6);
         -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
         /* own compositor layer so the backdrop-filter actually paints over the
            WebGL background — same fix the site navs use */
@@ -174,6 +175,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         background:linear-gradient(90deg, #EDE0C8 0%, #EF9146 100%);
         box-shadow:0 0 8px 1px rgba(239,145,70,.5);
         transition:width .5s ease, background .5s ease, box-shadow .5s ease; }
+      /* Clear the floating bar on load: push the form content down so the
+         backlink + headline start below the bar and nothing sits blurred
+         under it until the visitor actually scrolls. */
+      body.brief-form-open .brief{ padding-top:calc(8vh + 118px); }
     }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
@@ -1083,13 +1088,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       rail.style.transform='none';
     }
 
-    /* Lock the mobile bar directly under the fixed nav, whatever height the
+    /* Float the mobile bar a little below the fixed nav, whatever height the
        nav lands at on this viewport. */
     function positionBarM(){
       var bar=document.getElementById('progBarM');
       if(!bar) return;
       var nav=document.querySelector('.home-bottom-bar.inner-page-nav');
-      if(nav) bar.style.top=Math.round(nav.getBoundingClientRect().height)+'px';
+      if(nav) bar.style.top=(Math.round(nav.getBoundingClientRect().height)+14)+'px';
     }
 
     function updateProgress(){
