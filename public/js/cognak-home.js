@@ -62,7 +62,10 @@
                 bar.style.top = '0';
                 bar.style.bottom = 'auto';
             } else {
-                bar.classList.remove('nav-mode');
+                // Bring the nav background up as soon as the user scrolls (matches
+                // desktop) instead of waiting for the hero to fully pass. The bar
+                // still rides up locked to the hero's bottom edge during the hero.
+                bar.classList.toggle('nav-mode', window.pageYOffset > 0);
                 bar.style.position = 'absolute';
                 // stageBottom (viewport-relative) + pageYOffset = document-relative
                 // position of the stage's bottom edge — constant as user scrolls,

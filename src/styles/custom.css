@@ -789,54 +789,9 @@ html.home-scrolled #cognak-cookie {
            added/removed during scroll, causing a brief repaint jolt. */
         will-change: transform;
     }
-    /* Radial-gradient halo behind Projects/Studio (right side of bar).
-       Radial gradient avoids filter:blur which breaks fixed compositing on mobile. */
-    .home-nav-links-mobile {
-        position: relative;
-    }
-    .home-nav-links-mobile::before {
-        content: "";
-        position: absolute;
-        width: 220px;
-        height: 160px;
-        right: -30px;
-        top: calc(50% - 80px);
-        background: radial-gradient(ellipse at 65% 50%,
-            rgba(23, 21, 26, 0.96) 0%,
-            rgba(23, 21, 26, 0.78) 22%,
-            rgba(23, 21, 26, 0.52) 40%,
-            rgba(23, 21, 26, 0.22) 60%,
-            rgba(23, 21, 26, 0) 80%);
-        z-index: -1;
-        pointer-events: none;
-    }
-    /* Give logo a positioning context for its ::before halo */
-    .home-bottom-logo {
-        position: relative;
-    }
-    /* Halo behind the cognak logo — homepage hero only (body.non-fixed-nav).
-       Inner pages (studio, projects, privacy) don't have that class. */
-    body.non-fixed-nav .home-bottom-logo::before {
-        content: "";
-        position: absolute;
-        width: 200px;
-        height: 160px;
-        left: -30px;
-        top: calc(50% - 80px);
-        background: radial-gradient(ellipse at 35% 50%,
-            rgba(23, 21, 26, 0.96) 0%,
-            rgba(23, 21, 26, 0.78) 22%,
-            rgba(23, 21, 26, 0.52) 40%,
-            rgba(23, 21, 26, 0.22) 60%,
-            rgba(23, 21, 26, 0) 80%);
-        z-index: -1;
-        pointer-events: none;
-    }
-    /* Both halos belong to the hero — snap out once bar reaches the top */
-    html.home-scrolled .home-nav-links-mobile::before,
-    html.home-scrolled body.non-fixed-nav .home-bottom-logo::before {
-        opacity: 0;
-    }
+    /* Mobile: no halos behind the logo or Projects/Studio. The nav-mode
+       background bar (which fades in on the first scroll — see cognak-home.js)
+       provides the backing instead of per-item radial halos. */
     .home-bottom-bar.inner-page-nav {
         background: rgba(247, 241, 255, 0.75) !important;
         backdrop-filter: blur(6px);
@@ -3139,6 +3094,58 @@ html body.page-template-page-privacy-policy,
     }
     .privacy-body {
         margin-left: 0;
+    }
+}
+
+/* ── Homepage hero location (mobile) ──
+   Mirrors the cookie banner: a stacked LA-time readout locked to the top-right
+   hero corner. Hidden on desktop (which uses the bottom-bar location); on mobile
+   it's position:absolute so it scrolls away with the hero and fades on scroll. */
+.home-hero-location {
+    display: none;
+}
+@media (max-width: 720px) {
+    .home-hero-location {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 99999;
+        pointer-events: none;
+        text-align: right;
+        white-space: nowrap;
+        font-family: 'Diatype Variable', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 0.04em;
+        color: rgba(255, 255, 255, 0.6);
+        transition: opacity 0.4s ease;
+    }
+    /* Top-right halo — mirror of the cookie's top-left one */
+    .home-hero-location::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 360px;
+        height: 300px;
+        background: radial-gradient(ellipse at top right,
+            rgba(23, 21, 26, 1) 0%,
+            rgba(23, 21, 26, 0.96) 22%,
+            rgba(23, 21, 26, 0.78) 40%,
+            rgba(23, 21, 26, 0.45) 56%,
+            rgba(23, 21, 26, 0) 75%);
+        z-index: -1;
+        pointer-events: none;
+        opacity: var(--hero-halo-opacity, 1);
+    }
+    /* Belongs to the hero — fade out once it scrolls off, same as the cookie */
+    html.home-scrolled .home-hero-location {
+        opacity: 0;
     }
 }
 
