@@ -28,6 +28,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <div id="formwrap">
       <div class="prograil" id="progRail" aria-hidden="true"><span class="prograil-cap prograil-cap--top">0%</span><i id="progFill"></i><span class="prograil-cap prograil-cap--bot">100%</span></div>
+      <div class="progbar-m" id="progBarM" aria-hidden="true"><span class="progbar-m-track"><i id="progFillM"></i></span></div>
       <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
       <h2 class="headline form-headline" id="form-headline"></h2>
       <form id="briefForm" novalidate></form>
@@ -151,6 +152,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        Below that the reading column goes full-width, so hide the rail on
        mobile/tablet until it's reimagined for small screens. */
     @media (max-width:959px){ .brief .prograil{ display:none; } }
+
+    /* Mobile counterpart of the completion rail: a horizontal bar locked to
+       the top of the viewport, directly under the fixed nav (offset measured
+       in JS — see positionBarM). The strip is frosted like the brief nav
+       (espresso tint + blur) so form content scrolling beneath it blurs out
+       while the bar stays readable. No % caps or section notes here. */
+    .brief .progbar-m{ display:none; }
+    @media (max-width:959px){
+      .brief .progbar-m{ display:block; position:fixed; top:88px; left:0; right:0; z-index:6;
+        padding:11px 24px 13px; background:rgba(12,8,3,0.6);
+        -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+        /* own compositor layer so the backdrop-filter actually paints over the
+           WebGL background — same fix the site navs use */
+        will-change:transform; }
+      .brief .progbar-m-track{ display:block; position:relative; height:2px; border-radius:2px;
+        background:rgba(207,187,155,0.16); }
+      /* Filled line from the left: cream at the start, orange at the growing
+         end, glowing along the completed segment (width + color set in JS). */
+      .brief .progbar-m i{ position:absolute; left:0; top:0; bottom:0; width:0; border-radius:2px;
+        background:linear-gradient(90deg, #EDE0C8 0%, #EF9146 100%);
+        box-shadow:0 0 8px 1px rgba(239,145,70,.5);
+        transition:width .5s ease, background .5s ease, box-shadow .5s ease; }
+    }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
     /* stacked, strokeless frosted panels; hover turns all text orange (no raise) */
@@ -710,7 +734,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     function reduceMotion(){ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-    function afterFormShown(){ window.scrollTo(0,0); refreshScroll(); positionRail(); clampRail(); updateProgress(); }
+    function afterFormShown(){ window.scrollTo(0,0); refreshScroll(); positionRail(); clampRail(); positionBarM(); updateProgress(); }
 
     /* Crossfade the picker out, then rise the questionnaire's header + groups in,
        staggered top-to-bottom. Instant for prefers-reduced-motion. */
@@ -1059,6 +1083,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       rail.style.transform='none';
     }
 
+    /* Lock the mobile bar directly under the fixed nav, whatever height the
+       nav lands at on this viewport. */
+    function positionBarM(){
+      var bar=document.getElementById('progBarM');
+      if(!bar) return;
+      var nav=document.querySelector('.home-bottom-bar.inner-page-nav');
+      if(nav) bar.style.top=Math.round(nav.getBoundingClientRect().height)+'px';
+    }
+
     function updateProgress(){
       var form=document.getElementById('briefForm');if(!form)return;
       /* Every field except the optional ones (data-opt) counts toward completion.
@@ -1070,17 +1103,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if(done)filled++;
       });
       var pct=fields.length?Math.round(filled/fields.length*100):0;
+      /* Shared fill treatment: cream at the start, the growing end shifting
+         cream -> orange as the brief nears complete; the completed segment
+         glows, brighter as it fills. */
+      var t=pct/100;
+      var r=Math.round(237+(239-237)*t), g=Math.round(224+(145-224)*t), b=Math.round(200+(70-200)*t);
+      var end='rgb('+r+','+g+','+b+')';
+      var glow='0 0 8px 1px rgba(239,145,70,'+(0.25+0.5*t).toFixed(2)+')';
       var fill=document.getElementById('progFill');
       if(fill){
-        /* A filled line down from the top: cream at the top, the growing end
-           shifting cream -> orange as the brief nears complete; the completed
-           segment glows, brighter as it fills. */
+        /* Desktop rail: a filled line down from the top. */
         fill.style.height='max(6px,'+pct+'%)';
-        var t=pct/100;
-        var r=Math.round(237+(239-237)*t), g=Math.round(224+(145-224)*t), b=Math.round(200+(70-200)*t);
-        var end='rgb('+r+','+g+','+b+')';
         fill.style.background='linear-gradient(180deg, #EDE0C8 0%, '+end+' 100%)';
-        fill.style.boxShadow='0 0 8px 1px rgba(239,145,70,'+(0.25+0.5*t).toFixed(2)+')';
+        fill.style.boxShadow=glow;
+      }
+      var fillM=document.getElementById('progFillM');
+      if(fillM){
+        /* Mobile bar: the same fill sweeping left -> right. */
+        fillM.style.width='max(6px,'+pct+'%)';
+        fillM.style.background='linear-gradient(90deg, #EDE0C8 0%, '+end+' 100%)';
+        fillM.style.boxShadow=glow;
       }
       renderRailNotes(form);
     }
@@ -1251,7 +1293,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(!modal) return;
       modal.querySelector('[data-role="backdrop"]').addEventListener('click',function(){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); });
       document.addEventListener('keydown',function(e){ if(e.key==='Escape' && !modal.hidden){ var cp=document.querySelector('.colorpick'); if(cp) closeEditor(cp); } });
-      window.addEventListener('resize',function(){ positionRail(); clampRail(); });
+      window.addEventListener('resize',function(){ positionRail(); clampRail(); positionBarM(); });
       window.addEventListener('scroll',clampRail,{passive:true});
     })();
 
