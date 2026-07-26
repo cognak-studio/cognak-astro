@@ -789,11 +789,13 @@ html.home-scrolled #cognak-cookie {
            added/removed during scroll, causing a brief repaint jolt. */
         will-change: transform;
         /* Nav-mode is toggled the moment the user scrolls off the top (see
-           cognak-home.js). Fade the background AND the frost blur in/out on a
-           timer so it eases rather than snapping. No resting backdrop-filter here
-           (that reserves a compositor box and shoves the flex content over) — the
-           blur transition animates up from none on its own. */
-        transition: background 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease;
+           cognak-home.js). Fade only the background TINT on a timer — the frost
+           blur is intentionally NOT transitioned: animating a backdrop-filter's
+           radius forces a full re-blur of the live WebGL hero every frame, which
+           dropped frames and made the hero "catch" around mid-viewport. The blur
+           just appears with nav-mode (nearly free); the tint fade carries the
+           visible ease. */
+        transition: background 0.35s ease;
     }
     /* Mobile: no halos behind the logo or Projects/Studio. The nav-mode
        background bar (which fades in on the first scroll — see cognak-home.js)
