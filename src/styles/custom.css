@@ -776,6 +776,13 @@ html.home-scrolled #cognak-cookie {
         overflow-x: clip;
         max-width: 100%;
     }
+    /* Kill sideways "wiggle": decorative corner glows (e.g. the top-right
+       .home-hero-location::before at right:-50px) poke past the right edge and
+       add scrollable dead space. Clip at the root — overflow-x:clip doesn't make
+       a scroll container, so Lenis and fixed/sticky are unaffected. */
+    html {
+        overflow-x: clip;
+    }
     .home-bottom-bar {
         padding: 20px 24px;
         /* Let nav-mode class control background + backdrop-filter (same as desktop)
@@ -789,13 +796,16 @@ html.home-scrolled #cognak-cookie {
            added/removed during scroll, causing a brief repaint jolt. */
         will-change: transform;
         /* Nav-mode is toggled the moment the user scrolls off the top (see
-           cognak-home.js). Fade only the background TINT on a timer — the frost
-           blur is intentionally NOT transitioned: animating a backdrop-filter's
-           radius forces a full re-blur of the live WebGL hero every frame, which
-           dropped frames and made the hero "catch" around mid-viewport. The blur
-           just appears with nav-mode (nearly free); the tint fade carries the
-           visible ease. */
+           cognak-home.js). On mobile the frosted backdrop-filter is disabled
+           entirely (set to none there in cognak-home.js) because re-blurring the
+           live WebGL hero every frame as the bar rode up made the hero "catch"
+           mid-viewport. So the tint alone carries the nav — fade just the
+           background on a timer. */
         transition: background 0.35s ease;
+    }
+    /* A hair more opaque than desktop's 0.75 to compensate for the missing frost. */
+    .home-bottom-bar.nav-mode {
+        background: rgba(23, 21, 26, 0.82);
     }
     /* Mobile: no halos behind the logo or Projects/Studio. The nav-mode
        background bar (which fades in on the first scroll — see cognak-home.js)

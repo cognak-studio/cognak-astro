@@ -31,6 +31,14 @@
             navLinks.style.display = 'flex';
         }
         if (homeNav) homeNav.style.display = 'none';
+        // Drop the frosted backdrop-filter on mobile: the bar rides UP over the
+        // animating WebGL hero every frame, and a moving backdrop-filter has to
+        // re-blur that live content each frame — it dropped frames and made the
+        // hero "catch" around mid-viewport (worst over the bright headline). The
+        // background tint alone carries the nav here. Element-inline !important
+        // beats the .home-bottom-bar.nav-mode blur rule set in BaseLayout's head.
+        bar.style.setProperty('backdrop-filter', 'none', 'important');
+        bar.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
     }
 
     function update() {
