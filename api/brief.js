@@ -113,7 +113,16 @@ export default async function handler(req, res) {
       if (match) labelIds = [match.id];
     }
 
+    // Assign to the API key's own user (you) so the brief lands in "My Issues"
+    // and notifies your Linear Inbox / Slack the moment it arrives.
+    let assigneeId;
+    try {
+      const me = await linear(apiKey, 'query { viewer { id } }');
+      assigneeId = me && me.viewer && me.viewer.id;
+    } catch (e) { /* non-fatal: fall back to an unassigned issue */ }
+
     const input = { teamId: team.id, title: title, description: description };
+    if (assigneeId) input.assigneeId = assigneeId;
     if (labelIds) input.labelIds = labelIds;
 
     const created = await linear(
