@@ -2813,6 +2813,24 @@ a[href*="cookieyes.com"],
     gap: 6px;
     transition: opacity 0.4s ease;
 }
+/* Legibility guard for the homepage banner (non-corner variant). Its only dark
+   backing is the top-left ::before halo, which can't stretch across the whole
+   banner on mobile without its box bleeding past the viewport (that's the mobile
+   horizontal-overflow "wiggle"). Where the halo fades out — the right end of
+   "This site uses cookies" — the text sits over the raw WebGL hero and its
+   contrast collapses, reading as a diagonal fade. A crisp dark text-shadow
+   contour holds every glyph at its true color over whatever the hero paints, and
+   is invisible on the solid dark bg. Scoped away from the corner variants, which
+   carry their own solid glass backing (and the light one uses dark text). */
+#cognak-cookie:not(.cognak-cookie--corner) {
+    text-shadow:
+        -1px -1px 0 rgba(23, 21, 26, 0.98),
+        1px -1px 0 rgba(23, 21, 26, 0.98),
+        -1px 1px 0 rgba(23, 21, 26, 0.98),
+        1px 1px 0 rgba(23, 21, 26, 0.98),
+        0 0 4px rgba(23, 21, 26, 1),
+        0 0 9px rgba(23, 21, 26, 0.9);
+}
 /* Soft bg-color halo behind the cookie banner — radiates out from the top-left
    corner (same fade-out look as the hero, not a centered circle).
    Cookie banner only renders on the homepage, and on desktop it's reparented
