@@ -2813,21 +2813,6 @@ a[href*="cookieyes.com"],
     gap: 6px;
     transition: opacity 0.4s ease;
 }
-/* Legibility guard for the homepage banner (non-corner variant). Its only dark
-   backing is the top-left ::before halo, which on mobile can't stretch across the
-   whole banner without its box bleeding past the viewport (the mobile
-   horizontal-overflow "wiggle"). Where the halo fades out — the right end of
-   "This site uses cookies" — the text sat over the raw WebGL hero and lost
-   contrast, reading as a diagonal fade. Two parts: a soft text-shadow on all the
-   text everywhere, plus (in the max-width:720px block) a contained dark backing
-   on the banner itself so the whole text block keeps full contrast over any hero
-   frame. Buttons don't inherit text-shadow, so they're named explicitly. Corner
-   variants are excluded — they carry their own glass backing (light one uses
-   dark text). */
-#cognak-cookie:not(.cognak-cookie--corner),
-#cognak-cookie:not(.cognak-cookie--corner) .cognak-cookie-opt {
-    text-shadow: 0 0 4px rgba(23, 21, 26, 0.9), 0 1px 2px rgba(23, 21, 26, 1);
-}
 /* Soft bg-color halo behind the cookie banner — radiates out from the top-left
    corner (same fade-out look as the hero, not a centered circle).
    Cookie banner only renders on the homepage, and on desktop it's reparented
@@ -3196,27 +3181,17 @@ html body.page-template-page-privacy-policy,
        the corner variant on Studio keeps its fixed bottom-right position, set above) */
     #cognak-cookie:not(.cognak-cookie--corner) {
         position: absolute !important;
-        /* The padding + the reduced top/left offsets give the banner its own
-           contained dark backing while keeping the text at its original 20px/20px
-           inset. The backing must be a FLAT fill, not a radial: a corner-anchored
-           radial fades toward the top-right corner, which is exactly where the
-           end of "cookies" sits — so it faded there over a bright hero frame. A
-           flat fill is uniformly opaque behind the whole text block; the soft
-           box-shadow feathers the edge into the hero (replacing the ::before
-           halo's glow, disabled just below) so there's no hard card edge and no
-           bleeding pseudo (= no overflow wiggle). */
-        top: 11px !important;
-        left: 6px !important;
-        z-index: 99999 !important;
-        padding: 9px 18px 11px 14px;
-        border-radius: 16px;
-        background: rgba(23, 21, 26, 0.9);
-        box-shadow: 0 0 22px 10px rgba(23, 21, 26, 0.9);
-    }
-    /* The flat backing above replaces the halo's job on mobile; keeping both
-       would double-darken. Disable the ::before halo for the homepage banner. */
-    #cognak-cookie:not(.cognak-cookie--corner)::before {
-        content: none !important;
+        top: 20px !important;
+        left: 20px !important;
+        /* Lift above the top-right hero location readout, which also sits at
+           z-index 99999. That readout's dark ::before glow is 360px wide and
+           anchored to the top-right, so it reaches left across the end of "This
+           site uses cookies"; being later in the DOM at the same z-index, its
+           stacking context painted the glow ON TOP of the heading and veiled
+           "cookies" (the fade toward the top-right). One rung higher lets the
+           banner paint above the glow — which then just sits behind the text as
+           extra backing instead of over it. */
+        z-index: 100000 !important;
     }
 
     /* Footer bottom: Projects/Studio stacked above copyright */
