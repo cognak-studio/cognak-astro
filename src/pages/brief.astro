@@ -38,10 +38,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
 
     <div id="sent">
-      <p class="eyebrow">Sent</p>
+      <p class="eyebrow sent-eyebrow">Sent<span class="sparkles" aria-hidden="true"><i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i><i class="spark s4"></i><i class="spark s5"></i><i class="spark s6"></i></span></p>
       <h2 class="headline">Thank you. <em>Got it</em>.</h2>
       <p class="lede">Your brief just landed with us. We'll read it properly and get back to you within a day or two.</p>
-      <p class="sent-tape" id="sentTape"></p>
       <button class="btn btn-ghost" id="restartBtn" type="button">Start another brief</button>
     </div>
 
@@ -410,10 +409,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (max-width:1279px){ .brief .prograil .rail-note{ display:none; } }
     @media (prefers-reduced-motion:reduce){ .brief .prograil .rail-note{ transition:none; } }
 
-    /* sent screen: the brief replayed as one mono tape line */
-    .brief .sent-tape{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.14em;
-      text-transform:uppercase; color:var(--ink-soft); margin:-1rem 0 2.4rem; line-height:2; }
-    .brief .sent-tape em{ font-style:normal; color:rgba(239,145,70,.75); }
+    /* sent screen: orange sparkles twinkle around the SENT eyebrow. Positioned
+       to the right/top/bottom of the word (never past the column's left edge,
+       so no mobile horizontal overflow). */
+    .brief .sent-eyebrow{ position:relative; display:inline-block; }
+    .brief .sent-eyebrow .sparkles{ position:absolute; top:-18px; right:-34px; bottom:-16px; left:0; pointer-events:none; }
+    .brief .spark{ position:absolute; width:10px; height:10px; opacity:0; transform:scale(.3);
+      background:#EF9146; filter:drop-shadow(0 0 3px rgba(239,145,70,.55));
+      clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);
+      animation:sentSpark 2.6s ease-in-out infinite; }
+    .brief .spark.s1{ top:-2px;   left:4px;    width:8px;  animation-delay:.2s; }
+    .brief .spark.s2{ top:-12px;  left:40%;    width:7px;  animation-delay:.7s;  background:#F3B072; }
+    .brief .spark.s3{ top:2px;    right:-24px; width:13px; animation-delay:1.1s; }
+    .brief .spark.s4{ bottom:-8px; left:24%;    width:8px;  animation-delay:1.55s; background:#DECBAF; }
+    .brief .spark.s5{ bottom:0;   right:-12px; width:9px;  animation-delay:.95s; }
+    .brief .spark.s6{ top:36%;    right:-32px; width:6px;  animation-delay:1.9s;  background:#F3B072; }
+    @keyframes sentSpark{ 0%,100%{ opacity:0; transform:scale(.3) rotate(0deg); }
+      50%{ opacity:1; transform:scale(1) rotate(90deg); } }
+    @media (prefers-reduced-motion:reduce){
+      .brief .spark{ animation:none; opacity:.8; transform:scale(1); }
+    }
 
     /* soft veil that dims the WebGL texture behind the reading column only
        while the questionnaire is open (legibility without losing the vibe) */
@@ -446,11 +461,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        slider range depends on the chosen discipline (see BUDGETS). */
     function tailFor(key){
       var b = BUDGETS[key] || BUDGETS.branding;
+      var anythingQ = key==='branding'
+        ? 'Any brands you like or dislike? Any inspiration we should consider? Let us know anything else that may help.'
+        : 'Anything else we should know?';
       return {title:'Timeline & budget',fields:[
         {id:'timeline',type:'single',t:'Timeline',q:'When do you want this done?',options:['ASAP / urgent','1–3 months','3–6 months','Flexible / exploratory']},
         {id:'budget',type:'range',t:'Budget',q:'Drag to set your rough budget.',min:b.min,max:b.max,step:b.step,def:b.def,prefix:'$'},
         {id:'materials',type:'files',t:'Existing materials',q:'Current logo, guidelines, decks, dielines — anything useful.',opt:true},
-        {id:'anything',type:'textarea',t:'Anything else',q:'Anything else we should know?'}
+        {id:'anything',type:'textarea',t:'Anything else',q:anythingQ}
       ]};
     }
 
@@ -1012,7 +1030,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(!rail||!brief) return;
       var cs=getComputedStyle(brief);
       var left=brief.getBoundingClientRect().left + parseFloat(cs.paddingLeft||'0');
-      rail.style.left=Math.max(6, left - 100) + 'px';
+      /* center the rail in the gutter between the viewport edge and the text
+         column's left edge (rail is 2px wide, so -1 to true-center). */
+      rail.style.left=Math.max(6, (left/2) - 1) + 'px';
     }
 
     /* Keep the fixed rail within the form's vertical bounds so it can never sit
@@ -1089,22 +1109,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
         if(notes[i])notes[i].classList.toggle('on',done);
       });
-    }
-
-    /* ---- sent screen: replay the brief as one mono tape line ---- */
-    function buildTape(){
-      var form=document.getElementById('briefForm');if(!form)return '';
-      var parts=[DISCIPLINES[state.discipline].label];
-      function val(id){var fld=form.querySelector('[data-field="'+id+'"]');return fld?fieldValue(fld):'';}
-      var angle=val('stage')||val('goal')||val('what_kind');
-      if(angle)parts.push(angle.split(',')[0]);
-      var pers=val('personality');
-      if(pers)parts.push(pers.split(', ').slice(0,2).join(', '));
-      var ver=val('versions');
-      if(ver)parts.push(ver+(ver==='1'?' concept':' concepts'));
-      var tl=val('timeline'); if(tl)parts.push(tl);
-      var bd=val('budget'); if(bd)parts.push(bd);
-      return parts.filter(Boolean).join(' · ');
     }
 
     function fieldValue(fld){
@@ -1194,8 +1198,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return '';
     }
     function showSent(){
-      var tape=document.getElementById('sentTape');
-      if(tape)tape.textContent=buildTape();
       document.getElementById('formwrap').style.display='none';
       document.getElementById('sent').style.display='block';
       window.scrollTo(0,0);refreshScroll();
