@@ -28,7 +28,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <div id="formwrap">
       <div class="prograil" id="progRail" aria-hidden="true"><span class="prograil-cap prograil-cap--top">0%</span><i id="progFill"></i><span class="prograil-cap prograil-cap--bot">100%</span></div>
-      <div class="progbar-m" id="progBarM" aria-hidden="true"><span class="progbar-m-track"><i id="progFillM"></i></span></div>
+      <div class="progbar-m" id="progBarM" aria-hidden="true"><span class="progbar-m-cap">0%</span><span class="progbar-m-track"><i id="progFillM"></i></span><span class="progbar-m-cap">100%</span></div>
       <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
       <h2 class="headline form-headline" id="form-headline"></h2>
       <form id="briefForm" novalidate></form>
@@ -161,13 +161,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        section notes here. */
     .brief .progbar-m{ display:none; }
     @media (max-width:959px){
-      .brief .progbar-m{ display:block; position:fixed; top:100px; left:24px; right:24px; z-index:6;
+      .brief .progbar-m{ display:flex; align-items:center; gap:10px; position:fixed; top:100px;
+        left:6vw; right:6vw; z-index:6;
         padding:11px 14px 13px; border-radius:999px; background:rgba(12,8,3,0.6);
         -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
         /* own compositor layer so the backdrop-filter actually paints over the
            WebGL background — same fix the site navs use */
         will-change:transform; }
-      .brief .progbar-m-track{ display:block; position:relative; height:2px; border-radius:2px;
+      /* Tiny mono end-caps: 0% at the left, 100% at the right of the track,
+         matching the desktop rail's caps. */
+      .brief .progbar-m-cap{ font-family:'Diatype Mono', monospace; font-size:.52rem;
+        letter-spacing:.06em; line-height:1; color:var(--ink-soft);
+        pointer-events:none; white-space:nowrap; }
+      .brief .progbar-m-track{ display:block; position:relative; flex:1; height:2px; border-radius:2px;
         background:rgba(207,187,155,0.16); }
       /* Filled line from the left: cream at the start, orange at the growing
          end, glowing along the completed segment (width + color set in JS). */
