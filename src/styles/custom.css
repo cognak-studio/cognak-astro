@@ -788,10 +788,13 @@ html.home-scrolled #cognak-cookie {
            Without this, Chrome promotes/demotes the layer when nav-mode is
            added/removed during scroll, causing a brief repaint jolt. */
         will-change: transform;
-        /* The mobile nav bg is now scroll-linked (set inline every frame in
-           cognak-home.js), so the desktop 0.3s background transition would just
-           make it trail behind the scroll. Track scroll crisply instead. */
-        transition: background 0s;
+        /* Nav-mode is toggled the moment the user scrolls off the top (see
+           cognak-home.js). Fade the background AND the frost blur in/out on a
+           timer so it eases rather than snapping. Start from blur(0) so the frost
+           can interpolate up to the nav-mode blur instead of popping on. */
+        transition: background 0.35s ease, backdrop-filter 0.35s ease, -webkit-backdrop-filter 0.35s ease;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
     }
     /* Mobile: no halos behind the logo or Projects/Studio. The nav-mode
        background bar (which fades in on the first scroll — see cognak-home.js)
