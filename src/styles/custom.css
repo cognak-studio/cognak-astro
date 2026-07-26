@@ -2814,22 +2814,19 @@ a[href*="cookieyes.com"],
     transition: opacity 0.4s ease;
 }
 /* Legibility guard for the homepage banner (non-corner variant). Its only dark
-   backing is the top-left ::before halo, which can't stretch across the whole
-   banner on mobile without its box bleeding past the viewport (that's the mobile
+   backing is the top-left ::before halo, which on mobile can't stretch across the
+   whole banner without its box bleeding past the viewport (the mobile
    horizontal-overflow "wiggle"). Where the halo fades out — the right end of
-   "This site uses cookies" — the text sits over the raw WebGL hero and its
-   contrast collapses, reading as a diagonal fade. A crisp dark text-shadow
-   contour holds every glyph at its true color over whatever the hero paints, and
-   is invisible on the solid dark bg. Scoped away from the corner variants, which
-   carry their own solid glass backing (and the light one uses dark text). */
-#cognak-cookie:not(.cognak-cookie--corner) {
-    text-shadow:
-        -1px -1px 0 rgba(23, 21, 26, 0.98),
-        1px -1px 0 rgba(23, 21, 26, 0.98),
-        -1px 1px 0 rgba(23, 21, 26, 0.98),
-        1px 1px 0 rgba(23, 21, 26, 0.98),
-        0 0 4px rgba(23, 21, 26, 1),
-        0 0 9px rgba(23, 21, 26, 0.9);
+   "This site uses cookies" — the text sat over the raw WebGL hero and lost
+   contrast, reading as a diagonal fade. Two parts: a soft text-shadow on all the
+   text everywhere, plus (in the max-width:720px block) a contained dark backing
+   on the banner itself so the whole text block keeps full contrast over any hero
+   frame. Buttons don't inherit text-shadow, so they're named explicitly. Corner
+   variants are excluded — they carry their own glass backing (light one uses
+   dark text). */
+#cognak-cookie:not(.cognak-cookie--corner),
+#cognak-cookie:not(.cognak-cookie--corner) .cognak-cookie-opt {
+    text-shadow: 0 0 4px rgba(23, 21, 26, 0.9), 0 1px 2px rgba(23, 21, 26, 1);
 }
 /* Soft bg-color halo behind the cookie banner — radiates out from the top-left
    corner (same fade-out look as the hero, not a centered circle).
@@ -3199,9 +3196,21 @@ html body.page-template-page-privacy-policy,
        the corner variant on Studio keeps its fixed bottom-right position, set above) */
     #cognak-cookie:not(.cognak-cookie--corner) {
         position: absolute !important;
-        top: 20px !important;
-        left: 20px !important;
+        /* The padding + the reduced top/left offsets give the banner its own
+           contained dark backing (below) while keeping the text at its original
+           20px/20px inset. Contained on the element = no bleeding pseudo = no
+           overflow wiggle. This is what actually kills the "cookies" fade; the
+           ::before halo stays for the ambient glow around the block. */
+        top: 11px !important;
+        left: 6px !important;
         z-index: 99999 !important;
+        padding: 9px 18px 11px 14px;
+        border-radius: 16px;
+        background: radial-gradient(135% 135% at 16% 20%,
+            rgba(23, 21, 26, 0.92) 0%,
+            rgba(23, 21, 26, 0.86) 48%,
+            rgba(23, 21, 26, 0.6) 70%,
+            rgba(23, 21, 26, 0) 100%);
     }
 
     /* Footer bottom: Projects/Studio stacked above copyright */

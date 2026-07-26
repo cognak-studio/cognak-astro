@@ -787,10 +787,35 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     /* ---- existing-materials uploader (Vercel Blob client uploads) ---- */
     function humanSize(b){ return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB'; }
+    /* A stalled upload must never spin forever. If any leg (client import, the
+       /api/upload token handshake, or the PUT to Blob) hasn't settled by this
+       cap, we reject with a readable reason so the row flips to FAILED and the
+       paste-a-link fallback is right there. */
+    var UP_TIMEOUT_MS=60000;
+    var _blobClient=null;                 // cache the on-demand client import
+    function blobClient(){
+      if(!_blobClient){
+        _blobClient=import('https://esm.sh/@vercel/blob@1/client').catch(function(e){
+          _blobClient=null;               // let the next attempt retry the import
+          throw new Error('Uploader could not load. Check your connection and retry.');
+        });
+      }
+      return _blobClient;
+    }
+    function withTimeout(promise,ms,label){
+      return new Promise(function(resolve,reject){
+        var to=setTimeout(function(){ reject(new Error(label||'Timed out')); }, ms);
+        promise.then(function(v){ clearTimeout(to); resolve(v); },
+                     function(e){ clearTimeout(to); reject(e); });
+      });
+    }
     function blobUpload(file){
       /* official client, loaded on demand so the page pays nothing until used */
-      return import('https://esm.sh/@vercel/blob@1/client').then(function(m){
-        return m.upload('briefs/'+file.name, file, {access:'public', handleUploadUrl:'/api/upload'});
+      return blobClient().then(function(m){
+        return withTimeout(
+          m.upload('briefs/'+file.name, file, {access:'public', handleUploadUrl:'/api/upload'}),
+          UP_TIMEOUT_MS, 'Upload timed out. Paste a link instead.'
+        );
       });
     }
     function initUploader(up){
@@ -822,8 +847,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           state.files.push(entry); render();
           blobUpload(file).then(function(blob){
             entry.url=blob.url; entry.status='done'; render();
-          }).catch(function(){
-            entry.status='error'; render();
+          }).catch(function(err){
+            entry.status='error';
+            var msg=(err&&err.message)?String(err.message):'Upload failed';
+            entry.reason=msg.slice(0,64);
+            console.error('[brief upload] '+file.name, err);
+            render();
           });
         });
         input.value='';
