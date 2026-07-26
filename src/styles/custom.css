@@ -1452,7 +1452,10 @@ html.home-scrolled #cognak-cookie {
 @media (max-width: 720px) {
     .projects-display-copy {
         margin-left: 0 !important;
-        padding-top: 88px !important;
+        /* 100px under the 54px nav clearance = headline text at 154px — the
+           shared mobile header position across projects/studio/privacy/
+           colophon/brief. */
+        padding-top: 100px !important;
         margin-bottom: 40px !important;
     }
     .projects-display-headline {
@@ -3106,7 +3109,10 @@ html body.page-template-page-privacy-policy,
 /* (reveal now handled by the site-wide word-stagger in cognak-global.js) */
 @media (max-width: 720px) {
     .privacy-template {
-        padding: 28px 28px 80px;
+        /* No top padding — the headline's own 100px (under the 54px nav
+           clearance) puts its text at 154px, the shared mobile header
+           position across projects/studio/privacy/colophon/brief. */
+        padding: 0 28px 80px;
     }
     .privacy-headline {
         font-size: clamp(24px, 7vw, 42px) !important;

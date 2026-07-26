@@ -73,9 +73,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .colophon {
       max-width: 930px;
       margin: 0 auto;
-      padding: calc(7vh + 75px) 6vw 22vh;
+      /* Fixed 190px (not vh-based) so the headline text lands at 274px under
+         the 84px nav clearance — the shared header position across
+         projects/studio/privacy/colophon/brief. */
+      padding: 190px 6vw 22vh;
       color: #f4f4ee;
       font-family: 'Diatype Variable', sans-serif;
+    }
+    /* Mobile: 100px under the 54px nav clearance = headline text at 154px,
+       matching the other inner pages. */
+    @media (max-width: 720px) {
+      .colophon { padding-top: 100px; }
     }
     @media (min-width: 900px) {
       .colophon {

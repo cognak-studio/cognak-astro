@@ -84,9 +84,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       --cream:#2A2010; --btn:#D6C3A4; --sel:#D6C3A4;
       --line:rgba(207,187,155,0.20); --line-strong:rgba(207,187,155,0.40);
       --placeholder:#9C8763; --err:#FF9E90;
-      max-width:1040px; margin:0 auto; padding:calc(8vh + 80px) 6vw 22vh;
+      /* Fixed 190px (not vh-based) so the headline text lands at 274px under
+         the 84px nav clearance — the shared header position across
+         projects/studio/privacy/colophon/brief. */
+      max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
+    /* Mobile: 100px under the 54px nav clearance = headline text at 154px,
+       matching the other inner pages. The form step's backlink starts at the
+       same spot. */
+    @media (max-width:720px){ .brief{ padding-top:100px; } }
     @media (min-width:960px){ .brief{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
     .brief .mono{ font-family:'Diatype Mono', monospace; }
 
@@ -181,10 +188,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         background:linear-gradient(90deg, #EDE0C8 0%, #EF9146 100%);
         box-shadow:0 0 8px 1px rgba(239,145,70,.5);
         transition:width .5s ease, background .5s ease, box-shadow .5s ease; }
-      /* Clear the floating bar on load: push the form content down so the
-         backlink + headline start below the bar and nothing sits blurred
-         under it until the visitor actually scrolls. */
-      body.brief-form-open .brief{ padding-top:calc(8vh + 118px); }
     }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
@@ -206,7 +209,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .pcard:hover .arrow{ transform:translateX(4px); }
 
     #formwrap{ display:none; }
-    .brief .backlink{ position:relative; display:inline-flex; align-items:center; gap:.5rem; background:none; border:none;
+    /* flex (not inline-flex) + fit-content: block-level so no inline strut
+       nudges it below the shared header position, still shrink-wrapped. */
+    .brief .backlink{ position:relative; display:flex; width:fit-content; align-items:center; gap:.5rem; background:none; border:none;
       color:#EF9146; font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3; letter-spacing:.16em;
       text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 2.2rem; transition:color .2s ease; }
     .brief .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
