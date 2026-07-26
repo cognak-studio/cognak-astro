@@ -213,11 +213,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        nudges it below the shared header position, still shrink-wrapped. */
     .brief .backlink{ position:relative; display:flex; width:fit-content; align-items:center; gap:.5rem; background:none; border:none;
       color:#EF9146; font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3; letter-spacing:.16em;
-      /* 15px of extra breathing room above the backlink on the form step
-         (sits just under the shared header position). */
-      text-transform:uppercase; cursor:pointer; padding:0; margin:15px 0 2.2rem; transition:color .2s ease; }
+      text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 2.2rem; transition:color .2s ease; }
     .brief .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
     .brief .backlink:hover{ color:#F5A65E; }
+    /* Mobile only: 15px of extra breathing room above the backlink on the
+       form step (desktop keeps the shared header position exactly). Placed
+       after the base .backlink rule so the margin override wins. */
+    @media (max-width:959px){ .brief .backlink{ margin-top:15px; } }
 
     .brief .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .brief .group:first-of-type{ border-top:none; padding-top:0; margin-top:.6rem; }
