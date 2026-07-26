@@ -444,6 +444,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       font-size:1.05rem; line-height:1; padding:0 2px; transition:color .2s ease; }
     .brief .upfile .ufx:hover{ color:var(--ink); }
     .brief .uplink{ margin-top:10px; }
+    /* "+ Add another link" — quiet mono text button in the coloradd dialect */
+    .brief .uplink-add{ margin-top:10px; background:none; border:none; padding:0;
+      color:var(--ink-soft); cursor:pointer; font-family:'Diatype Mono', monospace;
+      font-size:.68rem; letter-spacing:.1em; transition:color .2s ease; }
+    .brief .uplink-add:hover{ color:var(--ink); }
+    .brief .uplink-add[hidden]{ display:none; }
 
     /* rail receipt: section names materialize beside the rail as they complete */
     .brief .prograil .rail-note{ position:absolute; left:12px; transform:translateY(-50%);
@@ -534,7 +540,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             {id:'stage',type:'single',t:'Starting point',q:'Where are you starting from?',options:['Brand-new, from scratch','Rebrand of an established business','Refresh of the current look']}
           ]},
           {title:'Feel & direction',fields:[
-            {id:'personality',type:'multi',t:'Personality',q:'Pick the words that should describe the brand.',hint:'Choose a handful.',options:['Bold','Refined','Playful','Minimal','Premium','Approachable','Technical','Warm','Trustworthy','Expressive','Editorial','Timeless','Modern','Handmade']},
+            {id:'personality',type:'multi',t:'Personality',q:'Pick the words that should describe the brand.',hint:'Choose a handful.',options:['Bold','Refined','Playful','Minimal','Premium','Approachable','Technical','Warm','Trustworthy','Expressive','Editorial','Timeless','Modern','Handmade','Experimental']},
             {id:'colors',type:'colors',t:'Colors',q:'Please choose up to 5 colors.'},
             {id:'colors_comments',type:'textarea',t:'Any additional thoughts or comments on color',q:'',opt:true}
           ]},
@@ -718,14 +724,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }).join('')+'</div></div>';
     }
 
-    /* Existing-materials: direct-to-Blob uploads plus a paste-a-link field. */
-    var UP_MAX_FILES=5, UP_MAX_BYTES=25*1024*1024;
+    /* Existing-materials: direct-to-Blob uploads plus paste-a-link fields
+       (one to start, "+ Add another link" up to UP_MAX_LINKS). */
+    var UP_MAX_FILES=5, UP_MAX_BYTES=25*1024*1024, UP_MAX_LINKS=10;
     function filesHTML(f){
       return '<div class="uploader" data-id="'+f.id+'">'+
         '<button type="button" class="updrop" data-role="drop">DROP FILES OR CLICK &mdash; PDF, ZIP, IMG &middot; 25MB &middot; '+UP_MAX_FILES+' MAX</button>'+
         '<input type="file" data-role="fileinput" multiple hidden accept=".pdf,.zip,.png,.jpg,.jpeg,.gif,.svg,.ai,.eps,.psd,.fig,.sketch,.key,.ppt,.pptx,.doc,.docx,.txt">'+
         '<ul class="upfiles" data-role="list"></ul>'+
-        '<input type="url" class="uplink" data-role="link" placeholder="…or paste a link (Drive, Dropbox, Figma)" aria-label="Link to existing materials">'+
+        '<div class="uplinks" data-role="links">'+
+          '<input type="url" class="uplink" data-role="link" placeholder="…or paste a link (Drive, Dropbox, Figma)" aria-label="Link to existing materials">'+
+        '</div>'+
+        '<button type="button" class="uplink-add" data-role="addlink">+ Add another link</button>'+
       '</div>';
     }
 
@@ -906,6 +916,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var drop=up.querySelector('[data-role="drop"]');
       var input=up.querySelector('[data-role="fileinput"]');
       var list=up.querySelector('[data-role="list"]');
+      /* "+ Add another link": append a fresh link input (up to UP_MAX_LINKS).
+         Dynamically added inputs miss wireForm's generic listener, so wire the
+         clearInvalid/updateProgress behavior here. */
+      var linksBox=up.querySelector('[data-role="links"]');
+      var addLink=up.querySelector('[data-role="addlink"]');
+      if(addLink&&linksBox){
+        addLink.addEventListener('click',function(){
+          if(linksBox.querySelectorAll('[data-role="link"]').length>=UP_MAX_LINKS) return;
+          var inp=document.createElement('input');
+          inp.type='url';inp.className='uplink';inp.setAttribute('data-role','link');
+          inp.placeholder='…another link';
+          inp.setAttribute('aria-label','Additional link to existing materials');
+          inp.addEventListener('input',function(){
+            var fld=inp.closest('.field');if(fld)clearInvalid(fld);updateProgress();
+          });
+          linksBox.appendChild(inp);
+          inp.focus();
+          addLink.hidden = linksBox.querySelectorAll('[data-role="link"]').length>=UP_MAX_LINKS;
+        });
+      }
       function render(){
         list.innerHTML='';
         state.files.forEach(function(f,i){
@@ -1186,8 +1216,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(type==='files'){
         var parts=state.files.filter(function(f){return f.status==='done'&&f.url;})
           .map(function(f){return f.name+' — '+f.url;});
-        var link=fld.querySelector('[data-role="link"]');
-        if(link&&link.value.trim())parts.push('Link: '+link.value.trim());
+        fld.querySelectorAll('[data-role="link"]').forEach(function(link){
+          if(link.value.trim())parts.push('Link: '+link.value.trim());
+        });
         return parts.join('\n  ');
       }
       if(type==='range'){var wrap=fld.querySelector('.rangewrap');var r=fld.querySelector('input[type=range]');if(!r||!wrap)return '';var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;var out=pfx+fmt(v)+(v>=mx?'+':'');if(v>=mx&&state.budgetPlus)out+=' ('+state.budgetPlus+')';return out;}
