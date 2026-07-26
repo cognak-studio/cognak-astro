@@ -776,13 +776,6 @@ html.home-scrolled #cognak-cookie {
         overflow-x: clip;
         max-width: 100%;
     }
-    /* Kill sideways "wiggle": decorative corner glows (e.g. the top-right
-       .home-hero-location::before at right:-50px) poke past the right edge and
-       add scrollable dead space. Clip at the root — overflow-x:clip doesn't make
-       a scroll container, so Lenis and fixed/sticky are unaffected. */
-    html {
-        overflow-x: clip;
-    }
     .home-bottom-bar {
         padding: 20px 24px;
         /* Let nav-mode class control background + backdrop-filter (same as desktop)
@@ -3158,7 +3151,11 @@ html body.page-template-page-privacy-policy,
         content: "";
         position: absolute;
         top: -50px;
-        right: -50px;
+        /* -20px (not -50) so the glow's right edge lands exactly at the viewport
+           edge: the element is inset right:20px, so anything past -20px pokes
+           beyond the viewport and adds 30px of horizontal scroll — the sideways
+           "wiggle". (Root overflow-x:clip does NOT clip this ICB-anchored pseudo.) */
+        right: -20px;
         width: 360px;
         height: 300px;
         background: radial-gradient(ellipse at top right,
