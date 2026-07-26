@@ -56,16 +56,18 @@
             // During the hero, use position:absolute so the bar scrolls
             // naturally with the page (locked to the hero's bottom edge).
             // Once the hero is gone, switch to position:fixed at the top.
+            // navFade ramps 0 -> 1 over the first half-viewport of scrolling so the
+            // nav background + frost fade IN gradually (like desktop) instead of
+            // snapping on at the first scrolled pixel.
+            var navFade = Math.max(0, Math.min(1, window.pageYOffset / (window.innerHeight * 0.5)));
             if (stageBottom <= barH) {
                 bar.classList.add('nav-mode');
                 bar.style.position = 'fixed';
                 bar.style.top = '0';
                 bar.style.bottom = 'auto';
+                navFade = 1; // hero fully past — hold background at full strength
             } else {
-                // Bring the nav background up as soon as the user scrolls (matches
-                // desktop) instead of waiting for the hero to fully pass. The bar
-                // still rides up locked to the hero's bottom edge during the hero.
-                bar.classList.toggle('nav-mode', window.pageYOffset > 0);
+                bar.classList.toggle('nav-mode', navFade > 0);
                 bar.style.position = 'absolute';
                 // stageBottom (viewport-relative) + pageYOffset = document-relative
                 // position of the stage's bottom edge — constant as user scrolls,
@@ -73,6 +75,13 @@
                 bar.style.top = (stageBottom + window.pageYOffset - barH) + 'px';
                 bar.style.bottom = 'auto';
             }
+            // Drive background + frost blur straight from navFade. Set inline (blur
+            // with !important) so they beat the flat nav-mode rules and track scroll
+            // continuously through the rAF-throttled scroll handler.
+            bar.style.background = 'rgba(23, 21, 26, ' + (navFade * 0.75).toFixed(3) + ')';
+            var _navBlur = 'blur(' + (navFade * 6).toFixed(2) + 'px)';
+            bar.style.setProperty('-webkit-backdrop-filter', _navBlur, 'important');
+            bar.style.setProperty('backdrop-filter', _navBlur, 'important');
         } else if (stageBottom <= barH) {
             // Desktop: Hero scrolled fully past — pin bar to top
             bar.classList.add('nav-mode');
