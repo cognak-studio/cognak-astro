@@ -16,7 +16,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   pageBg="#140E07"
 >
   <div class="brief-webgl" data-us-project="MYx6GEJ4hZQRnWnBgCQ9" aria-hidden="true"></div>
-  <div class="brief-veil" aria-hidden="true"></div>
 
   <main id="cognak-main"><section class="brief">
 
@@ -34,14 +33,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="actions">
         <button class="btn" id="sendBtn" type="button">Send brief &rarr;</button>
       </div>
-      <div class="formerr" id="formErr" role="alert">Please fill in the required fields.</div>
+      <div class="formerr" id="formErr">Please fill in the required fields (marked with a dot).</div>
     </div>
 
     <div id="sent">
       <p class="eyebrow">Sent</p>
       <h2 class="headline">Thank you. <em>Got it</em>.</h2>
       <p class="lede">Your brief just landed with us. We'll read it properly and get back to you within a day or two.</p>
-      <p class="sent-tape" id="sentTape"></p>
       <button class="btn btn-ghost" id="restartBtn" type="button">Start another brief</button>
     </div>
 
@@ -80,10 +78,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief {
       --bg:#140E07; --nav:#372914; --navtext:#A89372;
       --field:rgba(12,8,3,0.55); --field-focus:rgba(12,8,3,0.72); --card:rgba(12,8,3,0.4);
-      --ink:#CFBB9B; --ink-soft:#C9B694; --accent:#DECBAF;
+      --ink:#CFBB9B; --ink-soft:#BCA787; --accent:#DECBAF;
       --cream:#2A2010; --btn:#D6C3A4; --sel:#D6C3A4;
       --line:rgba(207,187,155,0.20); --line-strong:rgba(207,187,155,0.40);
-      --placeholder:#9C8763; --err:#FF9E90;
+      --placeholder:#8F7B5B; --err:#FF9E90;
       max-width:1040px; margin:0 auto; padding:calc(8vh + 80px) 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
@@ -148,7 +146,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color:var(--ink-soft); pointer-events:none; white-space:nowrap; }
     .brief .prograil-cap--top{ top:-15px; }
     .brief .prograil-cap--bot{ bottom:-15px; }
-    @media (max-width:720px){ .brief .prograil{ width:2px; height:40vh; } }
+    /* Completion rail lives in the left margin, which only exists >=960px.
+       Below that the reading column goes full-width, so hide the rail on
+       mobile/tablet until it's reimagined for small screens. */
+    @media (max-width:959px){ .brief .prograil{ display:none; } }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
     /* stacked, strokeless frosted panels; hover turns all text orange (no raise) */
@@ -185,9 +186,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Title + sub give each box a clear name and a scannable hierarchy */
     .brief .q{ display:block; margin-bottom:.85rem; }
     .brief .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
-    .brief .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; }
+    .brief .q-sub{ display:block; font-size:.88rem; font-weight:400; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; }
     /* required fields are validated on submit — no visual dot */
-    .brief .hint{ display:block; font-size:.8rem; font-weight:450; color:var(--ink-soft); margin:-.35rem 0 .85rem; font-style:italic; }
+    .brief .hint{ display:block; font-size:.8rem; color:var(--ink-soft); margin:-.35rem 0 .85rem; font-style:italic; }
     .brief .group-desc{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); margin:-1.1rem 0 1.7rem; }
     .brief .rangewrap{ padding-top:.2rem; }
     .brief .rangeval{ font-size:1.15rem; font-weight:500; color:var(--ink); margin-bottom:.7rem; }
@@ -236,27 +237,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .chip.on::after{ content:""; position:absolute; left:16px; top:calc(50% - 4px); width:6px; height:3px;
       border-left:1.5px solid var(--cream); border-bottom:1.5px solid var(--cream); transform:rotate(-45deg); }
 
-    /* ---- color picker: accumulate pattern — filled swatches grow next to a
-       single "+ Add color" tile; no empty numbered boxes. Up to 5. ---- */
-    .brief .colorpick{ display:flex; flex-wrap:wrap; gap:12px; align-items:stretch; }
-    .brief .color3{ display:contents; }
-    .brief .cslot{ width:96px; height:78px; border-radius:12px; border:1px solid transparent;
+    /* ---- color picker: numbered rectangles -> hex editor, up to 5 ---- */
+    .brief .color3{ display:flex; flex-wrap:wrap; gap:12px; }
+    .brief .cslot{ flex:1 1 0; min-width:84px; height:78px; border-radius:12px; border:1px dashed var(--line-strong);
       position:relative; overflow:hidden; cursor:pointer; display:flex; align-items:flex-end; padding:10px 12px;
       transition:transform .16s cubic-bezier(.2,.7,.3,1),border-color .2s ease,box-shadow .2s ease; }
-    .brief .cslot:hover{ box-shadow:0 0 0 2px var(--accent); }
+    .brief .cslot:hover{ border-color:var(--ink); }
     .brief .cslot:active{ transform:scale(.98); }
-    .brief .cslot.editing{ box-shadow:0 0 0 2px var(--accent); }
+    .brief .cslot.editing{ box-shadow:0 0 0 2px var(--accent); border-color:transparent; }
     .brief .cslot-face{ position:absolute; inset:0; z-index:0; background:transparent; transition:background .2s ease; }
-    .brief .cslot-hex{ position:relative; z-index:1; pointer-events:none; font-size:.72rem; letter-spacing:.04em;
-      color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.55); }
+    .brief .cslot-hex{ position:relative; z-index:1; pointer-events:none; font-size:.72rem; letter-spacing:.04em; color:var(--ink-soft); }
+    .brief .cslot.filled{ border-style:solid; border-color:transparent; }
+    .brief .cslot.filled .cslot-hex{ color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.55); }
     .brief .cslot-clear{ position:absolute; top:5px; right:8px; z-index:2; background:none; border:none;
-      color:#fff; font-size:1.05rem; line-height:1; cursor:pointer; opacity:.92; text-shadow:0 1px 2px rgba(0,0,0,.5);
-      transition:opacity .2s ease,transform .2s ease; }
-    .brief .cslot-clear:hover{ transform:scale(1.15); }
+      color:var(--ink-soft); font-size:1.05rem; line-height:1; cursor:pointer; opacity:0; transition:opacity .2s ease; }
+    .brief .cslot.filled .cslot-clear{ color:#fff; opacity:.92; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+    .brief .cslot.removable .cslot-clear{ opacity:.7; }
 
-    .brief .coloradd{ width:96px; height:78px; background:none; border:1px dashed var(--line-strong); color:var(--ink-soft);
-      border-radius:12px; padding:8px; display:flex; align-items:center; justify-content:center; text-align:center;
-      font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.06em; line-height:1.35;
+    .brief .coloradd{ margin-top:12px; background:none; border:1px dashed var(--line-strong); color:var(--ink-soft);
+      border-radius:8px; padding:9px 14px; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.08em;
       cursor:pointer; transition:border-color .2s ease,color .2s ease; }
     .brief .coloradd:hover{ border-color:var(--ink); color:var(--ink); }
     .brief .coloradd[hidden]{ display:none; }
@@ -340,73 +339,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       #step-pick, #formwrap, #sent{ transition:none; }
       #step-pick.step-hide, #formwrap.step-hide, #sent.step-hide{ transform:none; }
     }
-
-    /* ============================================================
-       PATCH 2026-07 — minutes chips, budget follow-up, uploads,
-       rail receipt, sent tape, a11y & contrast additions.
-       ============================================================ */
-
-    /* picker cards: time-to-complete, mono, lighter orange (top-right) */
-    .brief .pcard .ptime{ position:absolute; top:22px; right:22px; font-family:'Diatype Mono', monospace;
-      font-size:.62rem; letter-spacing:.14em; color:rgba(239,145,70,.55); transition:color .2s ease; }
-    .brief .pcard:hover .ptime{ color:#EF9146; }
-
-    /* fieldset/legend semantics for choice groups (radios/checkboxes/colors) —
-       visually identical to the label.q it replaces */
-    .brief fieldset.qset{ border:none; margin:0; padding:0; min-width:0; }
-    .brief legend.qset-legend{ display:block; padding:0; margin-bottom:.85rem; width:100%; }
-
-    /* invalid fields: not color-only — the title says why */
-    .brief .field.invalid .q-title::after{ content:" — required"; color:var(--err);
-      font-weight:400; font-size:.85em; letter-spacing:0; }
-
-    /* budget follow-up, revealed when the slider parks at max */
-    .brief .bplus{ margin-top:16px; }
-    .brief .bplus[hidden]{ display:none; }
-    .brief .bplus-q{ display:block; font-family:'Diatype Mono', monospace; font-size:.68rem;
-      letter-spacing:.16em; text-transform:uppercase; color:rgba(239,145,70,.75); margin-bottom:11px; }
-    .brief .bplus-chips{ display:flex; flex-wrap:wrap; gap:10px; }
-    .brief button.pill{ font-family:inherit; }
-
-    /* existing-materials uploader: dashed drop target in the coloradd dialect */
-    .brief .updrop{ display:block; width:100%; text-align:center; background:none;
-      border:1px dashed var(--line-strong); color:var(--ink-soft); border-radius:8px; padding:20px 14px;
-      font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.1em; cursor:pointer;
-      transition:border-color .2s ease,color .2s ease; }
-    .brief .updrop:hover, .brief .updrop.drag{ border-color:var(--ink); color:var(--ink); }
-    .brief .upfiles{ list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
-    .brief .upfile{ display:flex; align-items:center; gap:12px; background:var(--field);
-      border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:.85rem; color:var(--ink); }
-    .brief .upfile .ufname{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .brief .upfile .ufmeta{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.08em;
-      color:var(--ink-soft); white-space:nowrap; }
-    .brief .upfile.err{ border-color:var(--err); }
-    .brief .upfile.err .ufmeta{ color:var(--err); }
-    .brief .upfile .ufx{ background:none; border:none; color:var(--ink-soft); cursor:pointer;
-      font-size:1.05rem; line-height:1; padding:0 2px; transition:color .2s ease; }
-    .brief .upfile .ufx:hover{ color:var(--ink); }
-    .brief .uplink{ margin-top:10px; }
-
-    /* rail receipt: section names materialize beside the rail as they complete */
-    .brief .prograil .rail-note{ position:absolute; left:12px; transform:translateY(-50%);
-      font-family:'Diatype Mono', monospace; font-size:.56rem; letter-spacing:.12em;
-      color:var(--ink-soft); white-space:nowrap; opacity:0; transition:opacity .6s ease; }
-    .brief .prograil .rail-note.on{ opacity:.75; }
-    @media (max-width:1279px){ .brief .prograil .rail-note{ display:none; } }
-    @media (prefers-reduced-motion:reduce){ .brief .prograil .rail-note{ transition:none; } }
-
-    /* sent screen: the brief replayed as one mono tape line */
-    .brief .sent-tape{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.14em;
-      text-transform:uppercase; color:var(--ink-soft); margin:-1rem 0 2.4rem; line-height:2; }
-    .brief .sent-tape em{ font-style:normal; color:rgba(239,145,70,.75); }
-
-    /* soft veil that dims the WebGL texture behind the reading column only
-       while the questionnaire is open (legibility without losing the vibe) */
-    .brief-veil{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0;
-      transition:opacity .8s ease;
-      background:linear-gradient(90deg, rgba(20,14,7,.5) 0%, rgba(20,14,7,.28) 44%, rgba(20,14,7,0) 70%); }
-    body.brief-form-open .brief-veil{ opacity:1; }
-    @media (prefers-reduced-motion:reduce){ .brief-veil{ transition:none; } }
   </style>
 
   <script is:inline>
@@ -434,7 +366,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return {title:'Timeline & budget',fields:[
         {id:'timeline',type:'single',t:'Timeline',q:'When do you want this done?',options:['ASAP / urgent','1–3 months','3–6 months','Flexible / exploratory']},
         {id:'budget',type:'range',t:'Budget',q:'Drag to set your rough budget.',min:b.min,max:b.max,step:b.step,def:b.def,prefix:'$'},
-        {id:'materials',type:'files',t:'Existing materials',q:'Current logo, guidelines, decks, dielines — anything useful.',opt:true},
         {id:'anything',type:'textarea',t:'Anything else',q:'Anything else we should know?'}
       ]};
     }
@@ -538,25 +469,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     };
 
     var PICKER_META=[
-      ['branding','Identity, logo, art direction & guidelines','≈ 4 MIN'],
-      ['packaging','Structure, dielines, print-ready & renders','≈ 6 MIN'],
-      ['web','Sites, landing pages, UX & interaction','≈ 5 MIN'],
-      ['development','Web apps, e-commerce, tools & builds','≈ 5 MIN']
+      ['branding','Identity, logo, art direction & guidelines'],
+      ['packaging','Structure, dielines, print-ready & renders'],
+      ['web','Sites, landing pages, UX & interaction'],
+      ['development','Web apps, e-commerce, tools & builds']
     ];
 
-    var state={discipline:null,colors:[],editing:-1,files:[],budgetPlus:null,groupData:[]};
+    var state={discipline:null,colors:[null,null,null],editing:-1};
     var DEFAULT_HEX='#8A7556';
     var PENCIL_SVG='<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 
     (function(){
       var p=document.getElementById('picker');
       PICKER_META.forEach(function(m,i){
-        var key=m[0],desc=m[1],mins=m[2]||'',d=DISCIPLINES[key];
+        var key=m[0],desc=m[1],d=DISCIPLINES[key];
         var b=document.createElement('button');
         b.type='button';b.className='pcard';b.setAttribute('data-key',key);
-        b.innerHTML='<span class="idx mono">0'+(i+1)+'</span>'+
-          (mins?'<span class="ptime" aria-label="Takes about '+mins.replace('≈ ','').replace(' MIN',' minutes')+'">'+mins+'</span>':'')+
-          '<span class="arrow">&rarr;</span>'+
+        b.innerHTML='<span class="idx mono">0'+(i+1)+'</span><span class="arrow">&rarr;</span>'+
           '<h3>'+d.label+'</h3><p>'+desc+'</p>';
         b.addEventListener('click',function(){selectDiscipline(key);});
         p.appendChild(b);
@@ -572,18 +501,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var reqDot='';
       var title=f.t?'<span class="q-title">'+reqDot+esc(f.t)+'</span>':'';
       var sub=f.q?'<span class="q-sub">'+esc(f.q)+'</span>':'';
-      var hintId='h_'+f.id;
-      var hint=f.hint?'<span class="hint" id="'+hintId+'">'+esc(f.hint)+'</span>':'';
-      var describedBy=f.hint?' aria-describedby="'+hintId+'"':'';
+      var hint=f.hint?'<span class="hint">'+esc(f.hint)+'</span>':'';
       var inner='';
-      /* Choice groups get real fieldset/legend semantics so screen readers
-         announce the question with each option; single inputs keep label[for]. */
-      var useFieldset = f.type==='single'||f.type==='multi'||f.type==='colors'||f.type==='files';
       if(f.type==='text'||f.type==='email'||f.type==='url'){
         var t=f.type==='text'?'text':f.type;
-        inner='<input type="'+t+'" id="f_'+f.id+'" data-id="'+f.id+'" placeholder="'+esc(f.ph||'')+'"'+describedBy+'>';
+        inner='<input type="'+t+'" id="f_'+f.id+'" data-id="'+f.id+'" placeholder="'+esc(f.ph||'')+'">';
       }else if(f.type==='textarea'){
-        inner='<textarea id="f_'+f.id+'" data-id="'+f.id+'" placeholder="'+esc(f.ph||'')+'"'+describedBy+'></textarea>';
+        inner='<textarea id="f_'+f.id+'" data-id="'+f.id+'" placeholder="'+esc(f.ph||'')+'"></textarea>';
       }else if(f.type==='single'){
         inner='<div class="pills" data-id="'+f.id+'">'+f.options.map(function(o){
           return '<label class="pill"><input type="radio" name="'+f.id+'" value="'+esc(o)+'">'+esc(o)+'</label>';
@@ -594,55 +518,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }).join('')+'</div>';
       }else if(f.type==='colors'){
         inner=colorsHTML();
-      }else if(f.type==='files'){
-        inner=filesHTML(f);
       }else if(f.type==='range'){
         var pfx=f.prefix||'';var atmax=f.def>=f.max?'+':'';
         inner='<div class="rangewrap" data-id="'+f.id+'" data-prefix="'+pfx+'" data-max="'+f.max+'">'+
           '<div class="rangeval mono"><span class="rv">'+pfx+fmt(f.def)+atmax+'</span></div>'+
-          '<input type="range" id="f_'+f.id+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" value="'+f.def+'"'+
-            ' aria-valuetext="'+pfx+fmt(f.def)+atmax+'">'+
+          '<input type="range" id="f_'+f.id+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" value="'+f.def+'">'+
           '<div class="rangeends mono"><span>'+pfx+fmt(f.min)+'</span><span>'+pfx+fmt(f.max)+'+</span></div>'+
-          bplusHTML(f)+
         '</div>';
       }
       var labelInner=title+sub;
-      var labelHTML='';
-      if(labelInner && useFieldset){
-        /* legend + fieldset wrap the options; visually identical to label.q */
-        inner='<fieldset class="qset"'+describedBy+'><legend class="q qset-legend">'+labelInner+'</legend>'+hint+inner+'</fieldset>';
-        hint='';
-      }else if(labelInner){
-        labelHTML='<label class="q" for="f_'+f.id+'">'+labelInner+'</label>';
-      }
+      var labelHTML=labelInner?('<label class="q" for="f_'+f.id+'">'+labelInner+'</label>'):'';
       /* Optional boxes don't count toward completion %: those flagged opt, the
          "if any" URL fields, and the free-form "Anything else". */
       var isOpt = f.opt || f.type==='url' || f.id==='anything';
       return '<div class="field" data-field="'+f.id+'"'+(f.req?' data-req="1"':'')+(isOpt?' data-opt="1"':'')+
         ' data-type="'+f.type+'">'+labelHTML+hint+inner+'</div>';
-    }
-
-    /* Budget follow-up: when the slider parks at max, ask how far north. */
-    function bplusHTML(f){
-      if(!f.max||f.id!=='budget') return '';
-      var M=f.max,pfx=f.prefix||'';
-      var opts=[pfx+fmt(M)+'–'+fmt(M*2), pfx+fmt(M*2)+'–'+fmt(M*4), pfx+fmt(M*4)+'+','Prefer to discuss'];
-      return '<div class="bplus" data-role="bplus" hidden>'+
-        '<span class="bplus-q">North of '+pfx+fmt(M)+' — roughly how far?</span>'+
-        '<div class="bplus-chips">'+opts.map(function(o){
-          return '<button type="button" class="pill bplus-opt" data-val="'+esc(o)+'">'+esc(o)+'</button>';
-        }).join('')+'</div></div>';
-    }
-
-    /* Existing-materials: direct-to-Blob uploads plus a paste-a-link field. */
-    var UP_MAX_FILES=5, UP_MAX_BYTES=25*1024*1024;
-    function filesHTML(f){
-      return '<div class="uploader" data-id="'+f.id+'">'+
-        '<button type="button" class="updrop" data-role="drop">DROP FILES OR CLICK &mdash; PDF, ZIP, IMG &middot; 25MB &middot; '+UP_MAX_FILES+' MAX</button>'+
-        '<input type="file" data-role="fileinput" multiple hidden accept=".pdf,.zip,.png,.jpg,.jpeg,.gif,.svg,.ai,.eps,.psd,.fig,.sketch,.key,.ppt,.pptx,.doc,.docx,.txt">'+
-        '<ul class="upfiles" data-role="list"></ul>'+
-        '<input type="url" class="uplink" data-role="link" placeholder="…or paste a link (Drive, Dropbox, Figma)" aria-label="Link to existing materials">'+
-      '</div>';
     }
 
     function colorsHTML(){
@@ -652,11 +542,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     function selectDiscipline(key){
-      state.discipline=key;state.colors=[];state.editing=-1;
-      state.files=[];state.budgetPlus=null;
+      state.discipline=key;state.colors=[null,null,null];state.editing=-1;
       var d=DISCIPLINES[key];
       var groups=groupsFor(key);
-      state.groupData=groups;
       var form=document.getElementById('briefForm');
       form.innerHTML=groups.map(function(g){
         var desc=g.desc?'<p class="group-desc">'+esc(g.desc)+'</p>':'';
@@ -680,7 +568,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       /* Push a history entry so the browser Back button returns to the picker
          instead of leaving /brief. */
       try{ history.pushState({briefStep:'form'}, ''); }catch(e){}
-      document.body.classList.add('brief-form-open');
       if(reduceMotion()){
         pick.style.display='none'; wrap.style.display='block'; afterFormShown(); return;
       }
@@ -715,20 +602,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       });
     }
 
-    function clearInvalid(fld){
-      if(!fld) return;
-      fld.classList.remove('invalid');
-      fld.querySelectorAll('[aria-invalid]').forEach(function(el){ el.removeAttribute('aria-invalid'); });
-    }
-
     function wireForm(){
       var form=document.getElementById('briefForm');
       form.querySelectorAll('.pills').forEach(function(box){
         box.querySelectorAll('.pill').forEach(function(pill){
           pill.addEventListener('click',function(){
             box.querySelectorAll('.pill').forEach(function(p){p.classList.remove('on');});
-            pill.classList.add('on');pill.querySelector('input').checked=true;
-            clearInvalid(pill.closest('.field'));updateProgress();
+            pill.classList.add('on');pill.querySelector('input').checked=true;updateProgress();
           });
         });
       });
@@ -736,8 +616,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         chip.addEventListener('click',function(e){
           e.preventDefault();
           var inp=chip.querySelector('input');inp.checked=!inp.checked;
-          chip.classList.toggle('on',inp.checked);
-          clearInvalid(chip.closest('.field'));updateProgress();
+          chip.classList.toggle('on',inp.checked);updateProgress();
         });
       });
       var cp=form.querySelector('.colorpick');
@@ -745,7 +624,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       form.querySelectorAll('input,textarea').forEach(function(el){
         el.addEventListener('input',function(){
           var fld=el.closest('.field');
-          if(fld){ clearInvalid(fld); if(el.type==='range') fld.setAttribute('data-touched','1'); }
+          if(fld){ fld.classList.remove('invalid'); if(el.type==='range') fld.setAttribute('data-touched','1'); }
           updateProgress();
         });
       });
@@ -755,97 +634,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           var wrap=r.closest('.rangewrap');if(!wrap)return;var rv=wrap.querySelector('.rv');
           var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;
           rv.textContent=pfx+fmt(v)+(v>=mx?'+':'');
-          r.setAttribute('aria-valuetext',rv.textContent);
           setRangeFill(r);
-          /* at the ceiling? ask how far north */
-          var bp=wrap.querySelector('[data-role="bplus"]');
-          if(bp){
-            var atMax=v>=mx;
-            if(bp.hidden===atMax){ bp.hidden=!atMax; }
-            if(!atMax && state.budgetPlus){
-              state.budgetPlus=null;
-              bp.querySelectorAll('.bplus-opt').forEach(function(b){b.classList.remove('on');});
-            }
-          }
         });
-      });
-      form.querySelectorAll('.bplus-opt').forEach(function(b){
-        b.addEventListener('click',function(){
-          var on=!b.classList.contains('on');
-          b.closest('.bplus-chips').querySelectorAll('.bplus-opt').forEach(function(x){x.classList.remove('on');});
-          if(on){ b.classList.add('on'); state.budgetPlus=b.getAttribute('data-val'); }
-          else state.budgetPlus=null;
-          updateProgress();
-        });
-      });
-      var up=form.querySelector('.uploader');
-      if(up){ initUploader(up); }
-    }
-
-    /* ---- existing-materials uploader (Vercel Blob client uploads) ---- */
-    function humanSize(b){ return b>=1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB'; }
-    function blobUpload(file){
-      /* official client, loaded on demand so the page pays nothing until used */
-      return import('https://esm.sh/@vercel/blob@1/client').then(function(m){
-        return m.upload('briefs/'+file.name, file, {access:'public', handleUploadUrl:'/api/upload'});
-      });
-    }
-    function initUploader(up){
-      var drop=up.querySelector('[data-role="drop"]');
-      var input=up.querySelector('[data-role="fileinput"]');
-      var list=up.querySelector('[data-role="list"]');
-      function render(){
-        list.innerHTML='';
-        state.files.forEach(function(f,i){
-          var li=document.createElement('li');
-          li.className='upfile'+(f.status==='error'?' err':'');
-          var meta=f.status==='uploading'?'UPLOADING…':(f.status==='error'?(f.reason||'FAILED — REMOVE & RETRY'):humanSize(f.size));
-          li.innerHTML='<span class="ufname"></span><span class="ufmeta mono">'+meta+'</span>'+
-            '<button type="button" class="ufx" aria-label="Remove file">&times;</button>';
-          li.querySelector('.ufname').textContent=f.name;
-          li.querySelector('.ufx').addEventListener('click',function(){ state.files.splice(i,1); render(); });
-          list.appendChild(li);
-        });
-        drop.hidden = state.files.length>=UP_MAX_FILES;
-      }
-      function addFiles(files){
-        Array.prototype.slice.call(files).forEach(function(file){
-          if(state.files.length>=UP_MAX_FILES) return;
-          if(file.size>UP_MAX_BYTES){
-            state.files.push({name:file.name,size:file.size,url:null,status:'error',reason:'OVER 25MB'});
-            render(); return;
-          }
-          var entry={name:file.name,size:file.size,url:null,status:'uploading'};
-          state.files.push(entry); render();
-          blobUpload(file).then(function(blob){
-            entry.url=blob.url; entry.status='done'; render();
-          }).catch(function(){
-            entry.status='error'; render();
-          });
-        });
-        input.value='';
-      }
-      drop.addEventListener('click',function(){ input.click(); });
-      input.addEventListener('change',function(){ addFiles(input.files); });
-      ['dragenter','dragover'].forEach(function(ev){
-        drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.add('drag'); });
-      });
-      ['dragleave','drop'].forEach(function(ev){
-        drop.addEventListener(ev,function(e){ e.preventDefault(); drop.classList.remove('drag'); });
-      });
-      drop.addEventListener('drop',function(e){
-        if(e.dataTransfer&&e.dataTransfer.files) addFiles(e.dataTransfer.files);
       });
     }
 
-    /* Accumulate pattern: state.colors holds only real hex values; a transient
-       null is pushed while the editor is open for a brand-new swatch and pruned
-       on close if never picked. No empty numbered boxes are ever rendered. */
     function initColors(cp){
       buildSlots(cp);
       cp.querySelector('[data-role="add"]').addEventListener('click',function(){
-        if(state.colors.filter(Boolean).length>=5)return;
+        if(state.colors.length>=5)return;
         state.colors.push(null);
+        buildSlots(cp);
         openEditor(cp,state.colors.length-1);
       });
     }
@@ -853,14 +652,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var wrap=cp.querySelector('[data-role="slots"]');
       wrap.innerHTML='';
       state.colors.forEach(function(c,i){
-        if(!c) return;                       // pending (never-picked) entry renders nothing
         var slot=document.createElement('div');
-        slot.className='cslot filled'+(state.editing===i?' editing':'');
+        slot.className='cslot'+(c?' filled':'')+(!c&&i>=3?' removable':'')+(state.editing===i?' editing':'');
         slot.setAttribute('data-slot',i);slot.setAttribute('tabindex','0');
-        slot.setAttribute('role','button');slot.setAttribute('aria-label','Edit color '+c);
-        slot.innerHTML='<span class="cslot-face" style="background:'+c+'"></span>'+
-          '<span class="cslot-hex mono">'+c+'</span>'+
-          '<button type="button" class="cslot-clear" aria-label="Remove color '+c+'">&times;</button>';
+        var label=c?c:('0'+(i+1));
+        slot.innerHTML='<span class="cslot-face" style="background:'+(c||'transparent')+'"></span>'+
+          '<span class="cslot-hex mono">'+label+'</span>'+
+          '<button type="button" class="cslot-clear" aria-label="Clear or remove color">&times;</button>';
         slot.addEventListener('click',function(e){
           if(e.target.classList.contains('cslot-clear'))return;
           openEditor(cp,i);
@@ -870,12 +668,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
         slot.querySelector('.cslot-clear').addEventListener('click',function(e){
           e.preventDefault();e.stopPropagation();
-          state.colors.splice(i,1);buildSlots(cp);updateProgress();
+          if(state.colors[i]){ state.colors[i]=null; buildSlots(cp); updateProgress(); }
+          else if(i>=3){ state.colors.splice(i,1); closeEditor(cp); updateProgress(); }
         });
         wrap.appendChild(slot);
       });
       var add=cp.querySelector('[data-role="add"]');
-      if(add) add.hidden = state.colors.filter(Boolean).length>=5;
+      if(add) add.hidden = state.colors.length>=5;
     }
     function openEditor(cp,i){
       state.editing=i;
@@ -894,21 +693,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         '<span class="ce-hashwrap"># <input type="text" class="ce-hex" maxlength="6" spellcheck="false" value="'+(has?has.replace('#','').toUpperCase():'')+'"></span>'+
         '<button type="button" class="ce-done">Done</button></div>';
       modal.hidden=false; modal.setAttribute('aria-hidden','false');
-      /* focus management: remember the opener, move focus in, trap Tab */
-      state.lastFocus=document.activeElement;
       try{ if(window._lenis && window._lenis.stop) window._lenis.stop(); }catch(e){}
       var native=ed.querySelector('.ce-native');
       var hex=ed.querySelector('.ce-hex');
-      setTimeout(function(){ if(hex) hex.focus(); },0);
-      modal.addEventListener('keydown',function trap(e){
-        if(modal.hidden){ modal.removeEventListener('keydown',trap); return; }
-        if(e.key!=='Tab') return;
-        var focusables=modal.querySelectorAll('input,button');
-        if(!focusables.length) return;
-        var f=focusables[0],l=focusables[focusables.length-1];
-        if(e.shiftKey&&document.activeElement===f){ e.preventDefault(); l.focus(); }
-        else if(!e.shiftKey&&document.activeElement===l){ e.preventDefault(); f.focus(); }
-      });
       var fill=ed.querySelector('.ce-fill');
       native.addEventListener('input',function(){
         var v=native.value.toUpperCase();state.colors[i]=v;hex.value=v.replace('#','');fill.style.background=v;
@@ -927,11 +714,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
     function closeEditor(cp){
       state.editing=-1;
-      state.colors=state.colors.filter(Boolean);   // drop a swatch opened but never picked
       var modal=document.getElementById('ceModal');
       if(modal){ modal.hidden=true; modal.setAttribute('aria-hidden','true'); var ed=modal.querySelector('[data-role="edit"]'); if(ed) ed.innerHTML=''; }
       try{ if(window._lenis && window._lenis.start) window._lenis.start(); }catch(e){}
-      if(state.lastFocus&&state.lastFocus.focus){ try{ state.lastFocus.focus(); }catch(e){} state.lastFocus=null; }
       if(cp) buildSlots(cp);
     }
 
@@ -947,7 +732,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(!rail||!brief) return;
       var cs=getComputedStyle(brief);
       var left=brief.getBoundingClientRect().left + parseFloat(cs.paddingLeft||'0');
-      rail.style.left=Math.max(6, left - 68) + 'px';
+      rail.style.left=Math.max(6, left - 100) + 'px';
     }
 
     /* Keep the fixed rail within the form's vertical bounds so it can never sit
@@ -990,69 +775,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         fill.style.background='linear-gradient(180deg, #EDE0C8 0%, '+end+' 100%)';
         fill.style.boxShadow='0 0 8px 1px rgba(239,145,70,'+(0.25+0.5*t).toFixed(2)+')';
       }
-      renderRailNotes(form);
-    }
-
-    /* ---- rail receipt: a section name materializes beside the rail when
-       every counted field in that section is complete ---- */
-    var RAIL_SHORT={'Your details':'DETAILS','The brand':'BRAND','Feel & direction':'FEEL',
-      'Versions':'VERSIONS','Timeline & budget':'CLOSE','The product':'PRODUCT','Format & specs':'FORMATS',
-      'Practical':'PRACTICAL','The site':'SITE','Scope & content':'SCOPE','Look & feel':'FEEL',
-      'Build':'BUILD','The build':'BUILD','Functionality':'FUNCTION'};
-    function shortTitle(t){ return RAIL_SHORT[t]||String(t).split(' ')[0].toUpperCase(); }
-    function renderRailNotes(form){
-      var rail=document.getElementById('progRail');if(!rail)return;
-      var gd=state.groupData||[];
-      if(rail.getAttribute('data-notes-for')!==state.discipline){
-        rail.querySelectorAll('.rail-note').forEach(function(n){n.remove();});
-        gd.forEach(function(g,i){
-          var n=document.createElement('span');
-          n.className='rail-note';
-          n.style.top=(((i+0.5)/gd.length)*100)+'%';
-          n.textContent=shortTitle(g.title)+' ✓';
-          rail.appendChild(n);
-        });
-        rail.setAttribute('data-notes-for',state.discipline||'');
-      }
-      var notes=rail.querySelectorAll('.rail-note');
-      form.querySelectorAll('.group').forEach(function(gEl,i){
-        var req=gEl.querySelectorAll('.field:not([data-opt="1"])');
-        var done=req.length>0;
-        req.forEach(function(fld){
-          var ok=(fld.getAttribute('data-type')==='range')?(fld.getAttribute('data-touched')==='1'):!!fieldValue(fld);
-          if(!ok)done=false;
-        });
-        if(notes[i])notes[i].classList.toggle('on',done);
-      });
-    }
-
-    /* ---- sent screen: replay the brief as one mono tape line ---- */
-    function buildTape(){
-      var form=document.getElementById('briefForm');if(!form)return '';
-      var parts=[DISCIPLINES[state.discipline].label];
-      function val(id){var fld=form.querySelector('[data-field="'+id+'"]');return fld?fieldValue(fld):'';}
-      var angle=val('stage')||val('goal')||val('what_kind');
-      if(angle)parts.push(angle.split(',')[0]);
-      var pers=val('personality');
-      if(pers)parts.push(pers.split(', ').slice(0,2).join(', '));
-      var ver=val('versions');
-      if(ver)parts.push(ver+(ver==='1'?' concept':' concepts'));
-      var tl=val('timeline'); if(tl)parts.push(tl);
-      var bd=val('budget'); if(bd)parts.push(bd);
-      return parts.filter(Boolean).join(' · ');
     }
 
     function fieldValue(fld){
       var type=fld.getAttribute('data-type');
       if(type==='colors'){var v=state.colors.filter(Boolean);return v.length?v.join(', '):'';}
-      if(type==='files'){
-        var parts=state.files.filter(function(f){return f.status==='done'&&f.url;})
-          .map(function(f){return f.name+' — '+f.url;});
-        var link=fld.querySelector('[data-role="link"]');
-        if(link&&link.value.trim())parts.push('Link: '+link.value.trim());
-        return parts.join('\n  ');
-      }
-      if(type==='range'){var wrap=fld.querySelector('.rangewrap');var r=fld.querySelector('input[type=range]');if(!r||!wrap)return '';var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;var out=pfx+fmt(v)+(v>=mx?'+':'');if(v>=mx&&state.budgetPlus)out+=' ('+state.budgetPlus+')';return out;}
+      if(type==='range'){var wrap=fld.querySelector('.rangewrap');var r=fld.querySelector('input[type=range]');if(!r||!wrap)return '';var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;return pfx+fmt(v)+(v>=mx?'+':'');}
       if(type==='single'){var c=fld.querySelector('input:checked');return c?c.value:'';}
       if(type==='multi'){var v=[];fld.querySelectorAll('input:checked').forEach(function(i){v.push(i.value);});return v.join(', ');}
       var el=fld.querySelector('input,textarea');return el?el.value.trim():'';
@@ -1086,11 +814,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function validate(){
       var form=document.getElementById('briefForm');var ok=true;var first=null;
       form.querySelectorAll('.field[data-req="1"]').forEach(function(fld){
-        if(!fieldValue(fld)){
-          ok=false;fld.classList.add('invalid');
-          fld.querySelectorAll('input,textarea').forEach(function(el){ el.setAttribute('aria-invalid','true'); });
-          if(!first)first=fld;
-        }
+        if(!fieldValue(fld)){ok=false;fld.classList.add('invalid');if(!first)first=fld;}
       });
       if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
       return ok;
@@ -1098,22 +822,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     document.getElementById('sendBtn').addEventListener('click',function(){
       var errEl=document.getElementById('formErr');
-      if(state.files.some(function(f){return f.status==='uploading';})){
-        errEl.textContent='Your files are still uploading — one moment.';errEl.style.display='block';return;
-      }
       if(!validate()){errEl.textContent='Please fill in the required fields.';errEl.style.display='block';return;}
       errEl.style.display='none';
       var d=DISCIPLINES[state.discipline];
       var who=firstFilled(['brand_name','product_name','company','your_name'])||'New';
       var email=firstFilled(['your_email'])||'';
       var body=buildBrief();
-      var files=state.files.filter(function(f){return f.status==='done'&&f.url;})
-        .map(function(f){return {name:f.name,url:f.url,size:f.size};});
       var btn=document.getElementById('sendBtn');
       var label=btn.textContent;
       btn.disabled=true;btn.textContent='Sending…';
       fetch('/api/brief',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({discipline:d.label,who:who,email:email,text:body,files:files})})
+        body:JSON.stringify({discipline:d.label,who:who,email:email,text:body})})
         .then(function(r){if(!r.ok)throw new Error('send failed');return r.json();})
         .then(function(){showSent();})
         .catch(function(){
@@ -1129,8 +848,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return '';
     }
     function showSent(){
-      var tape=document.getElementById('sentTape');
-      if(tape)tape.textContent=buildTape();
       document.getElementById('formwrap').style.display='none';
       document.getElementById('sent').style.display='block';
       window.scrollTo(0,0);refreshScroll();
@@ -1142,7 +859,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var sent=document.getElementById('sent');
       var pick=document.getElementById('step-pick');
       var cur=(sent&&sent.style.display!=='none')?sent:wrap;
-      document.body.classList.remove('brief-form-open');
       if(reduceMotion()){
         if(wrap) wrap.style.display='none'; if(sent) sent.style.display='none';
         pick.style.display='block'; window.scrollTo(0,0); refreshScroll(); return;
