@@ -378,8 +378,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:border-color .2s ease,color .2s ease; }
     .brief .updrop:hover, .brief .updrop.drag{ border-color:var(--ink); color:var(--ink); }
     .brief .upfiles{ list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
-    .brief .upfile{ display:flex; align-items:center; gap:12px; background:var(--field);
+    .brief .upfile{ position:relative; overflow:hidden; display:flex; align-items:center; gap:12px; background:var(--field);
       border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:.85rem; color:var(--ink); }
+    /* orange progress fill that sweeps left->right behind the row, then goes
+       solid when the upload completes. Row content sits above it (z-index). */
+    .brief .upfile > *{ position:relative; z-index:1; }
+    .brief .upfile .uf-fill{ position:absolute; left:0; top:0; bottom:0; width:0; z-index:0;
+      background:#EF9146; transition:width .35s ease; }
+    .brief .upfile.done .uf-fill{ width:100%; }
+    /* dark ink on the orange fill clears WCAG AA (#2A2010 on #EF9146). Each
+       element flips as the fill reaches its side: name (left) early, size /
+       percentage + remove-x (right) near the end or on done. */
+    .brief .upfile.name-lit .ufname{ color:#2A2010; }
+    .brief .upfile.meta-lit .ufmeta, .brief .upfile.meta-lit .ufx{ color:#2A2010; }
+    @media (prefers-reduced-motion:reduce){ .brief .upfile .uf-fill{ transition:none; } }
     .brief .upfile .ufname{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .brief .upfile .ufmeta{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.08em;
       color:var(--ink-soft); white-space:nowrap; }
@@ -809,11 +821,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                      function(e){ clearTimeout(to); reject(e); });
       });
     }
-    function blobUpload(file){
+    function blobUpload(file, onProgress){
       /* official client, loaded on demand so the page pays nothing until used */
       return blobClient().then(function(m){
         return withTimeout(
-          m.upload('briefs/'+file.name, file, {access:'public', handleUploadUrl:'/api/upload'}),
+          m.upload('briefs/'+file.name, file, {
+            access:'public', handleUploadUrl:'/api/upload',
+            onUploadProgress:function(p){ try{ if(onProgress) onProgress(p&&typeof p.percentage==='number'?p.percentage:0); }catch(e){} }
+          }),
           UP_TIMEOUT_MS, 'Upload timed out. Paste a link instead.'
         );
       });
@@ -826,15 +841,33 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         list.innerHTML='';
         state.files.forEach(function(f,i){
           var li=document.createElement('li');
-          li.className='upfile'+(f.status==='error'?' err':'');
-          var meta=f.status==='uploading'?'UPLOADING…':(f.status==='error'?(f.reason||'FAILED — REMOVE & RETRY'):humanSize(f.size));
-          li.innerHTML='<span class="ufname"></span><span class="ufmeta mono">'+meta+'</span>'+
+          li.className='upfile'+(f.status==='error'?' err':'')+(f.status==='done'?' done':'');
+          li.innerHTML='<span class="uf-fill" aria-hidden="true"></span>'+
+            '<span class="ufname"></span><span class="ufmeta mono"></span>'+
             '<button type="button" class="ufx" aria-label="Remove file">&times;</button>';
           li.querySelector('.ufname').textContent=f.name;
           li.querySelector('.ufx').addEventListener('click',function(){ state.files.splice(i,1); render(); });
+          f._el=li;
           list.appendChild(li);
+          paintRow(f);
         });
         drop.hidden = state.files.length>=UP_MAX_FILES;
+      }
+      /* Update one row's orange fill + label without a full re-render, so the
+         bar animates smoothly on each progress tick. Text flips to dark ink as
+         the fill reaches each side (keeps AA on the orange). */
+      function paintRow(f){
+        var li=f._el; if(!li) return;
+        var pct=f.status==='done'?100:(f.status==='error'?0:(typeof f.pct==='number'?f.pct:0));
+        var fill=li.querySelector('.uf-fill'); if(fill) fill.style.width=pct+'%';
+        li.classList.toggle('done', f.status==='done');
+        li.classList.toggle('name-lit', f.status==='done'||pct>=22);
+        li.classList.toggle('meta-lit', f.status==='done'||pct>=90);
+        var meta=li.querySelector('.ufmeta');
+        if(meta){
+          meta.textContent = f.status==='uploading' ? (pct>0?Math.round(pct)+'%':'UPLOADING…')
+            : (f.status==='error' ? (f.reason||'FAILED — REMOVE & RETRY') : humanSize(f.size));
+        }
       }
       function addFiles(files){
         Array.prototype.slice.call(files).forEach(function(file){
@@ -843,12 +876,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             state.files.push({name:file.name,size:file.size,url:null,status:'error',reason:'OVER 25MB'});
             render(); return;
           }
-          var entry={name:file.name,size:file.size,url:null,status:'uploading'};
+          var entry={name:file.name,size:file.size,url:null,status:'uploading',pct:0};
           state.files.push(entry); render();
-          blobUpload(file).then(function(blob){
-            entry.url=blob.url; entry.status='done'; render();
+          blobUpload(file,function(pct){ entry.pct=pct; paintRow(entry); }).then(function(blob){
+            entry.url=blob.url; entry.status='done'; entry.pct=100; render();
           }).catch(function(err){
-            entry.status='error';
+            entry.status='error'; entry.pct=0;
             var msg=(err&&err.message)?String(err.message):'Upload failed';
             entry.reason=msg.slice(0,64);
             console.error('[brief upload] '+file.name, err);

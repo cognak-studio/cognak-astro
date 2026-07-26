@@ -3197,20 +3197,26 @@ html body.page-template-page-privacy-policy,
     #cognak-cookie:not(.cognak-cookie--corner) {
         position: absolute !important;
         /* The padding + the reduced top/left offsets give the banner its own
-           contained dark backing (below) while keeping the text at its original
-           20px/20px inset. Contained on the element = no bleeding pseudo = no
-           overflow wiggle. This is what actually kills the "cookies" fade; the
-           ::before halo stays for the ambient glow around the block. */
+           contained dark backing while keeping the text at its original 20px/20px
+           inset. The backing must be a FLAT fill, not a radial: a corner-anchored
+           radial fades toward the top-right corner, which is exactly where the
+           end of "cookies" sits — so it faded there over a bright hero frame. A
+           flat fill is uniformly opaque behind the whole text block; the soft
+           box-shadow feathers the edge into the hero (replacing the ::before
+           halo's glow, disabled just below) so there's no hard card edge and no
+           bleeding pseudo (= no overflow wiggle). */
         top: 11px !important;
         left: 6px !important;
         z-index: 99999 !important;
         padding: 9px 18px 11px 14px;
         border-radius: 16px;
-        background: radial-gradient(135% 135% at 16% 20%,
-            rgba(23, 21, 26, 0.92) 0%,
-            rgba(23, 21, 26, 0.86) 48%,
-            rgba(23, 21, 26, 0.6) 70%,
-            rgba(23, 21, 26, 0) 100%);
+        background: rgba(23, 21, 26, 0.9);
+        box-shadow: 0 0 22px 10px rgba(23, 21, 26, 0.9);
+    }
+    /* The flat backing above replaces the halo's job on mobile; keeping both
+       would double-darken. Disable the ::before halo for the homepage banner. */
+    #cognak-cookie:not(.cognak-cookie--corner)::before {
+        content: none !important;
     }
 
     /* Footer bottom: Projects/Studio stacked above copyright */
