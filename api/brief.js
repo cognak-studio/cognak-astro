@@ -1,25 +1,38 @@
 /**
  * POST /api/brief  — Vercel serverless function.
  *
- * Receives a project brief from /brief and emails it via Resend. The Resend
- * API key lives only in this server-side function (never in the browser), so
- * the front end just POSTs the assembled brief here. No npm dependency: we
- * call Resend's REST API with the built-in fetch (Node 18+ on Vercel).
+ * Receives a project brief from /brief and files it as an issue in Linear
+ * (COGNAK workspace). This keeps client lead-intake off email entirely — no
+ * sending domain, no deliverability/spam, no forwarding to chase.
  *
- * Required env var (set in Vercel → Project → Settings → Environment Variables):
- *   RESEND_API_KEY   your Resend API key
+ * Required env var (Vercel -> Project -> Settings -> Environment Variables):
+ *   LINEAR_API_KEY    a Linear Personal API key from the COGNAK workspace
+ *                     (Linear -> Settings -> Security & access -> Personal API keys).
+ *                     Passed to Linear directly in the Authorization header.
  * Optional env vars:
- *   BRIEF_TO         recipient (default pierce@cognak.com)
- *   BRIEF_FROM       verified sender (default COGNAK <onboarding@resend.dev>,
- *                    the Resend shared sender — swap to a cognak.com address
- *                    once the domain is verified in Resend)
+ *   LINEAR_TEAM_KEY   which team to file into, by its key (the issue prefix,
+ *                     e.g. "COG"). If unset and the workspace has exactly one
+ *                     team, that team is used; if there are several, the function
+ *                     replies with the list so you know what to set.
+ *   LINEAR_LABEL      a label name to attach to each brief (e.g. "Brief"), if it
+ *                     exists on the team.
  */
 
-function esc(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+const LINEAR_API = 'https://api.linear.app/graphql';
+
+async function linear(apiKey, query, variables) {
+  const r = await fetch(LINEAR_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: apiKey },
+    body: JSON.stringify({ query, variables: variables || {} }),
+  });
+  const json = await r.json().catch(() => null);
+  if (!r.ok || !json || json.errors) {
+    const msg =
+      json && json.errors ? json.errors.map((e) => e.message).join('; ') : 'HTTP ' + r.status;
+    throw new Error(msg);
+  }
+  return json.data;
 }
 
 export default async function handler(req, res) {
@@ -28,9 +41,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.LINEAR_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Email delivery is not configured yet.' });
+    return res.status(500).json({ error: 'Brief intake is not configured yet.' });
   }
 
   // Vercel parses JSON bodies automatically, but guard for a raw string too.
@@ -52,60 +65,72 @@ export default async function handler(req, res) {
   const email =
     typeof data.email === 'string' && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)
       ? data.email
-      : undefined;
+      : '';
+  const files = Array.isArray(data.files) ? data.files.filter((f) => f && f.url) : [];
 
-  const FROM = process.env.BRIEF_FROM || 'COGNAK <onboarding@resend.dev>';
-  const TO = process.env.BRIEF_TO || 'pierce@cognak.com';
-  const subject = 'New ' + discipline + ' brief: ' + who;
+  const title = 'New ' + discipline + ' brief: ' + who;
 
-  // Header styled to match Pierce's email signature: neutral sans, a small
-  // grey uppercase eyebrow, a bold near-black title, and a purple reply link.
-  // The brief body stays in the beige monospace box.
-  const SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-  const PURPLE = '#5B4FE6';
-  const html =
-    '<div style="font-family:' + SANS + ';max-width:640px;color:#1a1a1a;line-height:1.5">' +
-    '<p style="margin:0 0 10px;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a">COGNAK &middot; New brief</p>' +
-    '<h2 style="margin:0 0 6px;font-size:24px;font-weight:700;letter-spacing:-.01em;color:#111">' + esc(subject) + '</h2>' +
-    (email
-      ? '<p style="margin:0 0 22px;font-size:14px;color:#8a8a8a">Reply to: <a href="mailto:' + esc(email) + '" style="color:' + PURPLE + ';font-weight:600;text-decoration:none">' + esc(email) + '</a></p>'
-      : '<div style="height:22px"></div>') +
-    '<pre style="white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.6;color:#1a1a1a;background:#f6f4ef;border:1px solid #e6e1d8;border-radius:8px;padding:18px;margin:0">' +
-    esc(text) +
-    '</pre></div>';
-
-  const payload = {
-    from: FROM,
-    to: [TO],
-    subject: subject,
-    html: html,
-    text: text,
-  };
-  if (email) payload.reply_to = email;
+  // Markdown description: reply-to + file links up top, then the full brief in a
+  // monospace block so it reads cleanly in Linear.
+  const head = [];
+  if (email) head.push('**Reply to:** ' + email);
+  if (files.length) {
+    head.push('**Files:**');
+    files.forEach((f) => head.push('- [' + (f.name || 'file') + '](' + f.url + ')'));
+  }
+  const description = (head.length ? head.join('\n') + '\n\n---\n\n' : '') + '```\n' + text + '\n```';
 
   try {
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer ' + apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!r.ok) {
-      const detail = await r.text().catch(() => '');
-      console.error('Resend responded', r.status, detail);
-      return res
-        .status(502)
-        .json({ error: 'We could not send your brief just now. Please try again in a moment.' });
+    // Resolve the destination team from the API key's workspace.
+    const teamsData = await linear(apiKey, 'query { teams(first: 250) { nodes { id key name } } }');
+    const teams = (teamsData && teamsData.teams && teamsData.teams.nodes) || [];
+    if (!teams.length) {
+      return res.status(500).json({ error: 'No Linear teams found for this API key.' });
+    }
+    const wantKey = (process.env.LINEAR_TEAM_KEY || '').trim().toLowerCase();
+    let team = wantKey
+      ? teams.find((t) => t.key.toLowerCase() === wantKey || t.name.toLowerCase() === wantKey)
+      : teams.length === 1
+      ? teams[0]
+      : null;
+    if (!team) {
+      return res.status(500).json({
+        error: 'Set LINEAR_TEAM_KEY to one of: ' + teams.map((t) => t.key).join(', '),
+      });
     }
 
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error('Brief send failed', err);
+    // Optional label, matched by name on the team.
+    let labelIds;
+    const labelName = (process.env.LINEAR_LABEL || '').trim();
+    if (labelName) {
+      const ld = await linear(
+        apiKey,
+        'query($id:String!){ team(id:$id){ labels(first:250){ nodes{ id name } } } }',
+        { id: team.id }
+      );
+      const labels = (ld && ld.team && ld.team.labels && ld.team.labels.nodes) || [];
+      const match = labels.find((l) => l.name.toLowerCase() === labelName.toLowerCase());
+      if (match) labelIds = [match.id];
+    }
+
+    const input = { teamId: team.id, title: title, description: description };
+    if (labelIds) input.labelIds = labelIds;
+
+    const created = await linear(
+      apiKey,
+      'mutation($input: IssueCreateInput!){ issueCreate(input:$input){ success issue{ identifier url } } }',
+      { input: input }
+    );
+    if (!created || !created.issueCreate || !created.issueCreate.success) {
+      return res.status(502).json({ error: 'Could not file your brief just now. Please try again.' });
+    }
     return res
-      .status(502)
-      .json({ error: 'We could not send your brief just now. Please try again in a moment.' });
+      .status(200)
+      .json({ ok: true, url: created.issueCreate.issue && created.issueCreate.issue.url });
+  } catch (err) {
+    console.error('Linear brief create failed', err);
+    return res.status(502).json({
+      error: 'Could not file your brief just now. Please try again, or email us at pierce@cognak.com.',
+    });
   }
 }

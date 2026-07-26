@@ -227,6 +227,31 @@ template.
 
 ---
 
+## Mobile hero corner halos (2026-07-26)
+
+The two hero readouts on the mobile homepage — the cookie banner (top-left) and
+the location/clock (top-right) — each sit at `z-index: 99999` and carried their
+own dark radial "halo" as a `::before`. Those halos are wide enough to reach into
+the *other* corner's text, and because each halo was trapped inside its element's
+stacking context, whichever element stacked higher painted its halo *over* the
+neighbour's text — so "cookies" faded under the location's shadow (raising the
+banner's z-index just flipped the problem onto "Los Angeles").
+
+Fix (`src/styles/custom.css`, `@media (max-width: 720px)`): move BOTH halos onto
+the **`body` at `z-index: 9998`** — below all the `z:99999` bar text — so each
+glow backs text from behind and can never veil the other corner. This mirrors
+what desktop already does (`body.non-fixed-nav::after`). The trapped per-element
+halos (`#cognak-cookie::before`, `.home-hero-location::before`) are disabled on
+mobile; body `::before` (top-left) + `::after` (top-right) replace them — 300px
+corner glows, with `right: 0` on the right one (a negative right edge on the
+full-width body adds horizontal scroll, i.e. the mobile "wiggle").
+
+**Rule of thumb:** decorative glows/shadows belong on a layer *beneath all the
+overlapping text*, not inside a high-z element — otherwise they paint over
+whatever text shares that corner.
+
+---
+
 ## Migration summary (for context)
 
 cognak.com was migrated off WordPress + GoDaddy hosting onto this static Astro
