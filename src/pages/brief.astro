@@ -414,21 +414,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        like glitter than cartoon sparkles. Kept to the right/top/bottom of the
        word (not past the column's left edge) so there's no mobile overflow. */
     .brief .sent-eyebrow{ position:relative; display:inline-block; }
-    .brief .sent-eyebrow .sparkles{ position:absolute; top:-22px; right:-42px; bottom:-20px; left:0; pointer-events:none; }
+    /* tight cluster hugging the word; sits BEHIND the SENT text (z-index:-1) so
+       the glints peek out from around and behind the letters. */
+    .brief .sent-eyebrow .sparkles{ position:absolute; top:-10px; right:-12px; bottom:-10px; left:-6px; z-index:-1; pointer-events:none; }
     .brief .spark{ position:absolute; width:4px; height:4px; opacity:0; transform:scale(.2);
       background:#F3B072; filter:drop-shadow(0 0 2px rgba(247,217,168,.7));
       /* thin, sharp 4-point glint */
       clip-path:polygon(50% 0,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0 50%,46% 46%);
       animation:sentSpark 2.2s ease-in-out infinite; }
-    .brief .spark.s1{ top:-4px;   left:2px;    width:4px; animation-delay:.1s;  animation-duration:2.1s; background:#EF9146; }
-    .brief .spark.s2{ top:-14px;  left:34%;    width:3px; animation-delay:.8s;  animation-duration:1.8s; background:#F7D9A8; }
-    .brief .spark.s3{ top:6px;    right:-30px; width:5px; animation-delay:1.3s; animation-duration:2.4s; background:#F3B072; }
-    .brief .spark.s4{ bottom:-10px; left:20%;   width:4px; animation-delay:1.7s; animation-duration:2.0s; background:#DECBAF; }
-    .brief .spark.s5{ bottom:2px;  right:-14px; width:3px; animation-delay:.5s;  animation-duration:1.7s; background:#EF9146; }
-    .brief .spark.s6{ top:40%;    right:-38px; width:4px; animation-delay:2.1s; animation-duration:2.3s; background:#F3B072; }
-    .brief .spark.s7{ top:-10px;  left:56%;    width:3px; animation-delay:1.0s; animation-duration:1.9s; background:#F7D9A8; }
-    .brief .spark.s8{ top:22%;    left:0;      width:3px; animation-delay:2.4s; animation-duration:2.2s; background:#EF9146; }
-    .brief .spark.s9{ bottom:-6px; right:-26px; width:5px; animation-delay:.3s;  animation-duration:2.6s; background:#DECBAF; }
+    .brief .spark.s1{ top:-6px;   left:8px;    width:4px; animation-delay:.1s;  animation-duration:2.1s; background:#EF9146; }
+    .brief .spark.s2{ top:-3px;   left:44%;    width:3px; animation-delay:.8s;  animation-duration:1.8s; background:#F7D9A8; }
+    .brief .spark.s3{ top:3px;    right:-6px;  width:5px; animation-delay:1.3s; animation-duration:2.4s; background:#F3B072; }
+    .brief .spark.s4{ bottom:-5px; left:32%;    width:4px; animation-delay:1.7s; animation-duration:2.0s; background:#DECBAF; }
+    .brief .spark.s5{ bottom:-2px; right:-2px;  width:3px; animation-delay:.5s;  animation-duration:1.7s; background:#EF9146; }
+    .brief .spark.s6{ top:34%;    right:-10px; width:4px; animation-delay:2.1s; animation-duration:2.3s; background:#F3B072; }
+    .brief .spark.s7{ top:-7px;   left:70%;    width:3px; animation-delay:1.0s; animation-duration:1.9s; background:#F7D9A8; }
+    .brief .spark.s8{ top:44%;    left:-4px;   width:3px; animation-delay:2.4s; animation-duration:2.2s; background:#EF9146; }
+    .brief .spark.s9{ bottom:-6px; left:62%;    width:5px; animation-delay:.3s;  animation-duration:2.6s; background:#DECBAF; }
     @keyframes sentSpark{ 0%,100%{ opacity:0; transform:scale(.2) rotate(0deg); }
       50%{ opacity:1; transform:scale(1) rotate(45deg); } }
     @media (prefers-reduced-motion:reduce){
