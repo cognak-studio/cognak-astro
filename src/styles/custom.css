@@ -797,6 +797,11 @@ html.home-scrolled #cognak-cookie {
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
     }
+    /* No hover on mobile to lift the logo from its resting 0.7 opacity,
+       so it reads as faded/transparent. Show it at full opacity. */
+    .home-bottom-logo img {
+        opacity: 1;
+    }
     .homepage-main {
         padding-left: 24px !important;
         padding-right: 24px !important;
