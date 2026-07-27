@@ -151,9 +151,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </div>
 
       <div class="actions" id="actions">
-        <button type="button" class="btn" data-fmt="svg">SVG</button>
-        <button type="button" class="btn" data-fmt="pdf">PDF</button>
-        <button type="button" class="btn" data-fmt="eps">EPS</button>
+        <button type="button" class="btn" data-fmt="svg"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>SVG</button>
+        <button type="button" class="btn" data-fmt="pdf"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>PDF</button>
+        <button type="button" class="btn" data-fmt="eps"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>EPS</button>
         <span class="actions-note mono">true vector, no raster fallback</span>
       </div>
     </div>
@@ -165,7 +165,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       with no tracking — the size where each digit's advance matches one
       7-module cell — exported as outlines, so there's no font to embed,
       install or substitute. COGNAK doesn't issue UPC numbers — those come
-      from GS1.
+      from <a href="https://www.gs1us.org/upcs-barcodes-prefixes/how-to-get-a-upc-barcode" target="_blank" rel="noopener noreferrer">GS1</a>.
     </p>
 
   </section></main>
@@ -328,9 +328,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .tools .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem;
       display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
     .tools .btn{ font-family:inherit; font-size:1rem; font-weight:500; cursor:pointer;
-      border-radius:999px; padding:14px 30px; background:none; color:var(--ink);
+      display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
+      border-radius:999px; padding:14px 28px; background:none; color:var(--ink);
       border:1px solid var(--line-strong);
       transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
+    /* Icon strokes are currentColor, so they invert with the label on hover
+       and dim with the button when it's disabled. */
+    .tools .btn-ico{ display:block; flex:0 0 auto; }
     .tools .btn:hover:not(:disabled){ background:var(--accent); border-color:var(--accent);
       color:var(--deep); box-shadow:0 0 24px rgba(180,124,255,.34); }
     .tools .btn:active:not(:disabled){ transform:scale(.98); }
@@ -341,11 +345,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       .tools .actions-note{ display:none; }
       /* Three equal pills on one row rather than wrapping 2 + 1. */
       .tools .actions{ gap:8px; flex-wrap:nowrap; }
-      .tools .btn{ flex:1 1 0; padding:14px 8px; font-size:.94rem; }
+      .tools .btn{ flex:1 1 0; padding:14px 6px; font-size:.94rem; gap:.45rem; }
     }
 
     /* ------------------------------------------------------------ foot --- */
     .tools .tfoot{ margin:2.6rem 0 0; max-width:70ch; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
+    .tools .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:3px;
+      text-decoration-thickness:1px; transition:color .2s ease; }
+    @media (hover:hover){ .tools .tfoot a:hover{ color:var(--accent); } }
 
     /* ---------------------------------------------------------- motion --- */
     .tools .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
