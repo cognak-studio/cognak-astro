@@ -14,7 +14,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   page="tools"
-  title="Barcode tools – COGNAK"
+  title="Tools – COGNAK"
   description="Internal UPC-A and QR generator. Vector out, nothing stored."
   ogUrl="https://cognak.com/tools/"
   noindex={true}
@@ -161,9 +161,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <p class="tfoot">
       UPC-A follows the GS1 nominal symbol — 0.33&nbsp;mm module,
       37.29&nbsp;&times;&nbsp;25.91&nbsp;mm at 100%, nine-module quiet zones,
-      guard bars run to the baseline. Human-readable digits export as live
-      Helvetica, so nothing needs embedding; outline them in Illustrator if a
-      printer insists. COGNAK doesn't issue UPC numbers — those come from GS1.
+      guard bars run to the baseline. The human-readable line is OCR-B at 9pt
+      with no tracking — the size where each digit's advance matches one
+      7-module cell — exported as outlines, so there's no font to embed,
+      install or substitute. COGNAK doesn't issue UPC numbers — those come
+      from GS1.
     </p>
 
   </section></main>

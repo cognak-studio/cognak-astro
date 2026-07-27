@@ -6,16 +6,43 @@
  * downward (SVG convention). PDF and EPS both use points, origin bottom-left,
  * so those two flip on the way out.
  *
- * Human-readable text is emitted as live text in Helvetica — one of the base-14
- * fonts, so PDF and EPS need no font embedding and open identically anywhere.
- * Convert to outlines in Illustrator if a print vendor insists.
+ * Human-readable digits are emitted as OCR-B outlines, never as live text.
+ * OCR-B is not one of the PDF base-14 fonts, so live text in that face would
+ * have to be embedded or it would silently substitute to Courier on someone
+ * else's machine — outlines remove that failure mode, and mean the SVG renders
+ * correctly for anyone who doesn't have OCR-B installed.
  */
 
+import { OCRB } from './ocrb-digits.js';
+
 const MM_TO_PT = 72 / 25.4;
-const HELV_DIGIT_ADV = 0.556; // Helvetica digit advance, in em
 const r = (n, p = 4) => (Math.round(n * 10 ** p) / 10 ** p).toString();
 
-const textWidth = (t) => t.text.length * HELV_DIGIT_ADV * t.size;
+/**
+ * Expand a doc glyph into drawing commands in the target space.
+ *
+ * Glyph outlines are stored in em fractions with y up from the baseline; docs
+ * are in millimetres with y down from the top. `flip` handles PDF and EPS,
+ * whose origin is bottom-left, and `unit` converts mm to the output's units.
+ *
+ * Yields ['M',x,y] | ['L',x,y] | ['C',x1,y1,x2,y2,x,y] | ['Z'].
+ */
+function glyphPath(g, docH, { flip, unit }) {
+  const cmds = OCRB.glyphs[g.char];
+  if (!cmds) return [];
+  const px = (gx) => (g.x + gx * g.em) * unit;
+  const py = (gy) => (flip ? (docH - g.y + gy * g.em) : (g.y - gy * g.em)) * unit;
+  const out = [];
+  for (const c of cmds) {
+    switch (c[0]) {
+      case 0: out.push(['M', px(c[1]), py(c[2])]); break;
+      case 1: out.push(['L', px(c[1]), py(c[2])]); break;
+      case 2: out.push(['C', px(c[1]), py(c[2]), px(c[3]), py(c[4]), px(c[5]), py(c[6])]); break;
+      case 3: out.push(['Z']); break;
+    }
+  }
+  return out;
+}
 
 /* --------------------------------------------------------------- SVG ---- */
 
@@ -34,11 +61,11 @@ export function toSvg(doc) {
   for (const b of doc.rects) {
     parts.push(`<rect x="${r(b.x)}" y="${r(b.y)}" width="${r(b.w)}" height="${r(b.h)}"/>`);
   }
-  for (const t of doc.texts) {
-    parts.push(
-      `<text x="${r(t.x)}" y="${r(t.y)}" font-family="Helvetica, Arial, sans-serif" ` +
-      `font-size="${r(t.size)}" text-anchor="middle">${escapeXml(t.text)}</text>`,
-    );
+  for (const g of doc.glyphs || []) {
+    const d = glyphPath(g, doc.h, { flip: false, unit: 1 })
+      .map((c) => c[0] + c.slice(1).map((n) => r(n)).join(' '))
+      .join('');
+    if (d) parts.push(`<path d="${d}"/>`);
   }
   parts.push('</g></svg>');
   return parts.join('\n');
@@ -66,13 +93,19 @@ export function toPdf(doc) {
     // Flip y: PDF's origin is bottom-left.
     ops.push(`${pt(b.x)} ${pt(doc.h - b.y - b.h)} ${pt(b.w)} ${pt(b.h)} re f`);
   }
-  for (const t of doc.texts) {
-    const left = t.x - textWidth(t) / 2;
-    ops.push(
-      'BT', `/F1 ${pt(t.size)} Tf`,
-      `${pt(left)} ${pt(doc.h - t.y)} Td`,
-      `(${t.text.replace(/[\\()]/g, (c) => '\\' + c)}) Tj`, 'ET',
-    );
+  for (const g of doc.glyphs || []) {
+    const cmds = glyphPath(g, doc.h, { flip: true, unit: MM_TO_PT });
+    if (!cmds.length) continue;
+    for (const c of cmds) {
+      const n = c.slice(1).map((v) => r(v, 3)).join(' ');
+      if (c[0] === 'M') ops.push(`${n} m`);
+      else if (c[0] === 'L') ops.push(`${n} l`);
+      else if (c[0] === 'C') ops.push(`${n} c`);
+      else ops.push('h');
+    }
+    // Nonzero winding, which is what CFF outlines are drawn for — it keeps the
+    // counters in 0, 4, 6, 8 and 9 open.
+    ops.push('f');
   }
   const stream = ops.join('\n');
 
@@ -80,9 +113,8 @@ export function toPdf(doc) {
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
     `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${r(W, 3)} ${r(H, 3)}] ` +
-      '/Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>',
+      '/Resources << >> /Contents 4 0 R >>',
     `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
   ];
 
   // Deliberately all-ASCII (no binary marker comment) so character offsets and
@@ -120,7 +152,6 @@ export function toEps(doc) {
   L.push(`%%Title: ${doc.title.replace(/[\r\n]/g, ' ')}`);
   L.push(`%%BoundingBox: 0 0 ${Math.ceil(W)} ${Math.ceil(H)}`);
   L.push(`%%HiResBoundingBox: 0 0 ${r(W, 3)} ${r(H, 3)}`);
-  if (doc.texts.length) L.push('%%DocumentNeededResources: font Helvetica');
   L.push('%%EndComments');
   // Illustrator does not build an artboard from %%BoundingBox when it opens a
   // plain EPS — it makes a document from whatever new-document profile is
@@ -137,10 +168,6 @@ export function toEps(doc) {
   // Level 2 `rectfill`, because some EPS importers still parse conservatively.
   L.push('/R { /rh exch def /rw exch def /ry exch def /rx exch def');
   L.push('  newpath rx ry moveto rw 0 rlineto 0 rh rlineto rw neg 0 rlineto closepath fill } bind def');
-  // s size cx baseline CT  — draws `s` horizontally centred on cx.
-  L.push('/CT { /by exch def /cx exch def /sz exch def /s exch def');
-  L.push('  /Helvetica findfont sz scalefont setfont');
-  L.push('  s stringwidth pop 2 div cx exch sub by moveto s show } bind def');
   L.push('%%EndProlog');
 
   if (doc.background) {
@@ -151,8 +178,18 @@ export function toEps(doc) {
   for (const b of doc.rects) {
     L.push(`${pt(b.x)} ${pt(doc.h - b.y - b.h)} ${pt(b.w)} ${pt(b.h)} R`);
   }
-  for (const t of doc.texts) {
-    L.push(`(${t.text.replace(/[\\()]/g, (c) => '\\' + c)}) ${pt(t.size)} ${pt(t.x)} ${pt(doc.h - t.y)} CT`);
+  for (const g of doc.glyphs || []) {
+    const cmds = glyphPath(g, doc.h, { flip: true, unit: MM_TO_PT });
+    if (!cmds.length) continue;
+    L.push('newpath');
+    for (const c of cmds) {
+      const n = c.slice(1).map((v) => r(v, 3)).join(' ');
+      if (c[0] === 'M') L.push(`${n} moveto`);
+      else if (c[0] === 'L') L.push(`${n} lineto`);
+      else if (c[0] === 'C') L.push(`${n} curveto`);
+      else L.push('closepath');
+    }
+    L.push('fill');
   }
   L.push('showpage');
   L.push('%%EOF');

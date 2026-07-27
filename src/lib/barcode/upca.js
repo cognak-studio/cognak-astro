@@ -10,9 +10,14 @@
  *   symbol width      113X = 37.29 mm  (95X symbol + 9X quiet zone each side)
  *   bar height        22.85 mm
  *   overall height    25.91 mm  (guard bars descend to the HRI baseline)
- *   HRI cap height     2.75 mm
+ *   HRI               OCR-B at 9pt, 0 tracking
  * Everything scales linearly with `magnification` (GS1 permits 80%–200%).
+ *
+ * The human-readable digits are emitted as outlines rather than live text, so
+ * the exports carry no font dependency in any format.
  */
+
+import { OCRB } from './ocrb-digits.js';
 
 // Left-hand (odd parity) encodings, digit 0-9. Right-hand is the complement.
 const L = [
@@ -23,9 +28,13 @@ const L = [
 const X_MM = 0.33;          // module width at 100%
 const BAR_H_MM = 22.85;     // main bar height at 100%
 const TOTAL_H_MM = 25.91;   // overall symbol height incl. HRI at 100%
-const HRI_CAP_MM = 2.75;    // HRI digit cap height at 100%
-const HELV_CAP = 0.717;     // Helvetica cap height as a fraction of em
-const HELV_DIGIT_ADV = 0.556; // Helvetica digit advance width (all digits equal)
+// HRI is set in OCR-B at 9pt, 0 tracking — the configuration UPC artwork is
+// conventionally supplied in, and the size at which OCR-B's advance (0.723 em
+// = 2.295 mm) lands within 0.7% of one 7-module cell (2.31 mm), so each digit
+// falls under its own bars without any manual tracking.
+const HRI_PT = 9;
+const PT_MM = 25.4 / 72;
+const HRI_EM_MM = HRI_PT * PT_MM;   // 3.175 mm at 100%
 
 const QUIET = 9;            // quiet zone, in modules, each side
 const SYMBOL = 95;          // encoded symbol width, in modules
@@ -105,7 +114,8 @@ export function buildUpcA(digits, opts = {}) {
   const barH = BAR_H_MM * mag;
   const totalH = TOTAL_H_MM * mag;
   const totalW = TOTAL_MODULES * x;
-  const fontSize = (HRI_CAP_MM / HELV_CAP) * mag;
+  const em = HRI_EM_MM * mag;
+  const pitch = OCRB.advance * em;
 
   const pattern = upcModules(digits);
   const rects = [];
@@ -129,34 +139,30 @@ export function buildUpcA(digits, opts = {}) {
     i = j;
   }
 
-  const texts = [];
+  // Human-readable line. Glyphs carry a pen origin and a baseline; the
+  // emitters expand them to outlines, so nothing depends on a font being
+  // installed or embedded.
+  const glyphs = [];
   if (hri) {
-    // The baseline sits a hair above the symbol's bottom edge rather than on it.
-    // Round digits (0, 3, 6, 8, 9) have optical overshoot below the baseline, and
-    // with the baseline flush to the edge that overshoot gets clipped by the
-    // viewBox / MediaBox — visible on screen and in print. 3.5% of the font size
-    // is ~0.13mm at 100%: enough to clear the overshoot, small enough that the
-    // gap between the bars and the HRI stays above the 0.5X minimum.
-    const baseline = r4(totalH - fontSize * 0.035);
-    const at = (mod) => r4((QUIET + mod) * x);
-    // Number system digit: right-aligned to 8X, i.e. inside the left quiet zone.
-    texts.push({
-      x: r4((QUIET - 1) * x - (HELV_DIGIT_ADV * fontSize) / 2),
-      y: baseline, size: r4(fontSize), text: digits[0],
-    });
-    // Left half, digits 2-6, each centred under its own 7-module cell.
-    for (let k = 1; k <= 5; k++) {
-      texts.push({ x: at(3 + 7 * k + 3.5), y: baseline, size: r4(fontSize), text: digits[k] });
-    }
-    // Right half, digits 7-11.
-    for (let k = 0; k <= 4; k++) {
-      texts.push({ x: at(50 + 7 * k + 3.5), y: baseline, size: r4(fontSize), text: digits[6 + k] });
-    }
-    // Check digit: left-aligned from 105X, i.e. inside the right quiet zone.
-    texts.push({
-      x: r4(at(SYMBOL) + x + (HELV_DIGIT_ADV * fontSize) / 2),
-      y: baseline, size: r4(fontSize), text: digits[11],
-    });
+    // Baseline sits high enough that the optical overshoot on the round digits
+    // (OCR-B dips 0.014 em below the baseline) stays inside the symbol box.
+    // Flush to the edge it gets clipped — in the PDF and EPS as well as on screen.
+    const baseline = r4(totalH - Math.abs(OCRB.bottom) * em - 0.1 * mag);
+    const put = (x, ch) => glyphs.push({ char: ch, x: r4(x), y: baseline, em: r4(em) });
+
+    // Each half's five digits are one monospaced run centred on that half's
+    // data area, which is what "9pt, 0 tracking, centred" produces.
+    const runLeft = (centreModule) => (centreModule) * x - (5 * pitch) / 2;
+
+    // Number system and check digits sit in the quiet zones, flush to the
+    // artwork edges so they stay clear of the guard bars while the symbol
+    // itself remains exactly 113 modules wide.
+    put(0, digits[0]);
+    const l0 = runLeft(QUIET + 3 + 21);        // left data half spans modules 3..45
+    for (let k = 0; k < 5; k++) put(l0 + k * pitch, digits[1 + k]);
+    const r0 = runLeft(QUIET + 50 + 21);       // right data half spans modules 50..92
+    for (let k = 0; k < 5; k++) put(r0 + k * pitch, digits[6 + k]);
+    put(totalW - pitch, digits[11]);
   }
 
   return {
@@ -164,11 +170,11 @@ export function buildUpcA(digits, opts = {}) {
     w: r4(totalW),
     h: r4(totalH),
     rects,
-    texts,
+    glyphs,
     background: background ? '#FFFFFF' : null,
     fill: '#000000',
     title: `UPC-A ${digits}`,
   };
 }
 
-export const UPCA_NOMINAL = { X_MM, BAR_H_MM, TOTAL_H_MM, TOTAL_MODULES };
+export const UPCA_NOMINAL = { X_MM, BAR_H_MM, TOTAL_H_MM, TOTAL_MODULES, HRI_PT };
