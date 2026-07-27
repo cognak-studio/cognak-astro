@@ -232,8 +232,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .tools-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
 
     /* ------------------------------------------------------------ card --- */
+    /* No backdrop-filter anywhere on this page. The lattice behind it repaints
+       as the cursor moves, and a blurred backdrop forces the browser to re-blur
+       that whole region every single frame — it cost roughly half the frame rate
+       at 1440p and two thirds at 2560px. The translucency itself is free, so the
+       card keeps its tint and the modules simply show through unblurred. */
     .tools .tcard{ background:var(--card); border-radius:10px; padding:34px 34px 30px;
-      -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
       box-shadow:0 2px 18px rgba(0,0,0,.28); }
     @media (max-width:600px){ .tools .tcard{ padding:24px 20px 22px; } }
 
@@ -259,7 +263,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       width:100%; box-sizing:border-box; margin:0;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
-      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       transition:border-color .2s ease, background .2s ease; outline:none;
       -moz-appearance:textfield; }
     .tools .txt::-webkit-outer-spin-button,
@@ -277,7 +280,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 46px 14px 16px;
-      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       transition:border-color .2s ease, background .2s ease; outline:none; cursor:pointer; }
     .tools .sel:focus{ border-color:var(--accent); background:var(--field-focus); }
     /* Native option lists render in the OS palette; force dark so the menu
@@ -383,7 +385,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     import { toSvg, toPdf, toEps } from '../../lib/barcode/emit.js';
     import { initLattice } from '../../lib/tools-background.js';
 
-    initLattice(document.getElementById('tools-lattice'), { step: 15, dot: 2 });
+    // Tuning lives in LATTICE_DEFAULTS, so there's one place to change it.
+    initLattice(document.getElementById('tools-lattice'));
 
     const EMITTERS = {
       svg: { emit: toSvg, mime: 'image/svg+xml' },

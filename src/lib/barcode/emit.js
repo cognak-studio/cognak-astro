@@ -122,6 +122,16 @@ export function toEps(doc) {
   L.push(`%%HiResBoundingBox: 0 0 ${r(W, 3)} ${r(H, 3)}`);
   if (doc.texts.length) L.push('%%DocumentNeededResources: font Helvetica');
   L.push('%%EndComments');
+  // Illustrator does not build an artboard from %%BoundingBox when it opens a
+  // plain EPS — it makes a document from whatever new-document profile is
+  // current and drops the art onto it, which is why an unrelated artboard
+  // shows up. These are Illustrator's own private comments for artboard and
+  // canvas size; any RIP that doesn't recognise them ignores them as ordinary
+  // DSC comments. Open the PDF instead if you want a guaranteed tight artboard.
+  L.push(`%AI7_ArtboardBox: 0 0 ${r(W, 3)} ${r(H, 3)}`);
+  L.push(`%AI5_ArtSize: ${r(W, 3)} ${r(H, 3)}`);
+  L.push(`%AI3_Cropmarks: 0 0 ${r(W, 3)} ${r(H, 3)}`);
+  L.push('%AI3_Margin: 0 0 0 0');
   L.push('%%BeginProlog');
   // x y w h R — an explicitly constructed rectangle path, rather than the
   // Level 2 `rectfill`, because some EPS importers still parse conservatively.
