@@ -16,6 +16,14 @@
  *                     replies with the list so you know what to set.
  *   LINEAR_LABEL      a label name to attach to each brief (e.g. "Brief"), if it
  *                     exists on the team.
+ *   LINEAR_ASSIGNEE_EMAIL
+ *                     email of the workspace member to assign each brief to.
+ *                     Linear NEVER sends Inbox notifications for your own
+ *                     actions, so for briefs to hit your Inbox the API key must
+ *                     belong to a DIFFERENT user (e.g. a dedicated "Cognak
+ *                     Intake" member) and this var must point at you. If unset,
+ *                     falls back to assigning the API key's own user (lands in
+ *                     My Issues, but silently).
  */
 
 const LINEAR_API = 'https://api.linear.app/graphql';
@@ -113,13 +121,26 @@ export default async function handler(req, res) {
       if (match) labelIds = [match.id];
     }
 
-    // Assign to the API key's own user (you) so the brief lands in "My Issues"
-    // and notifies your Linear Inbox / Slack the moment it arrives.
+    // Assign the brief so it lands in someone's "My Issues" — and, when the
+    // assignee is NOT the API key's user, fires a real Inbox notification.
+    // (Linear suppresses all notifications for your own actions, so an issue
+    // created with your key and self-assigned arrives silently.)
     let assigneeId;
-    try {
-      const me = await linear(apiKey, 'query { viewer { id } }');
-      assigneeId = me && me.viewer && me.viewer.id;
-    } catch (e) { /* non-fatal: fall back to an unassigned issue */ }
+    const assigneeEmail = (process.env.LINEAR_ASSIGNEE_EMAIL || '').trim().toLowerCase();
+    if (assigneeEmail) {
+      try {
+        const ud = await linear(apiKey, 'query { users(first: 250) { nodes { id email } } }');
+        const users = (ud && ud.users && ud.users.nodes) || [];
+        const match = users.find((u) => (u.email || '').toLowerCase() === assigneeEmail);
+        if (match) assigneeId = match.id;
+      } catch (e) { /* non-fatal: fall through to the viewer fallback below */ }
+    }
+    if (!assigneeId) {
+      try {
+        const me = await linear(apiKey, 'query { viewer { id } }');
+        assigneeId = me && me.viewer && me.viewer.id;
+      } catch (e) { /* non-fatal: fall back to an unassigned issue */ }
+    }
 
     const input = { teamId: team.id, title: title, description: description };
     if (assigneeId) input.assigneeId = assigneeId;
