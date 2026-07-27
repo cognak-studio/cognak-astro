@@ -580,7 +580,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         headline:'Tell us about the site.',
         groups:[
           {title:'The site',fields:[
-            {id:'company',type:'text',t:'Company / brand',q:'What should we call you?',req:true},
+            {id:'company',type:'text',t:'Brand',q:"What's the company or brand called?",req:true},
             {id:'current_url',type:'url',t:'Current site',q:'If you have one.',ph:'https://'},
             {id:'goal',type:'single',t:'Main goal',q:"What's the site's main job?",options:['Generate leads / inquiries','Sell products (e-commerce)','Showcase work / portfolio','Inform / educate','Raise funding / credibility']},
             {id:'what',type:'textarea',t:'What & who',q:"What does the business do, and who's it for?",req:true}
@@ -593,7 +593,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           {title:'Look & feel',fields:[
             {id:'personality',type:'multi',t:'Feel',q:'How should it feel?',options:['Bold','Minimal','Editorial','Playful','Premium','Corporate','Warm','Technical','Immersive','Clean','Expressive']},
             {id:'references',type:'textarea',t:'Sites you love',q:'A few sites you love, and why.'},
-            {id:'brand_ready',type:'single',t:'Brand assets',q:'Logo, colors, fonts?',options:['Yes, ready to use','Partial','Need branding too']}
+            {id:'brand_ready',type:'single',t:'Brand assets',q:'Logo, colors, fonts?',options:['Yes, ready to use','Partial','Need branding too']},
+            {id:'design_links',type:'urls',t:'Design link',q:'Figma or files, if any.',ph:'https://'}
           ]},
           {title:'Build',fields:[
             {id:'platform',type:'single',t:'Platform',q:'Any preference?',options:['No preference, recommend one','Custom build','Webflow','WordPress','Shopify','Framer']},
@@ -606,11 +607,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         headline:"Tell us what we're building.",
         groups:[
           {title:'The build',fields:[
-            {id:'company',type:'text',t:'Company / project',q:'What should we call it?',req:true},
+            {id:'company',type:'text',t:'Brand',q:"What's the company or brand called?",req:true},
             {id:'what_kind',type:'single',t:"What we're building",q:'Pick the closest.',options:['Marketing / brochure site','Web app','E-commerce store','Internal tool / dashboard','API / integration','Not sure yet']},
             {id:'what',type:'textarea',t:'What it does',q:'Describe what it needs to do.',req:true},
             {id:'design_status',type:'single',t:'Design status',q:'Is there a design?',options:['Figma design ready','Rough wireframes','Nothing yet, needs design too']},
-            {id:'figma_url',type:'url',t:'Design link',q:'Figma or files, if any.',ph:'https://'}
+            {id:'figma_url',type:'urls',t:'Design link',q:'Figma or files, if any.',ph:'https://'}
           ]},
           {title:'Functionality',fields:[
             {id:'features',type:'multi',t:'Core features',q:'What does it need?',options:['User accounts / auth','Payments','CMS','Dashboard / admin','Search','Notifications','File uploads','Real-time / live data','AI / LLM features','Maps / location']},
@@ -682,6 +683,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         inner='<div class="chips" data-id="'+f.id+'">'+f.options.map(function(o){
           return '<label class="chip"><input type="checkbox" value="'+esc(o)+'">'+esc(o)+'</label>';
         }).join('')+'</div>';
+      }else if(f.type==='urls'){
+        /* One URL to start, "+ Add another link" appends more — same dialect
+           as the uploader's paste-a-link row. First input stays classless so it
+           reads like a normal field input; appended ones take .uplink spacing. */
+        inner='<div class="urlmulti" data-id="'+f.id+'">'+
+            '<div class="uplinks" data-role="links">'+
+              '<input type="url" id="f_'+f.id+'" data-id="'+f.id+'" data-role="link" placeholder="'+esc(f.ph||'https://')+'"'+describedBy+'>'+
+            '</div>'+
+            '<button type="button" class="uplink-add" data-role="addlink">+ Add another link</button>'+
+          '</div>';
       }else if(f.type==='colors'){
         inner=colorsHTML();
       }else if(f.type==='files'){
@@ -707,7 +718,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
       /* Optional boxes don't count toward completion %: those flagged opt, the
          "if any" URL fields, and the free-form "Anything else". */
-      var isOpt = f.opt || f.type==='url' || f.id==='anything';
+      var isOpt = f.opt || f.type==='url' || f.type==='urls' || f.id==='anything';
       return '<div class="field" data-field="'+f.id+'"'+(f.req?' data-req="1"':'')+(isOpt?' data-opt="1"':'')+
         ' data-type="'+f.type+'">'+labelHTML+hint+inner+'</div>';
     }
@@ -874,6 +885,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       });
       var up=form.querySelector('.uploader');
       if(up){ initUploader(up); }
+      form.querySelectorAll('.urlmulti').forEach(function(um){ initUrlMulti(um); });
+    }
+
+    /* ---- multi-URL fields (Design link): "+ Add another link", capped like
+       the uploader's paste-a-link row. Dynamically added inputs miss wireForm's
+       generic listener, so clearInvalid/updateProgress are wired here. ---- */
+    function initUrlMulti(um){
+      var linksBox=um.querySelector('[data-role="links"]');
+      var addLink=um.querySelector('[data-role="addlink"]');
+      if(!addLink||!linksBox) return;
+      addLink.addEventListener('click',function(){
+        if(linksBox.querySelectorAll('[data-role="link"]').length>=UP_MAX_LINKS) return;
+        var inp=document.createElement('input');
+        inp.type='url';inp.className='uplink';inp.setAttribute('data-role','link');
+        inp.placeholder='…another link';
+        inp.setAttribute('aria-label','Additional design link');
+        inp.addEventListener('input',function(){
+          var fld=inp.closest('.field');if(fld)clearInvalid(fld);updateProgress();
+        });
+        linksBox.appendChild(inp);
+        inp.focus();
+        addLink.hidden = linksBox.querySelectorAll('[data-role="link"]').length>=UP_MAX_LINKS;
+      });
     }
 
     /* ---- existing-materials uploader (Vercel Blob client uploads) ---- */
@@ -1220,6 +1254,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           if(link.value.trim())parts.push('Link: '+link.value.trim());
         });
         return parts.join('\n  ');
+      }
+      if(type==='urls'){
+        var uv=[];fld.querySelectorAll('[data-role="link"]').forEach(function(l){var s=l.value.trim();if(s)uv.push(s);});
+        return uv.join('\n  ');
       }
       if(type==='range'){var wrap=fld.querySelector('.rangewrap');var r=fld.querySelector('input[type=range]');if(!r||!wrap)return '';var pfx=wrap.getAttribute('data-prefix')||'';var mx=+wrap.getAttribute('data-max');var v=+r.value;var out=pfx+fmt(v)+(v>=mx?'+':'');if(v>=mx&&state.budgetPlus)out+=' ('+state.budgetPlus+')';return out;}
       if(type==='single'){var c=fld.querySelector('input:checked');return c?c.value:'';}
