@@ -37,21 +37,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     html, body { background-color: #0E06D2 !important; }
 
     #colophon-anatomy {
-      /* inset:0 alone pins this to the viewport on all four sides. Explicit
-         width:100vw/height:100vh here used to over-constrain the box (a
-         fixed element resolves an explicit width/height over the opposing
-         insets), and 100vw measures the window's full inner width
-         INCLUDING the scrollbar track — wider than the page's actual
-         visible content whenever a non-overlay scrollbar is present. That
-         pushed this canvas's box past the real right edge of the page,
-         widening the whole document's horizontal scroll range and leaving
-         the footer (correctly sized to the real viewport) looking short
-         next to a stray strip of the html/body blue background showing
-         through. Confirmed resize-independent: the gap persisted even with
-         the JS resize/rAF loop stopped, so it's this static CSS, not the
-         animation (2026-07-27). */
+      /* Explicit width/height are required here: <canvas> is a replaced
+         element, so with NO CSS width/height at all it falls back to its
+         own drawing-buffer size as its intrinsic dimensions — and this
+         canvas's width/height attributes are set in JS to
+         innerWidth*dpr / innerHeight*dpr (see resize() below), so at
+         devicePixelRatio 2 that's exactly 2x the viewport, badly
+         overflowing. (Confirmed via a live DOM measurement 2026-07-27:
+         canvasRect came back 2354x2626 against a 1177 viewport — exactly
+         2x.) Using 100% instead of the old 100vw/100vh avoids the
+         separate "100vw includes the scrollbar track" overflow bug while
+         still sizing correctly, since inset:0 already anchors all four
+         sides and 100%/100% here resolves against the same viewport. */
       position: fixed;
       inset: 0;
+      width: 100%;
+      height: 100%;
       z-index: 0;
       pointer-events: none;
     }
