@@ -963,6 +963,11 @@ html.home-scrolled #cognak-cookie {
     padding: 34px 70px 24px;
     position: relative;
     z-index: 51;
+    /* Own compositing layer so it can't inherit a stale painted tile from the
+       position:fixed, rAF-redrawn colophon canvas sitting beneath it in the
+       stacking order — seen once as a torn/bled-through footer on /colophon
+       (2026-07-27). Cheap and safe even if that wasn't the actual cause. */
+    isolation: isolate;
 }
 .footer-top {
     display: grid;

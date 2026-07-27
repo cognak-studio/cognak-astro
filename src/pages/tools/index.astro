@@ -24,11 +24,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   <main id="cognak-main"><section class="tools">
 
-    <p class="eyebrow">Internal tools</p>
+    {/* No eyebrow: the headline is the first thing in the column, which is what
+        puts its text at the same height as projects / studio / brief. */}
     <h1 class="headline tools-headline">
       {/* Kept on one source line: the word-splitter turns the surrounding text
           nodes into spans, and a newline either side of the <em> loses the space. */}
-      Sooner or later, everything you design gets <em>read by a machine<span class="ink">.</span></em> This is the part it reads.
+      <em>Tools</em> for the part of the work that gets scanned, not seen.
     </h1>
     <p class="lede tools-lede">
       Pick a format, type in the number or the link, and take it away as SVG,
@@ -187,7 +188,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
        ============================================================ */
     .tools {
       --bg:#16151A;
-      --card:rgba(255,255,255,0.045); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
+      --card:rgba(33,31,40,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
       --ink:#EDEAF3; --ink-soft:#A9A3B8; --accent:#B47CFF; --accent-hi:#C79BFF;
       --deep:#1B1424; --line:rgba(237,234,243,0.13); --line-strong:rgba(237,234,243,0.28);
       --placeholder:#8A8499; --ok:#7EE2A8; --err:#FF9E90;
@@ -208,14 +209,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
        on every text input. Both are overridden below. */
 
     /* ---------------------------------------------------------- header --- */
-    .tools .eyebrow{ font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3;
-      letter-spacing:.28em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.2rem; }
     .tools .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .tools .headline em{ font-style:normal; font-weight:500; color:var(--accent); }
-    /* The full stop lives inside the <em> so the word-splitter can't strand it
-       on a line of its own — element children are never split, text nodes are. */
-    .tools .headline em .ink{ color:var(--ink); }
     .tools .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch;
       margin:0 0 3.4rem 40px; }
     @media (max-width:720px){
@@ -358,9 +354,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       .tools .rise{ opacity:1; transform:none; transition:none; }
       .tools .panel{ transition:none; }
     }
-
-    /* This page is a utility, not a pitch — the marketing footer stays off. */
-    .main-footer{ display:none !important; }
 
     /* ------------------------------------------------------------- nav --- */
     /* Shared inner-page nav, themed to the violet colorway — same treatment
