@@ -192,6 +192,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       --bg:#16151A;
       --card:rgba(33,31,40,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
       --ink:#EDEAF3; --ink-soft:#A9A3B8; --accent:#B47CFF; --accent-hi:#C79BFF;
+      /* Headline accent only — the brand violet at full chroma shouts at 62px,
+         so this sits at the lede's value with just enough hue to read as colour. */
+      --accent-soft:#B0A3CF;
       --deep:#1B1424; --line:rgba(237,234,243,0.13); --line-strong:rgba(237,234,243,0.28);
       --placeholder:#8A8499; --ok:#7EE2A8; --err:#FF9E90;
       /* Fixed 190px, matching the shared header position across
@@ -213,7 +216,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     /* ---------------------------------------------------------- header --- */
     .tools .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
-    .tools .headline em{ font-style:normal; font-weight:500; color:var(--accent); }
+    .tools .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
     .tools .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch;
       margin:0 0 3.4rem 40px; }
     @media (max-width:720px){
