@@ -1,0 +1,87 @@
+# stepup.md — the "everything bespoke" list
+
+Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer thinks "wow, he tastefully made this full of delight."
+
+---
+
+## The foundation — one hand, one vocabulary
+
+- [ ] **Motion tokens.** ~37 distinct durations and 5 cubic-beziers in custom.css; ~95% of transitions are plain `ease`. Define `--ease-out-expo: cubic-bezier(0.16,1,0.3,1)` (the best moments already use it — founder portrait, studio reel), a spring, and 2–3 named durations, then sweep. Kill the one Material `(0.4,0,0.2,1)` curve on mobile pagers.
+- [ ] **Color tokens.** Five purples (#9F50FF/#9647F0/#8B1FFF/#8A3AEE/#7a2ff2), five pinks, three near-blacks on the studio nav alone — and three different "availability greens" (#AAFF00 home, #6BBF00 projects, #9EED3D 404, plus colophon's #b6ff2e). One signal green everywhere, or deliberately grade them like the cognac vintages and say so in the colophon.
+- [ ] **Per-page `::selection`.** Currently acid green/black globally — clashes on the pink privacy page and klein-blue colophon. The nav is already tinted per page; selection is the missing member of that pattern. Green-on-blue for colophon, plum-on-pink for privacy.
+- [ ] **A scrollbar decision.** Zero scrollbar styling exists — the stock light scrollbar on #17151a pages is the most visible browser default on the site. `scrollbar-color` thin purple + `color-scheme: dark` on dark pages.
+- [ ] **Body-link underline system.** Privacy already has the proto (offset underline, color fade) — promote to a site-wide animated underline draw so inline text links have a signature move distinct from nav links.
+- [ ] **Delete the second design system.** screen.css ships ~800 lines of WordPress-era rules: 0.7s `all` transitions (52 of them), Facebook-blue socicon hovers, ninja-forms, hamburger.
+- [ ] **Dead code sweep** (inspectors will read the source): `letter-rainbow-in` (studio, unused), `.colophon-eyebrow` (styled + JS-queried, element doesn't exist), `.copied` + old `.coloredit` block (brief), `.footer-backtotop:hover` whose hover color equals its resting color (no-op hover), and the fully-built-but-never-fed `is-video` cursor path.
+
+## Homepage
+
+- [ ] **Hover-meta exit typing.** On mouseleave, backspace the JSON out at 2× speed instead of letting stale meta linger. Keeps the terminal fiction coherent.
+- [ ] **Wire the dead video cursor.** Emit `data-hero-video` on cards so the 140px cursor panel plays the reel for video projects (DuVine has a hoverVideo ready). The CSS and JS branch already exist.
+- [ ] **"+ more" end-state morph.** After revealing hidden tiles, the second click silently navigates to /projects. Rotate the + 45° and morph the label to "all projects →" so the changed meaning is honest.
+- [ ] **Weather-reactive dust motes.** `fetchWeather()` already knows LA conditions — on rain codes, let the motes fall like drizzle. Zero extra network.
+- [ ] **Odd-count grid hole.** Featured grid is 2-col with no odd-count handling (the archive grid solved this with `direction: rtl`).
+
+## /projects
+
+- [ ] **Give the default view the morph.** Only grid figures carry `view-transition-name`, so list users (the default) get a plain fade into the detail page while grid users get the signature thumb→hero morph. Give list rows a name too.
+- [ ] **FLIP the sort.** The clock/abc SMIL icons are jewels, then the reorder is an instant `appendChild` snap. Record rects → reorder → play with the expo curve. Same for list⇄grid: wrap the class flip in `document.startViewTransition`.
+- [ ] **Grid-view hover is dead** (transform explicitly nulled, no media swap). Borrow the homepage's hover-media swap at lower intensity, or a 1–2° tilt.
+- [ ] **Mobile list is bare text rows** — tags hidden, no cursor, no imagery. Restore the vintage badge and/or a small thumb that fades per-row at viewport center (reuse `getTileOpacity`).
+
+## Project detail (audited via DuVine)
+
+- [ ] **The gallery has no design.** DuVine's five gallery images sit inside a single `<p>`, stacking edge-to-edge with no spacing, no reveal, no lazy fade. Fix: IO-gated fade + 12px rise (the existing `hp-lazy` spec), spacing rhythm between images, stagger when two enter together.
+- [ ] **Alt text → captions.** DuVine's alts are already written like captions ("— interior map", "— magazine hero"). Render as optional mono micro-captions that fade in after the image settles. Zero new authoring cost.
+- [ ] **Entrance choreography.** The 70px mono title, category, and three detail columns appear statically — the only page with no entrance at all. Word-stagger the title, accent-fade the category, rise the columns 80ms apart.
+- [ ] **Pay off the vintage.** DuVine is a 2013-dated, 10-year relationship — literally an XO. The cask grade appears in the archive list and homepage hover-meta but never on the detail page. Small mono chip beside the category.
+- [ ] **Directional prev/next.** The `proj-switch` crossfade is flat; add a 24px slide keyed to direction under the existing 220ms. Wire the built-but-unused `is-next` spinning-ring cursor to the side pagers.
+- [ ] **End-of-gallery pager peek.** When the last image enters view, slide both pagers fully in for ~1.2s then re-park — a designed "you've reached the end, next?" beat.
+- [ ] **Content nits.** DuVine's `projectType` has a trailing comma (`…Development, '`), `projectYear: 2016-2026` uses a hyphen not an en-dash, and the body still carries `wp-image-2668` classes. Worth a content-collection lint pass.
+
+## /studio
+
+- [ ] **Give the reel a sense of place.** All 15 POOL entries have empty client/kind/year — the typewriter only prints the random fields, and `revisions`/`nda` re-randomize per view, breaking the "record" illusion. Fill the metadata, seed the fake fields from the asset src so they're stable, add `"asset": "03 / 15"` as the first typed line, and a blinking caret that settles after typing.
+- [ ] **Tabs are the flattest interaction on the page.** Bare 0.35s opacity swap. A small pink marker gliding between Approach/Founder + a 6–8px panel rise on the expo curve — and `role="tablist"`/arrow keys while in there.
+- [ ] **The manifesto has no entrance** — the thesis sentence is the only prominent text missing the site's stagger. Add it, and let the three pink accent words land last as a three-beat cadence.
+- [ ] **"Ta-da!" is a dead end.** The award badges pop delightfully then can't be clicked (`pointer-events:none`). Re-enable on desktop with a 150ms delay after activation.
+- [ ] **Logo ring ↔ scroll.** Feed Lenis velocity into the ring's target speed (clamped) so fast scrolling visibly spins it before it settles back. Also: the ring ignores reduced-motion (the only animation on the page that does).
+- [ ] **The dark→light footer seam** is the page's only hard cut — a short fade zone or hairline treatment above `.main-footer`.
+- [ ] **Avail-dot conflict.** custom.css says the studio avail-dot is pink #FFB2E4; inline styles force acid green. One of them is wrong on purpose — make it look that way.
+
+## /brief
+
+- [ ] **The Sent screen is a hard `display` swap** — the emotional payoff of the entire funnel, and the only step with zero transition. Crossfade + staggered rise (eyebrow → headline words → lede → ghost button), sparks starting only after the headline lands. Biggest single win on the site.
+- [ ] **Submit button state machine.** "Sending…" is a bare text swap with no disabled styling. Arrow slides away → shimmer while sending → a 300ms "Sent ✓" beat before the screen swap → shake + red flash on failure.
+- [ ] **The form is listening — show it.** The budget follow-up (`.bplus`) pops via `hidden` toggle; give it the modal's rise. Chip checkmarks draw with no animation; scale-rotate them in. Pills snap; give selection a micro spring. Invalid fields get a restrained ±3px shake instead of an instant red border.
+- [ ] **Progress rail completion moment.** Reaching 100% is silent — one glow swell and the end-cap tinting orange.
+- [ ] **Resurrect `.stepmeta`.** Styled and included in the entrance stagger but never rendered. "02 / BRANDING — ~2 MIN LEFT" ties the picker's time promise to the rail.
+- [ ] **Tokenize the orange.** `#EF9146` appears ~20 times raw, with two slightly different hover-oranges on sibling elements.
+
+## /colophon
+
+- [ ] **Fix the body links first** (no hover, no transition — worst offender on the page for this audience), and give external credits a mono `↗`.
+- [ ] **Glyph caption readout.** A tiny fixed mono caption near the canvas ("lowercase g · 1000 upm · 138 pts") updating as the morph cycles — specimen-plate labeling. The data's already in `DATA`.
+- [ ] **Cursor-aware anatomy.** Nodes/handles near the cursor brighten slightly — the artwork begs inspection and it's the only page canvas that ignores the pointer (privacy ripples, 404 flees).
+- [ ] **The ":)" payoff.** Tint the stroke green for just that glyph in the cycle — turns a hidden joke into a discovered one.
+- [ ] **Print stylesheet.** A colophon is exactly the page a type nerd prints. Two dozen lines; huge signal. (Privacy deserves one too — it literally draws crop marks.)
+- [ ] **Date it.** Add a `Set` row to the spec grid with the build date — colophons traditionally date themselves.
+
+## /privacy-policy
+
+- [ ] **Numbered mono section headers** (`01 · Analytics` in Diatype Mono) — the site's "label voice" is mono everywhere except here, and it feeds the page's print conceit.
+- [ ] **Cookie ledger + live consent readout.** Replace the prose cookie list with a hairline mono table, and add `your current choice: declined — change` that reads the cookie and re-fires the consent update. Genuinely useful and perfectly on-message.
+- [ ] **Deliver the headline's promise.** One-line mono glosses under each section — "in short: we count visits, not people."
+- [ ] **Baseline-lock the type.** The canvas draws a baseline grid derived from the body line-height, but the text doesn't actually sit on it — designers will check. Quantize the margins and the whole conceit clicks.
+
+## /404
+
+- [ ] **Commit to a color.** Flat #6F6F6F is the least chosen-looking decision on the site. Go near-black graphite and let the green dot be the only saturated thing on the page — which is the joke: the availability dot is the only thing still working.
+- [ ] **Let the dot find the exits.** Occasionally weight its wander toward the two CTA links' rects. The lost dot quietly shows you the way out. Pure narrative, zero new UI.
+- [ ] **The frown deserves a resolution.** After the 1.6s tilt, carry ":(" on through so it reads as a sideways smile — earning the "either way, we're glad you're here" line.
+- [ ] **The CTAs are the barest element on the page** — the whole point of a 404, with color-only hover and no entrance. Arrow slide-in + staggered entrance after the body.
+- [ ] **Bugs while in there.** The headline/body are missing from the pre-hide FOUC guard (only staggered page exposed to flash), the accent misses `headline-accent-fade`, reduced-motion users get a completely empty gray page, and the canvas dot green ≠ the CSS hover green on the same page.
+
+---
+
+**Suggested first batch:** motion/color tokens + per-page selection, the brief Sent screen, and the project gallery treatment.
