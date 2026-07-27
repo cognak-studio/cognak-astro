@@ -20,6 +20,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   noindex={true}
   pageBg="#16151A"
 >
+  <canvas id="tools-lattice" aria-hidden="true"></canvas>
+
   <main id="cognak-main"><section class="tools">
 
     <p class="eyebrow">Internal tools</p>
@@ -168,6 +170,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <style is:inline>
     html, body { background-color:#16151A !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
+
+    /* Module-lattice background — fixed behind the content, fades in once the
+       canvas has painted. Skipped entirely under reduced motion (the script
+       never starts, so the canvas just stays empty and invisible). */
+    #tools-lattice{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
+      pointer-events:none; opacity:0; transition:opacity 1.4s ease; }
+    #tools-lattice.is-in{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){ #tools-lattice{ display:none; } }
 
     /* ============================================================
        COGNAK barcode tools — violet ink on the site's own #16151A.
@@ -371,6 +381,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     import { normalizeUpc, buildUpcA } from '../../lib/barcode/upca.js';
     import { buildQr } from '../../lib/barcode/qr.js';
     import { toSvg, toPdf, toEps } from '../../lib/barcode/emit.js';
+    import { initLattice } from '../../lib/tools-background.js';
+
+    initLattice(document.getElementById('tools-lattice'), { step: 15, dot: 2 });
 
     const EMITTERS = {
       svg: { emit: toSvg, mime: 'image/svg+xml' },

@@ -131,7 +131,13 @@ export function buildUpcA(digits, opts = {}) {
 
   const texts = [];
   if (hri) {
-    const baseline = r4(totalH);
+    // The baseline sits a hair above the symbol's bottom edge rather than on it.
+    // Round digits (0, 3, 6, 8, 9) have optical overshoot below the baseline, and
+    // with the baseline flush to the edge that overshoot gets clipped by the
+    // viewBox / MediaBox — visible on screen and in print. 3.5% of the font size
+    // is ~0.13mm at 100%: enough to clear the overshoot, small enough that the
+    // gap between the bars and the HRI stays above the 0.5X minimum.
+    const baseline = r4(totalH - fontSize * 0.035);
     const at = (mod) => r4((QUIET + mod) * x);
     // Number system digit: right-aligned to 8X, i.e. inside the left quiet zone.
     texts.push({
