@@ -1,0 +1,476 @@
+---
+/**
+ * /tools — internal barcode generator.
+ *
+ * Unlisted: no nav link anywhere on the site, noindex/nofollow, and filtered
+ * out of the sitemap in astro.config.mjs. Everything runs client-side, so
+ * nothing typed here is ever sent anywhere.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  page="page"
+  title="Barcode tools – COGNAK"
+  description="Internal UPC-A and QR code generator."
+  ogUrl="https://cognak.com/tools/"
+  noindex={true}
+  pageBg="#F5F4F1"
+>
+  <main id="cognak-main" class="bt">
+    <header class="bt-head">
+      <a href="/" class="bt-logo"><img src="/theme/assets/images/cognak-logo.svg" alt="COGNAK" /></a>
+      <h1 class="bt-title">Barcode tools</h1>
+      <p class="bt-sub">
+        UPC-A and QR, exported as true vector. Everything runs in your browser —
+        nothing you type here leaves this page.
+      </p>
+    </header>
+
+    <div class="bt-grid">
+
+      <!-- ------------------------------------------------------ UPC-A ---- -->
+      <section class="bt-card" aria-labelledby="upc-h">
+        <h2 class="bt-card-title" id="upc-h">UPC-A</h2>
+
+        <label class="bt-label" for="upc-input">Number</label>
+        <input
+          class="bt-input bt-input--mono" id="upc-input" type="text"
+          inputmode="numeric" autocomplete="off" spellcheck="false"
+          placeholder="036000291452" value="036000291452"
+          aria-describedby="upc-note" />
+        <p class="bt-note" id="upc-note">Paste 12 digits, or 11 and the check digit gets calculated.</p>
+
+        <div class="bt-row">
+          <div class="bt-field">
+            <label class="bt-label" for="upc-mag">Magnification</label>
+            <div class="bt-suffixed">
+              <input class="bt-input" id="upc-mag" type="number" min="80" max="200" step="1" value="100" />
+              <span class="bt-suffix">%</span>
+            </div>
+          </div>
+          <div class="bt-field">
+            <label class="bt-label" for="upc-bwr">Bar width reduction</label>
+            <div class="bt-suffixed">
+              <input class="bt-input" id="upc-bwr" type="number" min="0" max="0.05" step="0.005" value="0" />
+              <span class="bt-suffix">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bt-preview bt-preview--upc" id="upc-preview" aria-live="polite"></div>
+        <p class="bt-meta" id="upc-meta"></p>
+
+        <div class="bt-actions" id="upc-actions">
+          <button type="button" class="bt-btn" data-fmt="svg">SVG</button>
+          <button type="button" class="bt-btn" data-fmt="pdf">PDF</button>
+          <button type="button" class="bt-btn" data-fmt="eps">EPS</button>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------- QR ---- -->
+      <section class="bt-card" aria-labelledby="qr-h">
+        <h2 class="bt-card-title" id="qr-h">QR code</h2>
+
+        <label class="bt-label" for="qr-input">Link</label>
+        <input
+          class="bt-input bt-input--mono" id="qr-input" type="text"
+          autocomplete="off" spellcheck="false"
+          placeholder="https://cognak.com" value="https://cognak.com"
+          aria-describedby="qr-note" />
+        <p class="bt-note" id="qr-note">Any URL. Shorter links make a coarser, more scannable code.</p>
+
+        <div class="bt-row">
+          <div class="bt-field">
+            <label class="bt-label" for="qr-size">Size</label>
+            <div class="bt-suffixed">
+              <input class="bt-input" id="qr-size" type="number" min="10" max="300" step="1" value="30" />
+              <span class="bt-suffix">mm</span>
+            </div>
+          </div>
+          <div class="bt-field">
+            <label class="bt-label" for="qr-ec">Error correction</label>
+            <select class="bt-input bt-select" id="qr-ec">
+              <option value="L">Low — 7%</option>
+              <option value="M" selected>Medium — 15%</option>
+              <option value="Q">Quartile — 25%</option>
+              <option value="H">High — 30%</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bt-preview bt-preview--qr" id="qr-preview" aria-live="polite"></div>
+        <p class="bt-meta" id="qr-meta"></p>
+
+        <div class="bt-actions" id="qr-actions">
+          <button type="button" class="bt-btn" data-fmt="svg">SVG</button>
+          <button type="button" class="bt-btn" data-fmt="pdf">PDF</button>
+          <button type="button" class="bt-btn" data-fmt="eps">EPS</button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="bt-foot">
+      <p>
+        UPC-A geometry follows the GS1 nominal symbol: 0.33&nbsp;mm module,
+        37.29&nbsp;&times;&nbsp;25.91&nbsp;mm at 100%, 9-module quiet zones.
+        Human-readable digits are live Helvetica text — convert to outlines in
+        Illustrator if a printer asks. COGNAK doesn't issue UPC numbers; those
+        come from GS1.
+      </p>
+    </footer>
+  </main>
+
+  <style is:inline>
+    html, body { background-color: #F5F4F1 !important; }
+
+    .bt {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem 5rem;
+      font-family: 'Diatype Variable', sans-serif;
+      color: #16151A;
+    }
+    .bt-head { margin-bottom: 3rem; }
+    .bt-logo { display: inline-block; margin-bottom: 2.25rem; }
+    .bt-logo img { height: 18px; width: auto; display: block; }
+    .bt-title {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      font-weight: 500;
+      margin: 0 0 0.75rem;
+    }
+    .bt-sub {
+      margin: 0;
+      max-width: 46ch;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: #56535E;
+    }
+
+    .bt-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+    @media (max-width: 860px) {
+      .bt-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .bt-card {
+      background: #FFFFFF;
+      border: 1px solid #E3E1DB;
+      border-radius: 14px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .bt-card-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 500;
+      color: #56535E;
+      margin: 0 0 1.5rem;
+    }
+
+    .bt-label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 0.02em;
+      color: #56535E;
+      margin-bottom: 0.4rem;
+    }
+    .bt-input {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: inherit;
+      font-size: 1rem;
+      color: #16151A;
+      background: #FAF9F7;
+      border: 1px solid #DEDCD5;
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      -moz-appearance: textfield;
+    }
+    .bt-input::-webkit-outer-spin-button,
+    .bt-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .bt-input:focus {
+      border-color: #9647F0;
+      box-shadow: 0 0 0 3px rgba(150, 71, 240, 0.16);
+    }
+    .bt-input--mono { font-family: 'Diatype Mono', monospace; letter-spacing: 0.04em; }
+    .bt-input.is-error { border-color: #C4423C; box-shadow: 0 0 0 3px rgba(196, 66, 60, 0.13); }
+    .bt-select { -webkit-appearance: none; appearance: none; padding-right: 2rem; }
+
+    .bt-note {
+      margin: 0.5rem 0 0;
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: #7A7682;
+      min-height: 1.2em;
+    }
+    .bt-note.is-error { color: #C4423C; }
+    .bt-note.is-ok { color: #3D7A4B; }
+
+    .bt-row { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+    .bt-field { flex: 1 1 0; min-width: 0; }
+    .bt-suffixed { position: relative; }
+    .bt-suffix {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8125rem;
+      color: #9A96A2;
+      pointer-events: none;
+    }
+    .bt-suffixed .bt-input { padding-right: 2.4rem; }
+
+    .bt-preview {
+      margin-top: 1.5rem;
+      background: #FFFFFF;
+      border: 1px solid #EDEBE5;
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 190px;
+    }
+    .bt-preview svg { display: block; height: auto; max-width: 100%; }
+    .bt-preview--upc svg { width: 100%; }
+    .bt-preview--qr svg { width: 210px; }
+    .bt-preview.is-empty { color: #B6B2BE; font-size: 0.875rem; }
+
+    .bt-meta {
+      margin: 0.75rem 0 0;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.75rem;
+      line-height: 1.5;
+      color: #7A7682;
+      min-height: 2.25em;
+    }
+    .bt-meta .warn { color: #B5761F; }
+
+    /* margin-top:auto keeps the download row pinned to the bottom of each card,
+       so the two cards line up even though their meta blocks differ in height. */
+    .bt-actions { display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1.25rem; }
+    .bt-btn {
+      flex: 1 1 0;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: #16151A;
+      background: #FFFFFF;
+      border: 1px solid #16151A;
+      border-radius: 999px;
+      padding: 0.6rem 0.5rem;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+    }
+    .bt-btn:hover:not(:disabled) { background: #16151A; color: #FFFFFF; }
+    .bt-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .bt-btn:focus-visible { outline: 2px solid #9647F0; outline-offset: 2px; }
+
+    .bt-foot {
+      margin-top: 2.5rem;
+      max-width: 68ch;
+    }
+    .bt-foot p {
+      margin: 0;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: #8B8792;
+    }
+
+    /* This page is a utility, not a pitch — drop the marketing footer. */
+    .main-footer { display: none !important; }
+  </style>
+
+  <script>
+    import { normalizeUpc, buildUpcA } from '../../lib/barcode/upca.js';
+    import { buildQr } from '../../lib/barcode/qr.js';
+    import { toSvg, toPdf, toEps } from '../../lib/barcode/emit.js';
+
+    const EMITTERS = {
+      svg: { emit: toSvg, mime: 'image/svg+xml' },
+      pdf: { emit: toPdf, mime: 'application/pdf' },
+      eps: { emit: toEps, mime: 'application/postscript' },
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const mmToIn = (mm) => (mm / 25.4).toFixed(3);
+
+    function download(doc, fmt, basename) {
+      const { emit, mime } = EMITTERS[fmt];
+      const blob = new Blob([emit(doc)], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${basename}.${fmt}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function wire(actionsEl, getState) {
+      actionsEl.querySelectorAll('button[data-fmt]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const s = getState();
+          if (s && s.doc) download(s.doc, btn.dataset.fmt, s.name);
+        });
+      });
+    }
+
+    function setButtons(actionsEl, enabled) {
+      actionsEl.querySelectorAll('button').forEach((b) => { b.disabled = !enabled; });
+    }
+
+    const clamp = (n, lo, hi, fallback) => {
+      const v = Number(n);
+      if (!Number.isFinite(v)) return fallback;
+      return Math.min(hi, Math.max(lo, v));
+    };
+
+    /* ------------------------------------------------------------ UPC-A --- */
+
+    let upcState = null;
+    const upcPreview = $('upc-preview');
+    const upcNote = $('upc-note');
+    const upcMeta = $('upc-meta');
+    const upcActions = $('upc-actions');
+
+    function renderUpc() {
+      const input = $('upc-input');
+      const result = normalizeUpc(input.value);
+
+      if (!result.ok) {
+        upcState = null;
+        input.classList.toggle('is-error', input.value.trim().length > 0);
+        upcNote.textContent = result.error;
+        upcNote.className = 'bt-note is-error';
+        upcPreview.innerHTML = '';
+        upcPreview.classList.add('is-empty');
+        upcMeta.textContent = '';
+        setButtons(upcActions, false);
+        return;
+      }
+
+      input.classList.remove('is-error');
+      upcNote.textContent = result.computed
+        ? `Check digit ${result.check} added — full code ${result.digits}.`
+        : `Valid. Check digit ${result.check} confirmed.`;
+      upcNote.className = 'bt-note is-ok';
+
+      const mag = clamp($('upc-mag').value, 80, 200, 100) / 100;
+      const bwr = clamp($('upc-bwr').value, 0, 0.05, 0);
+      const doc = buildUpcA(result.digits, { magnification: mag, bwr });
+
+      upcPreview.innerHTML = toSvg(doc);
+      upcPreview.classList.remove('is-empty');
+      upcMeta.innerHTML =
+        `${doc.w} × ${doc.h} mm · ${mmToIn(doc.w)} × ${mmToIn(doc.h)} in` +
+        `<br>module ${(0.33 * mag).toFixed(4)} mm` +
+        (mag < 0.9 ? ' <span class="warn">· below 90%, verify with a scanner</span>' : '');
+      upcState = { doc, name: `upc-a-${result.digits}` };
+      setButtons(upcActions, true);
+    }
+
+    /* --------------------------------------------------------------- QR --- */
+
+    let qrState = null;
+    const qrPreview = $('qr-preview');
+    const qrNote = $('qr-note');
+    const qrMeta = $('qr-meta');
+    const qrActions = $('qr-actions');
+
+    function slug(text) {
+      return String(text)
+        .replace(/^https?:\/\//, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48)
+        .toLowerCase() || 'qr';
+    }
+
+    function renderQr() {
+      const input = $('qr-input');
+      const text = input.value.trim();
+
+      if (!text) {
+        qrState = null;
+        input.classList.remove('is-error');
+        qrNote.textContent = 'Any URL. Shorter links make a coarser, more scannable code.';
+        qrNote.className = 'bt-note';
+        qrPreview.innerHTML = '';
+        qrPreview.classList.add('is-empty');
+        qrMeta.textContent = '';
+        setButtons(qrActions, false);
+        return;
+      }
+
+      const size = clamp($('qr-size').value, 10, 300, 30);
+      const ecLevel = $('qr-ec').value;
+
+      let doc;
+      try {
+        doc = buildQr(text, { sizeMm: size, ecLevel });
+      } catch (err) {
+        qrState = null;
+        input.classList.add('is-error');
+        qrNote.textContent = 'Too long to encode — shorten the link or drop the error correction level.';
+        qrNote.className = 'bt-note is-error';
+        qrPreview.innerHTML = '';
+        qrPreview.classList.add('is-empty');
+        qrMeta.textContent = '';
+        setButtons(qrActions, false);
+        return;
+      }
+
+      input.classList.remove('is-error');
+      const looksLikeUrl = /^(https?:\/\/|mailto:|tel:)/i.test(text);
+      qrNote.textContent = looksLikeUrl
+        ? 'Encoded as a link.'
+        : 'No scheme — most phone cameras will treat this as plain text, not a link.';
+      qrNote.className = looksLikeUrl ? 'bt-note is-ok' : 'bt-note';
+
+      qrPreview.innerHTML = toSvg(doc);
+      qrPreview.classList.remove('is-empty');
+      const m = doc.meta;
+      qrMeta.innerHTML =
+        `${doc.w} × ${doc.h} mm · ${mmToIn(doc.w)} × ${mmToIn(doc.h)} in` +
+        `<br>version ${m.version} · ${m.modules}×${m.modules} · module ${m.moduleMm} mm` +
+        (m.moduleMm < 0.4
+          ? ' <span class="warn">· under 0.4 mm, print bigger</span>'
+          : '');
+      qrState = { doc, name: `qr-${slug(text)}` };
+      setButtons(qrActions, true);
+    }
+
+    /* ------------------------------------------------------------- init --- */
+
+    const debounce = (fn, ms = 120) => {
+      let t;
+      return () => { clearTimeout(t); t = setTimeout(fn, ms); };
+    };
+
+    ['upc-input', 'upc-mag', 'upc-bwr'].forEach((id) => {
+      $(id).addEventListener('input', debounce(renderUpc));
+    });
+    ['qr-input', 'qr-size'].forEach((id) => {
+      $(id).addEventListener('input', debounce(renderQr));
+    });
+    $('qr-ec').addEventListener('change', renderQr);
+
+    wire(upcActions, () => upcState);
+    wire(qrActions, () => qrState);
+
+    renderUpc();
+    renderQr();
+  </script>
+</BaseLayout>
