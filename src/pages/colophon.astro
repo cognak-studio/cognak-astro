@@ -56,7 +56,27 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       z-index: 0;
       pointer-events: none;
     }
-    #cognak-main { position: relative; z-index: 1; }
+    #cognak-main {
+      position: relative;
+      z-index: 1;
+      /* .colophon-headline intentionally runs wide via a negative
+         margin-right (see its own comment: "let it run wider to the
+         right, toward the C") — but a negative margin on a normal
+         in-flow block genuinely widens the document's scrollable area
+         (width:auto solves as containing-block-width - margins, and
+         with both margins negative that ADDS width), it doesn't just
+         shift the box visually. Because .colophon's left offset/padding
+         are vw-based, that overflow grows with viewport width — exactly
+         the "breaks past the iPad breakpoint, gets larger" behavior
+         Pierce reported (confirmed via live DOM measurement 2026-07-27:
+         document scrollWidth genuinely exceeded clientWidth, growing
+         with viewport size). #cognak-main sits between the canvas
+         (a page-level sibling, position:fixed, unaffected by this) and
+         the headline, so clipping horizontal overflow here keeps the
+         "run wide toward the C" visual intact while stopping it from
+         widening the actual page/footer. */
+      overflow-x: clip;
+    }
 
     .home-bottom-bar.inner-page-nav.colophon-nav {
       background: rgba(7, 0, 172, 0.80) !important;

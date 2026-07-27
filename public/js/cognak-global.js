@@ -539,6 +539,8 @@
         '.colophon-body > p:not(.colophon-spec):not(.colophon-sign)',
         '#step-pick .headline',
         '#step-pick .lede',
+        '.tools-headline',
+        '.tools-lede',
     ];
 
     function splitWords(el) {
