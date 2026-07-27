@@ -408,6 +408,6 @@ import '../styles/site.css';
   {page === 'projects' && <script src={`/js/cognak-projects.js?v=${jsV}`} defer></script>}
   {page === 'project' && <script src={`/js/cognak-single.js?v=${jsV}`} defer></script>}
   <Analytics />
-  <SpeedInsights />
+  <SpeedInsights sampleRate={0.25} />
 </body>
 </html>

@@ -338,7 +338,10 @@ body { overflow-x: clip; }
         </div>
 
         <div class="founder-portrait-wrap" id="founder-portrait" aria-hidden="true">
-            <img class="founder-portrait-img" src="/theme/assets/images/pierce-liefeld.jpg" alt="Pierce Liefeld, founder of COGNAK" loading="eager" draggable="false">
+            <picture>
+                <source type="image/webp" srcset="/theme/assets/images/pierce-liefeld.webp">
+                <img class="founder-portrait-img" src="/theme/assets/images/pierce-liefeld.jpg" alt="Pierce Liefeld, founder of COGNAK" loading="eager" decoding="async" width="640" height="428" draggable="false">
+            </picture>
         </div>
 
         <div class="award-badges-wrap" id="award-badges-pop" aria-hidden="true">
@@ -360,7 +363,7 @@ body { overflow-x: clip; }
     <div class="studio-feature-video-wrap">
         <div class="sfv-meta" aria-hidden="true"></div>
         <div class="sfv-stage">
-        <video class="studio-feature-media studio-feature-video" autoplay loop muted playsinline preload="auto">
+        <video class="studio-feature-media studio-feature-video" autoplay loop muted playsinline preload="metadata" poster="/media/2026/06/cognak-studio-video-poster.jpg">
                 <source src="/media/2026/06/cognak-studio-video.mp4" type="video/mp4">
             </video>
         </div>
@@ -668,7 +671,7 @@ body { overflow-x: clip; }
         clipRect.setAttribute('y',      (r.top    - cy + 50).toFixed(1));
         clipRect.setAttribute('width',  r.width.toFixed(1));
         clipRect.setAttribute('height', r.height.toFixed(1));
-    });
+    }, { passive: true });
 
     // ── Founder name hover — purple pill cursor + portrait popup ──
     var founderNames   = document.querySelectorAll('.founder-name');
