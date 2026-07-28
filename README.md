@@ -289,13 +289,24 @@ routes by Vercel (the underscore prefix excludes them), so this is safe to
 import from every `admin-*`/`deliver-*` function without exposing it.
 
 **Required env vars** (Vercel → Project → Settings → Environment Variables —
-not yet set as of this writing, so `/send` will 500 until they're added):
+set 2026-07-28):
 - `ADMIN_PASSWORD` — the password that unlocks `/send`.
 - `ADMIN_SECRET` — a random long string, signs session cookies and peppers
-  passcode hashes. Generate once with `openssl rand -hex 32`.
+  passcode hashes. Generated with `openssl rand -hex 32`.
 
 (`BLOB_READ_WRITE_TOKEN` is already set from the `/brief` uploader — no new
 Blob store needed.)
+
+**Colorway (2026-07-28):** each of the six reference pages carries its own
+signature hue — blue `/colophon` (`#0E06D2`), pink `/privacy-policy`
+(`#F1D6EA`), light lavender `/projects` (`#EAE5F2`), near-black `/studio`
+(`#18151A`), warm tan `/brief` (`#140E07` bg, `#DECBAF` accent), violet
+`/tools` (`#16151A` bg, `#B47CFF` accent). `/send` + `/receive` got their own
+in the same family: a deep teal-black ground (`#0A1614`) with a bright
+mint-teal accent (`#4FD9C0`), shared between both pages since they're two
+halves of one feature. The animated module-lattice background (borrowed from
+`/tools`) was dropped from both pages — they're plain dark cards now, no
+canvas.
 
 **Layout note (2026-07-28):** unlike `/tools` and `/brief`, the `.send`/
 `.receive` columns stay horizontally centered at every width instead of
