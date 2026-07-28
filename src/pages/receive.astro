@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="A file delivery from COGNAK."
   ogUrl="https://cognak.com/receive/"
   noindex={true}
-  pageBg="#AFBCAE"
+  pageBg="#384237"
 >
   <canvas id="send-transit" aria-hidden="true"></canvas>
 
@@ -57,7 +57,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#AFBCAE !important; }
+    html, body { background-color:#384237 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
     /* "Transit" background — see src/lib/send-background.js. Fixed behind
@@ -69,17 +69,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     #send-transit.is-in{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ #send-transit{ display:none; } }
 
-    /* Same light sage colorway as /send — see that page's comment for the
+    /* Same deep sage colorway as /send — see that page's comment for the
        full rationale and the WCAG AA contrast notes. */
     .receive {
-      --bg:#AFBCAE;
-      --card:rgba(160,175,158,0.62); --field:rgba(255,255,255,0.30); --field-focus:rgba(255,255,255,0.55);
-      --ink:#323831; --ink-soft:#3E443A; --accent:#323831; --accent-hi:#3E443A;
-      --accent-soft:#323831; --deep:#AFBCAE; --line:rgba(50,56,49,0.22);
-      --line-strong:rgba(50,56,49,0.72); --placeholder:#4A5046;
-      --ok:#1F4A2C; --err:#732418;
-      /* Darker-than-ink CTA, matching /send — see that page's comment. */
-      --cta:#1B1F1A; --cta-hi:#2A302A;
+      --bg:#384237;
+      --card:rgba(66,77,65,0.62); --field:rgba(0,0,0,0.28); --field-focus:rgba(0,0,0,0.40);
+      --ink:#D2DACF; --ink-soft:#AEB8AB; --accent:#C3CCBF; --accent-hi:#D2DACF;
+      --accent-soft:#C3CCBF; --deep:#384237; --line:rgba(210,218,207,0.18);
+      --line-strong:rgba(210,218,207,0.52); --placeholder:#9BA598;
+      --ok:#8FE7B4; --err:#FFA79A;
+      /* Brightest-thing-on-the-page CTA, matching /send. */
+      --cta:#E4EADF; --cta-hi:#F2F5EF;
       min-height:100vh; min-height:100dvh;
       display:flex; flex-direction:column; justify-content:center; /* align-items left at the
       default "stretch" so headline/lede/cards keep filling the column's width, same as before */
@@ -103,17 +103,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
 
     .receive .dcard{ border-radius:10px; padding:34px 34px 30px;
-      box-shadow:0 2px 18px rgba(50,56,49,.10); margin-bottom:1.4rem;
-      /* Renders EXACTLY the nav's rgba(160,175,158,0.62) over the page bg —
+      box-shadow:0 2px 18px rgba(0,0,0,.26); margin-bottom:1.4rem;
+      /* Renders EXACTLY the nav's rgba(66,77,65,0.62) over the page bg —
          same colour as before, Pierce's card-matches-nav rule intact — but
          opaque, so the transit lines behind it don't show through. That
          matters for more than taste: measured with a dash drifting under a
-         card, --ink fell to 4.55:1 and --ink-soft to 3.80:1, i.e. the page
+         card, contrast fell under the AA line, i.e. the page
          stopped passing AA whenever the animation happened to pass behind
          text. The animation now reads around the cards, not through them.
          (Tried backdrop-filter first — it softens but doesn't remove the
          shift, and costs a full-viewport blur every frame.) */
-      background:linear-gradient(rgba(160,175,158,0.62), rgba(160,175,158,0.62)) var(--bg);
+      background:linear-gradient(rgba(66,77,65,0.62), rgba(66,77,65,0.62)) var(--bg);
     }
     @media (max-width:600px){ .receive .dcard{ padding:24px 20px 22px; } }
 
@@ -143,7 +143,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
     .receive .btn.btn-primary{ background:var(--cta); border-color:var(--cta); color:var(--deep); }
     .receive .btn.btn-primary:hover:not(:disabled){ background:var(--cta-hi); border-color:var(--cta-hi);
-      box-shadow:0 0 24px rgba(27,31,26,.28); }
+      box-shadow:0 0 24px rgba(228,234,223,.24); }
     .receive .btn:active:not(:disabled){ transform:scale(.98); }
     .receive .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
@@ -158,17 +158,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .receive .rise{ opacity:1; transform:none; transition:none; } }
 
-    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(160,175,158,0.62) !important;
+    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(66,77,65,0.62) !important;
       -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
     .send-nav .home-bottom-email,
     .send-nav .home-bottom-location,
     .send-nav .inner-nav-links a,
-    .send-nav .pulse-dot{ color:#3E443A !important; }
+    .send-nav .pulse-dot{ color:#AEB8AB !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
-      .send-nav .inner-nav-links a:hover{ color:#323831 !important; }
+      .send-nav .inner-nav-links a:hover{ color:#D2DACF !important; }
     }
   </style>
 
@@ -205,7 +205,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       $('gate').hidden = true;
       $('files-card').hidden = false;
       $('receive-lede').textContent = payload.client ? 'From COGNAK, for ' + payload.client + '.' : 'Ready to download.';
-      document.title = (payload.client ? payload.client + ' — ' : '') + 'Files from COGNAK';
+      // The project name headlines the file list when there is one — it's the
+      // label the client actually recognises. Falls back to plain "Files".
+      $('files-title').textContent = payload.project || 'Files';
+      document.title =
+        [payload.client, payload.project].filter(Boolean).join(' — ') +
+        (payload.client || payload.project ? ' — ' : '') + 'Files from COGNAK';
 
       const list = $('flist');
       list.innerHTML = '';

@@ -2,7 +2,7 @@
  * GET /api/deliver-list — Vercel serverless function.
  *
  * Admin-only. Lists every delivery share's manifest so /admin can render a
- * "recent shares" panel (link, client, file count, size, delete). Also
+ * "recent shares" panel (link, client, project, filenames, size, delete). Also
  * doubles as the admin page's "am I signed in?" check on load — it 401s the
  * same way every other admin-gated endpoint does.
  */
@@ -28,8 +28,15 @@ export default async function handler(req, res) {
           return {
             token: m.token,
             client: m.client,
+            project: m.project || '',
             createdAt: m.createdAt,
             fileCount: (m.files || []).length,
+            // Names only — /send lists them as subtext under each share so a
+            // send is identifiable without opening it. Deliberately NOT the
+            // full file objects: the blob URLs are the actual payload and
+            // there's no reason to hand those to the dashboard. Capped at 40
+            // so one enormous send can't bloat the response.
+            fileNames: (m.files || []).slice(0, 40).map((f) => String(f.name || '')),
             totalSize,
           };
         } catch (e) {

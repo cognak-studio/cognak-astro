@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="Internal client-delivery tool."
   ogUrl="https://cognak.com/send/"
   noindex={true}
-  pageBg="#AFBCAE"
+  pageBg="#384237"
 >
   <canvas id="send-transit" aria-hidden="true"></canvas>
 
@@ -63,6 +63,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <span class="q-sub">Shown to you only, to keep shares straight.</span>
             </label>
             <input class="txt" id="client-input" type="text" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label class="q" for="project-input">
+              <span class="q-title">Project</span>
+              <span class="q-sub">Optional. Shown to the client on the download page, so name it the way they'd recognise it.</span>
+            </label>
+            <input class="txt" id="project-input" type="text" autocomplete="off" />
           </div>
 
           <div class="field">
@@ -134,7 +142,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#AFBCAE !important; }
+    html, body { background-color:#384237 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
     /* "Transit" background — see src/lib/send-background.js. Fixed behind
@@ -146,34 +154,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     #send-transit.is-in{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ #send-transit{ display:none; } }
 
-    /* Light sage colorway (Pierce-designed, 4th revision, 2026-07-28 — an
-       inversion of the previous dark olive pass; don't be surprised if it
-       moves again). Ink, accent, button and card all reuse the nav's tones
-       so the whole page reads as one surface — the card is literally the
-       nav's background color + alpha, per Pierce ("the cards should match
-       the nav"), not a lightened or darkened overlay.
+    /* Deep sage colorway (5th revision, 2026-07-28). Pierce: "let's darken
+       every mint green color, it's too light, my bad" — and darkening the
+       sage while KEEPING dark text was not possible: #323831 body copy only
+       clears AA down to about #9EA99D, roughly 10% darker, which reads as no
+       change at all. So the page inverts back to light-on-dark. The greens
+       are his previous hues taken all the way down rather than new colours.
 
-       Contrast: every value below is measured against the CARD (the worst
-       case, since the card+alpha over the page bg is lighter than the bg
-       itself) and clears WCAG AA — text >=4.5:1, borders/controls >=3:1.
-       Where Pierce's literal hex fell short it was darkened one step in the
-       same hue rather than swapped: --ink-soft #454B40 -> #3E443A (4.15 ->
-       4.63:1) and --line-strong .28 -> .72 alpha (1.51 -> 3.25:1, the input
-       and button outlines were effectively invisible at .28 on this bg).
-       --ok/--err also had to be re-picked entirely: the old mint/salmon were
-       tuned for a dark bg and computed ~1.2:1 here. */
+       Ink, accent, button and card all reuse the nav's tones so the whole
+       page reads as one surface — the card is the nav's background colour +
+       alpha, per Pierce ("the cards should match the nav").
+
+       Contrast: every value is measured against the CARD (rgba over the page
+       bg, so slightly lighter than --bg — the worst case) and clears WCAG AA
+       — text >=4.5:1, borders/controls >=3:1. Measured: ink 6.60, ink-soft
+       4.61, accent-soft 6.35, placeholder 5.00, ok 6.42, err 5.06,
+       line-strong 3.02, CTA label 8.56. */
     .send {
-      --bg:#AFBCAE;
-      --card:rgba(160,175,158,0.62); --field:rgba(255,255,255,0.30); --field-focus:rgba(255,255,255,0.55);
-      --ink:#323831; --ink-soft:#3E443A; --accent:#323831; --accent-hi:#3E443A;
-      --accent-soft:#323831; --deep:#AFBCAE; --line:rgba(50,56,49,0.22);
-      --line-strong:rgba(50,56,49,0.72); --placeholder:#4A5046;
-      --ok:#1F4A2C; --err:#732418;
-      /* The CTA is the one place the page goes darker than its own text —
-         Pierce, 2026-07-28: "make create share darker ... this whole page can
-         get a darker color". Near-black green, so "Create share" / "Unlock"
-         sit clearly above the ordinary --ink buttons in the hierarchy. */
-      --cta:#1B1F1A; --cta-hi:#2A302A;
+      --bg:#384237;
+      --card:rgba(66,77,65,0.62); --field:rgba(0,0,0,0.28); --field-focus:rgba(0,0,0,0.40);
+      --ink:#D2DACF; --ink-soft:#AEB8AB; --accent:#C3CCBF; --accent-hi:#D2DACF;
+      --accent-soft:#C3CCBF; --deep:#384237; --line:rgba(210,218,207,0.18);
+      --line-strong:rgba(210,218,207,0.52); --placeholder:#9BA598;
+      --ok:#8FE7B4; --err:#FFA79A;
+      /* The CTA is the one place the page departs from --ink — now the
+         BRIGHTEST thing on the page rather than the darkest, since the page
+         itself went dark. Same intent as the light pass: "Create share" /
+         "Sign in" / "Unlock" sit clearly above the outline buttons. */
+      --cta:#E4EADF; --cta-hi:#F2F5EF;
       min-height:100vh; min-height:100dvh;
       display:flex; flex-direction:column; justify-content:center; /* align-items left at the
       default "stretch" so headline/lede/cards keep filling the column's width, same as before */
@@ -207,17 +215,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
 
     .send .acard{ border-radius:10px; padding:34px 34px 30px;
-      box-shadow:0 2px 18px rgba(50,56,49,.10); margin-bottom:1.6rem;
-      /* Renders EXACTLY the nav's rgba(160,175,158,0.62) over the page bg —
+      box-shadow:0 2px 18px rgba(0,0,0,.26); margin-bottom:1.6rem;
+      /* Renders EXACTLY the nav's rgba(66,77,65,0.62) over the page bg —
          same colour as before, Pierce's card-matches-nav rule intact — but
          opaque, so the transit lines behind it don't show through. That
          matters for more than taste: measured with a dash drifting under a
-         card, --ink fell to 4.55:1 and --ink-soft to 3.80:1, i.e. the page
+         card, contrast fell under the AA line, i.e. the page
          stopped passing AA whenever the animation happened to pass behind
          text. The animation now reads around the cards, not through them.
          (Tried backdrop-filter first — it softens but doesn't remove the
          shift, and costs a full-viewport blur every frame.) */
-      background:linear-gradient(rgba(160,175,158,0.62), rgba(160,175,158,0.62)) var(--bg);
+      background:linear-gradient(rgba(66,77,65,0.62), rgba(66,77,65,0.62)) var(--bg);
     }
     @media (max-width:600px){ .send .acard{ padding:24px 20px 22px; } }
 
@@ -252,7 +260,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       text-align:center; color:var(--ink-soft); font-size:.94rem; cursor:pointer;
       transition:border-color .2s ease, background .2s ease, color .2s ease; }
     .send .drop:hover, .send .drop:focus-visible{ border-color:var(--accent); color:var(--ink); }
-    .send .drop.is-over{ border-color:var(--accent); background:rgba(50,56,49,.08); color:var(--ink); }
+    .send .drop.is-over{ border-color:var(--accent); background:rgba(210,218,207,.07); color:var(--ink); }
 
     .send .filelist{ list-style:none; margin:1rem 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
     .send .filelist:empty{ margin:0; }
@@ -278,6 +286,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .srow-main{ flex:1 1 200px; min-width:0; }
     .send .srow-client{ font-weight:500; color:var(--ink); }
     .send .srow-meta{ font-size:.8rem; color:var(--ink-soft); margin-top:.2rem; font-family:'Diatype Mono', monospace; }
+    /* Filenames under each share. Clamped to two lines so a 30-file send
+       doesn't push the rest of the list off the screen — full list on hover
+       via the title attribute. */
+    .send .srow-files{ font-size:.78rem; line-height:1.45; color:var(--ink-soft); margin-top:.45rem;
+      opacity:.85; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+      overflow:hidden; word-break:break-word; }
+    .send .srow-files[hidden]{ display:none; }
     .send .srow-actions{ display:flex; gap:8px; flex:0 0 auto; }
 
     /* -------------------------------------------------------------- buttons --- */
@@ -291,7 +306,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .btn:hover:not(:disabled){ border-color:var(--ink); }
     .send .btn.btn-primary{ background:var(--cta); border-color:var(--cta); color:var(--deep); }
     .send .btn.btn-primary:hover:not(:disabled){ background:var(--cta-hi); border-color:var(--cta-hi);
-      box-shadow:0 0 24px rgba(27,31,26,.28); }
+      box-shadow:0 0 24px rgba(228,234,223,.24); }
     .send .btn.btn-ghost{ padding:12px 18px; font-size:.86rem; }
     .send .btn.btn-danger:hover:not(:disabled){ border-color:var(--err); color:var(--err); }
     .send .btn:active:not(:disabled){ transform:scale(.98); }
@@ -304,19 +319,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (prefers-reduced-motion:reduce){ .send .rise{ opacity:1; transform:none; transition:none; } }
 
     /* ------------------------------------------------------------- nav --- */
-    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(160,175,158,0.62) !important;
+    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(66,77,65,0.62) !important;
       -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
-    /* #3E443A rather than Pierce's #454B40 for the same AA reason as --ink-soft;
-       hover goes DARKER here (not lighter) since the nav is now a light surface. */
     .send-nav .home-bottom-email,
     .send-nav .home-bottom-location,
     .send-nav .inner-nav-links a,
-    .send-nav .pulse-dot{ color:#3E443A !important; }
+    .send-nav .pulse-dot{ color:#AEB8AB !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
-      .send-nav .inner-nav-links a:hover{ color:#323831 !important; }
+      .send-nav .inner-nav-links a:hover{ color:#D2DACF !important; }
     }
   </style>
 
@@ -481,6 +494,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       note.textContent = '';
       note.className = 'note';
       const client = $('client-input').value.trim();
+      const project = $('project-input').value.trim();
       const passcode = $('pass-input').value.trim();
       if (!client || passcode.length < 4 || !queued.length) return;
 
@@ -506,7 +520,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         const files = queued.filter((i) => i.status === 'ok').map((i) => ({ name: i.file.name, url: i.url, size: i.file.size }));
         if (!files.length) throw new Error('No files uploaded successfully.');
 
-        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, passcode, files } });
+        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, project, passcode, files } });
         if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this share.');
 
         $('out-link').value = r.data.url;
@@ -526,6 +540,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       queued = [];
       renderFiles();
       $('client-input').value = '';
+      $('project-input').value = '';
       $('pass-input').value = '';
       $('create-note').textContent = '';
       $('success').hidden = true;
@@ -563,19 +578,38 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       shares.forEach((s) => {
         const li = document.createElement('li');
         li.className = 'srow';
-        const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '';
+        // Date AND time — two shares to the same client on one day are common,
+        // and the date alone doesn't tell them apart. createdAt has always been
+        // written by api/deliver-create.js; it just wasn't fully surfaced.
+        const stamp = s.createdAt
+          ? new Date(s.createdAt).toLocaleString(undefined, {
+              month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+            })
+          : '';
         li.innerHTML =
-          '<div class="srow-main"><div class="srow-client"></div><div class="srow-meta"></div></div>' +
+          '<div class="srow-main"><div class="srow-client"></div>' +
+          '<div class="srow-meta"></div><div class="srow-files"></div></div>' +
           '<div class="srow-actions">' +
           '<button type="button" class="btn btn-ghost" data-action="copy">Copy link</button>' +
           '<button type="button" class="btn btn-ghost btn-danger" data-action="delete">Delete</button>' +
           '</div>';
         const clientName = s.client || 'Client';
-        li.querySelector('.srow-client').textContent = clientName;
-        li.querySelector('[data-action="copy"]').setAttribute('aria-label', 'Copy link for ' + clientName);
-        li.querySelector('[data-action="delete"]').setAttribute('aria-label', 'Delete share for ' + clientName);
+        // "Client — Project" on one line, so the list scans as one column.
+        li.querySelector('.srow-client').textContent =
+          s.project ? clientName + ' — ' + s.project : clientName;
+        const rowLabel = s.project ? clientName + ', ' + s.project : clientName;
+        li.querySelector('[data-action="copy"]').setAttribute('aria-label', 'Copy link for ' + rowLabel);
+        li.querySelector('[data-action="delete"]').setAttribute('aria-label', 'Delete share for ' + rowLabel);
         li.querySelector('.srow-meta').textContent =
-          date + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0);
+          stamp + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0);
+        // The actual filenames, so a share is identifiable without opening it —
+        // Pierce: "otherwise i won't know what the sends were". CSS clamps this
+        // to two lines; the full list is in the title attribute on hover.
+        const fileNames = (s.fileNames || []).join(', ');
+        const filesEl = li.querySelector('.srow-files');
+        filesEl.textContent = fileNames;
+        filesEl.hidden = !fileNames;
+        if (fileNames) filesEl.title = (s.fileNames || []).join('\n');
         li.querySelector('[data-action="copy"]').addEventListener('click', async (e) => {
           const url = 'https://cognak.com/r/' + s.token;
           try { await navigator.clipboard.writeText(url); } catch (err) { /* ignore */ }

@@ -1,7 +1,7 @@
 /**
  * POST /api/deliver-create — Vercel serverless function.
  *
- * Writes the manifest for a client-delivery share after /admin has uploaded
+ * Writes the manifest for a client-delivery share after /send has uploaded
  * the files to Blob storage (via api/deliver-upload-token.js). The manifest
  * is itself a small JSON blob at deliveries/<token>/manifest.json — that's
  * the entire "database" this feature needs. Admin-only.
@@ -32,6 +32,10 @@ export default async function handler(req, res) {
   }
 
   const client = String(data.client || 'Client').trim().slice(0, 200) || 'Client';
+  // Optional, and unlike `client` it IS shown to the recipient (it headlines
+  // the file list on /receive), so an empty one stays empty rather than
+  // falling back to a placeholder.
+  const project = String(data.project || '').trim().slice(0, 200);
 
   const passcode = String(data.passcode || '');
   if (passcode.length < 4) {
@@ -55,6 +59,7 @@ export default async function handler(req, res) {
   const manifest = {
     token,
     client,
+    project,
     passcodeHash: hashPasscode(passcode),
     createdAt: new Date().toISOString(),
     files,

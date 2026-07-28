@@ -2,9 +2,16 @@
  * /send + /receive background — "transit".
  *
  * Horizontal lanes of small dashes drifting steadily left to right: packets
- * in flight, which is the only thing these two pages actually do. A faint
- * vertical seam sits at ~62% of the viewport; each dash brightens for a
- * moment as it crosses, then settles back — the handoff.
+ * in flight, which is the only thing these two pages actually do. Each lane
+ * has its own invisible crossing point; a dash brightens for a moment as it
+ * passes, then settles back — the handoff.
+ *
+ * The crossing points used to share one x, drawn as a hairline at 62% width.
+ * Pierce read it as a bug — "what's the vertical line? looks unintentional" —
+ * and he was right: a straight rule down a page reads as chrome, not texture.
+ * The line is gone and each lane now picks its own crossing x, so the
+ * brightening scatters instead of forming a column. Don't reintroduce a
+ * shared seam.
  *
  * Deliberately unlike the other animated pages so /send reads as its own
  * place: /tools lights a static QR-module lattice from the cursor and
@@ -25,7 +32,7 @@
  * regardless of how little is drawn into it.
  */
 
-const INK = '50,56,49'; // --ink #323831, the page's own text colour
+const INK = '210,218,207'; // --ink #D2DACF, the page's own text colour
 
 export const TRANSIT_DEFAULTS = {
   laneGap: 38,       // vertical pitch between lanes, px
@@ -38,10 +45,12 @@ export const TRANSIT_DEFAULTS = {
   maxSpeed: 22,
   base: 0.05,        // resting opacity
   jitter: 0.03,      // random extra resting opacity, per lane
-  flash: 0.26,       // opacity added at the moment of crossing the seam
+  flash: 0.26,       // opacity added at the moment of crossing
   flashDecay: 0.955, // per-frame easing back to rest
-  seamAt: 0.62,      // seam position, fraction of viewport width
-  seamAlpha: 0.05,
+  // Per-lane crossing point, as a fraction of viewport width. Each lane draws
+  // its own random x in this band — never one shared value, see the header.
+  crossFrom: 0.18,
+  crossTo: 0.86,
 };
 
 export function initTransit(canvas, overrides = {}) {
@@ -63,7 +72,7 @@ export function initTransit(canvas, overrides = {}) {
 
   const rand = (lo, hi) => lo + Math.random() * (hi - lo);
 
-  let w = 0, h = 0, dpr = 1, seamX = 0;
+  let w = 0, h = 0, dpr = 1;
   let lanes = [];
   let raf = 0;
   let last = 0;
@@ -73,6 +82,7 @@ export function initTransit(canvas, overrides = {}) {
       y,
       speed: rand(C.minSpeed, C.maxSpeed),
       rest: C.base + Math.random() * C.jitter,
+      crossX: Math.round(w * rand(C.crossFrom, C.crossTo)),
       dashes: [],
     };
     // Fill one full viewport width plus a margin, so there is never a visible
@@ -80,14 +90,13 @@ export function initTransit(canvas, overrides = {}) {
     let x = -rand(0, C.maxGap);
     while (x < w + C.maxLen) {
       const len = rand(C.minLen, C.maxLen);
-      lane.dashes.push({ x, len, flash: 0, crossed: x > seamX });
+      lane.dashes.push({ x, len, flash: 0, crossed: x > lane.crossX });
       x += len + rand(C.minGap, C.maxGap);
     }
     return lane;
   }
 
   function build() {
-    seamX = Math.round(w * C.seamAt);
     lanes = [];
     // Half a lane of inset top and bottom so the field doesn't start flush
     // against the viewport edge.
@@ -114,14 +123,11 @@ export function initTransit(canvas, overrides = {}) {
     raf = requestAnimationFrame(frame);
 
     // Delta-time driven, and clamped: a backgrounded tab resumes with a huge
-    // gap, which would otherwise teleport every dash across the seam at once.
+    // gap, which would otherwise teleport every dash past its crossing at once.
     const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
     last = now;
 
     ctx.clearRect(0, 0, w, h);
-
-    ctx.fillStyle = style(C.seamAlpha);
-    ctx.fillRect(seamX, 0, 1, h);
 
     const th = C.thickness;
     for (let l = 0; l < lanes.length; l++) {
@@ -132,8 +138,9 @@ export function initTransit(canvas, overrides = {}) {
         const dash = lane.dashes[d];
         dash.x += step;
 
-        // The handoff: fires once, as the leading edge passes the seam.
-        if (!dash.crossed && dash.x >= seamX) { dash.crossed = true; dash.flash = 1; }
+        // The handoff: fires once, as the leading edge passes this lane's
+        // own crossing point.
+        if (!dash.crossed && dash.x >= lane.crossX) { dash.crossed = true; dash.flash = 1; }
 
         if (dash.flash > 0) {
           dash.flash *= C.flashDecay;

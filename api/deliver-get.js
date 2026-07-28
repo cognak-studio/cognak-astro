@@ -46,6 +46,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       client: manifest.client,
+      project: manifest.project || '',
       createdAt: manifest.createdAt,
       files: manifest.files,
     });
