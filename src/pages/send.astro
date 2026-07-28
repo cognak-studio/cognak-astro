@@ -201,6 +201,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       --accent-soft:#8FC2F2; --deep:#151B1A; --line:rgba(213,230,228,0.18);
       --line-strong:rgba(213,230,228,0.52); --placeholder:#829C98;
       --ok:#8FE7B4; --err:#FFA79A;
+      /* Warm orange-red for the expiry countdown — 7.26:1 on the card, so it
+         clears WCAG AA (and AAA) while staying distinctly warmer than --err,
+         which is reserved for genuine failure states. */
+      --warn:#FF7A5C;
       /* The CTA is the one place the page departs from --ink — now the
          BRIGHTEST thing on the page rather than the darkest, since the page
          itself went dark. Same intent as the light pass: "Create share" /
@@ -378,9 +382,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        and expiry takes its own line at that same size rather than wrapping the
        stats line mid-phrase ("expires in / 7 days" was breaking across lines). */
     .send .srow-client{ font-weight:500; font-size:1rem; color:var(--ink); margin-bottom:.55rem; }
-    .send .srow-meta{ font-size:.74rem; color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
-    .send .srow-expiry{ font-size:.74rem; color:var(--ink-soft); font-family:'Diatype Mono', monospace;
-      margin-top:.2rem; }
+    /* Mono at this size sets tight — 1.75 gives the two metadata lines room to
+       breathe against each other and against the name above. */
+    .send .srow-meta{ font-size:.74rem; line-height:1.75; color:var(--ink-soft);
+      font-family:'Diatype Mono', monospace; }
+    .send .srow-expiry{ font-size:.74rem; line-height:1.75; color:var(--warn);
+      font-family:'Diatype Mono', monospace; margin-top:.1rem; }
+    /* "Never expires" is a statement of fact, not a warning — it drops back to
+       the same ink as the rest of the metadata. */
+    .send .srow-expiry.is-forever{ color:var(--ink-soft); }
     .send .srow.is-expired{ opacity:.55; }
     .send .srow.is-expired .srow-expiry{ color:var(--err); }
     /* Filenames under each share. Clamped to two lines so a 30-file send
@@ -802,6 +812,40 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     });
 
     /* -------------------------------------------------------------- shares --- */
+    /* Single source of truth for the countdown wording, used both at render
+       time and by the ticker below. Under a day it counts in hours and then
+       minutes — that's the window where the number actually changes while
+       you're looking at it. Above that, days/weeks/months/years, because
+       "expires in 340 days" is a number you'd have to convert yourself. */
+    function expiryText(expiresAt) {
+      if (!expiresAt) return 'Never expires';
+      const ms = new Date(expiresAt) - Date.now();
+      if (ms <= 0) return 'EXPIRED';
+      const mins = Math.floor(ms / 60000);
+      if (mins < 60) return 'Expires in ' + mins + (mins === 1 ? ' minute' : ' minutes');
+      const hours = Math.floor(ms / 3600000);
+      if (hours < 24) return 'Expires in ' + hours + (hours === 1 ? ' hour' : ' hours');
+      const days = Math.ceil(ms / 86400000);
+      const human =
+        days < 14 ? days + ' days' :
+        days < 60 ? Math.round(days / 7) + ' weeks' :
+        days < 365 ? Math.round(days / 30) + ' months' :
+        Math.round(days / 365) + (Math.round(days / 365) === 1 ? ' year' : ' years');
+      return 'Expires in ' + human;
+    }
+
+    /* Live countdown. Every 30s is enough for a minutes-resolution label and
+       cheap enough to leave running — it only touches textContent on rows
+       whose wording actually changed, so an idle dashboard does no DOM work.
+       Rows crossing zero pick up .is-expired without needing a refetch. */
+    setInterval(() => {
+      document.querySelectorAll('.srow-expiry[data-expires-at]').forEach((el) => {
+        const next = expiryText(el.dataset.expiresAt);
+        if (el.textContent !== next) el.textContent = next;
+        if (next === 'EXPIRED') el.closest('.srow').classList.add('is-expired');
+      });
+    }, 30000);
+
     function renderShares(shares) {
       const list = $('shares-list');
       const empty = $('shares-empty');
@@ -835,26 +879,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         li.querySelector('[data-action="delete"]').setAttribute('aria-label', 'Delete share for ' + rowLabel);
         /* Expiry is the one piece of a share's state that changes on its own,
            so it reads as a live status rather than a static timestamp. */
-        let expiryLabel = 'never expires';
-        if (s.expiresAt) {
-          const ms = new Date(s.expiresAt) - Date.now();
-          const days = Math.ceil(ms / 86400000);
-          // Counting in days stops reading as a duration past a few weeks —
-          // "expires in 340 days" is a number you have to convert yourself.
-          const human =
-            days <= 1 ? 'today' :
-            days < 14 ? days + ' days' :
-            days < 60 ? Math.round(days / 7) + ' weeks' :
-            days < 365 ? Math.round(days / 30) + ' months' :
-            Math.round(days / 365) + (Math.round(days / 365) === 1 ? ' year' : ' years');
-          expiryLabel = ms <= 0 ? 'EXPIRED'
-            : days <= 1 ? 'expires today'
-            : 'expires in ' + human;
-          if (ms <= 0) li.classList.add('is-expired');
-        }
+        const expiryLabel = expiryText(s.expiresAt);
+        if (s.expiresAt && new Date(s.expiresAt) - Date.now() <= 0) li.classList.add('is-expired');
         li.querySelector('.srow-meta').textContent =
           stamp + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0);
-        li.querySelector('.srow-expiry').textContent = expiryLabel;
+        const expEl = li.querySelector('.srow-expiry');
+        expEl.textContent = expiryLabel;
+        // Stamped on the node so the ticker can refresh it without a re-render.
+        if (s.expiresAt) expEl.dataset.expiresAt = s.expiresAt;
+        expEl.classList.toggle('is-forever', !s.expiresAt);
         // The actual filenames, so a share is identifiable without opening it —
         // Pierce: "otherwise i won't know what the sends were". CSS clamps this
         // to two lines; the full list is in the title attribute on hover.

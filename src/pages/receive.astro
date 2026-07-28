@@ -79,6 +79,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       --accent-soft:#8FC2F2; --deep:#151B1A; --line:rgba(213,230,228,0.18);
       --line-strong:rgba(213,230,228,0.52); --placeholder:#829C98;
       --ok:#8FE7B4; --err:#FFA79A;
+      --warn:#FF7A5C; /* expiry countdown — see /send */
       /* Brightest-thing-on-the-page CTA, matching /send. */
       --cta:#8FC2F2; --cta-hi:#A9D2F6;
       /* Fixed 190px, same shared-header convention as /send and every other
@@ -197,7 +198,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        which point it takes the error colour. */
     .receive .expiry-note{ margin:1.2rem 0 0; font-size:.8rem; line-height:1.5;
       color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
-    .receive .expiry-note.is-soon{ color:var(--err); }
+    .receive .expiry-note.is-soon{ color:var(--warn); }
     .receive .expiry-note[hidden]{ display:none; }
 
     .receive .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
