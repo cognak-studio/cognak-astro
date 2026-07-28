@@ -35,7 +35,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="acard rise" id="gate">
       <div class="group">
         <div class="group-title">Sign in</div>
-        <div class="field">
+        <div class="field" id="pw-field">
           {/* A hidden username field is what makes 1Password / iCloud Keychain /
               Chrome reliably OFFER to save and then autofill this. Managers key
               a credential on (origin, username); with a lone password input
@@ -50,7 +50,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                  autocomplete="current-password" />
           <p class="note" id="pw-note" role="status" aria-live="polite"></p>
         </div>
-        <div class="actions">
+        <div class="actions" id="gate-actions">
+          <button type="button" class="btn btn-primary" id="passkey-signin" hidden>Sign in with Touch ID</button>
           <button type="button" class="btn btn-primary" id="pw-submit">Sign in</button>
         </div>
       </div>
@@ -152,6 +153,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="group-title">Recent shares</div>
           <p class="note" id="shares-empty">Nothing sent yet.</p>
           <ul class="shares" id="shares-list"></ul>
+        </div>
+      </div>
+
+      <div class="acard rise" id="security-card">
+        <div class="group">
+          <div class="group-title">Sign-in security</div>
+          <p class="note" id="pk-note" role="status" aria-live="polite"></p>
+          <ul class="shares" id="pk-list"></ul>
+          <p class="note" id="pk-empty">No passkeys yet — the password is currently the only way in.</p>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="pk-add">Add this device</button>
         </div>
       </div>
 
@@ -601,11 +614,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (gate.hidden) { dash.hidden = false; }
         else { swapStep(gate, dash); }
         renderShares((r.data && r.data.shares) || []);
+        renderPasskeys();
         resetIdle();
         return true;
       }
       gate.hidden = false;
       dash.hidden = true;
+      await initGate();
       return false;
     }
 
@@ -629,11 +644,149 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       await api('/api/admin-logout', { method: 'POST' });
       gate.hidden = false;
       dash.hidden = true;
+      // Re-ask which methods are on offer: a passkey may have been enrolled
+      // during this very session, in which case the password box must go.
+      await initGate();
       const note = $('pw-note');
       if (reason) { note.textContent = reason; note.className = 'note'; }
     }
 
     $('signout-btn').addEventListener('click', () => signOut(''));
+
+    /* ------------------------------------------------------- passkeys --- */
+    /* The browser half of WebAuthn comes from esm.sh on demand, the same way
+       the Blob uploader does — no build step, and nothing downloaded unless
+       you actually use a passkey. */
+    let _webauthn = null;
+    function webauthn() {
+      if (!_webauthn) {
+        _webauthn = import('https://esm.sh/@simplewebauthn/browser@13').catch((e) => {
+          _webauthn = null;
+          throw new Error('Passkey support could not load. Check your connection.');
+        });
+      }
+      return _webauthn;
+    }
+
+    /* Ask the server which sign-in methods it will actually accept, rather than
+       assuming. Once a passkey is enrolled the password endpoint refuses, so
+       showing a password box would just be an invitation to fail. */
+    async function initGate() {
+      const r = await api('/api/admin-login');
+      const modes = (r.ok && r.data) || { hasPasskeys: false, passwordAllowed: true };
+      const supported = typeof window.PublicKeyCredential !== 'undefined';
+
+      $('passkey-signin').hidden = !(modes.hasPasskeys && supported);
+      $('pw-field').hidden = !modes.passwordAllowed;
+      $('pw-submit').hidden = !modes.passwordAllowed;
+
+      if (modes.hasPasskeys && !supported) {
+        const note = $('pw-note');
+        note.textContent = 'This browser cannot use passkeys. Open /send in Safari or Chrome.';
+        note.className = 'note is-error';
+      }
+    }
+
+    $('passkey-signin').addEventListener('click', async () => {
+      const note = $('pw-note');
+      const btn = $('passkey-signin');
+      note.textContent = '';
+      note.className = 'note';
+      btn.disabled = true;
+      try {
+        const optRes = await api('/api/admin-passkey-auth');
+        if (!optRes.ok) throw new Error((optRes.data && optRes.data.error) || 'Could not start sign-in.');
+        const { startAuthentication } = await webauthn();
+        const response = await startAuthentication({ optionsJSON: optRes.data });
+        const verify = await api('/api/admin-passkey-auth', { method: 'POST', body: { response } });
+        if (!verify.ok) throw new Error((verify.data && verify.data.error) || 'Sign-in failed.');
+        await checkAuth();
+      } catch (err) {
+        // A cancelled Touch ID prompt throws too — that isn't an error worth
+        // shouting about, so it just resets quietly.
+        const msg = err && err.name === 'NotAllowedError' ? '' : (err && err.message) || 'Sign-in failed.';
+        note.textContent = msg;
+        note.className = msg ? 'note is-error' : 'note';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    async function renderPasskeys() {
+      const r = await api('/api/admin-passkey-list');
+      if (!r.ok) return;
+      const list = $('pk-list');
+      const keys = (r.data && r.data.passkeys) || [];
+      list.innerHTML = '';
+      $('pk-empty').hidden = keys.length > 0;
+
+      if (r.data && r.data.fallbackEnabled && keys.length) {
+        const note = $('pk-note');
+        note.textContent =
+          'ADMIN_PASSWORD_FALLBACK is on, so the password still works. Turn it off in Vercel to make passkeys the only way in.';
+        note.className = 'note is-error';
+      }
+
+      keys.forEach((k) => {
+        const li = document.createElement('li');
+        li.className = 'srow';
+        li.innerHTML =
+          '<div class="srow-main"><div class="srow-client"></div><div class="srow-meta"></div></div>' +
+          '<div class="srow-actions">' +
+          '<button type="button" class="btn btn-ghost btn-danger" data-action="pk-del">Remove</button>' +
+          '</div>';
+        li.querySelector('.srow-client').textContent = k.label;
+        const added = k.createdAt ? new Date(k.createdAt).toLocaleDateString() : '';
+        const used = k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : 'never used';
+        li.querySelector('.srow-meta').textContent =
+          'added ' + added + ' · last used ' + used + (k.backedUp ? ' · synced' : ' · this device only');
+        li.querySelector('[data-action="pk-del"]').setAttribute('aria-label', 'Remove passkey ' + k.label);
+        li.querySelector('[data-action="pk-del"]').addEventListener('click', async () => {
+          const last = keys.length === 1;
+          const msg = last
+            ? 'Remove the last passkey? The password becomes the only way in again.'
+            : 'Remove "' + k.label + '"? That device will no longer be able to sign in.';
+          if (!confirm(msg)) return;
+          await api('/api/admin-passkey-list', { method: 'POST', body: { id: k.id } });
+          await renderPasskeys();
+        });
+        list.appendChild(li);
+      });
+    }
+
+    $('pk-add').addEventListener('click', async () => {
+      const note = $('pk-note');
+      const btn = $('pk-add');
+      note.textContent = '';
+      note.className = 'note';
+      if (typeof window.PublicKeyCredential === 'undefined') {
+        note.textContent = 'This browser does not support passkeys.';
+        note.className = 'note is-error';
+        return;
+      }
+      const label = prompt('Name this device (e.g. "MacBook Pro", "iPhone")', 'This device');
+      if (label === null) return;
+      btn.disabled = true;
+      try {
+        const optRes = await api('/api/admin-passkey-register');
+        if (!optRes.ok) throw new Error((optRes.data && optRes.data.error) || 'Could not start enrolment.');
+        const { startRegistration } = await webauthn();
+        const response = await startRegistration({ optionsJSON: optRes.data });
+        const verify = await api('/api/admin-passkey-register', {
+          method: 'POST', body: { response, label },
+        });
+        if (!verify.ok) throw new Error((verify.data && verify.data.error) || 'Could not add this device.');
+        note.textContent = 'Added. The password will stop working on the next sign-in.';
+        note.className = 'note is-ok';
+        await renderPasskeys();
+      } catch (err) {
+        const msg = err && err.name === 'NotAllowedError' ? '' : (err && err.message) || 'Could not add this device.';
+        note.textContent = msg;
+        note.className = msg ? 'note is-error' : 'note';
+      } finally {
+        btn.disabled = false;
+      }
+    });
 
     /* Idle sign-out. The server cookie also expires at 15 minutes, so this is
        the courtesy half — it clears the dashboard off the screen and says why,
