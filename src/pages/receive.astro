@@ -80,14 +80,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       --ok:#8FE7B4; --err:#FFA79A;
       /* Brightest-thing-on-the-page CTA, matching /send. */
       --cta:#E4EDEC; --cta-hi:#F2F7F6;
-      min-height:100vh; min-height:100dvh;
-      display:flex; flex-direction:column; justify-content:center; /* align-items left at the
-      default "stretch" so headline/lede/cards keep filling the column's width, same as before */
-      max-width:720px; margin:0 auto; padding:24px 6vw 104px;
+      /* Fixed 190px, same shared-header convention as /send and every other
+         inner page — see /send's comment for why the viewport centering went. */
+      max-width:720px; margin:0 auto; padding:190px 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
-    /* True viewport centering, both axes — see /send's comment on the same
-       rule for why this replaces the padding-top:190px convention. */
+    @media (max-width:720px){ .receive{ padding-top:100px; } }
     .receive .mono{ font-family:'Diatype Mono', monospace; }
     .receive label.q{ display:block !important; }
 
@@ -156,6 +154,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .receive .rise{ opacity:1; transform:none; transition:none; } }
 
+
+    /* ---- step transition: gate <-> the view behind it -------------------
+       Lifted from /brief's picker->questionnaire swap so the two flows feel
+       like the same site: the outgoing panel fades up and out over 260ms,
+       then the incoming panel's blocks rise in staggered 60ms apart. Both
+       collapse to an instant swap under prefers-reduced-motion. */
+    .step-fade{ transition:opacity .26s ease, transform .26s ease; }
+    .step-fade.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
+    @media (prefers-reduced-motion:reduce){
+      .step-fade{ transition:none; }
+      .step-fade.step-hide{ transform:none; }
+    }
+
     /* Literal #171E1D, not var(--card) — the bar is a sibling of .send/.receive,
        so the page's custom properties don't reach it. Keep this in sync with
        --card; the bar and the cards are meant to be the same surface.
@@ -179,12 +190,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .send-nav .inner-nav-links a:hover{ color:#D5E6E4 !important; }
     }
 
-    /* The current page reads bluer than its neighbours in the bar — same
-       lightness as the rest of the nav text so it doesn't shout, just swung
-       off the page's teal toward blue. */
-    .send-nav .inner-nav-links a[href^="/send"]{ color:#BFCED9 !important; }
+    /* The current page reads bluer than its neighbours in the bar. Held at
+       the same lightness as the rest of the nav text so it doesn't shout —
+       what separates it is saturation, not brightness: #A6C8E8 is roughly
+       3x the chroma of the teal #BED0CD beside it. Contrast on the bar
+       (#171E1D) is 9.72:1 against the teal's 10.56 — a hair darker,
+       which is why it reads as saturation rather than emphasis. */
+    .send-nav .inner-nav-links a[href^="/send"]{ color:#A6C8E8 !important; }
     @media (hover:hover){
-      .send-nav .inner-nav-links a[href^="/send"]:hover{ color:#D8E2E9 !important; }
+      .send-nav .inner-nav-links a[href^="/send"]:hover{ color:#C9E0F5 !important; }
     }
   </style>
 
@@ -193,6 +207,40 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     initTransit(document.getElementById('send-transit'));
 
     const $ = (id) => document.getElementById(id);
+
+    /* Step transition, same shape as /brief's showForm(). `outEl` fades out,
+       then `inEl` is revealed and its direct blocks rise in staggered. */
+    const REDUCE = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function swapStep(outEl, inEl, done) {
+      if (!outEl || !inEl) return;
+      if (REDUCE()) {
+        outEl.hidden = true; inEl.hidden = false;
+        if (done) done();
+        return;
+      }
+      outEl.classList.add('step-fade', 'step-hide');
+      setTimeout(() => {
+        outEl.hidden = true;
+        outEl.classList.remove('step-hide');
+        inEl.hidden = false;
+        const items = inEl.matches('.acard, .dcard') ? [inEl] : inEl.querySelectorAll(':scope > .acard, :scope > .dcard, :scope > .actions');
+        items.forEach((el, i) => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(10px)';
+          const dl = (i * 0.06).toFixed(2) + 's';
+          el.style.transition = 'opacity .5s ease ' + dl + ', transform .5s ease ' + dl;
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+          }));
+          setTimeout(() => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; },
+                     600 + i * 60);
+        });
+        if (done) done();
+      }, 260);
+    }
+
     function humanSize(b) {
       return b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
     }
@@ -218,8 +266,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     function renderFiles(payload) {
-      $('gate').hidden = true;
-      $('files-card').hidden = false;
+      swapStep($('gate'), $('files-card'));
       $('receive-lede').textContent = payload.client ? 'From COGNAK, for ' + payload.client + '.' : 'Ready to download.';
       // The project name headlines the file list when there is one — it's the
       // label the client actually recognises. Falls back to plain "Files".
@@ -250,8 +297,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     if (!token) {
-      $('gate').hidden = true;
-      $('invalid').hidden = false;
+      swapStep($('gate'), $('invalid'));
     } else {
       $('unlock-btn').addEventListener('click', async () => {
         const note = $('gate-note');

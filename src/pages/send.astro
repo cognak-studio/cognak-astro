@@ -184,18 +184,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
          itself went dark. Same intent as the light pass: "Create share" /
          "Sign in" / "Unlock" sit clearly above the outline buttons. */
       --cta:#E4EDEC; --cta-hi:#F2F7F6;
-      min-height:100vh; min-height:100dvh;
-      display:flex; flex-direction:column; justify-content:center; /* align-items left at the
-      default "stretch" so headline/lede/cards keep filling the column's width, same as before */
-      max-width:820px; margin:0 auto; padding:24px 6vw 104px;
+      /* Fixed 190px, matching the shared header position across
+         projects/studio/privacy/colophon/brief/tools. /send used to vertically
+         center instead, which made it the one inner page whose headline didn't
+         line up with the rest of the site — Pierce, 2026-07-28. The centering
+         also meant the page visibly re-centered itself the moment the sign-in
+         gate swapped for the taller dashboard; top-aligned, it doesn't move. */
+      max-width:820px; margin:0 auto; padding:190px 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
-    /* True viewport centering, both axes — not the padding-top:190px "match
-       the shared header height" convention /tools, /brief, /projects etc.
-       use. If the signed-in dashboard's stacked cards run taller than the
-       viewport, min-height simply stops constraining and it reads top-down
-       like a normal page — only short content (the sign-in gate) actually
-       sits dead center. */
+    @media (max-width:720px){ .send{ padding-top:100px; } }
     .send .mono{ font-family:'Diatype Mono', monospace; }
 
     .send label.q, .send legend.q{ display:block !important; }
@@ -318,6 +316,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .send .rise{ opacity:1; transform:none; transition:none; } }
 
+
+    /* ---- step transition: gate <-> the view behind it -------------------
+       Lifted from /brief's picker->questionnaire swap so the two flows feel
+       like the same site: the outgoing panel fades up and out over 260ms,
+       then the incoming panel's blocks rise in staggered 60ms apart. Both
+       collapse to an instant swap under prefers-reduced-motion. */
+    .step-fade{ transition:opacity .26s ease, transform .26s ease; }
+    .step-fade.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
+    @media (prefers-reduced-motion:reduce){
+      .step-fade{ transition:none; }
+      .step-fade.step-hide{ transform:none; }
+    }
+
     /* ------------------------------------------------------------- nav --- */
     /* Literal #171E1D, not var(--card) — the bar is a sibling of .send/.receive,
        so the page's custom properties don't reach it. Keep this in sync with
@@ -342,12 +353,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .send-nav .inner-nav-links a:hover{ color:#D5E6E4 !important; }
     }
 
-    /* The current page reads bluer than its neighbours in the bar — same
-       lightness as the rest of the nav text so it doesn't shout, just swung
-       off the page's teal toward blue. */
-    .send-nav .inner-nav-links a[href^="/send"]{ color:#BFCED9 !important; }
+    /* The current page reads bluer than its neighbours in the bar. Held at
+       the same lightness as the rest of the nav text so it doesn't shout —
+       what separates it is saturation, not brightness: #A6C8E8 is roughly
+       3x the chroma of the teal #BED0CD beside it. Contrast on the bar
+       (#171E1D) is 9.72:1 against the teal's 10.56 — a hair darker,
+       which is why it reads as saturation rather than emphasis. */
+    .send-nav .inner-nav-links a[href^="/send"]{ color:#A6C8E8 !important; }
     @media (hover:hover){
-      .send-nav .inner-nav-links a[href^="/send"]:hover{ color:#D8E2E9 !important; }
+      .send-nav .inner-nav-links a[href^="/send"]:hover{ color:#C9E0F5 !important; }
     }
   </style>
 
@@ -395,6 +409,40 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return { ok: res.ok, status: res.status, data: json };
     }
 
+
+    /* Step transition, same shape as /brief's showForm(). `outEl` fades out,
+       then `inEl` is revealed and its direct blocks rise in staggered. */
+    const REDUCE = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function swapStep(outEl, inEl, done) {
+      if (!outEl || !inEl) return;
+      if (REDUCE()) {
+        outEl.hidden = true; inEl.hidden = false;
+        if (done) done();
+        return;
+      }
+      outEl.classList.add('step-fade', 'step-hide');
+      setTimeout(() => {
+        outEl.hidden = true;
+        outEl.classList.remove('step-hide');
+        inEl.hidden = false;
+        const items = inEl.matches('.acard, .dcard') ? [inEl] : inEl.querySelectorAll(':scope > .acard, :scope > .dcard, :scope > .actions');
+        items.forEach((el, i) => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(10px)';
+          const dl = (i * 0.06).toFixed(2) + 's';
+          el.style.transition = 'opacity .5s ease ' + dl + ', transform .5s ease ' + dl;
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+          }));
+          setTimeout(() => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; },
+                     600 + i * 60);
+        });
+        if (done) done();
+      }, 260);
+    }
+
     /* -------------------------------------------------------------- auth --- */
     const gate = $('gate');
     const dash = $('dash');
@@ -402,8 +450,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     async function checkAuth() {
       const r = await api('/api/deliver-list');
       if (r.ok) {
-        gate.hidden = true;
-        dash.hidden = false;
+        // First paint on an already-signed-in reload: no transition, the gate
+        // was never actually on screen. Only animate when it's a real sign-in.
+        if (gate.hidden) { dash.hidden = false; }
+        else { swapStep(gate, dash); }
         renderShares((r.data && r.data.shares) || []);
         return true;
       }
@@ -543,8 +593,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         $('out-link').value = r.data.url;
         $('out-pass').value = passcode;
-        $('success').hidden = false;
-        $('new-share').hidden = true;
+        swapStep($('new-share'), $('success'));
         await refreshShares();
       } catch (err) {
         note.textContent = err && err.message ? err.message : 'Something went wrong. Please retry.';
@@ -561,8 +610,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       $('project-input').value = '';
       $('pass-input').value = '';
       $('create-note').textContent = '';
-      $('success').hidden = true;
-      $('new-share').hidden = false;
+      swapStep($('success'), $('new-share'));
       updateCreateBtn();
     });
 
