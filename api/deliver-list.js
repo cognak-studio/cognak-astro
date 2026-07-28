@@ -30,6 +30,7 @@ export default async function handler(req, res) {
             client: m.client,
             project: m.project || '',
             createdAt: m.createdAt,
+            expiresAt: m.expiresAt || null,
             fileCount: (m.files || []).length,
             // Names only — /send lists them as subtext under each share so a
             // send is identifiable without opening it. Deliberately NOT the

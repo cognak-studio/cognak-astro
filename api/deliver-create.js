@@ -56,12 +56,25 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No files to deliver.' });
   }
 
+  /* Link lifetime, chosen on /send. 0 (or anything unrecognised) means the
+     link never expires, which is the pre-expiry behaviour every share written
+     before 2026-07-28 has — those manifests simply have no expiresAt, and
+     deliver-get treats a missing value as "no expiry" rather than "expired".
+     Clamped so a hand-crafted request can't set an absurd horizon. */
+  const ALLOWED_DAYS = [0, 7, 30, 90];
+  const requestedDays = Number(data.expiresInDays);
+  const days = ALLOWED_DAYS.includes(requestedDays) ? requestedDays : 0;
+  const expiresAt = days > 0
+    ? new Date(Date.now() + days * 86400000).toISOString()
+    : null;
+
   const manifest = {
     token,
     client,
     project,
     passcodeHash: hashPasscode(passcode),
     createdAt: new Date().toISOString(),
+    expiresAt,
     files,
   };
 

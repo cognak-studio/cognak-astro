@@ -323,6 +323,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           renderFiles(r.data);
           return;
         }
+        /* An expired link is a dead end, not a retry — swapping to the same
+           panel /receive uses for a malformed URL stops the client hammering
+           a passcode that will never work. deliver-get returns 410 + expired
+           BEFORE it checks the passcode, so this fires either way. */
+        if (r.data && r.data.expired) {
+          $('invalid-note').textContent =
+            'This link has expired. Ask COGNAK to send a new one.';
+          swapStep($('gate'), $('invalid'));
+          return;
+        }
         input.classList.add('is-error');
         input.setAttribute('aria-invalid', 'true');
         note.textContent = (r.data && r.data.error) || 'Something went wrong. Please retry.';

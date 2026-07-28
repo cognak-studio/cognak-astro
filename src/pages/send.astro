@@ -83,6 +83,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </div>
 
           <div class="field">
+            <fieldset class="q expiry-set">
+              <legend class="q">
+                <span class="q-title">Link expires</span>
+                <span class="q-sub">After this the link stops working. The files stay in storage until you delete the share.</span>
+              </legend>
+              <div class="pills" id="expiry-pills">
+                <label class="pill"><input type="radio" name="expiry" value="7">7 days</label>
+                <label class="pill on"><input type="radio" name="expiry" value="30" checked>30 days</label>
+                <label class="pill"><input type="radio" name="expiry" value="90">90 days</label>
+                <label class="pill"><input type="radio" name="expiry" value="0">Never</label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="field">
             <label class="q" for="drop-input">
               <span class="q-title">Files</span>
             </label>
@@ -259,6 +274,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .drop:hover, .send .drop:focus-visible{ border-color:var(--accent); color:var(--ink); }
     .send .drop.is-over{ border-color:var(--accent); background:rgba(213,230,228,.07); color:var(--ink); }
 
+    /* Expiry pills — same component as /brief's single-select pills, in this
+       page's tokens. The <label>.on class is kept in sync by JS so the styling
+       doesn't depend on :has() support. */
+    .send .expiry-set{ border:0; margin:0; padding:0; min-width:0; }
+    .send .pills{ display:flex; flex-wrap:wrap; gap:10px; margin-top:.85rem; }
+    .send .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
+      border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
+      transition:transform .14s cubic-bezier(.2,.7,.3,1),border-color .2s ease,color .2s ease,background .2s ease; }
+    .send .pill:hover{ border-color:var(--ink); }
+    .send .pill:active{ transform:scale(.96); }
+    .send .pill input{ position:absolute; opacity:0; pointer-events:none; }
+    .send .pill:focus-within{ outline:2px solid var(--accent); outline-offset:2px; }
+    .send .pill.on{ border-color:var(--accent); background:var(--accent); color:var(--deep); font-weight:500; }
+    @media (prefers-reduced-motion:reduce){ .send .pill{ transition:none; } }
+
     .send .filelist{ list-style:none; margin:1rem 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
     .send .filelist:empty{ margin:0; }
     .send .frow{ position:relative; overflow:hidden; display:flex; align-items:center; gap:12px;
@@ -299,6 +329,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .srow-main{ flex:1 1 200px; min-width:0; }
     .send .srow-client{ font-weight:500; color:var(--ink); }
     .send .srow-meta{ font-size:.8rem; color:var(--ink-soft); margin-top:.2rem; font-family:'Diatype Mono', monospace; }
+    .send .srow.is-expired{ opacity:.55; }
+    .send .srow.is-expired .srow-meta{ color:var(--err); }
     /* Filenames under each share. Clamped to two lines so a 30-file send
        doesn't push the rest of the list off the screen — full list on hover
        via the title attribute. */
@@ -561,6 +593,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const pass = $('pass-input').value.trim();
       $('create-btn').disabled = !(client && pass.length >= 4 && queued.length > 0);
     }
+    /* Pill selection state. Radio inputs stay the source of truth (keyboard and
+       screen readers get real radio semantics); .on is only the paint. */
+    const expiryPills = $('expiry-pills');
+    expiryPills.addEventListener('change', () => {
+      expiryPills.querySelectorAll('.pill').forEach((l) => {
+        l.classList.toggle('on', l.querySelector('input').checked);
+      });
+    });
+    function selectedExpiryDays() {
+      const el = expiryPills.querySelector('input:checked');
+      return el ? Number(el.value) : 30;
+    }
+
     $('client-input').addEventListener('input', updateCreateBtn);
     $('pass-input').addEventListener('input', updateCreateBtn);
 
@@ -614,6 +659,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       note.className = 'note';
       const client = $('client-input').value.trim();
       const project = $('project-input').value.trim();
+      const expiresInDays = selectedExpiryDays();
       const passcode = $('pass-input').value.trim();
       if (!client || passcode.length < 4 || !queued.length) return;
 
@@ -639,7 +685,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         const files = queued.filter((i) => i.status === 'ok').map((i) => ({ name: i.file.name, url: i.url, size: i.file.size }));
         if (!files.length) throw new Error('No files uploaded successfully.');
 
-        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, project, passcode, files } });
+        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, project, passcode, files, expiresInDays } });
         if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this share.');
 
         $('out-link').value = r.data.url;
@@ -717,8 +763,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         const rowLabel = s.project ? clientName + ', ' + s.project : clientName;
         li.querySelector('[data-action="copy"]').setAttribute('aria-label', 'Copy link for ' + rowLabel);
         li.querySelector('[data-action="delete"]').setAttribute('aria-label', 'Delete share for ' + rowLabel);
+        /* Expiry is the one piece of a share's state that changes on its own,
+           so it reads as a live status rather than a static timestamp. */
+        let expiryLabel = ' · never expires';
+        if (s.expiresAt) {
+          const ms = new Date(s.expiresAt) - Date.now();
+          const days = Math.ceil(ms / 86400000);
+          expiryLabel = ms <= 0 ? ' · EXPIRED'
+            : days <= 1 ? ' · expires today'
+            : ' · expires in ' + days + ' days';
+          if (ms <= 0) li.classList.add('is-expired');
+        }
         li.querySelector('.srow-meta').textContent =
-          stamp + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0);
+          stamp + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0) + expiryLabel;
         // The actual filenames, so a share is identifiable without opening it —
         // Pierce: "otherwise i won't know what the sends were". CSS clamps this
         // to two lines; the full list is in the title attribute on hover.

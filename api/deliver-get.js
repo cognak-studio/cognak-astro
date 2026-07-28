@@ -34,6 +34,13 @@ export default async function handler(req, res) {
     }
     const manifest = await fetch(blobs[0].url).then((r) => r.json());
 
+    /* Expired links are refused BEFORE the passcode is checked, so an expired
+       share can't be probed for a valid passcode. A manifest with no expiresAt
+       (every share written before expiry existed) never expires. */
+    if (manifest.expiresAt && Date.parse(manifest.expiresAt) <= Date.now()) {
+      return res.status(410).json({ error: 'This link has expired.', expired: true });
+    }
+
     if (!passcode) {
       // Lets the page tell "ask for a passcode" apart from "wrong passcode".
       return res.status(401).json({ error: 'Passcode required.', needsPasscode: true });
@@ -48,6 +55,7 @@ export default async function handler(req, res) {
       client: manifest.client,
       project: manifest.project || '',
       createdAt: manifest.createdAt,
+      expiresAt: manifest.expiresAt || null,
       files: manifest.files,
     });
   } catch (err) {
