@@ -252,6 +252,48 @@ whatever text shares that corner.
 
 ---
 
+## Client file delivery — /admin + /deliver (2026-07-28)
+
+A replacement for sending clients a Hightail link: an internal upload tool at
+**`/admin`** (password-protected, unlisted like `/tools`) lets you drop in
+files, name the client, and set a passcode. It uploads straight to the same
+Vercel Blob store `/brief` already uses, then gives you a link —
+`cognak.com/d/<token>` — and the passcode to send separately. Clients open the
+link, enter the passcode, and download. No expiration; delete a share from
+`/admin` any time to kill its link immediately.
+
+**How it fits together:**
+- A "share" is one JSON file, `deliveries/<token>/manifest.json` in Blob
+  storage — client name, a SHA-256 hash of the passcode (never the passcode
+  itself), and the uploaded files' names/URLs/sizes. That manifest *is* the
+  database; there's no other datastore.
+- `/admin` uploads files client-side via `@vercel/blob/client` through
+  `api/deliver-upload-token.js` (same handshake as `api/upload.js`), then
+  posts the file list to `api/deliver-create.js` to write the manifest.
+- `/d/:token` is a `vercel.json` rewrite to the static `/deliver` page (URL
+  stays clean; the page itself reads the token from `location.pathname`).
+  It posts `{ token, passcode }` to `api/deliver-get.js`, which checks the
+  passcode hash and returns the file list.
+- `api/deliver-list.js` / `api/deliver-delete.js` back the "Recent shares"
+  panel on `/admin` (list + revoke).
+
+**Admin auth** (`api/_lib/adminAuth.mjs`): a single shared password, checked
+constant-time, unlocks a signed HttpOnly session cookie (12h) — no user
+accounts, no database. Files under `api/_lib/` aren't turned into their own
+routes by Vercel (the underscore prefix excludes them), so this is safe to
+import from every `admin-*`/`deliver-*` function without exposing it.
+
+**Required env vars** (Vercel → Project → Settings → Environment Variables —
+not yet set as of this writing, so `/admin` will 500 until they're added):
+- `ADMIN_PASSWORD` — the password that unlocks `/admin`.
+- `ADMIN_SECRET` — a random long string, signs session cookies and peppers
+  passcode hashes. Generate once with `openssl rand -hex 32`.
+
+(`BLOB_READ_WRITE_TOKEN` is already set from the `/brief` uploader — no new
+Blob store needed.)
+
+---
+
 ## Migration summary (for context)
 
 cognak.com was migrated off WordPress + GoDaddy hosting onto this static Astro

@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/d/:token",
+      "destination": "/deliver"
+    }
+  ],
   "redirects": [
     {
       "source": "/uploads/2026/05/cropped-org-logo-32x32.png",

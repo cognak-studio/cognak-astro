@@ -1045,12 +1045,25 @@ html.home-scrolled #cognak-cookie {
     justify-content: space-between;
     align-items: baseline;
 }
-.footer-copy p {
+/* Copyright text + the Privacy/Colophon/Tools link row, side by side on one
+   line on desktop (see .footer-legal below — mobile stacks these instead). */
+.footer-copy {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+}
+.footer-copy-text {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
     color: #3A313B;
     margin: 0;
     line-height: 1.6;
+    white-space: nowrap;
+}
+.footer-legal {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
 }
 .footer-links {
     display: flex;
@@ -3014,8 +3027,9 @@ a[href*="cookieyes.com"],
 }
 
 /* ── Footer privacy policy link ── */
+/* Spacing between these now comes from .footer-legal's flex gap, not margin
+   (a margin-left here would double up with the gap and misalign wrapped rows). */
 .footer-privacy {
-    margin-left: 20px;
     text-decoration: none;
     transition: color 0.2s ease;
 }@media (hover: hover) {
@@ -3247,24 +3261,49 @@ html body.page-template-page-privacy-policy,
         opacity: var(--hero-halo-opacity, 1);
     }
 
-    /* Footer bottom: Projects/Studio stacked above copyright */
+    /* Footer bottom, mobile: a 2-col/3-row grid rather than the desktop flex
+       row — at 4 items (copyright + Privacy Policy + Colophon + Tools) a single
+       inline line wraps mid-link on phones as narrow as 375px. Colophon/Tools
+       stack top-left, Privacy Policy sits bottom-left, copyright bottom-right —
+       verified down to 320px with no horizontal overflow (see
+       reference-mobile-horizontal-overflow for how that's checked).
+       .footer-copy/.footer-legal are just desktop flex wrappers with no visual
+       role here, so display:contents promotes their children (the copy text
+       and the three links) straight into this grid. */
     .footer-bottom {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 0 !important;
+        display: grid !important;
+        grid-template-columns: 1fr auto !important;
+        grid-template-rows: auto auto auto !important;
+        row-gap: 8px !important;
+    }
+    .footer-copy,
+    .footer-legal {
+        display: contents !important;
+    }
+    .footer-colophon-link {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    .footer-tools-link {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    .footer-privacy-link {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    .footer-copy-text {
+        grid-column: 2;
+        grid-row: 3;
+        justify-self: end;
+        align-self: end;
+        white-space: nowrap;
     }
     .footer-links {
         display: none !important;
     }
     .main-footer {
         position: relative !important;
-    }
-    .footer-copy {
-        order: 2 !important;
-        margin-top: 20px !important;
-    }
-    .footer-privacy {
-        margin-left: 16px !important;
     }
 
     /* Availability sub — mobile fixes */

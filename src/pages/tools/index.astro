@@ -1,7 +1,9 @@
 ---
 /**
- * /tools — hidden, unlinked barcode generator.
- * Not in nav, footer, or sitemap; noindex. Same "share the URL" model as /brief.
+ * /tools — public barcode generator, linked from the footer next to Colophon
+ * (2026-07-28). noindex stays on though, same as /colophon — a footer-linked
+ * page we're happy for visitors to find, but not one we want ranking in
+ * search results for generic "barcode generator" queries.
  *
  * Everything runs client-side: the UPC-A encoder, the QR encoder and all three
  * vector emitters live in src/lib/barcode/ and are bundled into the page, so
@@ -15,7 +17,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <BaseLayout
   page="tools"
   title="Tools – COGNAK"
-  description="Internal UPC-A and QR generator. Vector out, nothing stored."
+  description="A UPC-A and QR generator built for print — real vector out (SVG, PDF, EPS), GS1-legal magnification, nothing you type ever leaves the browser."
   ogUrl="https://cognak.com/tools/"
   noindex={true}
   pageBg="#16151A"

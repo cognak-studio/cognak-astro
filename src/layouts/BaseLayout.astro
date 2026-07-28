@@ -8,7 +8,7 @@
 const THEME = '/theme';
 
 export interface Props {
-  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | 'colophon' | 'brief' | 'tools' | '404' | 'page';
+  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | 'colophon' | 'brief' | 'tools' | 'admin' | 'deliver' | '404' | 'page';
   title?: string;
   description?: string;
   ogType?: string;
@@ -47,14 +47,17 @@ const jsV = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 8)
   || Math.floor(Date.now() / 3600000).toString(36);
 
 // Inner-page top nav (home-bottom-bar inner-page-nav) renders on these pages.
-const innerNavPages = ['studio', 'projects', 'project', 'privacy', 'colophon', 'brief', 'tools', '404'];
+const innerNavPages = ['studio', 'projects', 'project', 'privacy', 'colophon', 'brief', 'tools', 'admin', 'deliver', '404'];
 const showInnerNav = innerNavPages.includes(page);
 const innerNavVariant =
   page === 'studio' ? ' studio-nav' :
   page === 'privacy' ? ' privacy-nav' :
   page === 'colophon' ? ' colophon-nav' :
   page === 'brief' ? ' brief-nav' :
-  page === 'tools' ? ' tools-nav' :
+  // /admin and /deliver share the /tools violet-on-dark colorway and its nav
+  // treatment (each page defines its own `.tools-nav` overrides in its own
+  // <style> block, so reusing the class name here is safe).
+  page === 'tools' || page === 'admin' || page === 'deliver' ? ' tools-nav' :
   page === '404' ? ' fourofour-nav' : '';
 
 // Corner cookie banner (non-home pages): dark glass on Studio (dark bg, dark nav),
