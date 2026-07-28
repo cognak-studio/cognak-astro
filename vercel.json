@@ -8,6 +8,10 @@
   ],
   "rewrites": [
     {
+      "source": "/files/:token",
+      "destination": "/receive"
+    },
+    {
       "source": "/r/:token",
       "destination": "/receive"
     }

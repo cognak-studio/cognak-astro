@@ -8,7 +8,7 @@
  * Flow: sign in once (12h session cookie) -> name a client + set a passcode
  * -> drop files (uploaded straight to Vercel Blob via api/deliver-upload-
  * token.js, same client-upload handshake /brief already uses) -> get back a
- * cognak.com/r/<token> link + the passcode to send the client, instead of a
+ * cognak.com/files/<token> link + the passcode to send the client, instead of a
  * Hightail link. Recent shares are listed below with a delete action.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -343,7 +343,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       background:var(--cta); transition:width .35s ease; }
     .send .frow.is-done .frow-fill{ width:100%; }
     @media (prefers-reduced-motion:reduce){ .send .frow-fill{ transition:none; } }
-    .send .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    /* line-height matters here: reset.css sets `font:inherit` on these
+       elements, and with overflow:hidden a tight line box clips descenders —
+       "Dark Yak.png" lost the tail of its g. 1.5 gives the box room. */
+    .send .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.5; }
     .send .frow-size{ color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.78rem; flex:0 0 auto; }
     .send .frow-status{ flex:0 0 auto; font-family:'Diatype Mono', monospace; font-size:.76rem; min-width:64px; text-align:right; }
     .send .frow-status.is-wait{ color:var(--ink-soft); }
@@ -370,10 +373,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .srow{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px;
       background:var(--field); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
     .send .srow-main{ flex:1 1 200px; min-width:0; }
-    .send .srow-client{ font-weight:500; color:var(--ink); }
-    .send .srow-meta{ font-size:.8rem; color:var(--ink-soft); margin-top:.2rem; font-family:'Diatype Mono', monospace; }
+    /* Three tiers, not two: the client/project name is the thing you scan for,
+       so it gets air beneath it; the mono metadata sits a step down in size,
+       and expiry takes its own line at that same size rather than wrapping the
+       stats line mid-phrase ("expires in / 7 days" was breaking across lines). */
+    .send .srow-client{ font-weight:500; font-size:1rem; color:var(--ink); margin-bottom:.55rem; }
+    .send .srow-meta{ font-size:.74rem; color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
+    .send .srow-expiry{ font-size:.74rem; color:var(--ink-soft); font-family:'Diatype Mono', monospace;
+      margin-top:.2rem; }
     .send .srow.is-expired{ opacity:.55; }
-    .send .srow.is-expired .srow-meta{ color:var(--err); }
+    .send .srow.is-expired .srow-expiry{ color:var(--err); }
     /* Filenames under each share. Clamped to two lines so a 30-file send
        doesn't push the rest of the list off the screen — full list on hover
        via the title attribute. */
@@ -811,7 +820,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           : '';
         li.innerHTML =
           '<div class="srow-main"><div class="srow-client"></div>' +
-          '<div class="srow-meta"></div><div class="srow-files"></div></div>' +
+          '<div class="srow-meta"></div><div class="srow-expiry"></div>' +
+          '<div class="srow-files"></div></div>' +
           '<div class="srow-actions">' +
           '<button type="button" class="btn btn-ghost" data-action="copy">Copy link</button>' +
           '<button type="button" class="btn btn-ghost btn-danger" data-action="delete">Delete</button>' +
@@ -825,7 +835,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         li.querySelector('[data-action="delete"]').setAttribute('aria-label', 'Delete share for ' + rowLabel);
         /* Expiry is the one piece of a share's state that changes on its own,
            so it reads as a live status rather than a static timestamp. */
-        let expiryLabel = ' · never expires';
+        let expiryLabel = 'never expires';
         if (s.expiresAt) {
           const ms = new Date(s.expiresAt) - Date.now();
           const days = Math.ceil(ms / 86400000);
@@ -837,13 +847,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             days < 60 ? Math.round(days / 7) + ' weeks' :
             days < 365 ? Math.round(days / 30) + ' months' :
             Math.round(days / 365) + (Math.round(days / 365) === 1 ? ' year' : ' years');
-          expiryLabel = ms <= 0 ? ' · EXPIRED'
-            : days <= 1 ? ' · expires today'
-            : ' · expires in ' + human;
+          expiryLabel = ms <= 0 ? 'EXPIRED'
+            : days <= 1 ? 'expires today'
+            : 'expires in ' + human;
           if (ms <= 0) li.classList.add('is-expired');
         }
         li.querySelector('.srow-meta').textContent =
-          stamp + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0) + expiryLabel;
+          stamp + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0);
+        li.querySelector('.srow-expiry').textContent = expiryLabel;
         // The actual filenames, so a share is identifiable without opening it —
         // Pierce: "otherwise i won't know what the sends were". CSS clamps this
         // to two lines; the full list is in the title attribute on hover.
@@ -853,7 +864,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         filesEl.hidden = !fileNames;
         if (fileNames) filesEl.title = (s.fileNames || []).join('\n');
         li.querySelector('[data-action="copy"]').addEventListener('click', async (e) => {
-          const url = 'https://cognak.com/r/' + s.token;
+          const url = 'https://cognak.com/files/' + s.token;
           try { await navigator.clipboard.writeText(url); } catch (err) { /* ignore */ }
           const btn = e.currentTarget;
           const original = btn.textContent;

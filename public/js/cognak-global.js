@@ -241,8 +241,16 @@
             curX = mouseX;
             curY = mouseY;
         }
-        cursor.style.left = curX + 'px';
-        cursor.style.top  = curY + 'px';
+        /* transform, not left/top: writing left/top every frame puts the cursor
+           on the layout path, and with mix-blend-mode:difference on top of that
+           each frame costs a relayout + a full blend recomposite. translate3d
+           is compositor-only. The trailing translate(-50%,-50%) reproduces the
+           centring the base CSS rule does — an inline transform replaces it, so
+           it has to be restated here. Only the base rule sets transform on
+           #cognak-cursor (the state classes change width/height), so nothing
+           else is being clobbered. */
+        cursor.style.transform =
+            'translate3d(' + curX + 'px,' + curY + 'px,0) translate(-50%,-50%)';
         velX *= 0.80;
         velY *= 0.80;
         var targetTilt = Math.max(-18, Math.min(18, velX * 0.9));

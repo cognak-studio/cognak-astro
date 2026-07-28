@@ -1,7 +1,7 @@
 ---
 /**
  * /receive — client-facing file-download page.
- * Reached as cognak.com/r/<token> via a vercel.json rewrite (so the browser
+ * Reached as cognak.com/files/<token> via a vercel.json rewrite (so the browser
  * URL stays clean); also readable directly as /receive?t=<token> for local
  * testing, since Vercel-only rewrites don't apply under `astro dev`.
  *
@@ -51,6 +51,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="group">
         <div class="group-title" id="files-title">Files</div>
         <ul class="flist" id="flist"></ul>
+        <p class="expiry-note" id="expiry-note" hidden></p>
       </div>
     </div>
 
@@ -185,9 +186,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .flist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
     .receive .frow{ display:flex; align-items:center; gap:14px; background:var(--field);
       border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
-    .receive .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.96rem; }
+    /* line-height matters here: reset.css sets `font:inherit` on these
+       elements, and with overflow:hidden a tight line box clips descenders —
+       "Dark Yak.png" lost the tail of its g. 1.5 gives the box room. */
+    .receive .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.5; font-size:.96rem; }
     .receive .frow-size{ color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.8rem; flex:0 0 auto; }
     .receive .frow-dl{ flex:0 0 auto; text-decoration:none; }
+    /* Expiry, told to the client rather than only to Pierce. Sits under the
+       list as a quiet note, not a warning — until it's genuinely urgent, at
+       which point it takes the error colour. */
+    .receive .expiry-note{ margin:1.2rem 0 0; font-size:.8rem; line-height:1.5;
+      color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
+    .receive .expiry-note.is-soon{ color:var(--err); }
+    .receive .expiry-note[hidden]{ display:none; }
 
     .receive .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
     .receive .rise.in{ opacity:1; transform:none; }
@@ -303,7 +314,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     function getToken() {
-      const m = location.pathname.match(/\/r\/([a-zA-Z0-9]+)/);
+      // /files/<token> is the current shape — it matches the headline's blue
+      // word, so the URL and the page agree. /r/<token> is the original and is
+      // kept working forever: those links are already out with clients.
+      const m = location.pathname.match(/\/(?:files|r)\/([a-zA-Z0-9]+)/);
       if (m) return m[1];
       const t = new URLSearchParams(location.search).get('t');
       return t || null;
@@ -328,6 +342,32 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // The project name headlines the file list when there is one — it's the
       // label the client actually recognises. Falls back to plain "Files".
       $('files-title').textContent = payload.project || 'Files';
+
+      /* A download link with a deadline should say so on the page the client
+         actually opens — otherwise the first they know of it is a dead link.
+         Phrased as a date plus a countdown: the date is what they'd diarise,
+         the countdown is what makes them act. */
+      const expEl = $('expiry-note');
+      if (payload.expiresAt) {
+        const when = new Date(payload.expiresAt);
+        const days = Math.ceil((when - Date.now()) / 86400000);
+        const dateText = when.toLocaleDateString(undefined, {
+          month: 'long', day: 'numeric', year: 'numeric',
+        });
+        const countdown =
+          days <= 0 ? 'today' :
+          days === 1 ? 'tomorrow' :
+          days < 14 ? 'in ' + days + ' days' :
+          days < 60 ? 'in ' + Math.round(days / 7) + ' weeks' :
+          days < 365 ? 'in ' + Math.round(days / 30) + ' months' :
+          'in ' + Math.round(days / 365) + ' year' + (Math.round(days / 365) === 1 ? '' : 's');
+        expEl.textContent =
+          'Download these before ' + dateText + ' — this link expires ' + countdown + '.';
+        expEl.classList.toggle('is-soon', days <= 3);
+        expEl.hidden = false;
+      } else {
+        expEl.hidden = true;
+      }
       document.title =
         [payload.client, payload.project].filter(Boolean).join(' — ') +
         (payload.client || payload.project ? ' — ' : '') + 'Files from COGNAK';
