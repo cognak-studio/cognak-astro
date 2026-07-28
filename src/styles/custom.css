@@ -3030,6 +3030,16 @@ a[href*="cookieyes.com"],
 /* Spacing between these now comes from .footer-legal's flex gap, not margin
    (a margin-left here would double up with the gap and misalign wrapped rows). */
 .footer-privacy {
+    /* Explicit font/color/size: these links used to inherit typography from
+       the styled <p> they lived inside (.footer-copy p). Since the footer
+       restructure moved them into their own <nav class="footer-legal">
+       sibling (2026-07-28, for the mobile grid layout), that inheritance
+       chain is gone, so it has to be set here directly or they fall back to
+       the browser default serif/16px/black. */
+    font-family: 'Diatype Variable', sans-serif;
+    font-size: 15px;
+    color: #3A313B;
+    line-height: 1.6;
     text-decoration: none;
     transition: color 0.2s ease;
 }@media (hover: hover) {
