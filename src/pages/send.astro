@@ -1,0 +1,546 @@
+---
+/**
+ * /send — hidden, password-protected client-delivery tool.
+ * Not in nav, footer, or sitemap; noindex. Same "unlinked utility" model as
+ * /tools, but gated behind ADMIN_PASSWORD (see api/_lib/adminAuth.mjs)
+ * because this one handles real client files, not a stateless generator.
+ *
+ * Flow: sign in once (12h session cookie) -> name a client + set a passcode
+ * -> drop files (uploaded straight to Vercel Blob via api/deliver-upload-
+ * token.js, same client-upload handshake /brief already uses) -> get back a
+ * cognak.com/r/<token> link + the passcode to send the client, instead of a
+ * Hightail link. Recent shares are listed below with a delete action.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  page="send"
+  title="Send – COGNAK"
+  description="Internal client-delivery tool."
+  ogUrl="https://cognak.com/send/"
+  noindex={true}
+  pageBg="#16151A"
+>
+  <canvas id="send-lattice" aria-hidden="true"></canvas>
+
+  <main id="cognak-main"><section class="send">
+
+    <h1 class="headline send-headline">
+      <em>Send files</em> to clients, no third-party link required.
+    </h1>
+    <p class="lede send-lede">
+      Drop files in, name the client, set a passcode. You get a cognak.com
+      link and a passcode to send separately — nothing leaves this domain.
+    </p>
+
+    <!-- ------------------------------------------------------- sign in --- -->
+    <div class="acard rise" id="gate">
+      <div class="group">
+        <div class="group-title">Sign in</div>
+        <div class="field">
+          <label class="q" for="pw-input">
+            <span class="q-title">Admin password</span>
+          </label>
+          <input class="txt" id="pw-input" type="password" autocomplete="current-password" />
+          <p class="note" id="pw-note"></p>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="pw-submit">Sign in</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------ dashboard --- -->
+    <div id="dash" hidden>
+
+      <div class="acard rise" id="new-share">
+        <div class="group">
+          <div class="group-title">New share</div>
+
+          <div class="field">
+            <label class="q" for="client-input">
+              <span class="q-title">Client</span>
+              <span class="q-sub">Shown to you only, to keep shares straight.</span>
+            </label>
+            <input class="txt" id="client-input" type="text" autocomplete="off" placeholder="Acme Co" />
+          </div>
+
+          <div class="field">
+            <label class="q" for="pass-input">
+              <span class="q-title">Passcode</span>
+              <span class="q-sub">Send this separately from the link (text, call, whatever). At least 4 characters.</span>
+            </label>
+            <div class="pass-row">
+              <input class="txt mono" id="pass-input" type="text" autocomplete="off" spellcheck="false" />
+              <button type="button" class="btn btn-ghost" id="pass-gen">Generate</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="q" for="drop-input">
+              <span class="q-title">Files</span>
+            </label>
+            <div class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-hint">
+              <span id="drop-hint">Drag files here, or click to choose</span>
+              <input type="file" id="drop-input" multiple hidden />
+            </div>
+            <ul class="filelist" id="filelist"></ul>
+          </div>
+        </div>
+
+        <p class="note" id="create-note"></p>
+
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="create-btn" disabled>Create share</button>
+        </div>
+      </div>
+
+      <div class="acard rise" id="success" hidden>
+        <div class="group">
+          <div class="group-title">Ready to send</div>
+          <div class="field">
+            <label class="q"><span class="q-title">Link</span></label>
+            <div class="copy-row">
+              <input class="txt mono" id="out-link" type="text" readonly />
+              <button type="button" class="btn btn-ghost" data-copy="out-link">Copy</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="q"><span class="q-title">Passcode</span></label>
+            <div class="copy-row">
+              <input class="txt mono" id="out-pass" type="text" readonly />
+              <button type="button" class="btn btn-ghost" data-copy="out-pass">Copy</button>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn" id="start-another">Start another share</button>
+        </div>
+      </div>
+
+      <div class="acard rise" id="shares-card">
+        <div class="group">
+          <div class="group-title">Recent shares</div>
+          <p class="note" id="shares-empty">Nothing sent yet.</p>
+          <ul class="shares" id="shares-list"></ul>
+        </div>
+      </div>
+
+      <div class="actions signout-row">
+        <button type="button" class="btn btn-ghost" id="signout-btn">Sign out</button>
+      </div>
+    </div>
+
+  </section></main>
+
+  <style is:inline>
+    html, body { background-color:#16151A !important; }
+    #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
+
+    #send-lattice{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
+      pointer-events:none; opacity:0; transition:opacity 1.4s ease; }
+    #send-lattice.is-in{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){ #send-lattice{ display:none; } }
+
+    /* Same violet-on-#16151A ink used on /tools — internal utility pages
+       share a colorway so they read as one family. */
+    .send {
+      --bg:#16151A;
+      --card:rgba(33,31,40,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
+      --ink:#EDEAF3; --ink-soft:#A9A3B8; --accent:#B47CFF; --accent-hi:#C79BFF;
+      --accent-soft:#B0A3CF; --deep:#1B1424; --line:rgba(237,234,243,0.13);
+      --line-strong:rgba(237,234,243,0.28); --placeholder:#8A8499;
+      --ok:#7EE2A8; --err:#FF9E90;
+      max-width:820px; margin:0 auto; padding:190px 6vw 22vh;
+      color:var(--ink); font-family:'Diatype Variable', sans-serif;
+    }
+    @media (max-width:720px){ .send{ padding-top:100px; } }
+    /* Unlike /tools and /brief, this page's column stays centered at every
+       width instead of shifting left on desktop — it's a card/form layout,
+       not an editorial one. padding-top:190px still matches the shared
+       header height used on /projects, /studio, etc. */
+    .send .mono{ font-family:'Diatype Mono', monospace; }
+
+    .send label.q, .send legend.q{ display:block !important; }
+
+    .send .headline{ font-size:clamp(20px,5.5vw,52px); font-weight:500; line-height:1.1;
+      letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+    .send .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
+    .send .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch;
+      margin:0 0 3.4rem 0; }
+    @media (max-width:720px){ .send .headline{ font-size:clamp(24px,7vw,38px); } }
+    html.js .send-headline, html.js .send-lede{ opacity:0; }
+    @media (prefers-reduced-motion:reduce){
+      html.js .send-headline, html.js .send-lede{ opacity:1; }
+    }
+    .send-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
+
+    .send .acard{ background:var(--card); border-radius:10px; padding:34px 34px 30px;
+      box-shadow:0 2px 18px rgba(0,0,0,.28); margin-bottom:1.6rem; }
+    @media (max-width:600px){ .send .acard{ padding:24px 20px 22px; } }
+
+    .send .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
+      text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; }
+    .send .field{ margin-bottom:1.8rem; }
+    .send .field:last-child{ margin-bottom:0; }
+    .send .q{ display:block; margin-bottom:.85rem; padding:0; }
+    .send .q-title{ display:block; font-size:1.02rem; font-weight:500; line-height:1.3; color:var(--ink); }
+    .send .q-sub{ display:block; font-size:.86rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:54ch; }
+
+    .send .txt{
+      width:100%; box-sizing:border-box; margin:0;
+      background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
+      color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
+      transition:border-color .2s ease, background .2s ease; outline:none; }
+    .send .txt::placeholder{ color:var(--placeholder); }
+    .send .txt:focus{ border-color:var(--accent); background:var(--field-focus); }
+    .send .txt[readonly]{ cursor:text; }
+    .send a:focus-visible, .send button:focus-visible, .send input:focus-visible,
+    .send [tabindex]:focus-visible{ outline-color:var(--accent) !important; }
+
+    .send .note{ margin:.7rem 0 0; font-size:.84rem; line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
+    .send .note.is-error{ color:var(--err); }
+    .send .note.is-ok{ color:var(--ok); }
+
+    .send .pass-row, .send .copy-row{ display:flex; gap:10px; }
+    .send .pass-row .txt, .send .copy-row .txt{ flex:1 1 auto; min-width:0; }
+
+    /* -------------------------------------------------------- drop zone --- */
+    .send .drop{ border:1.5px dashed var(--line-strong); border-radius:10px; padding:28px 16px;
+      text-align:center; color:var(--ink-soft); font-size:.94rem; cursor:pointer;
+      transition:border-color .2s ease, background .2s ease, color .2s ease; }
+    .send .drop:hover, .send .drop:focus-visible{ border-color:var(--accent); color:var(--ink); }
+    .send .drop.is-over{ border-color:var(--accent); background:rgba(180,124,255,.08); color:var(--ink); }
+
+    .send .filelist{ list-style:none; margin:1rem 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
+    .send .filelist:empty{ margin:0; }
+    .send .frow{ display:flex; align-items:center; gap:12px; background:var(--field);
+      border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:.88rem; }
+    .send .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .send .frow-size{ color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.78rem; flex:0 0 auto; }
+    .send .frow-status{ flex:0 0 auto; font-family:'Diatype Mono', monospace; font-size:.76rem; min-width:64px; text-align:right; }
+    .send .frow-status.is-wait{ color:var(--ink-soft); }
+    .send .frow-status.is-up{ color:var(--accent-hi); }
+    .send .frow-status.is-ok{ color:var(--ok); }
+    .send .frow-status.is-err{ color:var(--err); }
+    .send .frow-remove{ flex:0 0 auto; background:none; border:none; color:var(--ink-soft); cursor:pointer;
+      font-size:1rem; line-height:1; padding:2px 4px; }
+    .send .frow-remove:hover{ color:var(--err); }
+
+    /* -------------------------------------------------------------- shares --- */
+    .send .shares{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
+    .send .srow{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px;
+      background:var(--field); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
+    .send .srow-main{ flex:1 1 200px; min-width:0; }
+    .send .srow-client{ font-weight:500; color:var(--ink); }
+    .send .srow-meta{ font-size:.8rem; color:var(--ink-soft); margin-top:.2rem; font-family:'Diatype Mono', monospace; }
+    .send .srow-actions{ display:flex; gap:8px; flex:0 0 auto; }
+
+    /* -------------------------------------------------------------- buttons --- */
+    .send .actions{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:1.6rem; }
+    .send .signout-row{ justify-content:flex-end; margin-top:0; }
+    .send .btn{ font-family:inherit; font-size:.94rem; font-weight:500; cursor:pointer;
+      display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+      border-radius:999px; padding:12px 22px; background:none; color:var(--ink);
+      border:1px solid var(--line-strong);
+      transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
+    .send .btn:hover:not(:disabled){ border-color:var(--ink); }
+    .send .btn.btn-primary{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
+    .send .btn.btn-primary:hover:not(:disabled){ background:var(--accent-hi); border-color:var(--accent-hi);
+      box-shadow:0 0 24px rgba(180,124,255,.34); }
+    .send .btn.btn-ghost{ padding:12px 18px; font-size:.86rem; }
+    .send .btn.btn-danger:hover:not(:disabled){ border-color:var(--err); color:var(--err); }
+    .send .btn:active:not(:disabled){ transform:scale(.98); }
+    .send .btn:disabled{ opacity:.32; cursor:not-allowed; }
+
+    .send .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+    .send .rise.in{ opacity:1; transform:none; }
+    @media (prefers-reduced-motion:reduce){ .send .rise{ opacity:1; transform:none; transition:none; } }
+
+    /* ------------------------------------------------------------- nav --- */
+    .home-bottom-bar.inner-page-nav.tools-nav{ background:rgba(18,17,22,0.62) !important;
+      -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
+    .tools-nav .home-bottom-email,
+    .tools-nav .home-bottom-location,
+    .tools-nav .inner-nav-links a,
+    .tools-nav .pulse-dot{ color:#A9A3B8 !important; }
+    .tools-nav .home-bottom-email,
+    .tools-nav .inner-nav-links a{ transition:color .2s ease; }
+    @media (hover:hover){
+      .tools-nav .home-bottom-email:hover,
+      .tools-nav .inner-nav-links a:hover{ color:#C79BFF !important; }
+    }
+  </style>
+
+  <script>
+    import { initLattice } from '../lib/tools-background.js';
+    initLattice(document.getElementById('send-lattice'));
+
+    const $ = (id) => document.getElementById(id);
+    function humanSize(b) {
+      return b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB';
+    }
+
+    /* ---------------------------------------------- blob client, on demand --- */
+    let _blobClient = null;
+    function blobClient() {
+      if (!_blobClient) {
+        _blobClient = import('https://esm.sh/@vercel/blob@1/client').catch((e) => {
+          _blobClient = null;
+          throw new Error('Uploader could not load. Check your connection and retry.');
+        });
+      }
+      return _blobClient;
+    }
+
+    function randomToken(len = 10) {
+      const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789'; // no 0/o/1/i/l
+      const bytes = crypto.getRandomValues(new Uint8Array(len));
+      return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
+    }
+    function randomPasscode(len = 6) {
+      const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+      const bytes = crypto.getRandomValues(new Uint8Array(len));
+      return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
+    }
+
+    async function api(path, opts) {
+      const res = await fetch(path, {
+        method: (opts && opts.method) || 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        body: opts && opts.body ? JSON.stringify(opts.body) : undefined,
+        credentials: 'same-origin',
+      });
+      let json = null;
+      try { json = await res.json(); } catch (e) { /* no body */ }
+      return { ok: res.ok, status: res.status, data: json };
+    }
+
+    /* -------------------------------------------------------------- auth --- */
+    const gate = $('gate');
+    const dash = $('dash');
+
+    async function checkAuth() {
+      const r = await api('/api/deliver-list');
+      if (r.ok) {
+        gate.hidden = true;
+        dash.hidden = false;
+        renderShares((r.data && r.data.shares) || []);
+        return true;
+      }
+      gate.hidden = false;
+      dash.hidden = true;
+      return false;
+    }
+
+    $('pw-submit').addEventListener('click', async () => {
+      const note = $('pw-note');
+      note.textContent = '';
+      note.className = 'note';
+      const r = await api('/api/admin-login', { method: 'POST', body: { password: $('pw-input').value } });
+      if (!r.ok) {
+        note.textContent = (r.data && r.data.error) || 'Could not sign in.';
+        note.className = 'note is-error';
+        return;
+      }
+      $('pw-input').value = '';
+      await checkAuth();
+    });
+    $('pw-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pw-submit').click(); });
+
+    $('signout-btn').addEventListener('click', async () => {
+      await api('/api/admin-logout', { method: 'POST' });
+      await checkAuth();
+    });
+
+    /* ---------------------------------------------------------- new share --- */
+    let queued = []; // { file, status: 'wait'|'up'|'ok'|'err', pct, url }
+
+    function renderFiles() {
+      const list = $('filelist');
+      list.innerHTML = '';
+      queued.forEach((item, i) => {
+        const li = document.createElement('li');
+        li.className = 'frow';
+        const statusText =
+          item.status === 'wait' ? 'waiting' :
+          item.status === 'up' ? Math.round(item.pct || 0) + '%' :
+          item.status === 'ok' ? 'done' : 'failed';
+        li.innerHTML =
+          '<span class="frow-name"></span>' +
+          '<span class="frow-size"></span>' +
+          '<span class="frow-status is-' + (item.status === 'wait' ? 'wait' : item.status === 'up' ? 'up' : item.status === 'ok' ? 'ok' : 'err') + '"></span>' +
+          '<button type="button" class="frow-remove" aria-label="Remove">×</button>';
+        li.querySelector('.frow-name').textContent = item.file.name;
+        li.querySelector('.frow-size').textContent = humanSize(item.file.size);
+        li.querySelector('.frow-status').textContent = statusText;
+        li.querySelector('.frow-remove').addEventListener('click', () => {
+          queued.splice(i, 1);
+          renderFiles();
+          updateCreateBtn();
+        });
+        list.appendChild(li);
+      });
+    }
+
+    function addFiles(fileList) {
+      Array.from(fileList).forEach((file) => queued.push({ file, status: 'wait', pct: 0 }));
+      renderFiles();
+      updateCreateBtn();
+    }
+
+    const drop = $('drop');
+    const dropInput = $('drop-input');
+    drop.addEventListener('click', () => dropInput.click());
+    drop.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dropInput.click(); } });
+    dropInput.addEventListener('change', () => { addFiles(dropInput.files); dropInput.value = ''; });
+    ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('is-over'); }));
+    ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('is-over'); }));
+    drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+
+    $('pass-gen').addEventListener('click', () => { $('pass-input').value = randomPasscode(); });
+
+    function updateCreateBtn() {
+      const client = $('client-input').value.trim();
+      const pass = $('pass-input').value.trim();
+      $('create-btn').disabled = !(client && pass.length >= 4 && queued.length > 0);
+    }
+    $('client-input').addEventListener('input', updateCreateBtn);
+    $('pass-input').addEventListener('input', updateCreateBtn);
+
+    async function uploadOne(item, token) {
+      item.status = 'up';
+      item.pct = 0;
+      renderFiles();
+      const mod = await blobClient();
+      const result = await mod.upload('deliveries/' + token + '/' + item.file.name, item.file, {
+        access: 'public',
+        handleUploadUrl: '/api/deliver-upload-token',
+        onUploadProgress: (p) => {
+          item.pct = p && typeof p.percentage === 'number' ? p.percentage : item.pct;
+          renderFiles();
+        },
+      });
+      item.status = 'ok';
+      item.url = result.url;
+      renderFiles();
+    }
+
+    $('create-btn').addEventListener('click', async () => {
+      const note = $('create-note');
+      note.textContent = '';
+      note.className = 'note';
+      const client = $('client-input').value.trim();
+      const passcode = $('pass-input').value.trim();
+      if (!client || passcode.length < 4 || !queued.length) return;
+
+      $('create-btn').disabled = true;
+      const token = randomToken();
+
+      try {
+        // Small concurrency cap so a big batch doesn't open dozens of PUTs at once.
+        const CONCURRENCY = 3;
+        let cursor = 0;
+        async function worker() {
+          while (cursor < queued.length) {
+            const item = queued[cursor++];
+            try { await uploadOne(item, token); } catch (e) {
+              item.status = 'err';
+              renderFiles();
+              throw e;
+            }
+          }
+        }
+        await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queued.length) }, worker));
+
+        const files = queued.filter((i) => i.status === 'ok').map((i) => ({ name: i.file.name, url: i.url, size: i.file.size }));
+        if (!files.length) throw new Error('No files uploaded successfully.');
+
+        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, passcode, files } });
+        if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this share.');
+
+        $('out-link').value = r.data.url;
+        $('out-pass').value = passcode;
+        $('success').hidden = false;
+        $('new-share').hidden = true;
+        await refreshShares();
+      } catch (err) {
+        note.textContent = err && err.message ? err.message : 'Something went wrong. Please retry.';
+        note.className = 'note is-error';
+      } finally {
+        updateCreateBtn();
+      }
+    });
+
+    $('start-another').addEventListener('click', () => {
+      queued = [];
+      renderFiles();
+      $('client-input').value = '';
+      $('pass-input').value = '';
+      $('create-note').textContent = '';
+      $('success').hidden = true;
+      $('new-share').hidden = false;
+      updateCreateBtn();
+    });
+
+    document.querySelectorAll('[data-copy]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const input = document.getElementById(btn.dataset.copy);
+        try {
+          await navigator.clipboard.writeText(input.value);
+          const original = btn.textContent;
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = original; }, 1200);
+        } catch (e) {
+          input.select();
+        }
+      });
+    });
+
+    /* -------------------------------------------------------------- shares --- */
+    function renderShares(shares) {
+      const list = $('shares-list');
+      const empty = $('shares-empty');
+      list.innerHTML = '';
+      empty.hidden = shares.length > 0;
+      shares.forEach((s) => {
+        const li = document.createElement('li');
+        li.className = 'srow';
+        const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '';
+        li.innerHTML =
+          '<div class="srow-main"><div class="srow-client"></div><div class="srow-meta"></div></div>' +
+          '<div class="srow-actions">' +
+          '<button type="button" class="btn btn-ghost" data-action="copy">Copy link</button>' +
+          '<button type="button" class="btn btn-ghost btn-danger" data-action="delete">Delete</button>' +
+          '</div>';
+        li.querySelector('.srow-client').textContent = s.client || 'Client';
+        li.querySelector('.srow-meta').textContent =
+          date + ' · ' + s.fileCount + (s.fileCount === 1 ? ' file' : ' files') + ' · ' + humanSize(s.totalSize || 0);
+        li.querySelector('[data-action="copy"]').addEventListener('click', async (e) => {
+          const url = 'https://cognak.com/r/' + s.token;
+          try { await navigator.clipboard.writeText(url); } catch (err) { /* ignore */ }
+          const btn = e.currentTarget;
+          const original = btn.textContent;
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = original; }, 1200);
+        });
+        li.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+          if (!confirm('Delete this share for "' + (s.client || 'this client') + '"? The link stops working immediately.')) return;
+          await api('/api/deliver-delete', { method: 'POST', body: { token: s.token } });
+          await refreshShares();
+        });
+        list.appendChild(li);
+      });
+    }
+
+    async function refreshShares() {
+      const r = await api('/api/deliver-list');
+      if (r.ok) renderShares((r.data && r.data.shares) || []);
+    }
+
+    checkAuth();
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.send .rise').forEach((el) => el.classList.add('in'));
+    });
+  </script>
+</BaseLayout>

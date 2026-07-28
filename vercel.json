@@ -2,8 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/d/:token",
-      "destination": "/deliver"
+      "source": "/r/:token",
+      "destination": "/receive"
     }
   ],
   "redirects": [

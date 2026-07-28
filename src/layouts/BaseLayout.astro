@@ -8,7 +8,7 @@
 const THEME = '/theme';
 
 export interface Props {
-  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | 'colophon' | 'brief' | 'tools' | 'admin' | 'deliver' | '404' | 'page';
+  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | 'colophon' | 'brief' | 'tools' | 'send' | 'receive' | '404' | 'page';
   title?: string;
   description?: string;
   ogType?: string;
@@ -47,17 +47,17 @@ const jsV = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 8)
   || Math.floor(Date.now() / 3600000).toString(36);
 
 // Inner-page top nav (home-bottom-bar inner-page-nav) renders on these pages.
-const innerNavPages = ['studio', 'projects', 'project', 'privacy', 'colophon', 'brief', 'tools', 'admin', 'deliver', '404'];
+const innerNavPages = ['studio', 'projects', 'project', 'privacy', 'colophon', 'brief', 'tools', 'send', 'receive', '404'];
 const showInnerNav = innerNavPages.includes(page);
 const innerNavVariant =
   page === 'studio' ? ' studio-nav' :
   page === 'privacy' ? ' privacy-nav' :
   page === 'colophon' ? ' colophon-nav' :
   page === 'brief' ? ' brief-nav' :
-  // /admin and /deliver share the /tools violet-on-dark colorway and its nav
+  // /send and /receive share the /tools violet-on-dark colorway and its nav
   // treatment (each page defines its own `.tools-nav` overrides in its own
   // <style> block, so reusing the class name here is safe).
-  page === 'tools' || page === 'admin' || page === 'deliver' ? ' tools-nav' :
+  page === 'tools' || page === 'send' || page === 'receive' ? ' tools-nav' :
   page === '404' ? ' fourofour-nav' : '';
 
 // Corner cookie banner (non-home pages): dark glass on Studio (dark bg, dark nav),
@@ -353,7 +353,23 @@ import '../styles/site.css';
       </div>
       <div class="footer-bottom">
         <div class="footer-copy">
-          <p>© {new Date().getFullYear()} COGNAK LLC <a href="/privacy-policy" class="footer-privacy">Privacy Policy</a> <a href="/colophon" class="footer-privacy">Colophon</a></p>
+          <p class="footer-copy-text">© {new Date().getFullYear()} COGNAK LLC</p>
+          {/* Desktop: one inline row (copy + all three links) via .footer-copy /
+              .footer-legal flex. Mobile: .footer-copy and .footer-legal switch to
+              display:contents (see the max-width:720px block in custom.css) so
+              these four items become direct grid children of .footer-bottom —
+              Colophon/Tools stacked top-left, Privacy Policy bottom-left,
+              copyright bottom-right. Each link's own class is what the grid
+              targets, so don't drop footer-colophon-link / footer-tools-link /
+              footer-privacy-link even though footer-privacy still does the
+              shared color/hover styling. (2026-07-28: re-applied after this
+              markup got dropped from a merge that kept the CSS but not the
+              HTML — see reference-mobile-footer-legal in project memory.) */}
+          <nav class="footer-legal">
+            <a href="/privacy-policy" class="footer-privacy footer-privacy-link">Privacy Policy</a>
+            <a href="/colophon" class="footer-privacy footer-colophon-link">Colophon</a>
+            <a href="/tools" class="footer-privacy footer-tools-link">Tools</a>
+          </nav>
         </div>
         <div class="footer-links">
           <a href="/projects">Projects</a>

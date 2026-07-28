@@ -67,7 +67,7 @@ export default async function handler(req, res) {
       allowOverwrite: true,
       contentType: 'application/json',
     });
-    return res.status(200).json({ ok: true, url: 'https://cognak.com/d/' + token });
+    return res.status(200).json({ ok: true, url: 'https://cognak.com/r/' + token });
   } catch (err) {
     console.error('Delivery manifest write failed', err);
     return res.status(502).json({ error: 'Could not save this share. Please try again.' });

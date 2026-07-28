@@ -252,30 +252,35 @@ whatever text shares that corner.
 
 ---
 
-## Client file delivery — /admin + /deliver (2026-07-28)
+## Client file delivery — /send + /receive (2026-07-28, renamed from /admin + /deliver)
 
 A replacement for sending clients a Hightail link: an internal upload tool at
-**`/admin`** (password-protected, unlisted like `/tools`) lets you drop in
+**`/send`** (password-protected, unlisted like `/tools`) lets you drop in
 files, name the client, and set a passcode. It uploads straight to the same
 Vercel Blob store `/brief` already uses, then gives you a link —
-`cognak.com/d/<token>` — and the passcode to send separately. Clients open the
+`cognak.com/r/<token>` — and the passcode to send separately. Clients open the
 link, enter the passcode, and download. No expiration; delete a share from
-`/admin` any time to kill its link immediately.
+`/send` any time to kill its link immediately.
+
+Page files are `src/pages/send.astro` and `src/pages/receive.astro`, but the
+backing API routes and env vars underneath still say "admin"/"deliver" —
+those names describe the mechanism (admin auth, delivering a manifest), not
+the URL, so they didn't need to move when the pages were renamed.
 
 **How it fits together:**
 - A "share" is one JSON file, `deliveries/<token>/manifest.json` in Blob
   storage — client name, a SHA-256 hash of the passcode (never the passcode
   itself), and the uploaded files' names/URLs/sizes. That manifest *is* the
   database; there's no other datastore.
-- `/admin` uploads files client-side via `@vercel/blob/client` through
+- `/send` uploads files client-side via `@vercel/blob/client` through
   `api/deliver-upload-token.js` (same handshake as `api/upload.js`), then
   posts the file list to `api/deliver-create.js` to write the manifest.
-- `/d/:token` is a `vercel.json` rewrite to the static `/deliver` page (URL
+- `/r/:token` is a `vercel.json` rewrite to the static `/receive` page (URL
   stays clean; the page itself reads the token from `location.pathname`).
   It posts `{ token, passcode }` to `api/deliver-get.js`, which checks the
   passcode hash and returns the file list.
 - `api/deliver-list.js` / `api/deliver-delete.js` back the "Recent shares"
-  panel on `/admin` (list + revoke).
+  panel on `/send` (list + revoke).
 
 **Admin auth** (`api/_lib/adminAuth.mjs`): a single shared password, checked
 constant-time, unlocks a signed HttpOnly session cookie (12h) — no user
@@ -284,13 +289,19 @@ routes by Vercel (the underscore prefix excludes them), so this is safe to
 import from every `admin-*`/`deliver-*` function without exposing it.
 
 **Required env vars** (Vercel → Project → Settings → Environment Variables —
-not yet set as of this writing, so `/admin` will 500 until they're added):
-- `ADMIN_PASSWORD` — the password that unlocks `/admin`.
+not yet set as of this writing, so `/send` will 500 until they're added):
+- `ADMIN_PASSWORD` — the password that unlocks `/send`.
 - `ADMIN_SECRET` — a random long string, signs session cookies and peppers
   passcode hashes. Generate once with `openssl rand -hex 32`.
 
 (`BLOB_READ_WRITE_TOKEN` is already set from the `/brief` uploader — no new
 Blob store needed.)
+
+**Layout note (2026-07-28):** unlike `/tools` and `/brief`, the `.send`/
+`.receive` columns stay horizontally centered at every width instead of
+shifting left on desktop — a card/form layout reads better centered. Both
+still open with `padding-top:190px`, the same header height shared by
+`/projects`, `/studio`, etc.
 
 ---
 

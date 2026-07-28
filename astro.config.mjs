@@ -34,9 +34,9 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => {
-        // /tools, /admin, /deliver are unlisted internal/utility pages —
+        // /tools, /send, /receive are unlisted internal/utility pages —
         // noindex, no nav link anywhere.
-        if (/\/(tools|admin|deliver)\/?$/.test(page)) return false;
+        if (/\/(tools|send|receive)\/?$/.test(page)) return false;
         // Drop noindex project pages from the sitemap (match live SEO).
         const m = page.match(/\/projects\/([^/]+)\/?$/);
         if (m && NOINDEX.has(m[1])) return false;
