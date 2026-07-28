@@ -25,13 +25,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <main id="cognak-main"><section class="send">
 
-    <h1 class="headline send-headline">
-      <em>Send files</em> to clients, no third-party link required.
-    </h1>
-    <p class="lede send-lede">
-      Drop files in, name the client, set a passcode. You get a cognak.com
-      link and a passcode to send separately — nothing leaves this domain.
-    </p>
+    {/* Kept on one source line, same as /tools: the word-splitter turns the
+        text nodes either side of the <em> into spans, and a newline there is
+        swallowed rather than kept as the space after "Send". */}
+    <h1 class="headline send-headline"><em>Send</em> files to clients, no third-party link required.</h1>
+    <p class="lede send-lede">Add details, drop files, and set a passcode. Your client gets a cognak.com link so nothing leaves this domain.</p>
 
     <!-- ------------------------------------------------------- sign in --- -->
     <div class="acard rise" id="gate">
@@ -67,8 +65,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
           <div class="field">
             <label class="q" for="project-input">
-              <span class="q-title">Project</span>
-              <span class="q-sub">Optional. Shown to the client on the download page, so name it the way they'd recognise it.</span>
+              <span class="q-title">Project Details</span>
+              <span class="q-sub">Shown to the client on the download page.</span>
             </label>
             <input class="txt" id="project-input" type="text" autocomplete="off" />
           </div>
@@ -76,7 +74,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="field">
             <label class="q" for="pass-input">
               <span class="q-title">Passcode</span>
-              <span class="q-sub">Send this separately from the link (text, call, whatever). At least 4 characters.</span>
+              <span class="q-sub">4 character minimum. Make it memorable.</span>
             </label>
             <div class="pass-row">
               <input class="txt mono" id="pass-input" type="text" autocomplete="off" spellcheck="false" />
@@ -263,8 +261,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .send .filelist{ list-style:none; margin:1rem 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
     .send .filelist:empty{ margin:0; }
-    .send .frow{ display:flex; align-items:center; gap:12px; background:var(--field);
+    .send .frow{ position:relative; overflow:hidden; display:flex; align-items:center; gap:12px;
+      background:var(--field);
       border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:.88rem; }
+    /* Progress fill that sweeps left->right behind the row and goes solid on
+       completion — same treatment as /brief's upload rows, in this page's
+       accent instead of /brief's orange. Row content sits above it. */
+    .send .frow > *{ position:relative; z-index:1; }
+    .send .frow-fill{ position:absolute; left:0; top:0; bottom:0; width:0; z-index:0;
+      background:var(--accent); transition:width .35s ease; }
+    .send .frow.is-done .frow-fill{ width:100%; }
+    @media (prefers-reduced-motion:reduce){ .send .frow-fill{ transition:none; } }
     .send .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .send .frow-size{ color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.78rem; flex:0 0 auto; }
     .send .frow-status{ flex:0 0 auto; font-family:'Diatype Mono', monospace; font-size:.76rem; min-width:64px; text-align:right; }
@@ -272,6 +279,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .frow-status.is-up{ color:var(--accent-hi); }
     .send .frow-status.is-ok{ color:var(--ok); }
     .send .frow-status.is-err{ color:var(--err); }
+    /* --deep on the accent fill measures 11.0:1, so each element flips to dark
+       ink as the fill reaches its side: name (left) early, size/percent and the
+       remove button (right) near the end. Error rows never light up. */
+    .send .frow.name-lit .frow-name{ color:var(--deep); }
+    .send .frow.meta-lit .frow-size,
+    .send .frow.meta-lit .frow-status,
+    .send .frow.meta-lit .frow-remove{ color:var(--deep); }
     /* min 24x24 hit area — WCAG 2.5.8 target size (minimum). */
     .send .frow-remove{ flex:0 0 auto; background:none; border:none; color:var(--ink-soft); cursor:pointer;
       font-size:1rem; line-height:1; padding:0; min-width:24px; min-height:24px;
@@ -504,6 +518,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           item.status === 'up' ? Math.round(item.pct || 0) + '%' :
           item.status === 'ok' ? 'done' : 'failed';
         li.innerHTML =
+          '<span class="frow-fill" aria-hidden="true"></span>' +
           '<span class="frow-name"></span>' +
           '<span class="frow-size"></span>' +
           '<span class="frow-status is-' + (item.status === 'wait' ? 'wait' : item.status === 'up' ? 'up' : item.status === 'ok' ? 'ok' : 'err') + '"></span>' +
@@ -513,12 +528,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         li.querySelector('.frow-remove').setAttribute('aria-label', 'Remove ' + item.file.name);
         li.querySelector('.frow-size').textContent = humanSize(item.file.size);
         li.querySelector('.frow-status').textContent = statusText;
+        item._el = li;
         li.querySelector('.frow-remove').addEventListener('click', () => {
           queued.splice(i, 1);
           renderFiles();
           updateCreateBtn();
         });
         list.appendChild(li);
+        paintRow(item);
       });
     }
 
@@ -547,22 +564,48 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     $('client-input').addEventListener('input', updateCreateBtn);
     $('pass-input').addEventListener('input', updateCreateBtn);
 
+    /* Update one row's fill and label in place. A full renderFiles() on every
+       progress tick would rebuild the <li> and restart the width transition
+       from 0, so the bar could never actually animate — and it thrashed the
+       DOM during the upload, which is exactly when there's least to spare. */
+    function paintRow(item) {
+      const li = item._el;
+      if (!li) return;
+      const pct = item.status === 'ok' ? 100
+        : item.status === 'err' ? 0
+        : (typeof item.pct === 'number' ? item.pct : 0);
+      const fill = li.querySelector('.frow-fill');
+      if (fill) fill.style.width = pct + '%';
+      li.classList.toggle('is-done', item.status === 'ok');
+      const lit = item.status !== 'err';
+      li.classList.toggle('name-lit', lit && (item.status === 'ok' || pct >= 22));
+      li.classList.toggle('meta-lit', lit && (item.status === 'ok' || pct >= 90));
+      const st = li.querySelector('.frow-status');
+      if (st) {
+        st.className = 'frow-status is-' + (item.status === 'wait' ? 'wait'
+          : item.status === 'up' ? 'up' : item.status === 'ok' ? 'ok' : 'err');
+        st.textContent = item.status === 'wait' ? 'waiting'
+          : item.status === 'up' ? Math.round(pct) + '%'
+          : item.status === 'ok' ? 'done' : 'failed';
+      }
+    }
+
     async function uploadOne(item, token) {
       item.status = 'up';
       item.pct = 0;
-      renderFiles();
+      paintRow(item);
       const mod = await blobClient();
       const result = await mod.upload('deliveries/' + token + '/' + item.file.name, item.file, {
         access: 'public',
         handleUploadUrl: '/api/deliver-upload-token',
         onUploadProgress: (p) => {
           item.pct = p && typeof p.percentage === 'number' ? p.percentage : item.pct;
-          renderFiles();
+          paintRow(item);
         },
       });
       item.status = 'ok';
       item.url = result.url;
-      renderFiles();
+      paintRow(item);
     }
 
     $('create-btn').addEventListener('click', async () => {
@@ -586,7 +629,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             const item = queued[cursor++];
             try { await uploadOne(item, token); } catch (e) {
               item.status = 'err';
-              renderFiles();
+              paintRow(item);
               throw e;
             }
           }
