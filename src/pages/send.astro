@@ -389,7 +389,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        the one blue on this page (the headline <em> and the CTA), so the badge
        borrows that instead of introducing a new colour for one element. */
     .send .signin-head{ display:flex; flex-direction:column; align-items:center;
-      text-align:center; margin-bottom:2.1rem; }
+      text-align:center; margin-bottom:1.2rem; }
     /* Icon -> title spacing stays tight; title -> subtitle gets pushed down
        further (Pierce, 2026-07-28) — so the two are set as separate margins
        rather than one uniform flex `gap`. */
@@ -468,6 +468,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send [tabindex]:focus-visible{ outline-color:var(--accent) !important; }
 
     .send .note{ margin:.7rem 0 0; font-size:.84rem; line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
+    /* A note with nothing in it yet (the common case for pw-note before any
+       sign-in attempt) shouldn't reserve its line-height + margin — that dead
+       space was most of the gap Pierce flagged between the subtitle and the
+       passkey button. Collapses automatically once JS fills in a message. */
+    .send .note:empty{ margin:0; min-height:0; }
     .send .note.is-error{ color:var(--err); }
     .send .note.is-ok{ color:var(--ok); }
 
