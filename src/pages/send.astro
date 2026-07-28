@@ -91,7 +91,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               <div class="pills" id="expiry-pills">
                 <label class="pill"><input type="radio" name="expiry" value="7">1 week</label>
                 <label class="pill on"><input type="radio" name="expiry" value="30" checked>1 month</label>
-                <label class="pill"><input type="radio" name="expiry" value="182">6 months</label>
                 <label class="pill"><input type="radio" name="expiry" value="365">1 year</label>
                 <label class="pill"><input type="radio" name="expiry" value="0">Never (Until I Delete)</label>
               </div>
@@ -220,6 +219,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .mono{ font-family:'Diatype Mono', monospace; }
 
     .send label.q, .send legend.q{ display:block !important; }
+    /* Same Ninja Forms leftover, same fix as /brief: screen.css carries a
+       global `label{display:none!important}`, so every <label> this page uses
+       has to opt back in explicitly. The expiry pills ARE labels — without
+       this they collapse to nothing and the row renders as blank space. */
+    .send label.pill{ display:inline-flex !important; align-items:center; }
 
     /* Site headline scale — clamp(20px,5.5vw,62px) desktop / clamp(24px,7vw,42px)
        under 720px, identical to .projects-display-headline, .colophon-headline,
@@ -336,7 +340,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        accent instead of /brief's orange. Row content sits above it. */
     .send .frow > *{ position:relative; z-index:1; }
     .send .frow-fill{ position:absolute; left:0; top:0; bottom:0; width:0; z-index:0;
-      background:var(--accent); transition:width .35s ease; }
+      background:var(--cta); transition:width .35s ease; }
     .send .frow.is-done .frow-fill{ width:100%; }
     @media (prefers-reduced-motion:reduce){ .send .frow-fill{ transition:none; } }
     .send .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -346,9 +350,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .frow-status.is-up{ color:var(--accent-hi); }
     .send .frow-status.is-ok{ color:var(--ok); }
     .send .frow-status.is-err{ color:var(--err); }
-    /* --deep on the accent fill measures 11.0:1, so each element flips to dark
-       ink as the fill reaches its side: name (left) early, size/percent and the
-       remove button (right) near the end. Error rows never light up. */
+    /* The fill uses --cta, the same blue as the Create share button, so the
+       upload reads as the button's colour filling up. --deep on it measures
+       9.28:1, so each element flips to dark ink as the fill reaches its side:
+       name (left) early, size/percent and the remove button (right) near the
+       end. Error rows never light up. */
     .send .frow.name-lit .frow-name{ color:var(--deep); }
     .send .frow.meta-lit .frow-size,
     .send .frow.meta-lit .frow-status,

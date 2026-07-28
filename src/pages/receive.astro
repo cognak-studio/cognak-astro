@@ -88,6 +88,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (max-width:720px){ .receive{ padding-top:100px; } }
     .receive .mono{ font-family:'Diatype Mono', monospace; }
     .receive label.q{ display:block !important; }
+    /* Same Ninja Forms leftover, same fix as /brief: screen.css carries a
+       global `label{display:none!important}`, so every <label> this page uses
+       has to opt back in explicitly. The expiry pills ARE labels — without
+       this they collapse to nothing and the row renders as blank space. */
+    .receive label.pill{ display:inline-flex !important; align-items:center; }
 
     /* Site headline scale — clamp(20px,5.5vw,62px) desktop / clamp(24px,7vw,42px)
        under 720px, identical to .projects-display-headline, .colophon-headline,
