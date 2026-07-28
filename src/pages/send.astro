@@ -29,7 +29,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         text nodes either side of the <em> into spans, and a newline there is
         swallowed rather than kept as the space after "Send". */}
     <h1 class="headline send-headline"><em>Send</em> files to clients, no third-party link required.</h1>
-    <p class="lede send-lede">Add details, drop files, and set a passcode. Your client gets a cognak.com link so nothing leaves this domain.</p>
+    <p class="lede send-lede">Add details, drop files, and set a passcode. The client gets a cognak.com link so nothing leaves this domain.</p>
 
     <!-- ------------------------------------------------------- sign in --- -->
     {/* Passkey shows first paint, no flash — but the password fallback is
@@ -53,13 +53,35 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             Same accent-soft blue as the headline <em> and the CTA glow, so
             it reads as part of the existing palette rather than a new one. */}
         <div class="signin-head">
+          {/* Pierce's own passkey mark (passkey.eps, converted 2026-07-28:
+              gs -> PDF -> pdftocairo -svg, then every fill swapped to
+              currentColor so it inherits --accent-soft like the rest of the
+              badge). Native aspect ratio 90:107.3 preserved via viewBox. */}
           <span class="signin-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3c-4 0-7 3-7 7v2c0 3.2 1 5.6 2.4 7.2"/>
-              <path d="M12 3c4 0 7 3 7 7v2c0 1.6-.2 3-.7 4.3"/>
-              <path d="M8.6 20.2C7.4 18.4 6.7 16 6.7 12.6v-2.1c0-2.9 2.4-5.3 5.3-5.3s5.3 2.4 5.3 5.3v2.1c0 1-.1 1.9-.3 2.7"/>
-              <path d="M9.6 10.5c0-1.3 1.1-2.4 2.4-2.4s2.4 1.1 2.4 2.4v2.1c0 2.4-.5 4.2-1.3 5.6"/>
-              <path d="M12 10.5v2.1c0 2.9-.8 4.9-1.9 6.3"/>
+            <svg viewBox="0 0 90 107.3" width="34" height="40.5">
+              <defs>
+                <clipPath id="signin-icon-clip-0"><path clip-rule="nonzero" d="M 4 64 L 78 64 L 78 106.605469 L 4 106.605469 Z M 4 64 "/></clipPath>
+                <clipPath id="signin-icon-clip-1"><path clip-rule="nonzero" d="M 0.292969 24 L 18 24 L 18 60 L 0.292969 60 Z M 0.292969 24 "/></clipPath>
+                <clipPath id="signin-icon-clip-2"><path clip-rule="nonzero" d="M 65 19 L 89.707031 19 L 89.707031 63 L 65 63 Z M 65 19 "/></clipPath>
+                <clipPath id="signin-icon-clip-3"><path clip-rule="nonzero" d="M 83 68 L 89.707031 68 L 89.707031 75 L 83 75 Z M 83 68 "/></clipPath>
+              </defs>
+              <path fill-rule="nonzero" fill="currentColor" d="M 18.175781 13.113281 C 17.179688 13.113281 16.1875 12.617188 15.59375 11.625 C 14.796875 10.234375 15.292969 8.34375 16.683594 7.550781 C 25.230469 2.582031 35.066406 0 45 0 C 54.933594 0 64.769531 2.582031 73.316406 7.550781 C 74.707031 8.34375 75.203125 10.234375 74.40625 11.625 C 73.613281 13.015625 71.726562 13.511719 70.335938 12.71875 C 62.683594 8.34375 53.941406 5.960938 45 5.960938 C 36.058594 5.960938 27.316406 8.34375 19.664062 12.71875 C 19.167969 13.015625 18.671875 13.113281 18.175781 13.113281 "/>
+              <path fill-rule="nonzero" fill="currentColor" d="M 74.804688 75.507812 C 73.117188 75.507812 71.824219 74.214844 71.824219 72.527344 L 71.824219 56.628906 C 71.824219 52.257812 70.730469 47.886719 68.644531 44.011719 C 67.851562 42.523438 68.445312 40.734375 69.839844 39.9375 C 71.328125 39.144531 73.117188 39.742188 73.910156 41.132812 C 76.496094 45.902344 77.785156 51.265625 77.785156 56.628906 L 77.785156 72.527344 C 77.785156 74.214844 76.496094 75.507812 74.804688 75.507812 Z M 12.214844 33.78125 C 11.617188 33.78125 10.921875 33.582031 10.328125 33.183594 C 9.035156 32.191406 8.835938 30.300781 9.828125 29.011719 C 13.308594 24.640625 17.480469 20.964844 22.347656 18.082031 C 23.738281 17.289062 25.625 17.683594 26.421875 19.175781 C 27.214844 20.566406 26.820312 22.453125 25.328125 23.25 C 21.15625 25.730469 17.480469 28.910156 14.5 32.6875 C 14.003906 33.480469 13.109375 33.78125 12.214844 33.78125 Z M 77.785156 33.78125 C 76.890625 33.78125 75.996094 33.382812 75.402344 32.6875 C 67.949219 23.25 56.921875 17.882812 45 17.882812 C 42.019531 17.882812 38.941406 18.28125 36.058594 18.976562 C 34.46875 19.375 32.878906 18.378906 32.480469 16.789062 C 32.085938 15.199219 33.078125 13.609375 34.667969 13.214844 C 38.046875 12.320312 41.523438 11.921875 45 11.921875 C 58.710938 11.921875 71.527344 18.082031 80.070312 28.910156 C 81.066406 30.203125 80.867188 32.089844 79.574219 33.085938 C 79.078125 33.582031 78.382812 33.78125 77.785156 33.78125 "/>
+              <path fill-rule="nonzero" fill="currentColor" d="M 15.195312 59.609375 C 13.503906 59.609375 12.214844 58.320312 12.214844 56.628906 C 12.214844 50.867188 13.703125 45.207031 16.585938 40.238281 C 17.378906 38.847656 19.269531 38.351562 20.660156 39.144531 C 22.050781 39.9375 22.546875 41.828125 21.75 43.21875 C 19.367188 47.292969 18.175781 51.960938 18.175781 56.628906 C 18.175781 58.320312 16.882812 59.609375 15.195312 59.609375 Z M 62.585938 35.566406 C 61.988281 35.566406 61.394531 35.371094 60.796875 34.972656 C 56.226562 31.59375 50.761719 29.804688 45 29.804688 C 40.132812 29.804688 35.261719 31.097656 31.191406 33.679688 C 29.800781 34.574219 27.910156 34.078125 27.117188 32.6875 C 26.222656 31.296875 26.71875 29.40625 28.109375 28.613281 C 33.175781 25.433594 39.039062 23.84375 45 23.84375 C 52.054688 23.84375 58.710938 26.03125 64.375 30.105469 C 65.664062 31.097656 65.964844 32.984375 65.070312 34.277344 C 64.375 35.070312 63.480469 35.566406 62.585938 35.566406 "/>
+              <path fill-rule="nonzero" fill="currentColor" d="M 80.765625 87.429688 L 74.804688 87.429688 C 66.558594 87.429688 59.902344 80.773438 59.902344 72.527344 L 59.902344 63.785156 C 59.902344 62.09375 61.195312 60.804688 62.882812 60.804688 C 64.574219 60.804688 65.863281 62.09375 65.863281 63.785156 L 65.863281 72.527344 C 65.863281 77.496094 69.839844 81.46875 74.804688 81.46875 L 80.765625 81.46875 C 82.457031 81.46875 83.746094 82.761719 83.746094 84.449219 C 83.746094 86.136719 82.457031 87.429688 80.765625 87.429688 Z M 61.988281 54.542969 C 60.699219 54.542969 59.503906 53.75 59.109375 52.457031 C 57.320312 46.894531 52.648438 42.722656 46.988281 41.925781 C 45.398438 41.726562 44.207031 40.136719 44.503906 38.546875 C 44.703125 36.957031 46.292969 35.765625 47.882812 36.066406 C 55.730469 37.15625 62.386719 42.921875 64.769531 50.769531 C 65.269531 52.359375 64.375 54.046875 62.785156 54.542969 C 62.585938 54.445312 62.289062 54.542969 61.988281 54.542969 Z M 15.195312 71.535156 L 5.257812 71.535156 C 3.570312 71.535156 2.277344 70.242188 2.277344 68.554688 C 2.277344 66.863281 3.570312 65.570312 5.257812 65.570312 L 15.195312 65.570312 C 20.160156 65.570312 24.136719 61.597656 24.136719 56.628906 C 24.136719 49.277344 27.910156 42.621094 34.171875 38.847656 C 35.5625 37.953125 37.449219 38.449219 38.242188 39.839844 C 39.136719 41.230469 38.640625 43.117188 37.25 43.914062 C 32.78125 46.597656 30.097656 51.363281 30.097656 56.628906 C 30.097656 64.875 23.441406 71.535156 15.195312 71.535156 "/>
+              <path fill-rule="nonzero" fill="currentColor" d="M 15.59375 95.378906 L 13.207031 95.378906 C 11.519531 95.378906 10.226562 94.085938 10.226562 92.398438 C 10.226562 90.707031 11.519531 89.417969 13.207031 89.417969 L 15.59375 89.417969 C 33.476562 89.417969 47.980469 74.910156 47.980469 57.027344 C 47.980469 55.238281 46.6875 53.648438 45.097656 53.648438 L 45 53.648438 C 44.007812 53.648438 43.3125 54.148438 42.914062 54.445312 C 42.714844 54.644531 42.316406 55.140625 42.117188 55.738281 C 42.019531 56.035156 42.019531 56.332031 42.019531 56.628906 C 42.019531 58.320312 40.726562 59.609375 39.039062 59.609375 C 37.351562 59.609375 36.058594 58.320312 36.058594 56.628906 C 36.058594 55.738281 36.15625 54.941406 36.457031 54.148438 C 37.050781 52.257812 38.046875 50.96875 38.839844 50.273438 C 39.832031 49.277344 42.019531 47.6875 45.398438 47.789062 C 50.167969 47.988281 53.941406 52.160156 53.941406 57.128906 C 53.941406 78.191406 36.753906 95.378906 15.59375 95.378906 "/>
+              <g clip-path="url(#signin-icon-clip-0)">
+                <path fill-rule="nonzero" fill="currentColor" d="M 23.441406 106.605469 C 22.050781 106.605469 20.757812 105.609375 20.460938 104.121094 C 20.160156 102.53125 21.253906 100.941406 22.84375 100.644531 C 32.183594 99.054688 40.828125 94.484375 47.1875 87.925781 C 48.875 86.136719 51.257812 85.144531 53.742188 85.144531 C 56.128906 85.144531 58.3125 86.039062 60.003906 87.726562 C 63.679688 91.503906 68.644531 93.390625 74.707031 93.390625 C 76.394531 93.390625 77.6875 94.683594 77.6875 96.371094 C 77.6875 98.058594 76.394531 99.351562 74.707031 99.351562 C 65.070312 99.351562 59.109375 95.378906 55.730469 92 C 55.035156 91.304688 54.238281 91.203125 53.742188 91.203125 C 52.949219 91.203125 52.054688 91.601562 51.457031 92.199219 C 44.207031 99.648438 34.371094 104.816406 23.839844 106.605469 C 23.839844 106.605469 23.640625 106.605469 23.441406 106.605469 Z M 15.195312 83.457031 L 7.246094 83.457031 C 5.558594 83.457031 4.265625 82.164062 4.265625 80.476562 C 4.265625 78.785156 5.558594 77.496094 7.246094 77.496094 L 15.195312 77.496094 C 23.242188 77.496094 30.394531 73.023438 33.972656 65.769531 C 34.667969 64.28125 36.457031 63.683594 37.945312 64.378906 C 39.4375 65.074219 40.03125 66.863281 39.335938 68.355469 C 34.765625 77.691406 25.527344 83.457031 15.195312 83.457031 "/>
+              </g>
+              <g clip-path="url(#signin-icon-clip-1)">
+                <path fill-rule="nonzero" fill="currentColor" d="M 3.273438 59.609375 C 1.582031 59.609375 0.292969 58.320312 0.292969 56.628906 C 0.292969 52.457031 0.886719 48.382812 1.980469 44.410156 C 3.96875 37.554688 7.542969 31.097656 12.511719 25.929688 C 13.605469 24.738281 15.492188 24.640625 16.683594 25.832031 C 17.875 26.925781 17.976562 28.8125 16.785156 30.003906 C 12.511719 34.574219 9.332031 40.039062 7.644531 46.097656 C 6.648438 49.578125 6.152344 53.054688 6.152344 56.730469 C 6.253906 58.320312 4.960938 59.609375 3.273438 59.609375 "/>
+              </g>
+              <g clip-path="url(#signin-icon-clip-2)">
+                <path fill-rule="nonzero" fill="currentColor" d="M 86.726562 62.589844 C 85.039062 62.589844 83.746094 61.300781 83.746094 59.609375 L 83.746094 56.628906 C 83.746094 43.714844 77.390625 31.691406 66.660156 24.539062 C 65.269531 23.644531 64.96875 21.757812 65.863281 20.367188 C 66.757812 18.976562 68.644531 18.679688 70.035156 19.574219 C 82.355469 27.917969 89.707031 41.726562 89.707031 56.628906 L 89.707031 59.609375 C 89.707031 61.300781 88.417969 62.589844 86.726562 62.589844 "/>
+              </g>
+              <g clip-path="url(#signin-icon-clip-3)">
+                <path fill-rule="nonzero" fill="currentColor" d="M 86.726562 74.515625 C 85.933594 74.515625 85.136719 74.214844 84.640625 73.621094 C 84.542969 73.519531 84.34375 73.320312 84.242188 73.222656 C 84.144531 73.023438 84.046875 72.925781 83.945312 72.726562 C 83.847656 72.527344 83.847656 72.328125 83.746094 72.128906 C 83.746094 71.929688 83.648438 71.730469 83.648438 71.535156 C 83.648438 71.335938 83.648438 71.136719 83.746094 70.9375 C 83.746094 70.738281 83.847656 70.539062 83.945312 70.339844 C 84.046875 70.140625 84.144531 70.042969 84.242188 69.84375 C 84.34375 69.644531 84.441406 69.546875 84.640625 69.445312 C 85.335938 68.75 86.332031 68.453125 87.324219 68.652344 C 87.523438 68.652344 87.722656 68.75 87.921875 68.851562 C 88.117188 68.949219 88.316406 69.050781 88.417969 69.148438 C 88.617188 69.25 88.714844 69.347656 88.8125 69.546875 C 89.410156 70.140625 89.707031 70.835938 89.707031 71.632812 C 89.707031 72.425781 89.410156 73.222656 88.8125 73.71875 C 88.714844 73.820312 88.515625 74.015625 88.417969 74.117188 C 88.21875 74.214844 88.117188 74.316406 87.921875 74.414062 C 87.722656 74.515625 87.523438 74.515625 87.324219 74.613281 C 87.125 74.515625 86.925781 74.515625 86.726562 74.515625 "/>
+              </g>
             </svg>
           </span>
           <div class="group-title">Sign in</div>
@@ -143,8 +165,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                   slack for any real client hand-off while still guaranteeing
                   the daily sweep clears everything out on a bounded horizon. */}
               <div class="pills" id="expiry-pills">
-                <label class="pill"><input type="radio" name="expiry" value="7">1 week</label>
-                <label class="pill on"><input type="radio" name="expiry" value="30" checked>1 month</label>
+                <label class="pill on"><input type="radio" name="expiry" value="7" checked>1 week</label>
+                <label class="pill"><input type="radio" name="expiry" value="30">1 month</label>
                 <label class="pill"><input type="radio" name="expiry" value="90">3 months</label>
               </div>
             </fieldset>
@@ -201,14 +223,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
 
       <div class="acard rise" id="security-card">
-        <div class="group">
+        {/* Collapsible, added 2026-07-28 — this card is set-and-forget most
+            visits (check the device list once, then never touch it again),
+            so it can fold away instead of always claiming a full card's
+            worth of vertical space above Sign out. group-title moved out of
+            .group and into its own header row so the +/- toggle can sit at
+            top-right of the CARD, not just the text baseline. Body content
+            is one wrapper so hidden can collapse/expand it all at once —
+            safe now that .send [hidden] actually works (see the sign-in gate
+            comment above for why that wasn't always true). */}
+        <div class="card-head">
           <div class="group-title">Sign-in security</div>
+          <button type="button" class="collapse-toggle" id="security-toggle"
+                  aria-expanded="true" aria-controls="security-body" aria-label="Collapse sign-in security">
+            <span class="toggle-glyph" aria-hidden="true">&minus;</span>
+          </button>
+        </div>
+        <div class="group" id="security-body">
           <p class="note" id="pk-note" role="status" aria-live="polite"></p>
           <ul class="shares" id="pk-list"></ul>
           <p class="note" id="pk-empty">No passkeys yet — the password is currently the only way in.</p>
-        </div>
-        <div class="actions">
-          <button type="button" class="btn btn-primary" id="pk-add">Add this device</button>
+          <div class="actions">
+            <button type="button" class="btn btn-primary" id="pk-add">Add this device</button>
+          </div>
         </div>
       </div>
 
@@ -331,19 +368,59 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
       text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; }
 
+    /* ------------------------------------------------------- collapsible card --- */
+    /* Sign-in security card only, added 2026-07-28: title + +/- toggle share a
+       row so the toggle sits top-right of the CARD, not just the text
+       baseline. group-title's own margin-bottom is cancelled here since the
+       row itself carries the spacing down to #security-body. */
+    .send .card-head{ display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:1.9rem; }
+    .send .card-head .group-title{ margin-bottom:0; }
+    .send .collapse-toggle{ flex:0 0 auto; width:28px; height:28px; border-radius:999px;
+      display:inline-flex; align-items:center; justify-content:center; padding:0;
+      background:none; color:var(--ink-soft); border:1px solid var(--line-strong);
+      cursor:pointer; transition:border-color .2s ease, color .2s ease; }
+    .send .collapse-toggle:hover{ border-color:var(--accent); color:var(--ink); }
+    .send .collapse-toggle .toggle-glyph{ font-family:'Diatype Mono', monospace; font-size:1rem;
+      line-height:1; transform:translateY(-.5px); }
+
     /* ---------------------------------------------------------- sign-in head --- */
     /* Icon badge + subtitle sitting above the passkey button. --accent-soft is
        the one blue on this page (the headline <em> and the CTA), so the badge
        borrows that instead of introducing a new colour for one element. */
     .send .signin-head{ display:flex; flex-direction:column; align-items:center;
-      text-align:center; gap:.65rem; margin-bottom:2.1rem; }
-    .send .signin-head .group-title{ margin-bottom:0; }
-    .send .signin-icon{ display:inline-flex; align-items:center; justify-content:center;
-      width:52px; height:52px; border-radius:999px; color:var(--accent-soft);
-      background:rgba(143,194,242,.12); border:1px solid rgba(143,194,242,.32);
-      box-shadow:0 0 26px rgba(143,194,242,.16); }
+      text-align:center; margin-bottom:2.1rem; }
+    /* Icon -> title spacing stays tight; title -> subtitle gets pushed down
+       further (Pierce, 2026-07-28) — so the two are set as separate margins
+       rather than one uniform flex `gap`. */
+    .send .signin-icon{ margin-bottom:1.1rem; }
+    .send .signin-head .group-title{ margin-bottom:1.15rem; }
     .send .signin-sub{ font-size:.92rem; line-height:1.5; color:var(--ink-soft);
       max-width:34ch; margin:0; }
+
+    /* Bigger badge (84px, up from 52px) with a light tracing the ring — same
+       ::before + conic-gradient + mask-composite:exclude trick as the
+       shimmering-border cards at clerk.com/agents. The dim base ring
+       (background + border) is always visible; ::before layers a brighter
+       arc that sweeps around it via the animated --spin-angle custom
+       property. Falls back to a static bright arc — still reads fine, just
+       un-animated — in engines without @property or prefers-reduced-motion. */
+    @property --spin-angle{ syntax:'<angle>'; inherits:false; initial-value:0deg; }
+    .send .signin-icon{ position:relative; display:inline-flex; align-items:center;
+      justify-content:center; width:84px; height:84px; border-radius:999px;
+      color:var(--accent-soft); background:rgba(143,194,242,.12);
+      border:1px solid rgba(143,194,242,.32); box-shadow:0 0 32px rgba(143,194,242,.18); }
+    .send .signin-icon::before{ content:''; position:absolute; inset:-1.5px; border-radius:inherit;
+      padding:1.5px; background:conic-gradient(from var(--spin-angle,0deg),
+        rgba(143,194,242,0) 0deg, rgba(143,194,242,0) 250deg,
+        rgba(213,230,228,.9) 300deg, rgba(143,194,242,1) 328deg,
+        rgba(143,194,242,0) 360deg);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      animation:signin-ring-spin 3.4s linear infinite; }
+    @keyframes signin-ring-spin{ to{ --spin-angle:360deg; } }
+    @media (prefers-reduced-motion:reduce){
+      .send .signin-icon::before{ animation:none; } }
     /* Single primary action reads better centered than left-aligned; still
        fine if the password fallback appears alongside it during recovery. */
     .send .actions.actions-center{ justify-content:center; }
@@ -852,6 +929,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       $('pk-add').textContent = keys.length ? 'Add another device' : 'Add this device';
     }
 
+    /* Sign-in security card collapse/expand — set-and-forget content that
+       doesn't need to claim vertical space on every visit. */
+    $('security-toggle').addEventListener('click', () => {
+      const toggle = $('security-toggle');
+      const body = $('security-body');
+      const collapsing = !body.hidden;
+      body.hidden = collapsing;
+      toggle.setAttribute('aria-expanded', String(!collapsing));
+      toggle.setAttribute('aria-label', collapsing ? 'Expand sign-in security' : 'Collapse sign-in security');
+      toggle.querySelector('.toggle-glyph').textContent = collapsing ? '+' : '−';
+    });
+
     $('pk-add').addEventListener('click', async () => {
       const note = $('pk-note');
       const btn = $('pk-add');
@@ -977,7 +1066,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     });
     function selectedExpiryDays() {
       const el = expiryPills.querySelector('input:checked');
-      return el ? Number(el.value) : 30;
+      return el ? Number(el.value) : 7;
     }
 
     $('client-input').addEventListener('input', updateCreateBtn);
