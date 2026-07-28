@@ -230,12 +230,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             comment above for why that wasn't always true). */}
         <div class="card-head">
           <div class="group-title">Sign-in security</div>
+          {/* Starts collapsed (Pierce, 2026-07-28: "make registered devices
+              default to collapsed") -- the passkey list is something you
+              check on, not something you need on every visit to the
+              dashboard, so it stays out of the way until asked for. */}
           <button type="button" class="collapse-toggle" id="security-toggle"
-                  aria-expanded="true" aria-controls="security-body" aria-label="Collapse sign-in security">
-            <span class="toggle-glyph" aria-hidden="true">&minus;</span>
+                  aria-expanded="false" aria-controls="security-body" aria-label="Expand sign-in security">
+            <span class="toggle-glyph" aria-hidden="true">&plus;</span>
           </button>
         </div>
-        <div class="group" id="security-body">
+        <div class="group" id="security-body" hidden>
           <p class="note" id="pk-note" role="status" aria-live="polite"></p>
           <ul class="shares" id="pk-list"></ul>
           <p class="note" id="pk-empty">No passkeys yet — the password is currently the only way in.</p>
