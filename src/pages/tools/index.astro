@@ -34,10 +34,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <em>Tools</em> for the part of the work that gets scanned, not seen.
     </h1>
     <p class="lede tools-lede">
-      Pick a format, type in the number or the link, and take it away as SVG,
-      PDF or EPS — real vector, sized for print. UPC-A comes out at GS1 nominal
-      and stays legal anywhere from 80 to 200%. Nothing you type here leaves
-      the browser.
+      Like you, we were tired of trying to consistently produce perfect
+      barcodes and QR codes for print. So we built our own system. Enter
+      your specs right here and download as EPS, SVG, or PDF. UPCs are
+      GS1-approved and stay legal anywhere from 80% to 200%. And, nothing
+      you type here leaves the browser.
     </p>
 
     <div class="tcard rise" id="tcard">
@@ -47,8 +48,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="group-title">Format</div>
         <div class="field">
           <label class="q" for="tool-select">
-            <span class="q-title">What are you making?</span>
-            <span class="q-sub">Two for now. More whenever a job asks for one.</span>
+            <span class="q-title">Choose UPC or QR code</span>
+            <span class="q-sub">We'll add more options as we need them. Just let us know!</span>
           </label>
           <div class="selwrap">
             <select class="sel" id="tool-select">
@@ -69,7 +70,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         <div class="field">
           <label class="q" for="upc-input">
             <span class="q-title">UPC number</span>
-            <span class="q-sub">Twelve digits — or eleven, and the check digit gets worked out for you.</span>
+            <span class="q-sub">12 digits. If you only have 11, the <a href="https://www.gs1us.org/tools/check-digit-calculator" target="_blank" rel="noopener noreferrer">check digit</a> will be added for you.</span>
           </label>
           <input
             class="txt mono" id="upc-input" type="text"
@@ -256,6 +257,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .tools .q{ display:block; margin-bottom:.85rem; padding:0; }
     .tools .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
     .tools .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:54ch; }
+    .tools .q-sub a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:3px;
+      text-decoration-thickness:1px; transition:color .2s ease; }
+    @media (hover:hover){ .tools .q-sub a:hover{ color:var(--accent); } }
 
     .tools .pair{ display:flex; gap:20px; }
     .tools .half{ flex:1 1 0; min-width:0; }
