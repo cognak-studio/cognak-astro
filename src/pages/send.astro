@@ -166,17 +166,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        are opaque, so the transit dashes read around the cards instead of
        drifting under the text. That was an AA problem, not just taste.
 
-       Contrast, measured against the card (the darker of the two surfaces is
-       the better case here, so --bg figures are quoted where they're the
-       worst case): ink 12.12, ink-soft/accent 9.75, placeholder 5.33, ok
-       10.62, err 8.38, CTA label 14.24, line-strong 4.49. Everything clears
-       WCAG AA with room — the sage pass was scraping by at 3.02 on
-       line-strong and 4.61 on ink-soft. */
+       The card and nav dropped to #0E1413 once the WebGL scene went in — at
+       #171E1D they read as grey panels floating on a near-black field.
+
+       Contrast, measured against the card: ink 14.42, ink-soft/accent 11.61,
+       placeholder 6.34, CTA label 15.62, accent-soft (the headline's blue)
+       9.90, line-strong 4.62. Everything clears WCAG AA with room — the sage
+       pass was scraping by at 3.02 on line-strong and 4.61 on ink-soft. */
     .send {
       --bg:#1D2524;
-      --card:#171E1D; --field:rgba(0,0,0,0.28); --field-focus:rgba(0,0,0,0.40);
+      --card:#0E1413; --field:rgba(0,0,0,0.28); --field-focus:rgba(0,0,0,0.40);
       --ink:#D5E6E4; --ink-soft:#BED0CD; --accent:#BED0CD; --accent-hi:#D5E6E4;
-      --accent-soft:#BED0CD; --deep:#151B1A; --line:rgba(213,230,228,0.18);
+      --accent-soft:#8FC2F2; --deep:#151B1A; --line:rgba(213,230,228,0.18);
       --line-strong:rgba(213,230,228,0.52); --placeholder:#829C98;
       --ok:#8FE7B4; --err:#FFA79A;
       /* The CTA is the one place the page departs from --ink — now the
@@ -199,14 +200,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send label.q, .send legend.q{ display:block !important; }
 
     .send .headline{ font-size:clamp(20px,5.5vw,52px); font-weight:500; line-height:1.1;
-      letter-spacing:-.02em; margin:0 0 .9rem; color:var(--ink); }
+      letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .send .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
-    /* Tightened headline/lede margins (1.4rem -> .9rem, 3.4rem -> 1.1rem ≈ 44px)
-       plus the asymmetric 24/104px container padding above, which pulls the
-       vertically-centred block ~40px higher — together that's the ~80px of
-       space Pierce wanted taken out above the cards. */
+    /* The tight 1.1rem was there to claw back space when the block was
+       vertically centred and colliding with the cards. Now that the page is
+       top-aligned on the 190px grid that pressure is gone, and the lede needs
+       room to read as a separate block from the card below it. */
     .send .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch;
-      margin:0 0 1.1rem 0; }
+      margin:0 0 3.4rem 0; }
     @media (max-width:720px){ .send .headline{ font-size:clamp(24px,7vw,38px); } }
     html.js .send-headline, html.js .send-lede{ opacity:0; }
     @media (prefers-reduced-motion:reduce){
@@ -330,7 +331,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     /* ------------------------------------------------------------- nav --- */
-    /* Literal #171E1D, not var(--card) — the bar is a sibling of .send/.receive,
+    /* Literal #0E1413, not var(--card) — the bar is a sibling of .send/.receive,
        so the page's custom properties don't reach it. Keep this in sync with
        --card; the bar and the cards are meant to be the same surface.
 
@@ -339,7 +340,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        frame forever, not just while scrolling — that was the bulk of the lag.
        The cards dropped translucency for the same reason (see .acard above);
        the bar now matches them. */
-    .home-bottom-bar.inner-page-nav.send-nav{ background:#171E1D !important;
+    .home-bottom-bar.inner-page-nav.send-nav{ background:#0E1413 !important;
       -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
       contain:paint; }
     .send-nav .home-bottom-email,
@@ -351,17 +352,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
       .send-nav .inner-nav-links a:hover{ color:#D5E6E4 !important; }
-    }
-
-    /* The current page reads bluer than its neighbours in the bar. Held at
-       the same lightness as the rest of the nav text so it doesn't shout —
-       what separates it is saturation, not brightness: #A6C8E8 is roughly
-       3x the chroma of the teal #BED0CD beside it. Contrast on the bar
-       (#171E1D) is 9.72:1 against the teal's 10.56 — a hair darker,
-       which is why it reads as saturation rather than emphasis. */
-    .send-nav .inner-nav-links a[href^="/send"]{ color:#A6C8E8 !important; }
-    @media (hover:hover){
-      .send-nav .inner-nav-links a[href^="/send"]:hover{ color:#C9E0F5 !important; }
     }
   </style>
 
@@ -416,6 +406,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (!outEl || !inEl) return;
       if (REDUCE()) {
         outEl.hidden = true; inEl.hidden = false;
+        syncScroll();
         if (done) done();
         return;
       }
@@ -437,8 +428,27 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           setTimeout(() => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; },
                      600 + i * 60);
         });
+        syncScroll();
+        // Card heights are still settling through the staggered rise, so sync
+        // again once it's done — otherwise Lenis caches the mid-animation height.
+        setTimeout(syncScroll, 700);
         if (done) done();
       }, 260);
+    }
+
+    /* Lenis caches the document height. Swapping the gate for the (much taller)
+       view behind it changes that height without a resize event, so Lenis keeps
+       scrolling against the OLD bounds and the page dead-ends partway down the
+       card. /brief hit the same thing on its picker->form swap and solves it the
+       same way — see refreshScroll() there. Deliberately does NOT jump to top:
+       unlike /brief's full step change, these swaps happen in place. */
+    function syncScroll() {
+      requestAnimationFrame(() => {
+        try {
+          if (window._lenis && window._lenis.resize) window._lenis.resize();
+        } catch (e) {}
+        window.dispatchEvent(new Event('resize'));
+      });
     }
 
     /* -------------------------------------------------------------- auth --- */

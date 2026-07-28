@@ -329,11 +329,6 @@ import '../styles/site.css';
       <div class="inner-nav-links">
         <a href="/projects">Projects</a>
         <a href="/studio">Studio</a>
-        {/* Only on /send + /receive. The tool is deliberately unlinked
-            sitewide (noindex, no sitemap, password-gated) — surfacing it in
-            the shared bar on /studio, /projects, /brief etc. would undo
-            that. Here the visitor is already on it, so it costs nothing. */}
-        {(page === 'send' || page === 'receive') && <a href="/send">Send</a>}
       </div>
     </div>
   )}

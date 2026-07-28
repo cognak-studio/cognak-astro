@@ -689,3 +689,41 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 })();
+
+/* ── Type "send" anywhere to open /send ───────────────────────────────────── */
+/* /send is deliberately absent from the nav, footer and sitemap — this is how
+   you get to it without a bookmark. Buffer resets after 1.2s of no typing, so
+   the letters have to be deliberate rather than accumulated across a session.
+   Ignored while focus is in a field (or on the /send passcode box itself),
+   otherwise typing a client name containing "send" would navigate away. */
+(function () {
+    var WORD = 'send';
+    var buf = '';
+    var timer = 0;
+
+    function isTyping(el) {
+        if (!el) return false;
+        if (el.isContentEditable) return true;
+        var tag = el.tagName;
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (isTyping(e.target)) return;
+        if (e.key.length !== 1) return;
+
+        buf = (buf + e.key.toLowerCase()).slice(-WORD.length);
+
+        clearTimeout(timer);
+        timer = setTimeout(function () { buf = ''; }, 1200);
+
+        if (buf === WORD) {
+            buf = '';
+            clearTimeout(timer);
+            if (window.location.pathname.replace(/\/$/, '') !== '/send') {
+                window.location.href = '/send';
+            }
+        }
+    });
+})();
