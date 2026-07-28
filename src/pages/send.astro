@@ -112,6 +112,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         </div>
       </div>
     </div>
+    {/* Idle sign-out reads as a note about the CARD ("you were signed
+        out"), not a validation message about a field inside it — so it
+        sits below the card rather than left-justified under the subtitle
+        with the rest of #pw-note's field-level errors (Pierce, 2026-07-28).
+        Kept as its own element rather than reusing #pw-note: that one is
+        still very much in use for password/passkey error text and needs to
+        stay put, right above the buttons it's talking about. */}
+    <p class="note idle-note" id="idle-note" role="status" aria-live="polite"></p>
 
     <!-- ------------------------------------------------------ dashboard --- -->
     <div id="dash" hidden>
@@ -506,6 +514,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .note.is-error{ color:var(--err); }
     .send .note.is-ok{ color:var(--ok); }
 
+    /* Sits below the sign-in card, centered under it the way the card's own
+       content is centered. Same quiet treatment as the client-facing expiry
+       line on /receive ("Expires August 7th...") -- .note already resolves
+       to the same --ink-soft as that line, so the monospace face is the
+       only thing this needs to add for the two to match (Pierce,
+       2026-07-28). Margin overrides .note's own 0.7rem: this sits outside
+       the card now, so it needs a little more air than a note packed
+       directly under a field. */
+    .send .idle-note{ text-align:center; font-family:'Diatype Mono', monospace;
+      margin:1.1rem 0 0; }
+
     .send .pass-row, .send .copy-row{ display:flex; gap:10px; }
     .send .pass-row .txt, .send .copy-row .txt{ flex:1 1 auto; min-width:0; }
 
@@ -799,6 +818,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // was never actually on screen. Only animate when it's a real sign-in.
         if (gate.hidden) { dash.hidden = false; }
         else { swapStep(gate, dash); }
+        // Clear any leftover "signed out after inactivity" note so it
+        // doesn't sit there, stale, above the dashboard on the next visit.
+        $('idle-note').textContent = '';
         renderShares((r.data && r.data.shares) || []);
         renderPasskeys();
         resetIdle();
@@ -818,8 +840,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // Re-ask which methods are on offer: a passkey may have been enrolled
       // during this very session, in which case the password box must go.
       await initGate();
-      const note = $('pw-note');
-      if (reason) { note.textContent = reason; note.className = 'note'; }
+      $('idle-note').textContent = reason || '';
     }
 
     $('signout-btn').addEventListener('click', () => signOut(''));
