@@ -1056,7 +1056,10 @@ html.home-scrolled #cognak-cookie {
 .footer-copy-text {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 15px;
-    color: #3A313B;
+    /* Lighter than the links (#3A313B) so copyright reads as secondary —
+       still 5.09:1 against the #F1EFF4 footer bg, comfortably past the
+       4.5:1 WCAG AA minimum for normal-size text (2026-07-28). */
+    color: #6B6369;
     margin: 0;
     line-height: 1.6;
     white-space: nowrap;
