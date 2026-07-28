@@ -32,7 +32,7 @@
  * regardless of how little is drawn into it.
  */
 
-const INK = '210,218,207'; // --ink #D2DACF, the page's own text colour
+const INK = '213,230,228'; // --ink #D5E6E4, the page's own text colour
 
 export const TRANSIT_DEFAULTS = {
   laneGap: 38,       // vertical pitch between lanes, px
@@ -163,13 +163,32 @@ export function initTransit(canvas, overrides = {}) {
     }
   }
 
+  // Mobile scroll jank: on iOS/Android the address bar collapses as you
+  // scroll, which changes window.innerHeight and fires `resize` MID-SCROLL.
+  // Unguarded that re-allocated the backing store and rebuilt every lane on
+  // the very frames that most needed to be cheap — the page felt like it was
+  // fighting the scroll. Width changes are real layout changes and rebuild
+  // immediately; height-only changes smaller than the tallest browser chrome
+  // are ignored outright, and anything else is debounced to settle first.
+  const CHROME_SLOP = 160; // px of height churn attributable to browser chrome
+  let pendingResize = 0;
+  function onResize() {
+    const nw = window.innerWidth;
+    const nh = window.innerHeight;
+    if (nw === w && Math.abs(nh - h) <= CHROME_SLOP) return;
+    if (nw !== w) { clearTimeout(pendingResize); pendingResize = 0; resize(); return; }
+    clearTimeout(pendingResize);
+    pendingResize = setTimeout(resize, 200);
+  }
+
   resize();
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', onResize, { passive: true });
   raf = requestAnimationFrame(frame);
   canvas.classList.add('is-in');
 
   return function destroy() {
     cancelAnimationFrame(raf);
-    window.removeEventListener('resize', resize);
+    clearTimeout(pendingResize);
+    window.removeEventListener('resize', onResize);
   };
 }

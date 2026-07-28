@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="A file delivery from COGNAK."
   ogUrl="https://cognak.com/receive/"
   noindex={true}
-  pageBg="#384237"
+  pageBg="#1D2524"
 >
   <canvas id="send-transit" aria-hidden="true"></canvas>
 
@@ -57,7 +57,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#384237 !important; }
+    html, body { background-color:#1D2524 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
     /* "Transit" background — see src/lib/send-background.js. Fixed behind
@@ -69,17 +69,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     #send-transit.is-in{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ #send-transit{ display:none; } }
 
-    /* Same deep sage colorway as /send — see that page's comment for the
+    /* Same dark teal colorway as /send — see that page's comment for the
        full rationale and the WCAG AA contrast notes. */
     .receive {
-      --bg:#384237;
-      --card:rgba(66,77,65,0.62); --field:rgba(0,0,0,0.28); --field-focus:rgba(0,0,0,0.40);
-      --ink:#D2DACF; --ink-soft:#AEB8AB; --accent:#C3CCBF; --accent-hi:#D2DACF;
-      --accent-soft:#C3CCBF; --deep:#384237; --line:rgba(210,218,207,0.18);
-      --line-strong:rgba(210,218,207,0.52); --placeholder:#9BA598;
+      --bg:#1D2524;
+      --card:#171E1D; --field:rgba(0,0,0,0.28); --field-focus:rgba(0,0,0,0.40);
+      --ink:#D5E6E4; --ink-soft:#BED0CD; --accent:#BED0CD; --accent-hi:#D5E6E4;
+      --accent-soft:#BED0CD; --deep:#151B1A; --line:rgba(213,230,228,0.18);
+      --line-strong:rgba(213,230,228,0.52); --placeholder:#829C98;
       --ok:#8FE7B4; --err:#FFA79A;
       /* Brightest-thing-on-the-page CTA, matching /send. */
-      --cta:#E4EADF; --cta-hi:#F2F5EF;
+      --cta:#E4EDEC; --cta-hi:#F2F7F6;
       min-height:100vh; min-height:100dvh;
       display:flex; flex-direction:column; justify-content:center; /* align-items left at the
       default "stretch" so headline/lede/cards keep filling the column's width, same as before */
@@ -104,16 +104,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .receive .dcard{ border-radius:10px; padding:34px 34px 30px;
       box-shadow:0 2px 18px rgba(0,0,0,.26); margin-bottom:1.4rem;
-      /* Renders EXACTLY the nav's rgba(66,77,65,0.62) over the page bg —
-         same colour as before, Pierce's card-matches-nav rule intact — but
-         opaque, so the transit lines behind it don't show through. That
-         matters for more than taste: measured with a dash drifting under a
-         card, contrast fell under the AA line, i.e. the page
-         stopped passing AA whenever the animation happened to pass behind
-         text. The animation now reads around the cards, not through them.
-         (Tried backdrop-filter first — it softens but doesn't remove the
-         shift, and costs a full-viewport blur every frame.) */
-      background:linear-gradient(rgba(66,77,65,0.62), rgba(66,77,65,0.62)) var(--bg);
+      /* Opaque, so the transit dashes can't drift under body text. That
+         matters for more than taste: measured with a dash passing behind a
+         card, contrast fell under the AA line — the page stopped passing AA
+         for exactly as long as the animation took to cross. The animation now
+         reads around the cards, not through them. (backdrop-filter was tried
+         and rejected: it softens the shift without removing it, and costs a
+         full-viewport blur every frame.) */
+      background:var(--card);
     }
     @media (max-width:600px){ .receive .dcard{ padding:24px 20px 22px; } }
 
@@ -158,17 +156,35 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .receive .rise{ opacity:1; transform:none; transition:none; } }
 
-    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(66,77,65,0.62) !important;
-      -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
+    /* Literal #171E1D, not var(--card) — the bar is a sibling of .send/.receive,
+       so the page's custom properties don't reach it. Keep this in sync with
+       --card; the bar and the cards are meant to be the same surface.
+
+       No backdrop-filter, deliberately. Blurring a fixed bar that sits over an
+       ALWAYS-ANIMATING canvas means re-running a full-width gaussian every
+       frame forever, not just while scrolling — that was the bulk of the lag.
+       The cards dropped translucency for the same reason (see .acard above);
+       the bar now matches them. */
+    .home-bottom-bar.inner-page-nav.send-nav{ background:#171E1D !important;
+      -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
+      contain:paint; }
     .send-nav .home-bottom-email,
     .send-nav .home-bottom-location,
     .send-nav .inner-nav-links a,
-    .send-nav .pulse-dot{ color:#AEB8AB !important; }
+    .send-nav .pulse-dot{ color:#BED0CD !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
-      .send-nav .inner-nav-links a:hover{ color:#D2DACF !important; }
+      .send-nav .inner-nav-links a:hover{ color:#D5E6E4 !important; }
+    }
+
+    /* The current page reads bluer than its neighbours in the bar — same
+       lightness as the rest of the nav text so it doesn't shout, just swung
+       off the page's teal toward blue. */
+    .send-nav .inner-nav-links a[href^="/send"]{ color:#BFCED9 !important; }
+    @media (hover:hover){
+      .send-nav .inner-nav-links a[href^="/send"]:hover{ color:#D8E2E9 !important; }
     }
   </style>
 
