@@ -335,51 +335,39 @@ import '../styles/site.css';
 
   <slot />
 
-  <footer class="main-footer">
-    <div class="footer-inner">
-      <div class="footer-top">
-        <div class="footer-contact">
-          <span class="footer-label">Get in touch</span>
-          <a href="mailto:hello@cognak.com" class="footer-email-link">hello@cognak.com</a>
-          <a href="https://calendar.app.google/U4EdR5gEVfaGkWhN8" class="footer-email-link">schedule a call</a>
+  {/* /send + /receive skip the sitewide footer — they're a tight utility
+      flow (upload card / passcode gate), not an editorial page that needs
+      a contact/social sign-off underneath. */}
+  {page !== 'send' && page !== 'receive' && (
+    <footer class="main-footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-contact">
+            <span class="footer-label">Get in touch</span>
+            <a href="mailto:hello@cognak.com" class="footer-email-link">hello@cognak.com</a>
+            <a href="https://calendar.app.google/U4EdR5gEVfaGkWhN8" class="footer-email-link">schedule a call</a>
+          </div>
+          <div class="footer-social">
+            <span class="footer-label">Social</span>
+            <a href="https://www.instagram.com/cognak/" target="_blank" rel="noopener noreferrer">instagram</a>
+            <a href="https://dribbble.com/cognak" target="_blank" rel="noopener noreferrer">dribbble</a>
+          </div>
+          <div class="footer-top-right">
+            <a href="#" class="footer-backtotop">Back to top</a>
+          </div>
         </div>
-        <div class="footer-social">
-          <span class="footer-label">Social</span>
-          <a href="https://www.instagram.com/cognak/" target="_blank" rel="noopener noreferrer">instagram</a>
-          <a href="https://dribbble.com/cognak" target="_blank" rel="noopener noreferrer">dribbble</a>
-        </div>
-        <div class="footer-top-right">
-          <a href="#" class="footer-backtotop">Back to top</a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <div class="footer-copy">
-          {/* Desktop: one inline row (copy + all three links) via .footer-copy /
-              .footer-legal flex, both baseline-aligned (2026-07-28: reverted
-              back to this after a brief stacked/left-aligned experiment — that
-              treatment is mobile-only now). Mobile: .footer-copy and
-              .footer-legal switch to display:contents (see the max-width:720px
-              block in custom.css) so these four items become direct grid
-              children of .footer-bottom instead — Colophon/Tools stacked
-              top-left, Privacy Policy bottom-left, copyright bottom-right.
-              Each link's own class is what that grid targets, so don't drop
-              footer-colophon-link / footer-tools-link / footer-privacy-link
-              even though footer-privacy still does the shared color/hover
-              styling. */}
-          <p class="footer-copy-text">© {new Date().getFullYear()} COGNAK LLC</p>
-          <nav class="footer-legal">
-            <a href="/privacy-policy" class="footer-privacy footer-privacy-link">Privacy Policy</a>
-            <a href="/colophon" class="footer-privacy footer-colophon-link">Colophon</a>
-            <a href="/tools" class="footer-privacy footer-tools-link">Tools</a>
-          </nav>
-        </div>
-        <div class="footer-links">
-          <a href="/projects">Projects</a>
-          <a href="/studio">Studio</a>
+        <div class="footer-bottom">
+          <div class="footer-copy">
+            <p>© {new Date().getFullYear()} COGNAK LLC <a href="/privacy-policy" class="footer-privacy">Privacy Policy</a> <a href="/colophon" class="footer-privacy">Colophon</a></p>
+          </div>
+          <div class="footer-links">
+            <a href="/projects">Projects</a>
+            <a href="/studio">Studio</a>
+          </div>
         </div>
       </div>
-    </div>
-  </footer>
+    </footer>
+  )}
 
   <!-- Sitewide click conversion tracking -->
   <script is:inline>

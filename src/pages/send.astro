@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="Internal client-delivery tool."
   ogUrl="https://cognak.com/send/"
   noindex={true}
-  pageBg="#0A1614"
+  pageBg="#332B2B"
 >
   <main id="cognak-main"><section class="send">
 
@@ -132,7 +132,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#0A1614 !important; }
+    html, body { background-color:#332B2B !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
     /* A dedicated teal-on-near-black colorway — the six reference pages each
@@ -142,8 +142,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        with a bright mint-teal accent, shared between both pages since
        they're two halves of one feature. */
     .send {
-      --bg:#0A1614;
-      --card:rgba(20,38,35,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
+      --bg:#332B2B;
+      --card:rgba(90,74,74,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
       --ink:#E7F5F1; --ink-soft:#9FBDB6; --accent:#4FD9C0; --accent-hi:#6FE6D2;
       --accent-soft:#7FC9BC; --deep:#08201A; --line:rgba(231,245,241,0.13);
       --line-strong:rgba(231,245,241,0.28); --placeholder:#6E8C85;
@@ -259,17 +259,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (prefers-reduced-motion:reduce){ .send .rise{ opacity:1; transform:none; transition:none; } }
 
     /* ------------------------------------------------------------- nav --- */
-    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(10,22,20,0.62) !important;
+    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(57,48,48,0.62) !important;
       -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
     .send-nav .home-bottom-email,
     .send-nav .home-bottom-location,
     .send-nav .inner-nav-links a,
-    .send-nav .pulse-dot{ color:#9FBDB6 !important; }
+    .send-nav .pulse-dot{ color:#B4A2A2 !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
-      .send-nav .inner-nav-links a:hover{ color:#6FE6D2 !important; }
+      .send-nav .inner-nav-links a:hover{ color:#D4C4C4 !important; }
     }
   </style>
 
