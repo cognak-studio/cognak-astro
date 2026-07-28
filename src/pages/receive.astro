@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="A file delivery from COGNAK."
   ogUrl="https://cognak.com/receive/"
   noindex={true}
-  pageBg="#575346"
+  pageBg="#AFBCAE"
 >
   <main id="cognak-main"><section class="receive">
 
@@ -33,7 +33,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <span class="q-title">Passcode</span>
           </label>
           <input class="txt mono" id="passcode-input" type="text" autocomplete="off" spellcheck="false" />
-          <p class="note" id="gate-note"></p>
+          <p class="note" id="gate-note" role="status" aria-live="polite"></p>
         </div>
       </div>
       <div class="actions">
@@ -42,7 +42,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
 
     <div class="dcard rise" id="invalid" hidden>
-      <p class="note is-error" id="invalid-note">This link isn't complete. Check the URL your recipient sent you.</p>
+      <p class="note is-error" id="invalid-note" role="alert">This link isn't complete. Check the URL your recipient sent you.</p>
     </div>
 
     <div class="dcard rise" id="files-card" hidden>
@@ -55,22 +55,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#575346 !important; }
+    html, body { background-color:#AFBCAE !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
-    /* Same dark olive/khaki colorway as /send — see that page's comment for
-       the full rationale. */
+    /* Same light sage colorway as /send — see that page's comment for the
+       full rationale and the WCAG AA contrast notes. */
     .receive {
-      --bg:#575346;
-      --card:rgba(76,72,59,0.62); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
-      --ink:#D8D4C2; --ink-soft:#BEBAAA; --accent:#BEBAAA; --accent-hi:#D8D4C2;
-      --accent-soft:#BEBAAA; --deep:#4C483B; --line:rgba(216,212,194,0.13);
-      --line-strong:rgba(216,212,194,0.28); --placeholder:#858277;
-      --ok:#7EE2A8; --err:#FF9E90;
+      --bg:#AFBCAE;
+      --card:rgba(160,175,158,0.62); --field:rgba(255,255,255,0.30); --field-focus:rgba(255,255,255,0.55);
+      --ink:#323831; --ink-soft:#3E443A; --accent:#323831; --accent-hi:#3E443A;
+      --accent-soft:#323831; --deep:#AFBCAE; --line:rgba(50,56,49,0.22);
+      --line-strong:rgba(50,56,49,0.72); --placeholder:#4A5046;
+      --ok:#1F4A2C; --err:#732418;
       min-height:100vh; min-height:100dvh;
       display:flex; flex-direction:column; justify-content:center; /* align-items left at the
       default "stretch" so headline/lede/cards keep filling the column's width, same as before */
-      max-width:720px; margin:0 auto; padding:24px 6vw;
+      max-width:720px; margin:0 auto; padding:24px 6vw 104px;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
     /* True viewport centering, both axes — see /send's comment on the same
@@ -79,9 +79,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive label.q{ display:block !important; }
 
     .receive .headline{ font-size:clamp(20px,5.5vw,52px); font-weight:500; line-height:1.1;
-      letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+      letter-spacing:-.02em; margin:0 0 .9rem; color:var(--ink); }
     .receive .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
-    .receive .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch; margin:0 0 3rem 0; }
+    .receive .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch; margin:0 0 1.1rem 0; }
     @media (max-width:720px){ .receive .headline{ font-size:clamp(24px,7vw,38px); } }
     html.js .receive-headline, html.js .receive-lede{ opacity:0; }
     @media (prefers-reduced-motion:reduce){
@@ -90,7 +90,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
 
     .receive .dcard{ background:var(--card); border-radius:10px; padding:34px 34px 30px;
-      box-shadow:0 2px 18px rgba(0,0,0,.28); margin-bottom:1.4rem; }
+      box-shadow:0 2px 18px rgba(50,56,49,.10); margin-bottom:1.4rem; }
     @media (max-width:600px){ .receive .dcard{ padding:24px 20px 22px; } }
 
     .receive .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
@@ -119,9 +119,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
     .receive .btn.btn-primary{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
     .receive .btn.btn-primary:hover:not(:disabled){ background:var(--accent-hi); border-color:var(--accent-hi);
-      box-shadow:0 0 24px rgba(190,186,170,.34); }
+      box-shadow:0 0 24px rgba(50,56,49,.22); }
     .receive .btn:active:not(:disabled){ transform:scale(.98); }
-    .receive .btn:disabled{ opacity:.32; cursor:not-allowed; }
+    .receive .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
     .receive .flist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
     .receive .frow{ display:flex; align-items:center; gap:14px; background:var(--field);
@@ -134,17 +134,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .receive .rise{ opacity:1; transform:none; transition:none; } }
 
-    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(76,72,59,0.62) !important;
+    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(160,175,158,0.62) !important;
       -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
     .send-nav .home-bottom-email,
     .send-nav .home-bottom-location,
     .send-nav .inner-nav-links a,
-    .send-nav .pulse-dot{ color:#BEBAAA !important; }
+    .send-nav .pulse-dot{ color:#3E443A !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
-      .send-nav .inner-nav-links a:hover{ color:#D8D4C2 !important; }
+      .send-nav .inner-nav-links a:hover{ color:#323831 !important; }
     }
   </style>
 
@@ -195,6 +195,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         a.href = f.url;
         a.setAttribute('download', f.name);
         a.textContent = 'Download';
+        // Per-row label so a screen reader hears which file, not N x "Download".
+        a.setAttribute('aria-label', 'Download ' + f.name);
         list.appendChild(li);
       });
     }
@@ -207,6 +209,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         const note = $('gate-note');
         const input = $('passcode-input');
         const passcode = input.value.trim();
+        input.removeAttribute('aria-invalid');
         if (!passcode) {
           note.textContent = 'Enter the passcode you were sent.';
           note.className = 'note is-error';
@@ -220,6 +223,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           return;
         }
         input.classList.add('is-error');
+        input.setAttribute('aria-invalid', 'true');
         note.textContent = (r.data && r.data.error) || 'Something went wrong. Please retry.';
         note.className = 'note is-error';
       });
