@@ -213,7 +213,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .send label.q, .send legend.q{ display:block !important; }
 
-    .send .headline{ font-size:clamp(20px,5.5vw,52px); font-weight:500; line-height:1.1;
+    /* Site headline scale — clamp(20px,5.5vw,62px) desktop / clamp(24px,7vw,42px)
+       under 720px, identical to .projects-display-headline, .colophon-headline,
+       .tools .headline and .brief .headline. /send and /receive were the only
+       inner pages running a smaller 52/38 ramp, so their headline read a size
+       down from every other page at the same 190px top offset. */
+    .send .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .send .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
     /* The tight 1.1rem was there to claw back space when the block was
@@ -222,7 +227,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        room to read as a separate block from the card below it. */
     .send .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch;
       margin:0 0 3.4rem 0; }
-    @media (max-width:720px){ .send .headline{ font-size:clamp(24px,7vw,38px); } }
+    @media (max-width:720px){ .send .headline{ font-size:clamp(24px,7vw,42px); } }
     html.js .send-headline, html.js .send-lede{ opacity:0; }
     @media (prefers-reduced-motion:reduce){
       html.js .send-headline, html.js .send-lede{ opacity:1; }

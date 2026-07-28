@@ -89,11 +89,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .mono{ font-family:'Diatype Mono', monospace; }
     .receive label.q{ display:block !important; }
 
-    .receive .headline{ font-size:clamp(20px,5.5vw,52px); font-weight:500; line-height:1.1;
+    /* Site headline scale — clamp(20px,5.5vw,62px) desktop / clamp(24px,7vw,42px)
+       under 720px, identical to .projects-display-headline, .colophon-headline,
+       .tools .headline and .brief .headline. /send and /receive were the only
+       inner pages running a smaller 52/38 ramp, so their headline read a size
+       down from every other page at the same 190px top offset. */
+    .receive .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .receive .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
     .receive .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch; margin:0 0 3.4rem 0; }
-    @media (max-width:720px){ .receive .headline{ font-size:clamp(24px,7vw,38px); } }
+    @media (max-width:720px){ .receive .headline{ font-size:clamp(24px,7vw,42px); } }
     html.js .receive-headline, html.js .receive-lede{ opacity:0; }
     @media (prefers-reduced-motion:reduce){
       html.js .receive-headline, html.js .receive-lede{ opacity:1; }
