@@ -61,7 +61,7 @@ export default async function handler(req, res) {
      before 2026-07-28 has — those manifests simply have no expiresAt, and
      deliver-get treats a missing value as "no expiry" rather than "expired".
      Clamped so a hand-crafted request can't set an absurd horizon. */
-  const ALLOWED_DAYS = [0, 7, 30, 90];
+  const ALLOWED_DAYS = [0, 7, 30, 182, 365]; // never / 1wk / 1mo / 6mo / 1yr
   const requestedDays = Number(data.expiresInDays);
   const days = ALLOWED_DAYS.includes(requestedDays) ? requestedDays : 0;
   const expiresAt = days > 0

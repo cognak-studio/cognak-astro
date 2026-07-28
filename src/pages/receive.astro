@@ -185,10 +185,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send-nav .pulse-dot{ color:#BED0CD !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
+    /* Hover DARKENS rather than brightens — the nav text already sits near the
+       top of the ramp, so there was nowhere brighter to go that read as a
+       change. #93A29F is 7.01:1 on the #0E1413 bar: still WCAG AAA for body
+       text, so the link stays fully legible while it's being pointed at. The
+       AA floor for reference is #73807D (4.51:1) — noticeably darker, but it
+       starts to read as disabled rather than hovered. */
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
-      .send-nav .inner-nav-links a:hover{ color:#D5E6E4 !important; }
+      .send-nav .inner-nav-links a:hover{ color:#93A29F !important; }
     }
+    /* Focus-visible keeps the bright treatment: keyboard users get a positive
+       highlight rather than the pointer's dimming, and it can't be confused
+       with a disabled control. */
+    .send-nav .home-bottom-email:focus-visible,
+    .send-nav .inner-nav-links a:focus-visible{ color:#D5E6E4 !important; }
   </style>
 
   <script>

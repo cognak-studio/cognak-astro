@@ -58,7 +58,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="field">
             <label class="q" for="client-input">
               <span class="q-title">Client</span>
-              <span class="q-sub">Shown to you only, to keep shares straight.</span>
+              <span class="q-sub">Just the name.</span>
             </label>
             <input class="txt" id="client-input" type="text" autocomplete="off" />
           </div>
@@ -89,10 +89,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                 <span class="q-sub">After this the link stops working. The files stay in storage until you delete the share.</span>
               </legend>
               <div class="pills" id="expiry-pills">
-                <label class="pill"><input type="radio" name="expiry" value="7">7 days</label>
-                <label class="pill on"><input type="radio" name="expiry" value="30" checked>30 days</label>
-                <label class="pill"><input type="radio" name="expiry" value="90">90 days</label>
-                <label class="pill"><input type="radio" name="expiry" value="0">Never</label>
+                <label class="pill"><input type="radio" name="expiry" value="7">1 week</label>
+                <label class="pill on"><input type="radio" name="expiry" value="30" checked>1 month</label>
+                <label class="pill"><input type="radio" name="expiry" value="182">6 months</label>
+                <label class="pill"><input type="radio" name="expiry" value="365">1 year</label>
+                <label class="pill"><input type="radio" name="expiry" value="0">Never (Until I Delete)</label>
               </div>
             </fieldset>
           </div>
@@ -395,10 +396,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send-nav .pulse-dot{ color:#BED0CD !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
+    /* Hover DARKENS rather than brightens — the nav text already sits near the
+       top of the ramp, so there was nowhere brighter to go that read as a
+       change. #93A29F is 7.01:1 on the #0E1413 bar: still WCAG AAA for body
+       text, so the link stays fully legible while it's being pointed at. The
+       AA floor for reference is #73807D (4.51:1) — noticeably darker, but it
+       starts to read as disabled rather than hovered. */
     @media (hover:hover){
       .send-nav .home-bottom-email:hover,
-      .send-nav .inner-nav-links a:hover{ color:#D5E6E4 !important; }
+      .send-nav .inner-nav-links a:hover{ color:#93A29F !important; }
     }
+    /* Focus-visible keeps the bright treatment: keyboard users get a positive
+       highlight rather than the pointer's dimming, and it can't be confused
+       with a disabled control. */
+    .send-nav .home-bottom-email:focus-visible,
+    .send-nav .inner-nav-links a:focus-visible{ color:#D5E6E4 !important; }
   </style>
 
   <script>
@@ -769,9 +781,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (s.expiresAt) {
           const ms = new Date(s.expiresAt) - Date.now();
           const days = Math.ceil(ms / 86400000);
+          // Counting in days stops reading as a duration past a few weeks —
+          // "expires in 340 days" is a number you have to convert yourself.
+          const human =
+            days <= 1 ? 'today' :
+            days < 14 ? days + ' days' :
+            days < 60 ? Math.round(days / 7) + ' weeks' :
+            days < 365 ? Math.round(days / 30) + ' months' :
+            Math.round(days / 365) + (Math.round(days / 365) === 1 ? ' year' : ' years');
           expiryLabel = ms <= 0 ? ' · EXPIRED'
             : days <= 1 ? ' · expires today'
-            : ' · expires in ' + days + ' days';
+            : ' · expires in ' + human;
           if (ms <= 0) li.classList.add('is-expired');
         }
         li.querySelector('.srow-meta').textContent =
