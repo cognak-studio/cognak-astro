@@ -86,7 +86,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <fieldset class="q expiry-set">
               <legend class="q">
                 <span class="q-title">Link expires</span>
-                <span class="q-sub">After this the link stops working. The files stay in storage until you delete the share.</span>
+                <span class="q-sub">The link stops working, then the files are deleted for good on the next daily sweep.</span>
               </legend>
               <div class="pills" id="expiry-pills">
                 <label class="pill"><input type="radio" name="expiry" value="7">1 week</label>
@@ -206,7 +206,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
          BRIGHTEST thing on the page rather than the darkest, since the page
          itself went dark. Same intent as the light pass: "Create share" /
          "Sign in" / "Unlock" sit clearly above the outline buttons. */
-      --cta:#E4EDEC; --cta-hi:#F2F7F6;
+      --cta:#8FC2F2; --cta-hi:#A9D2F6;
       /* Fixed 190px, matching the shared header position across
          projects/studio/privacy/colophon/brief/tools. /send used to vertically
          center instead, which made it the one inner page whose headline didn't
@@ -269,6 +269,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
       transition:border-color .2s ease, background .2s ease; outline:none; }
     .send .txt::placeholder{ color:var(--placeholder); }
+
+    /* Typed text was going illegible: WebKit paints autofilled fields with its
+       own dark-on-pale treatment, and on a dark field that lands as near-black
+       on near-black. -webkit-text-fill-color is the only thing that overrides
+       the text colour there (plain `color` is ignored), and the giant inset
+       shadow is the standard way to repaint the background, since
+       background-color is likewise overridden. The absurd transition delay
+       stops WebKit animating its yellow back in on re-focus. */
+    .send .txt, .receive .txt{ -webkit-text-fill-color:var(--ink); caret-color:var(--accent); }
+    .send .txt:-webkit-autofill,
+    .send .txt:-webkit-autofill:hover,
+    .send .txt:-webkit-autofill:focus,
+    .send .txt:-webkit-autofill:active,
+    .receive .txt:-webkit-autofill,
+    .receive .txt:-webkit-autofill:hover,
+    .receive .txt:-webkit-autofill:focus,
+    .receive .txt:-webkit-autofill:active{
+      -webkit-text-fill-color:var(--ink) !important;
+      caret-color:var(--accent);
+      -webkit-box-shadow:0 0 0 1000px var(--field) inset !important;
+      box-shadow:0 0 0 1000px var(--field) inset !important;
+      transition:background-color 9999s ease-out 0s; }
+
     .send .txt:focus{ border-color:var(--accent); background:var(--field-focus); }
     .send .txt[readonly]{ cursor:text; }
     .send a:focus-visible, .send button:focus-visible, .send input:focus-visible,
@@ -363,9 +386,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       border:1px solid var(--line-strong);
       transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
     .send .btn:hover:not(:disabled){ border-color:var(--ink); }
-    .send .btn.btn-primary{ background:var(--cta); border-color:var(--cta); color:var(--deep); }
+    /* Primary CTA carries the headline's blue, and glows on hover the way
+       /brief's does — same 0 0 24px shadow, same .45 alpha, just this page's
+       accent instead of /brief's orange. --deep on #8FC2F2 is 9.28:1, so the
+       label clears AA comfortably; the hover tint lightens rather than
+       darkens so contrast only ever improves. */
+    .send .btn.btn-primary{ background:var(--cta); border-color:var(--cta); color:var(--deep);
+      transition:box-shadow .25s ease, background .2s ease, border-color .2s ease; }
     .send .btn.btn-primary:hover:not(:disabled){ background:var(--cta-hi); border-color:var(--cta-hi);
-      box-shadow:0 0 24px rgba(228,234,223,.24); }
+      box-shadow:0 0 24px rgba(143,194,242,.45); }
     .send .btn.btn-ghost{ padding:12px 18px; font-size:.86rem; }
     .send .btn.btn-danger:hover:not(:disabled){ border-color:var(--err); color:var(--err); }
     .send .btn:active:not(:disabled){ transform:scale(.98); }
