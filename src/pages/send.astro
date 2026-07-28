@@ -694,11 +694,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       note.className = 'note';
       btn.disabled = true;
       try {
-        const optRes = await api('/api/admin-passkey-auth');
+        const optRes = await api('/api/admin-passkey?action=auth-options');
         if (!optRes.ok) throw new Error((optRes.data && optRes.data.error) || 'Could not start sign-in.');
         const { startAuthentication } = await webauthn();
         const response = await startAuthentication({ optionsJSON: optRes.data });
-        const verify = await api('/api/admin-passkey-auth', { method: 'POST', body: { response } });
+        const verify = await api('/api/admin-passkey?action=auth-verify', { method: 'POST', body: { response } });
         if (!verify.ok) throw new Error((verify.data && verify.data.error) || 'Sign-in failed.');
         await checkAuth();
       } catch (err) {
@@ -713,7 +713,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     });
 
     async function renderPasskeys() {
-      const r = await api('/api/admin-passkey-list');
+      const r = await api('/api/admin-passkey?action=list');
       if (!r.ok) return;
       const list = $('pk-list');
       const keys = (r.data && r.data.passkeys) || [];
@@ -747,7 +747,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             ? 'Remove the last passkey? The password becomes the only way in again.'
             : 'Remove "' + k.label + '"? That device will no longer be able to sign in.';
           if (!confirm(msg)) return;
-          await api('/api/admin-passkey-list', { method: 'POST', body: { id: k.id } });
+          await api('/api/admin-passkey?action=delete', { method: 'POST', body: { id: k.id } });
           await renderPasskeys();
         });
         list.appendChild(li);
@@ -768,11 +768,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (label === null) return;
       btn.disabled = true;
       try {
-        const optRes = await api('/api/admin-passkey-register');
+        const optRes = await api('/api/admin-passkey?action=register-options');
         if (!optRes.ok) throw new Error((optRes.data && optRes.data.error) || 'Could not start enrolment.');
         const { startRegistration } = await webauthn();
         const response = await startRegistration({ optionsJSON: optRes.data });
-        const verify = await api('/api/admin-passkey-register', {
+        const verify = await api('/api/admin-passkey?action=register-verify', {
           method: 'POST', body: { response, label },
         });
         if (!verify.ok) throw new Error((verify.data && verify.data.error) || 'Could not add this device.');
