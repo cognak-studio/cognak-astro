@@ -193,12 +193,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.5; font-size:.96rem; }
     .receive .frow-size{ color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.8rem; flex:0 0 auto; }
     .receive .frow-dl{ flex:0 0 auto; text-decoration:none; }
+    /* Downloaded rows step back rather than light up — done is quieter than
+       to-do, so what's left unread is what stands out in a long list. */
+    .receive .frow-dl.is-done{ color:var(--ink-soft); border-color:var(--line); }
+    .receive .frow-dl.is-done:hover{ color:var(--ink); border-color:var(--line-strong); }
     /* Expiry, told to the client rather than only to Pierce. Sits under the
        list as a quiet note, not a warning — until it's genuinely urgent, at
        which point it takes the error colour. */
-    .receive .expiry-note{ margin:1.2rem 0 0; font-size:.8rem; line-height:1.5;
+    .receive .expiry-note{ margin:1.2rem 0 0; font-size:.8rem; line-height:1.75;
       color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
-    .receive .expiry-note.is-soon{ color:var(--warn); }
+    /* Only the deadline itself takes the warn colour — the instruction around
+       it stays in normal ink, so the eye lands on the bit that runs out. */
+    .receive .expiry-note .exp-warn{ color:var(--warn); }
     .receive .expiry-note[hidden]{ display:none; }
 
     .receive .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
@@ -362,9 +368,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           days < 60 ? 'in ' + Math.round(days / 7) + ' weeks' :
           days < 365 ? 'in ' + Math.round(days / 30) + ' months' :
           'in ' + Math.round(days / 365) + ' year' + (Math.round(days / 365) === 1 ? '' : 's');
-        expEl.textContent =
-          'Download these before ' + dateText + ' — this link expires ' + countdown + '.';
-        expEl.classList.toggle('is-soon', days <= 3);
+        // Built as nodes rather than innerHTML: dateText is locale-formatted
+        // and the countdown is derived, but this sits next to client-supplied
+        // strings and there's no reason for any of it to be parsed as markup.
+        expEl.textContent = 'Download these before ' + dateText + '. ';
+        const warn = document.createElement('span');
+        warn.className = 'exp-warn';
+        warn.textContent = 'This link expires ' + countdown + '.';
+        expEl.appendChild(warn);
         expEl.hidden = false;
       } else {
         expEl.hidden = true;
@@ -390,6 +401,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         a.textContent = 'Download';
         // Per-row label so a screen reader hears which file, not N x "Download".
         a.setAttribute('aria-label', 'Download ' + f.name);
+        /* Sticks, unlike /send's "Copied" — several files can each have been
+           downloaded, and the whole point is remembering which ones you've
+           already got when there are twelve in the list. The link keeps
+           working, so this is a record of what you did, not a disabled state.
+           Not persisted across reloads: it would need storage, and claiming a
+           file was saved when the download may have failed is worse than
+           forgetting. */
+        a.addEventListener('click', () => {
+          a.classList.add('is-done');
+          a.textContent = 'Downloaded';
+          a.setAttribute('aria-label', 'Download ' + f.name + ' again');
+        });
         list.appendChild(li);
       });
     }

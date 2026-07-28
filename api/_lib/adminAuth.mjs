@@ -17,7 +17,12 @@
 import crypto from 'node:crypto';
 
 const COOKIE_NAME = 'cognak_admin';
-const SESSION_MS = 12 * 60 * 60 * 1000; // 12 hours
+/* 15 minutes. Short on purpose: this session can read every client delivery
+   and delete any of them, and the machine it's used from is a laptop that gets
+   left open. The client-side idle timer in /send logs out at the same mark, so
+   the two agree — but THIS is the one that matters, since a cookie that has
+   expired can't be used by anything, tab closed or not. */
+const SESSION_MS = 15 * 60 * 1000; // 15 minutes
 
 function sign(payloadB64) {
   const secret = process.env.ADMIN_SECRET || '';

@@ -36,10 +36,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="group">
         <div class="group-title">Sign in</div>
         <div class="field">
+          {/* A hidden username field is what makes 1Password / iCloud Keychain /
+              Chrome reliably OFFER to save and then autofill this. Managers key
+              a credential on (origin, username); with a lone password input
+              they often save nothing, or save it unlabelled and never fill it.
+              The value is fixed because there is only one admin. */}
+          <input type="text" name="username" value="cognak-admin" autocomplete="username"
+                 readonly hidden aria-hidden="true" tabindex="-1" />
           <label class="q" for="pw-input">
             <span class="q-title">Admin password</span>
           </label>
-          <input class="txt" id="pw-input" type="password" autocomplete="current-password" />
+          <input class="txt" id="pw-input" name="password" type="password"
+                 autocomplete="current-password" />
           <p class="note" id="pw-note" role="status" aria-live="polite"></p>
         </div>
         <div class="actions">
@@ -135,7 +143,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </div>
         </div>
         <div class="actions">
-          <button type="button" class="btn" id="start-another">Start another share</button>
+          <button type="button" class="btn" id="start-another">Share another link</button>
         </div>
       </div>
 
@@ -421,7 +429,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .btn.btn-primary:hover:not(:disabled){ background:var(--cta-hi); border-color:var(--cta-hi);
       box-shadow:0 0 24px rgba(143,194,242,.45); }
     .send .btn.btn-ghost{ padding:12px 18px; font-size:.86rem; }
-    .send .btn.btn-danger:hover:not(:disabled){ border-color:var(--err); color:var(--err); }
+    /* Delete carries the warn colour at rest, not just on hover — it's the one
+       irreversible control on the page and shouldn't look identical to "Copy
+       link" until you're already pointing at it. 7.26:1 on the card. */
+    .send .btn.btn-danger{ color:var(--warn); border-color:var(--warn); }
+    .send .btn.btn-danger:hover:not(:disabled){ background:var(--warn); color:var(--deep);
+      border-color:var(--warn); }
     .send .btn:active:not(:disabled){ transform:scale(.98); }
     /* .32 rendered the (default-state) "Create share" button barely readable;
        .55 keeps it legible while still reading as disabled. */
@@ -588,6 +601,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (gate.hidden) { dash.hidden = false; }
         else { swapStep(gate, dash); }
         renderShares((r.data && r.data.shares) || []);
+        resetIdle();
         return true;
       }
       gate.hidden = false;
@@ -610,9 +624,39 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     });
     $('pw-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pw-submit').click(); });
 
-    $('signout-btn').addEventListener('click', async () => {
+    async function signOut(reason) {
+      clearTimeout(idleTimer);
       await api('/api/admin-logout', { method: 'POST' });
-      await checkAuth();
+      gate.hidden = false;
+      dash.hidden = true;
+      const note = $('pw-note');
+      if (reason) { note.textContent = reason; note.className = 'note'; }
+    }
+
+    $('signout-btn').addEventListener('click', () => signOut(''));
+
+    /* Idle sign-out. The server cookie also expires at 15 minutes, so this is
+       the courtesy half — it clears the dashboard off the screen and says why,
+       instead of leaving a full client list visible until someone clicks
+       something and gets a surprise 401. Any real interaction resets it;
+       scroll deliberately doesn't count, since a cat on a trackpad shouldn't
+       hold the session open. An in-flight upload does hold it (see below) —
+       signing out mid-upload would fail the very thing you're waiting on. */
+    const IDLE_MS = 15 * 60 * 1000;
+    let idleTimer = 0;
+    let uploading = false;
+
+    function resetIdle() {
+      clearTimeout(idleTimer);
+      if (dash.hidden) return;
+      idleTimer = setTimeout(() => {
+        if (uploading) { resetIdle(); return; }
+        signOut('Signed out after 15 minutes of inactivity.');
+      }, IDLE_MS);
+    }
+
+    ['click', 'keydown', 'pointerdown', 'focusin'].forEach((ev) => {
+      document.addEventListener(ev, resetIdle, { passive: true });
     });
 
     /* ---------------------------------------------------------- new share --- */
@@ -715,6 +759,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     async function uploadOne(item, token) {
+      uploading = true;
       item.status = 'up';
       item.pct = 0;
       paintRow(item);
@@ -729,6 +774,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       });
       item.status = 'ok';
       item.url = result.url;
+      uploading = false;
+      resetIdle();
       paintRow(item);
     }
 
@@ -754,6 +801,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             const item = queued[cursor++];
             try { await uploadOne(item, token); } catch (e) {
               item.status = 'err';
+              uploading = false;
               paintRow(item);
               throw e;
             }
@@ -790,21 +838,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       updateCreateBtn();
     });
 
+    /* Only ever ONE button reads "Copied" — the clipboard holds one thing, so
+       two buttons both claiming to be the copied one is a lie about which
+       value you actually have. Clicking any copy button reverts the previous
+       one immediately rather than waiting out its own timer. Labels are
+       remembered on the node, so this survives the shares list re-rendering. */
+    let copiedBtn = null;
+    let copiedTimer = 0;
+
+    function resetCopied() {
+      if (!copiedBtn) return;
+      if (copiedBtn.isConnected) {
+        copiedBtn.textContent = copiedBtn.dataset.copyLabel || 'Copy';
+        if (copiedBtn.dataset.copyAria) copiedBtn.setAttribute('aria-label', copiedBtn.dataset.copyAria);
+      }
+      copiedBtn = null;
+    }
+
+    function markCopied(btn) {
+      clearTimeout(copiedTimer);
+      resetCopied();
+      if (!btn.dataset.copyLabel) btn.dataset.copyLabel = btn.textContent;
+      const aria = btn.getAttribute('aria-label');
+      if (aria && !btn.dataset.copyAria) btn.dataset.copyAria = aria;
+      btn.textContent = 'Copied';
+      // Swap the aria-label too, not just the visible text — otherwise the
+      // label overrides the contents and screen readers never hear "Copied".
+      if (btn.dataset.copyAria) btn.setAttribute('aria-label', btn.dataset.copyAria + ' — copied');
+      copiedBtn = btn;
+      copiedTimer = setTimeout(resetCopied, 2000);
+    }
+
     document.querySelectorAll('[data-copy]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const input = document.getElementById(btn.dataset.copy);
         try {
           await navigator.clipboard.writeText(input.value);
-          const original = btn.textContent;
-          // Swap the aria-label too, not just the visible text — otherwise the
-          // label overrides the contents and screen readers never hear "Copied".
-          const originalLabel = btn.getAttribute('aria-label');
-          btn.textContent = 'Copied';
-          if (originalLabel) btn.setAttribute('aria-label', originalLabel + ' — copied');
-          setTimeout(() => {
-            btn.textContent = original;
-            if (originalLabel) btn.setAttribute('aria-label', originalLabel);
-          }, 1200);
+          markCopied(btn);
         } catch (e) {
           input.select();
         }
@@ -847,6 +917,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }, 30000);
 
     function renderShares(shares) {
+      // The list is rebuilt from scratch, so any "Copied" button in it is about
+      // to be detached; forget it rather than leave a dangling reference.
+      if (copiedBtn && copiedBtn.closest('#shares-list')) { clearTimeout(copiedTimer); copiedBtn = null; }
       const list = $('shares-list');
       const empty = $('shares-empty');
       list.innerHTML = '';
@@ -899,10 +972,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         li.querySelector('[data-action="copy"]').addEventListener('click', async (e) => {
           const url = 'https://cognak.com/files/' + s.token;
           try { await navigator.clipboard.writeText(url); } catch (err) { /* ignore */ }
-          const btn = e.currentTarget;
-          const original = btn.textContent;
-          btn.textContent = 'Copied';
-          setTimeout(() => { btn.textContent = original; }, 1200);
+          markCopied(e.currentTarget);
         });
         li.querySelector('[data-action="delete"]').addEventListener('click', async () => {
           if (!confirm('Delete this share for "' + (s.client || 'this client') + '"? The link stops working immediately.')) return;
