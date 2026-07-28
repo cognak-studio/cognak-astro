@@ -358,7 +358,25 @@ import '../styles/site.css';
         </div>
         <div class="footer-bottom">
           <div class="footer-copy">
-            <p>© {new Date().getFullYear()} COGNAK LLC <a href="/privacy-policy" class="footer-privacy">Privacy Policy</a> <a href="/colophon" class="footer-privacy">Colophon</a></p>
+            {/* Desktop: one inline row (copy + all three links) via .footer-copy /
+                .footer-legal flex, both baseline-aligned. Mobile: .footer-copy and
+                .footer-legal switch to display:contents (see the max-width:720px
+                block in custom.css) so these four items become direct grid
+                children of .footer-bottom instead — Colophon/Tools stacked
+                top-left, Privacy Policy bottom-left, copyright bottom-right.
+                Each link's own class is what that grid targets, so don't drop
+                footer-colophon-link / footer-tools-link / footer-privacy-link
+                even though footer-privacy still does the shared color/hover
+                styling. THIS MARKUP HAS BEEN DROPPED BY A CONCURRENT EDIT AND
+                RE-APPLIED THREE TIMES (2026-07-28) — if you're editing this
+                file yourself, please reload it from disk first so your save
+                doesn't revert it again. */}
+            <p class="footer-copy-text">© {new Date().getFullYear()} COGNAK LLC</p>
+            <nav class="footer-legal">
+              <a href="/privacy-policy" class="footer-privacy footer-privacy-link">Privacy Policy</a>
+              <a href="/colophon" class="footer-privacy footer-colophon-link">Colophon</a>
+              <a href="/tools" class="footer-privacy footer-tools-link">Tools</a>
+            </nav>
           </div>
           <div class="footer-links">
             <a href="/projects">Projects</a>

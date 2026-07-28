@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="A file delivery from COGNAK."
   ogUrl="https://cognak.com/receive/"
   noindex={true}
-  pageBg="#332B2B"
+  pageBg="#342D2D"
 >
   <main id="cognak-main"><section class="receive">
 
@@ -55,22 +55,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#332B2B !important; }
+    html, body { background-color:#342D2D !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
-    /* Same teal-on-near-black colorway as /send — see that page's comment
-       for why this hue (the six reference pages each own a distinct one). */
+    /* Same dark browny-plum colorway as /send — see that page's comment for
+       the full rationale. */
     .receive {
-      --bg:#332B2B;
-      --card:rgba(90,74,74,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
-      --ink:#E7F5F1; --ink-soft:#9FBDB6; --accent:#4FD9C0; --accent-hi:#6FE6D2;
-      --accent-soft:#7FC9BC; --deep:#08201A; --line:rgba(231,245,241,0.13);
-      --line-strong:rgba(231,245,241,0.28); --placeholder:#6E8C85;
+      --bg:#342D2D;
+      --card:rgba(0,0,0,0.42); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
+      --ink:#D4C4C4; --ink-soft:#B8A6A6; --accent:#B8A6A6; --accent-hi:#D4C4C4;
+      --accent-soft:#B8A6A6; --deep:#342D2D; --line:rgba(212,196,196,0.13);
+      --line-strong:rgba(212,196,196,0.28); --placeholder:#7E7171;
       --ok:#7EE2A8; --err:#FF9E90;
       min-height:100vh; min-height:100dvh;
       display:flex; flex-direction:column; justify-content:center; /* align-items left at the
       default "stretch" so headline/lede/cards keep filling the column's width, same as before */
-      max-width:720px; margin:0 auto; padding:120px 6vw 80px;
+      max-width:720px; margin:0 auto; padding:24px 6vw;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
     /* True viewport centering, both axes — see /send's comment on the same
@@ -119,7 +119,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
     .receive .btn.btn-primary{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
     .receive .btn.btn-primary:hover:not(:disabled){ background:var(--accent-hi); border-color:var(--accent-hi);
-      box-shadow:0 0 24px rgba(79,217,192,.34); }
+      box-shadow:0 0 24px rgba(184,166,166,.34); }
     .receive .btn:active:not(:disabled){ transform:scale(.98); }
     .receive .btn:disabled{ opacity:.32; cursor:not-allowed; }
 
@@ -134,12 +134,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .receive .rise{ opacity:1; transform:none; transition:none; } }
 
-    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(57,48,48,0.62) !important;
+    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(61,52,52,0.62) !important;
       -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
     .send-nav .home-bottom-email,
     .send-nav .home-bottom-location,
     .send-nav .inner-nav-links a,
-    .send-nav .pulse-dot{ color:#B4A2A2 !important; }
+    .send-nav .pulse-dot{ color:#B8A6A6 !important; }
     .send-nav .home-bottom-email,
     .send-nav .inner-nav-links a{ transition:color .2s ease; }
     @media (hover:hover){
