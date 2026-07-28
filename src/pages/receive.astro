@@ -396,7 +396,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         li.querySelector('.frow-name').textContent = f.name;
         li.querySelector('.frow-size').textContent = humanSize(f.size || 0);
         const a = li.querySelector('.frow-dl');
-        a.href = f.url;
+        /* ?download=1 is Vercel Blob's own switch — it makes the store return
+           Content-Disposition: attachment. The plain `download` attribute does
+           NOT work here: it's ignored for cross-origin URLs, and the files live
+           on *.public.blob.vercel-storage.com, so the browser was navigating to
+           them instead (opening images and PDFs in a tab rather than saving).
+           The attribute stays for the filename hint on same-origin fallbacks. */
+        a.href = f.url + (f.url.indexOf('?') === -1 ? '?download=1' : '&download=1');
         a.setAttribute('download', f.name);
         a.textContent = 'Download';
         // Per-row label so a screen reader hears which file, not N x "Download".

@@ -51,8 +51,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <p class="note" id="pw-note" role="status" aria-live="polite"></p>
         </div>
         <div class="actions" id="gate-actions">
-          <button type="button" class="btn btn-primary" id="passkey-signin" hidden>Sign in with Touch ID</button>
+          <button type="button" class="btn btn-primary" id="passkey-signin" hidden>Sign in with passkey</button>
           <button type="button" class="btn btn-primary" id="pw-submit">Sign in</button>
+          {/* Only appears while ADMIN_PASSWORD_FALLBACK is on. Ghost, not a
+              second primary — recovery shouldn't compete with the normal way in. */}
+          <button type="button" class="btn btn-ghost" id="use-password" hidden>Use password instead</button>
         </div>
       </div>
     </div>
@@ -412,6 +415,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* "Never expires" is a statement of fact, not a warning — it drops back to
        the same ink as the rest of the metadata. */
     .send .srow-expiry.is-forever{ color:var(--ink-soft); }
+    /* The status line sits directly above the device list, so it needs its own
+       breathing room — .note only carries a top margin. */
+    #pk-note:not(:empty){ margin-bottom:1.1rem; }
+    #pk-empty{ margin-top:0; }
     .send .srow.is-expired{ opacity:.55; }
     .send .srow.is-expired .srow-expiry{ color:var(--err); }
     /* Filenames under each share. Clamped to two lines so a 30-file send
@@ -676,9 +683,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const modes = (r.ok && r.data) || { hasPasskeys: false, passwordAllowed: true };
       const supported = typeof window.PublicKeyCredential !== 'undefined';
 
-      $('passkey-signin').hidden = !(modes.hasPasskeys && supported);
-      $('pw-field').hidden = !modes.passwordAllowed;
-      $('pw-submit').hidden = !modes.passwordAllowed;
+      /* One primary button, never two. With a passkey registered that's the
+         only thing on offer; the password only appears if the Vercel fallback
+         is on, and then only behind an explicit "use password instead". */
+      const usePasskey = modes.hasPasskeys && supported;
+      $('passkey-signin').hidden = !usePasskey;
+      $('pw-field').hidden = usePasskey || !modes.passwordAllowed;
+      $('pw-submit').hidden = usePasskey || !modes.passwordAllowed;
+      $('use-password').hidden = !(usePasskey && modes.passwordAllowed);
 
       if (modes.hasPasskeys && !supported) {
         const note = $('pw-note');
@@ -686,6 +698,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         note.className = 'note is-error';
       }
     }
+
+    $('use-password').addEventListener('click', () => {
+      $('pw-field').hidden = false;
+      $('pw-submit').hidden = false;
+      $('use-password').hidden = true;
+      $('pw-input').focus();
+    });
 
     $('passkey-signin').addEventListener('click', async () => {
       const note = $('pw-note');
@@ -738,8 +757,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         li.querySelector('.srow-client').textContent = k.label;
         const added = k.createdAt ? new Date(k.createdAt).toLocaleDateString() : '';
         const used = k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : 'never used';
+        // "last used never used" read as a typo; drop the prefix when unused.
         li.querySelector('.srow-meta').textContent =
-          'added ' + added + ' · last used ' + used + (k.backedUp ? ' · synced' : ' · this device only');
+          'added ' + added + ' · ' + (k.lastUsedAt ? 'last used ' + used : 'never used') +
+          (k.backedUp ? ' · synced' : ' · this device only');
         li.querySelector('[data-action="pk-del"]').setAttribute('aria-label', 'Remove passkey ' + k.label);
         li.querySelector('[data-action="pk-del"]').addEventListener('click', async () => {
           const last = keys.length === 1;
@@ -752,6 +773,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
         list.appendChild(li);
       });
+
+      /* The button stays whatever happens: it enrols the device you're ON, so
+         on your phone it's the only way to add the phone. Once something is
+         registered the wording shifts to "another" so it doesn't look like it
+         didn't take the first time. */
+      $('pk-add').textContent = keys.length ? 'Add another device' : 'Add this device';
     }
 
     $('pk-add').addEventListener('click', async () => {
