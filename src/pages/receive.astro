@@ -67,14 +67,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       --accent-soft:#7FC9BC; --deep:#08201A; --line:rgba(231,245,241,0.13);
       --line-strong:rgba(231,245,241,0.28); --placeholder:#6E8C85;
       --ok:#7EE2A8; --err:#FF9E90;
-      max-width:720px; margin:0 auto; padding:190px 6vw 22vh;
+      min-height:100vh; min-height:100dvh;
+      display:flex; flex-direction:column; justify-content:center; /* align-items left at the
+      default "stretch" so headline/lede/cards keep filling the column's width, same as before */
+      max-width:720px; margin:0 auto; padding:120px 6vw 80px;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
-    @media (max-width:720px){ .receive{ padding-top:100px; } }
-    /* Stays centered at every width instead of shifting left on desktop like
-       /tools and /brief — this is a card/form layout, not an editorial one.
-       padding-top:190px still matches the shared header height used on
-       /projects, /studio, etc. */
+    /* True viewport centering, both axes — see /send's comment on the same
+       rule for why this replaces the padding-top:190px convention. */
     .receive .mono{ font-family:'Diatype Mono', monospace; }
     .receive label.q{ display:block !important; }
 

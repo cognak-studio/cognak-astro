@@ -1043,17 +1043,15 @@ html.home-scrolled #cognak-cookie {
 .footer-bottom {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: baseline;
 }
-/* Left-aligned stack on desktop: the Privacy/Colophon/Tools row on top,
-   copyright directly underneath it (2026-07-28, Pierce: "left align all that
-   stuff, with copyright underneath privacy policy"). Mobile overrides this
-   again via display:contents — see .footer-legal below. */
+/* Copyright text + the Privacy/Colophon/Tools link row, side by side on one
+   line on desktop (reverted 2026-07-28 — the stacked/left-aligned version
+   was mobile-only; see .footer-legal below for the mobile grid). */
 .footer-copy {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    align-items: baseline;
+    gap: 20px;
 }
 .footer-copy-text {
     font-family: 'Diatype Variable', sans-serif;
