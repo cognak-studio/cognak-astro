@@ -19,7 +19,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="Internal client-delivery tool."
   ogUrl="https://cognak.com/send/"
   noindex={true}
-  pageBg="#1D2524"
+  pageBg="#090C0B"
 >
   <div class="send-webgl" data-us-project="PWb8s0lxglpnSGUgkkIR" aria-hidden="true"></div>
 
@@ -156,7 +156,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#1D2524 !important; }
+    html, body { background-color:#090C0B !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
     /* WebGL background (UnicornStudio, project PWb8s0lxglpnSGUgkkIR) — fixed
@@ -183,12 +183,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        The card and nav dropped to #0E1413 once the WebGL scene went in — at
        #171E1D they read as grey panels floating on a near-black field.
 
+       --bg is #090C0B rather than the teal it started as, matched to the
+       scene's own near-black. The scene is fixed behind the content and fades
+       in over 1.6s, so --bg is what's on screen until it mounts (and forever
+       under prefers-reduced-motion, where it never mounts at all) — a lighter
+       page colour meant a visible wash-to-dark on every load. The cards now
+       sit just ABOVE the page rather than below it, which is the inverse of
+       the earlier arrangement but keeps them legible against the scene.
+
        Contrast, measured against the card: ink 14.42, ink-soft/accent 11.61,
        placeholder 6.34, CTA label 15.62, accent-soft (the headline's blue)
        9.90, line-strong 4.62. Everything clears WCAG AA with room — the sage
        pass was scraping by at 3.02 on line-strong and 4.61 on ink-soft. */
     .send {
-      --bg:#1D2524;
+      --bg:#090C0B;
       --card:#0E1413; --field:rgba(0,0,0,0.28); --field-focus:rgba(0,0,0,0.40);
       --ink:#D5E6E4; --ink-soft:#BED0CD; --accent:#BED0CD; --accent-hi:#D5E6E4;
       --accent-soft:#8FC2F2; --deep:#151B1A; --line:rgba(213,230,228,0.18);
