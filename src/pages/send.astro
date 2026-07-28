@@ -32,30 +32,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p class="lede send-lede">Add details, drop files, and set a passcode. Your client gets a cognak.com link so nothing leaves this domain.</p>
 
     <!-- ------------------------------------------------------- sign in --- -->
+    {/* Passkey-only, deliberately. This used to also carry a password field +
+        "Sign in" button + "Use password instead" fallback, shown or hidden by
+        JS depending on server state (initGate()). That never actually worked:
+        .btn{display:inline-flex} outranks the browser's own [hidden]{display:
+        none} default (author CSS beats the UA sheet regardless of selector
+        specificity), so every hidden=true the JS set on those buttons was
+        overridden and all three showed at once — including on first paint,
+        before initGate()'s fetch even resolved. Pierce already has a passkey
+        enrolled, so rather than patch the toggle logic, the password path is
+        gone from this screen entirely: nothing to flash, nothing to show
+        conditionally. The admin-login/password endpoints are untouched
+        server-side; this is a display-only change. */}
     <div class="acard rise" id="gate">
       <div class="group">
         <div class="group-title">Sign in</div>
-        <div class="field" id="pw-field">
-          {/* A hidden username field is what makes 1Password / iCloud Keychain /
-              Chrome reliably OFFER to save and then autofill this. Managers key
-              a credential on (origin, username); with a lone password input
-              they often save nothing, or save it unlabelled and never fill it.
-              The value is fixed because there is only one admin. */}
-          <input type="text" name="username" value="cognak-admin" autocomplete="username"
-                 readonly hidden aria-hidden="true" tabindex="-1" />
-          <label class="q" for="pw-input">
-            <span class="q-title">Admin password</span>
-          </label>
-          <input class="txt" id="pw-input" name="password" type="password"
-                 autocomplete="current-password" />
-          <p class="note" id="pw-note" role="status" aria-live="polite"></p>
-        </div>
+        <p class="note" id="pw-note" role="status" aria-live="polite"></p>
         <div class="actions" id="gate-actions">
-          <button type="button" class="btn btn-primary" id="passkey-signin" hidden>Sign in with passkey</button>
-          <button type="button" class="btn btn-primary" id="pw-submit">Sign in</button>
-          {/* Only appears while ADMIN_PASSWORD_FALLBACK is on. Ghost, not a
-              second primary — recovery shouldn't compete with the normal way in. */}
-          <button type="button" class="btn btn-ghost" id="use-password" hidden>Use password instead</button>
+          <button type="button" class="btn btn-primary" id="passkey-signin">Sign in with passkey</button>
         </div>
       </div>
     </div>
@@ -431,6 +425,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .srow-actions{ display:flex; gap:8px; flex:0 0 auto; }
 
     /* -------------------------------------------------------------- buttons --- */
+    /* The browser's own [hidden]{display:none} default is UA-origin, so any
+       author rule that sets display on the same element beats it regardless
+       of selector specificity — .btn{display:inline-flex} below was silently
+       cancelling every button's hidden attribute. This restores hidden as the
+       hard override it's supposed to be, for buttons and anything else. */
+    .send [hidden]{ display:none !important; }
     .send .actions{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:1.6rem; }
     .send .signout-row{ justify-content:flex-end; margin-top:0; }
     .send .btn{ font-family:inherit; font-size:.94rem; font-weight:500; cursor:pointer;
@@ -631,21 +631,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return false;
     }
 
-    $('pw-submit').addEventListener('click', async () => {
-      const note = $('pw-note');
-      note.textContent = '';
-      note.className = 'note';
-      const r = await api('/api/admin-login', { method: 'POST', body: { password: $('pw-input').value } });
-      if (!r.ok) {
-        note.textContent = (r.data && r.data.error) || 'Could not sign in.';
-        note.className = 'note is-error';
-        return;
-      }
-      $('pw-input').value = '';
-      await checkAuth();
-    });
-    $('pw-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pw-submit').click(); });
-
     async function signOut(reason) {
       clearTimeout(idleTimer);
       await api('/api/admin-logout', { method: 'POST' });
@@ -675,36 +660,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return _webauthn;
     }
 
-    /* Ask the server which sign-in methods it will actually accept, rather than
-       assuming. Once a passkey is enrolled the password endpoint refuses, so
-       showing a password box would just be an invitation to fail. */
+    /* Passkey-only gate: the one thing worth checking client-side is whether
+       this browser can even do WebAuthn, so an unsupported browser gets a
+       plain-English note instead of a button that just fails silently. */
     async function initGate() {
-      const r = await api('/api/admin-login');
-      const modes = (r.ok && r.data) || { hasPasskeys: false, passwordAllowed: true };
+      const note = $('pw-note');
       const supported = typeof window.PublicKeyCredential !== 'undefined';
-
-      /* One primary button, never two. With a passkey registered that's the
-         only thing on offer; the password only appears if the Vercel fallback
-         is on, and then only behind an explicit "use password instead". */
-      const usePasskey = modes.hasPasskeys && supported;
-      $('passkey-signin').hidden = !usePasskey;
-      $('pw-field').hidden = usePasskey || !modes.passwordAllowed;
-      $('pw-submit').hidden = usePasskey || !modes.passwordAllowed;
-      $('use-password').hidden = !(usePasskey && modes.passwordAllowed);
-
-      if (modes.hasPasskeys && !supported) {
-        const note = $('pw-note');
+      if (!supported) {
         note.textContent = 'This browser cannot use passkeys. Open /send in Safari or Chrome.';
         note.className = 'note is-error';
+      } else {
+        note.textContent = '';
+        note.className = 'note';
       }
     }
-
-    $('use-password').addEventListener('click', () => {
-      $('pw-field').hidden = false;
-      $('pw-submit').hidden = false;
-      $('use-password').hidden = true;
-      $('pw-input').focus();
-    });
 
     $('passkey-signin').addEventListener('click', async () => {
       const note = $('pw-note');

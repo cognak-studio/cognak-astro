@@ -56,17 +56,20 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No files to deliver.' });
   }
 
-  /* Link lifetime, chosen on /send. 0 (or anything unrecognised) means the
-     link never expires, which is the pre-expiry behaviour every share written
-     before 2026-07-28 has — those manifests simply have no expiresAt, and
-     deliver-get treats a missing value as "no expiry" rather than "expired".
-     Clamped so a hand-crafted request can't set an absurd horizon. */
-  const ALLOWED_DAYS = [0, 7, 30, 365]; // never / 1wk / 1mo / 1yr
+  /* Link lifetime, chosen on /send. Only 7/30/90 are offered there now — the
+     "1 year" and "Never" pills were removed 2026-07-28 specifically so a
+     share can't dodge deliver-sweep.js indefinitely (a null expiresAt is the
+     one thing the sweep will never touch). Anything else reaching this
+     endpoint — a stale cached page, a hand-crafted request — falls back to
+     the SHORTEST option rather than "never": a silently short-lived link is
+     a far smaller failure than a silently permanent one. Manifests written
+     before 2026-07-28 still have no expiresAt at all and are unaffected —
+     deliver-get and deliver-sweep both still treat a missing expiresAt as
+     "no expiry", unchanged. */
+  const ALLOWED_DAYS = [7, 30, 90]; // 1wk / 1mo / 3mo
   const requestedDays = Number(data.expiresInDays);
-  const days = ALLOWED_DAYS.includes(requestedDays) ? requestedDays : 0;
-  const expiresAt = days > 0
-    ? new Date(Date.now() + days * 86400000).toISOString()
-    : null;
+  const days = ALLOWED_DAYS.includes(requestedDays) ? requestedDays : 7;
+  const expiresAt = new Date(Date.now() + days * 86400000).toISOString();
 
   const manifest = {
     token,
