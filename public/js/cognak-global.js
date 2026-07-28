@@ -541,6 +541,15 @@
         '#step-pick .lede',
         '.tools-headline',
         '.tools-lede',
+        /* /send + /receive. These two were the odd case: both pages set
+           `html.js .send-headline{opacity:0}` (so the unsplit line never
+           flashes before the splitter runs) but were never added here, so
+           nothing ever set opacity back to 1 — the headline and lede were
+           invisible on every JS-enabled visit. Fixed 2026-07-28. */
+        '.send-headline',
+        '.send-lede',
+        '.receive-headline',
+        '.receive-lede',
     ];
 
     function splitWords(el) {

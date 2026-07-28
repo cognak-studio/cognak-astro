@@ -21,7 +21,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   noindex={true}
   pageBg="#1D2524"
 >
-  <canvas id="send-transit" aria-hidden="true"></canvas>
+  <div class="send-webgl" data-us-project="PWb8s0lxglpnSGUgkkIR" aria-hidden="true"></div>
 
   <main id="cognak-main"><section class="send">
 
@@ -145,14 +145,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     html, body { background-color:#1D2524 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
-    /* "Transit" background — see src/lib/send-background.js. Fixed behind
-       #cognak-main, faded in once the first frame has painted so there's no
-       pop. Under reduced motion the script never starts, so this would just
-       sit empty; hidden outright instead. */
-    #send-transit{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
-      pointer-events:none; opacity:0; transition:opacity 1.4s ease; }
-    #send-transit.is-in{ opacity:1; }
-    @media (prefers-reduced-motion:reduce){ #send-transit{ display:none; } }
+    /* WebGL background (UnicornStudio, project PWb8s0lxglpnSGUgkkIR) — fixed
+       behind #cognak-main, fades in once the canvas mounts. Same setup as
+       /brief and /studio; skipped entirely on reduced-motion. Replaced the
+       hand-drawn "transit" canvas (src/lib/send-background.js) on 2026-07-28. */
+    .send-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
+      pointer-events:none; opacity:0; transition:opacity 1.6s ease; }
+    .send-webgl.webgl-ready{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){ .send-webgl{ display:none; } }
 
     /* Dark teal colorway (6th revision, 2026-07-28), picked by Pierce off the
        colorway comparator and replacing the deep sage. Same light-on-dark
@@ -366,8 +366,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </style>
 
   <script>
-    import { initTransit } from '../lib/send-background.js';
-    initTransit(document.getElementById('send-transit'));
 
     const $ = (id) => document.getElementById(id);
     function humanSize(b) {
@@ -702,5 +700,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     requestAnimationFrame(() => {
       document.querySelectorAll('.send .rise').forEach((el) => el.classList.add('in'));
     });
+  </script>
+
+  <script is:inline>
+    /* Fade the WebGL background in once UnicornStudio mounts its canvas (with a
+       timed fallback), matching /brief and the site's hero fade. */
+    (function(){
+      var el=document.querySelector('.send-webgl');
+      if(!el) return;
+      if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      function ready(){ el.classList.add('webgl-ready'); }
+      if('MutationObserver' in window){
+        var mo=new MutationObserver(function(){ if(el.querySelector('canvas')){ ready(); mo.disconnect(); } });
+        mo.observe(el,{childList:true,subtree:true});
+        setTimeout(function(){ ready(); mo.disconnect(); }, 4000);
+      } else {
+        setTimeout(ready, 1200);
+      }
+    })();
   </script>
 </BaseLayout>

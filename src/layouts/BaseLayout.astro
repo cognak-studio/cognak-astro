@@ -433,7 +433,7 @@ import '../styles/site.css';
 
   {/* UnicornStudio: the init script lazy-loads the WebGL library itself
       (on idle, once the hero is near the viewport) — see cognak-unicorn-init.js. */}
-  {(page === 'home' || page === 'studio' || page === 'brief') && (
+  {(page === 'home' || page === 'studio' || page === 'brief' || page === 'send' || page === 'receive') && (
     <script src={`/js/cognak-unicorn-init.js?v=${jsV}`} defer></script>
   )}
   {page === 'home' && <script src={`/js/cognak-home.js?v=${jsV}`} defer></script>}

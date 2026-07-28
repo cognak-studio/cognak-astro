@@ -1,4 +1,4 @@
-/* UnicornStudio lazy-init (home + studio).
+/* UnicornStudio lazy-init (home, studio, brief, send, receive).
    The WebGL library is heavy, so instead of loading it eagerly we defer it:
    - skipped entirely under prefers-reduced-motion,
    - the CDN script is injected only once a [data-us-project] hero is near the
