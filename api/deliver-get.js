@@ -1,13 +1,11 @@
 /**
  * POST /api/deliver-get — Vercel serverless function.
  *
- * Public (no admin session needed) but passcode-gated: the client-facing
- * /deliver page — served at cognak.com/d/<token> via a vercel.json rewrite —
- * calls this with { token, passcode } and gets the file list back once the
- * passcode matches the share's manifest.
+ * Public, no passcode required. The client-facing /receive page posts
+ * { token } and gets the file list back. No admin session needed — this
+ * is the link COGNAK sends a client; the token alone is the credential.
  */
 import { list } from '@vercel/blob';
-import { passcodeMatches } from './_lib/adminAuth.mjs';
 
 const TOKEN_RE = /^[a-zA-Z0-9]{6,32}$/;
 
@@ -22,7 +20,6 @@ export default async function handler(req, res) {
     try { data = JSON.parse(data); } catch (e) { data = null; }
   }
   const token = String((data && data.token) || '');
-  const passcode = String((data && data.passcode) || '');
   if (!TOKEN_RE.test(token)) {
     return res.status(404).json({ error: 'This link is not valid.' });
   }
@@ -39,15 +36,6 @@ export default async function handler(req, res) {
        (every share written before expiry existed) never expires. */
     if (manifest.expiresAt && Date.parse(manifest.expiresAt) <= Date.now()) {
       return res.status(410).json({ error: 'This link has expired.', expired: true });
-    }
-
-    if (!passcode) {
-      // Lets the page tell "ask for a passcode" apart from "wrong passcode".
-      return res.status(401).json({ error: 'Passcode required.', needsPasscode: true });
-    }
-    if (!passcodeMatches(passcode, manifest.passcodeHash)) {
-      await new Promise((r) => setTimeout(r, 400));
-      return res.status(401).json({ error: 'Wrong passcode.' });
     }
 
     return res.status(200).json({

@@ -5,11 +5,10 @@
  * URL stays clean); also readable directly as /receive?t=<token> for local
  * testing, since Vercel-only rewrites don't apply under `astro dev`.
  *
- * Passcode-gated: posts { token, passcode } to /api/deliver-get.js, which
- * checks the share's manifest (deliveries/<token>/manifest.json in Vercel
- * Blob) and returns the file list once the passcode matches. No admin
- * session is needed here — this is the link COGNAK sends a client instead
- * of a Hightail link.
+ * Passcode-free: posts { token } to /api/deliver-get.js, which reads the
+ * share manifest from Vercel Blob and returns the file list. No passcode or
+ * admin session needed — the token itself is the credential. This is the
+ * link COGNAK sends a client instead of a Hightail link.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
@@ -26,22 +25,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <main id="cognak-main"><section class="receive">
 
     <h1 class="headline receive-headline"><em>Files</em> from COGNAK.</h1>
-    <p class="lede receive-lede" id="receive-lede">Enter the passcode you were sent to view and download.</p>
-
-    <div class="dcard rise" id="gate">
-      <div class="group">
-        <div class="field">
-          <label class="q" for="passcode-input">
-            <span class="q-title">Passcode</span>
-          </label>
-          <input class="txt mono" id="passcode-input" type="text" autocomplete="off" spellcheck="false" />
-          <p class="note" id="gate-note" role="status" aria-live="polite"></p>
-        </div>
-      </div>
-      <div class="actions">
-        <button type="button" class="btn btn-primary" id="unlock-btn">Unlock</button>
-      </div>
-    </div>
+    <p class="lede receive-lede" id="receive-lede">Loading your files…</p>
 
     <div class="dcard rise" id="invalid" hidden>
       <p class="note is-error" id="invalid-note" role="alert">This link isn't complete. Check the URL your recipient sent you.</p>
@@ -335,19 +319,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     const token = getToken();
 
-    async function unlock(passcode) {
-      const res = await fetch('/api/deliver-get', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, passcode }),
-      });
-      let data = null;
-      try { data = await res.json(); } catch (e) { /* no body */ }
-      return { ok: res.ok, data };
+    /* Show a card that starts hidden — removes any stale .in from the initial
+       rAF pass, then triggers the rise animation once the element is visible. */
+    function showCard(card) {
+      card.hidden = false;
+      card.classList.remove('in');
+      requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add('in')));
+      syncScroll();
+      setTimeout(syncScroll, 700);
     }
 
     function renderFiles(payload) {
-      swapStep($('gate'), $('files-card'));
+      showCard($('files-card'));
       $('receive-lede').textContent = payload.client ? 'From COGNAK, for ' + payload.client + '.' : 'Ready to download.';
       // The project name headlines the file list when there is one — it's the
       // label the client actually recognises. Falls back to plain "Files".
@@ -480,42 +463,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
     }
 
-    if (!token) {
-      swapStep($('gate'), $('invalid'));
-    } else {
-      $('unlock-btn').addEventListener('click', async () => {
-        const note = $('gate-note');
-        const input = $('passcode-input');
-        const passcode = input.value.trim();
-        input.removeAttribute('aria-invalid');
-        if (!passcode) {
-          note.textContent = 'Enter the passcode you were sent.';
-          note.className = 'note is-error';
-          return;
-        }
-        $('unlock-btn').disabled = true;
-        const r = await unlock(passcode);
-        $('unlock-btn').disabled = false;
-        if (r.ok && r.data && r.data.ok) {
-          renderFiles(r.data);
-          return;
-        }
-        /* An expired link is a dead end, not a retry — swapping to the same
-           panel /receive uses for a malformed URL stops the client hammering
-           a passcode that will never work. deliver-get returns 410 + expired
-           BEFORE it checks the passcode, so this fires either way. */
-        if (r.data && r.data.expired) {
-          $('invalid-note').textContent =
-            'This link has expired. Ask COGNAK to send a new one.';
-          swapStep($('gate'), $('invalid'));
-          return;
-        }
-        input.classList.add('is-error');
-        input.setAttribute('aria-invalid', 'true');
-        note.textContent = (r.data && r.data.error) || 'Something went wrong. Please retry.';
-        note.className = 'note is-error';
+    async function loadFiles() {
+      const res = await fetch('/api/deliver-get', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
       });
-      $('passcode-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('unlock-btn').click(); });
+      let data = null;
+      try { data = await res.json(); } catch (e) {}
+      if (res.ok && data && data.ok) {
+        renderFiles(data);
+        return;
+      }
+      if (data && data.expired) {
+        $('invalid-note').textContent = 'This link has expired. Ask COGNAK to send a new one.';
+        showCard($('invalid'));
+        return;
+      }
+      $('receive-lede').textContent = (data && data.error) || 'Could not load files. Please try again.';
+    }
+
+    if (!token) {
+      showCard($('invalid'));
+    } else {
+      loadFiles();
     }
 
     requestAnimationFrame(() => {
