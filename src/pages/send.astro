@@ -602,9 +602,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* At-least-one-file-opened indicator (Pierce, 2026-07-29) — same --ok
        green already used for .note.is-ok, so it reads as "good/normal"
        rather than introducing a new colour meaning. Small and quiet by
-       design: it's a passive status you glance at, not an alert. */
+       design: it's a passive status you glance at, not an alert. Pulses on
+       the same 2s ease-in-out breathing curve as the homepage's .pulse-dot
+       (custom.css) — Pierce: "like the way accept dot hovers on homepage,
+       but green." Kept as its own local keyframe rather than reusing
+       .pulse-dot's by name: same timing/curve on purpose, but no cross-file
+       coupling to a class this page doesn't otherwise touch. */
     .send .srow-dl-dot{ width:8px; height:8px; border-radius:999px; flex:0 0 auto;
-      background:var(--ok); box-shadow:0 0 6px rgba(143,231,180,.55); }
+      background:var(--ok); box-shadow:0 0 6px rgba(143,231,180,.55);
+      animation:srow-dl-pulse 2s ease-in-out infinite; }
+    @keyframes srow-dl-pulse{ 0%, 100%{ opacity:.6; } 50%{ opacity:.15; } }
+    @media (prefers-reduced-motion:reduce){
+      .send .srow-dl-dot{ animation:none; } }
     /* Mono at this size sets tight — 1.75 gives the two metadata lines room to
        breathe against each other and against the name above. */
     .send .srow-meta{ font-size:.74rem; line-height:1.75; color:var(--ink-soft);
