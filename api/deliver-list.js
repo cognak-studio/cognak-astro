@@ -39,6 +39,10 @@ export default async function handler(req, res) {
             // so one enormous send can't bloat the response.
             fileNames: (m.files || []).slice(0, 40).map((f) => String(f.name || '')),
             totalSize,
+            // Set once, on the client's first download click (see
+            // api/deliver-track-download.js) — /send uses this to show a
+            // "has this client opened anything yet" dot per share.
+            downloadedAt: m.downloadedAt || null,
           };
         } catch (e) {
           return null;

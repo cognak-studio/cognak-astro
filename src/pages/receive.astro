@@ -418,6 +418,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           a.classList.add('is-done');
           a.textContent = 'Downloaded';
           a.setAttribute('aria-label', 'Download ' + f.name + ' again');
+          /* Separate from the row state above, and NOT the same tradeoff:
+             this is a one-way, one-bit signal ("has anything in this share
+             ever been opened") that Pierce's /send dashboard shows as a
+             dot per client, so it's worth persisting server-side even
+             though the per-file row highlight above isn't. Fire-and-forget
+             — never blocks or affects the download itself, and a failure
+             here is invisible to the person downloading. keepalive so it
+             still lands if this click is the last thing the tab does
+             before the browser hands off to save the file. */
+          try {
+            fetch('/api/deliver-track-download', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token }),
+              keepalive: true,
+            }).catch(() => {});
+          } catch (e) {}
         });
         list.appendChild(li);
       });

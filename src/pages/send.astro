@@ -597,7 +597,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        so it gets air beneath it; the mono metadata sits a step down in size,
        and expiry takes its own line at that same size rather than wrapping the
        stats line mid-phrase ("expires in / 7 days" was breaking across lines). */
-    .send .srow-client{ font-weight:500; font-size:1rem; color:var(--ink); margin-bottom:.55rem; }
+    .send .srow-client{ font-weight:500; font-size:1rem; color:var(--ink); margin-bottom:.55rem;
+      display:flex; align-items:center; gap:.5rem; }
+    /* At-least-one-file-opened indicator (Pierce, 2026-07-29) — same --ok
+       green already used for .note.is-ok, so it reads as "good/normal"
+       rather than introducing a new colour meaning. Small and quiet by
+       design: it's a passive status you glance at, not an alert. */
+    .send .srow-dl-dot{ width:8px; height:8px; border-radius:999px; flex:0 0 auto;
+      background:var(--ok); box-shadow:0 0 6px rgba(143,231,180,.55); }
     /* Mono at this size sets tight — 1.75 gives the two metadata lines room to
        breathe against each other and against the name above. */
     .send .srow-meta{ font-size:.74rem; line-height:1.75; color:var(--ink-soft);
@@ -1332,7 +1339,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             })
           : '';
         li.innerHTML =
-          '<div class="srow-main"><div class="srow-client"></div>' +
+          '<div class="srow-main"><div class="srow-client">' +
+          '<span class="srow-dl-dot" aria-hidden="true" hidden></span>' +
+          '<span class="srow-client-name"></span></div>' +
           '<div class="srow-meta"></div><div class="srow-expiry"></div>' +
           '<div class="srow-files"></div></div>' +
           '<div class="srow-actions">' +
@@ -1341,8 +1350,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           '</div>';
         const clientName = s.client || 'Client';
         // "Client — Project" on one line, so the list scans as one column.
-        li.querySelector('.srow-client').textContent =
+        li.querySelector('.srow-client-name').textContent =
           s.project ? clientName + ' — ' + s.project : clientName;
+        /* Green dot: has this client opened at least one file yet? Set
+           server-side on the manifest the first time a /receive download
+           link is clicked (api/deliver-track-download.js) — Pierce,
+           2026-07-29. Title carries the "when" so it's not just a mystery
+           dot; the dot itself stays a quiet yes/no. */
+        const dlDot = li.querySelector('.srow-dl-dot');
+        dlDot.hidden = !s.downloadedAt;
+        if (s.downloadedAt) {
+          dlDot.title = 'Downloaded ' + new Date(s.downloadedAt).toLocaleString(undefined, {
+            month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+          });
+        }
         const rowLabel = s.project ? clientName + ', ' + s.project : clientName;
         li.querySelector('[data-action="copy"]').setAttribute('aria-label', 'Copy link for ' + rowLabel);
         li.querySelector('[data-action="delete"]').setAttribute('aria-label', 'Delete share for ' + rowLabel);
