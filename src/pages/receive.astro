@@ -186,8 +186,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        which point it takes the error colour. */
     .receive .expiry-note{ margin:1.2rem 0 0; font-size:.8rem; line-height:1.75;
       color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
-    /* Download All — shown below the list when there are more than 3 files */
+    /* Download All — shown above AND below the list when there are 3+ files.
+       Bottom keeps its original divider (border-top, space above); top mirrors
+       it with the divider on the other edge so the button reads as sitting
+       just above the list rather than crowding the group-title above it. */
     .receive .dl-all-wrap{ margin-top:1.4rem; padding-top:1.2rem; border-top:1px solid var(--line); }
+    .receive .dl-all-wrap.dl-all-top{ margin-top:0; padding-top:0; border-top:none;
+      margin-bottom:1.4rem; padding-bottom:1.2rem; border-bottom:1px solid var(--line); }
     .receive .btn-dl-all{ width:100%; justify-content:center; }
     /* Only the deadline itself takes the warn colour — the instruction around
        it stays in normal ink, so the eye lands on the bit that runs out. */
@@ -425,21 +430,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         list.appendChild(li);
       });
 
-      // Download All — only shown when there are more than 3 files.
+      // Download All — shown above the list (right under the title) AND below
+      // it (after the expiry note) once there are 3+ files. Both buttons drive
+      // the same download run and stay in lockstep: clicking either disables
+      // BOTH and flips BOTH to "Downloading…", so there's never a stale button
+      // still inviting a second click mid-run.
       const group = $('files-card').querySelector('.group');
-      const existingWrap = group.querySelector('.dl-all-wrap');
-      if (existingWrap) existingWrap.remove();
+      group.querySelectorAll('.dl-all-wrap').forEach((el) => el.remove());
 
       if ((payload.files || []).length >= 3) {
-        const wrap = document.createElement('div');
-        wrap.className = 'dl-all-wrap';
-        const dlBtn = document.createElement('button');
-        dlBtn.className = 'btn btn-dl-all';
-        dlBtn.textContent = 'Download all';
-        dlBtn.addEventListener('click', () => {
-          const files = payload.files || [];
-          dlBtn.disabled = true;
-          dlBtn.textContent = 'Downloading…';
+        const files = payload.files || [];
+        const dlButtons = [];
+
+        function setDlAllState(disabled, label) {
+          dlButtons.forEach((b) => { b.disabled = disabled; b.textContent = label; });
+        }
+
+        function runDownloadAll() {
+          setDlAllState(true, 'Downloading…');
           files.forEach((f, i) => {
             setTimeout(() => {
               const a = document.createElement('a');
@@ -450,16 +458,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
               a.click();
               setTimeout(() => document.body.removeChild(a), 1000);
               if (i === files.length - 1) {
-                setTimeout(() => {
-                  dlBtn.disabled = false;
-                  dlBtn.textContent = 'Download all';
-                }, 800);
+                setTimeout(() => setDlAllState(false, 'Download all'), 800);
               }
             }, i * 300);
           });
-        });
-        wrap.appendChild(dlBtn);
-        group.appendChild(wrap);
+        }
+
+        function makeDlAllWrap(variant) {
+          const wrap = document.createElement('div');
+          wrap.className = 'dl-all-wrap' + (variant ? ' dl-all-' + variant : '');
+          const dlBtn = document.createElement('button');
+          dlBtn.type = 'button';
+          dlBtn.className = 'btn btn-dl-all';
+          dlBtn.textContent = 'Download all';
+          dlBtn.addEventListener('click', runDownloadAll);
+          dlButtons.push(dlBtn);
+          wrap.appendChild(dlBtn);
+          return wrap;
+        }
+
+        // Top: right after the group title, before the file list itself.
+        $('files-title').insertAdjacentElement('afterend', makeDlAllWrap('top'));
+        // Bottom: same spot as before — after the list and expiry note.
+        group.appendChild(makeDlAllWrap());
       }
     }
 
