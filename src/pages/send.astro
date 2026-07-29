@@ -599,21 +599,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        stats line mid-phrase ("expires in / 7 days" was breaking across lines). */
     .send .srow-client{ font-weight:500; font-size:1rem; color:var(--ink); margin-bottom:.55rem;
       display:flex; align-items:center; gap:.5rem; }
-    /* At-least-one-file-opened indicator (Pierce, 2026-07-29) — same --ok
-       green already used for .note.is-ok, so it reads as "good/normal"
-       rather than introducing a new colour meaning. Small and quiet by
-       design: it's a passive status you glance at, not an alert. Pulses on
-       the same 2s ease-in-out breathing curve as the homepage's .pulse-dot
-       (custom.css) — Pierce: "like the way accept dot hovers on homepage,
-       but green." Kept as its own local keyframe rather than reusing
-       .pulse-dot's by name: same timing/curve on purpose, but no cross-file
-       coupling to a class this page doesn't otherwise touch. */
-    .send .srow-dl-dot{ width:8px; height:8px; border-radius:999px; flex:0 0 auto;
-      background:var(--ok); box-shadow:0 0 6px rgba(143,231,180,.55);
-      animation:srow-dl-pulse 2s ease-in-out infinite; }
-    @keyframes srow-dl-pulse{ 0%, 100%{ opacity:.6; } 50%{ opacity:.15; } }
+    /* At-least-one-file-opened indicator (Pierce, 2026-07-29). Third pass:
+       kept the --ok green from the avail-dot-style attempt, but swapped the
+       dot/ring for an actual download glyph in a small circle — reads as
+       "downloaded" on its own rather than needing the title tooltip to
+       explain a bare dot. Motion is back to a light/dark opacity breathe
+       (Pierce: "can get lighter and darker pulse too") rather than the
+       expanding ring, applied to the whole badge so the circle and glyph
+       fade together as one unit. */
+    .send .srow-dl-badge{ display:inline-flex; align-items:center; justify-content:center;
+      width:16px; height:16px; border-radius:50%; flex-shrink:0; color:var(--ok);
+      background:rgba(143,231,180,.16); border:1px solid rgba(143,231,180,.55);
+      animation:srow-dl-pulse 2.2s ease-in-out infinite; }
+    .send .srow-dl-badge svg{ display:block; }
+    @keyframes srow-dl-pulse{ 0%, 100%{ opacity:1; } 50%{ opacity:.5; } }
     @media (prefers-reduced-motion:reduce){
-      .send .srow-dl-dot{ animation:none; } }
+      .send .srow-dl-badge{ animation:none; } }
     /* Mono at this size sets tight — 1.75 gives the two metadata lines room to
        breathe against each other and against the name above. */
     .send .srow-meta{ font-size:.74rem; line-height:1.75; color:var(--ink-soft);
@@ -1349,7 +1350,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           : '';
         li.innerHTML =
           '<div class="srow-main"><div class="srow-client">' +
-          '<span class="srow-dl-dot" aria-hidden="true" hidden></span>' +
+          '<span class="srow-dl-badge" aria-hidden="true" hidden>' +
+          '<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" ' +
+          'stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+          '<path d="M12 3v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M5 20h14"/>' +
+          '</svg></span>' +
           '<span class="srow-client-name"></span></div>' +
           '<div class="srow-meta"></div><div class="srow-expiry"></div>' +
           '<div class="srow-files"></div></div>' +
@@ -1361,15 +1366,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // "Client — Project" on one line, so the list scans as one column.
         li.querySelector('.srow-client-name').textContent =
           s.project ? clientName + ' — ' + s.project : clientName;
-        /* Green dot: has this client opened at least one file yet? Set
+        /* Download badge: has this client opened at least one file yet? Set
            server-side on the manifest the first time a /receive download
            link is clicked (api/deliver-track-download.js) — Pierce,
            2026-07-29. Title carries the "when" so it's not just a mystery
-           dot; the dot itself stays a quiet yes/no. */
-        const dlDot = li.querySelector('.srow-dl-dot');
-        dlDot.hidden = !s.downloadedAt;
+           icon; the badge itself stays a quiet yes/no. */
+        const dlBadge = li.querySelector('.srow-dl-badge');
+        dlBadge.hidden = !s.downloadedAt;
         if (s.downloadedAt) {
-          dlDot.title = 'Downloaded ' + new Date(s.downloadedAt).toLocaleString(undefined, {
+          dlBadge.title = 'Downloaded ' + new Date(s.downloadedAt).toLocaleString(undefined, {
             month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
           });
         }
