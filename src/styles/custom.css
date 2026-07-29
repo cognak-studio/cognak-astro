@@ -646,6 +646,16 @@ body.non-fixed-nav::after {
        backdrop-filter actually paints over the hero/WebGL ancestors —
        same fix the inner-page nav uses. Without it the blur silently drops. */
     will-change: transform;
+    /* viewport-fit=cover: bar sits at top:0 (physical top), so push content
+       below the status bar / notch / Dynamic Island. */
+    padding-top: env(safe-area-inset-top, 0px);
+}
+/* viewport-fit=cover: when the bar is at the physical bottom (hero phase,
+   before hero scrolls away) it can slide under the home indicator. Extend
+   its bottom padding by the home-indicator safe area so the logo/nav links
+   sit above it. Does NOT apply once nav-mode kicks in (bar flips to top). */
+.home-bottom-bar:not(.nav-mode):not(.inner-page-nav) {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 .home-bottom-logo img {
@@ -976,6 +986,10 @@ html.home-scrolled #cognak-cookie {
 .main-footer {
     background: #f1eff4;
     padding: 34px 70px 24px;
+    /* Extend into the iOS safe area (home indicator zone) so the footer's pink
+       background fills that strip instead of the dark html canvas showing through.
+       Requires viewport-fit=cover in the viewport meta tag. */
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     position: relative;
     z-index: 51;
     /* Own compositing layer so it can't inherit a stale painted tile from the
@@ -2512,6 +2526,9 @@ html.pv-grid .projects-list,
     /* will-change creates own compositor layer (isolates backdrop-filter) without being
        a named view-transition participant — prevents white ghost bar on homepage nav */
     will-change: transform;
+    /* viewport-fit=cover: bar is at top:0 (physical top). Push its content
+       below the status bar / notch / Dynamic Island. */
+    padding-top: env(safe-area-inset-top, 0px);
 }
 .home-bottom-bar.inner-page-nav img:not(.emoji) {
     filter: invert(1);
