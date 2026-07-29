@@ -647,8 +647,17 @@ body.non-fixed-nav::after {
        same fix the inner-page nav uses. Without it the blur silently drops. */
     will-change: transform;
     /* viewport-fit=cover: bar sits at top:0 (physical top), so push content
-       below the status bar / notch / Dynamic Island. */
-    padding-top: env(safe-area-inset-top, 0px);
+       below the status bar / notch / Dynamic Island. Additive with calc() —
+       a bare `env(...)` here REPLACES the base rule's 24px padding-top
+       instead of extending it, which evaluates to a flat 0px on any
+       non-notched screen (i.e. every desktop) and every phone without a
+       notch/Dynamic Island, dropping the top padding entirely and yanking
+       the logo/nav-links (flex items, centered via align-items:center
+       within the padding box) up above the bar's true centerline — while
+       .home-bottom-email/.home-bottom-location (absolutely centered
+       against the whole bar) stay put. Caught 2026-07-29 right after this
+       padding-top line shipped in the iOS safe-area commit. */
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
 }
 /* viewport-fit=cover: when the bar is at the physical bottom (hero phase,
    before hero scrolls away) it can slide under the home indicator. Extend
@@ -2527,8 +2536,12 @@ html.pv-grid .projects-list,
        a named view-transition participant — prevents white ghost bar on homepage nav */
     will-change: transform;
     /* viewport-fit=cover: bar is at top:0 (physical top). Push its content
-       below the status bar / notch / Dynamic Island. */
-    padding-top: env(safe-area-inset-top, 0px);
+       below the status bar / notch / Dynamic Island. Additive with calc() —
+       see the matching .nav-mode comment above for why a bare env(...) here
+       was wrong (dropped the base 24px padding-top to 0 on any non-notched
+       screen, pushing the logo/Projects/Studio links above the bar's true
+       centerline). */
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
 }
 .home-bottom-bar.inner-page-nav img:not(.emoji) {
     filter: invert(1);
