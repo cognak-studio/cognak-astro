@@ -63,7 +63,7 @@
             // Show/hide the separator dot once temp is available
             var dot = elt.previousElementSibling;
             if (dot && dot.classList.contains('home-hero-time-dot')) {
-                dot.style.display = tempLabel ? '' : 'none';
+                dot.style.display = tempLabel ? 'inline' : 'none';
             }
         }
     }

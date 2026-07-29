@@ -809,6 +809,13 @@ html.home-scrolled #cognak-cookie {
         backdrop-filter: blur(6px);
         -webkit-backdrop-filter: blur(6px);
     }
+    /* Mobile nav text — uniform 17px across all inner-page navs (projects, studio,
+       colophon, privacy, 404, etc.) so the bar reads at the same scale as page content. */
+    .inner-nav-links a,
+    .home-bottom-bar.inner-page-nav .home-bottom-email,
+    .home-bottom-bar.inner-page-nav .home-bottom-location {
+        font-size: 17px !important;
+    }
     /* No hover on mobile to lift the logo from its resting 0.7 opacity,
        so it reads as faded/transparent. Show it at full opacity. */
     .home-bottom-logo img {
