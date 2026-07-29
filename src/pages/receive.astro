@@ -67,8 +67,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       /* Brightest-thing-on-the-page CTA, matching /send. */
       --cta:#8FC2F2; --cta-hi:#A9D2F6;
       /* Fixed 190px, same shared-header convention as /send and every other
-         inner page — see /send's comment for why the viewport centering went. */
-      max-width:720px; margin:0 auto; padding:190px 6vw 22vh;
+         inner page — see /send's comment for why the viewport centering went.
+         820px matches /send's container width exactly — the headline/lede
+         and the Files card share this one parent's width, same as /send's
+         header text and its cards (Pierce, 2026-07-29). */
+      max-width:820px; margin:0 auto; padding:190px 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
     @media (max-width:720px){ .receive{ padding-top:100px; } }
