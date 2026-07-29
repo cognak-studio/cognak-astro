@@ -149,8 +149,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="field">
             <fieldset class="q expiry-set">
               <legend class="q">
-                <span class="q-title">Link expires</span>
-                <span class="q-sub">The link stops working, then the files are deleted for good on the next daily sweep.</span>
+                <span class="q-title">Link expiry</span>
+                <span class="q-sub">Choose how long the link is live for before automatic deletion.</span>
               </legend>
               {/* Capped at 90 days, deliberately no "1 year" or "Never" option
                   anymore — Pierce, 2026-07-28: with expiry as the only thing
@@ -1242,6 +1242,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (copiedBtn.isConnected) {
         copiedBtn.textContent = copiedBtn.dataset.copyLabel || 'Copy';
         if (copiedBtn.dataset.copyAria) copiedBtn.setAttribute('aria-label', copiedBtn.dataset.copyAria);
+        copiedBtn.style.minWidth = '';
       }
       copiedBtn = null;
     }
@@ -1252,6 +1253,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (!btn.dataset.copyLabel) btn.dataset.copyLabel = btn.textContent;
       const aria = btn.getAttribute('aria-label');
       if (aria && !btn.dataset.copyAria) btn.dataset.copyAria = aria;
+      // Lock the pill at its resting width BEFORE swapping the label — "Copy
+      // link" (9 chars) -> "Copied" (6) would otherwise shrink the button for
+      // those 2 seconds, which read as a layout hiccup rather than a
+      // confirmation (Pierce, 2026-07-29). min-width only sets a floor, so
+      // the "Copy" -> "Copied" case (where Copied is the wider one) can still
+      // grow to fit — only shrinking was the complaint.
+      btn.style.minWidth = btn.getBoundingClientRect().width + 'px';
       btn.textContent = 'Copied';
       // Swap the aria-label too, not just the visible text — otherwise the
       // label overrides the contents and screen readers never hear "Copied".
