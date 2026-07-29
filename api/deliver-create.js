@@ -7,7 +7,7 @@
  * the entire "database" this feature needs. Admin-only.
  */
 import { put } from '@vercel/blob';
-import { requireAdmin, hashPasscode } from './_lib/adminAuth.mjs';
+import { requireAdmin } from './_lib/adminAuth.mjs';
 
 const TOKEN_RE = /^[a-zA-Z0-9]{6,32}$/;
 
@@ -36,11 +36,6 @@ export default async function handler(req, res) {
   // the file list on /receive), so an empty one stays empty rather than
   // falling back to a placeholder.
   const project = String(data.project || '').trim().slice(0, 200);
-
-  const passcode = String(data.passcode || '');
-  if (passcode.length < 4) {
-    return res.status(400).json({ error: 'Passcode needs to be at least 4 characters.' });
-  }
 
   const files = Array.isArray(data.files)
     ? data.files
@@ -75,7 +70,6 @@ export default async function handler(req, res) {
     token,
     client,
     project,
-    passcodeHash: hashPasscode(passcode),
     createdAt: new Date().toISOString(),
     expiresAt,
     files,

@@ -9,9 +9,10 @@
  *
  * Required env vars (Vercel -> Project -> Settings -> Environment Variables):
  *   ADMIN_PASSWORD   the password that unlocks /admin.
- *   ADMIN_SECRET     a random long string used to sign session cookies AND
- *                     as the pepper for hashed share passcodes. Generate
- *                     once with: openssl rand -hex 32
+ *   ADMIN_SECRET     a random long string used to sign session cookies, sign
+ *                     WebAuthn challenge cookies (api/_lib/passkeys.mjs), and
+ *                     salt the rate-limiter's hashed IPs (api/_lib/rateLimit.
+ *                     mjs). Generate once with: openssl rand -hex 32
  */
 
 import crypto from 'node:crypto';
@@ -99,16 +100,3 @@ export function checkPassword(candidate) {
   return crypto.timingSafeEqual(a, b);
 }
 
-/** SHA-256(passcode + ADMIN_SECRET) as a hex digest — stored, never the raw passcode. */
-export function hashPasscode(passcode) {
-  return crypto
-    .createHash('sha256')
-    .update(String(passcode || '') + (process.env.ADMIN_SECRET || ''))
-    .digest('hex');
-}
-
-export function passcodeMatches(candidate, storedHex) {
-  const a = Buffer.from(hashPasscode(candidate), 'hex');
-  const b = Buffer.from(String(storedHex || ''), 'hex');
-  return a.length === b.length && a.length > 0 && crypto.timingSafeEqual(a, b);
-}

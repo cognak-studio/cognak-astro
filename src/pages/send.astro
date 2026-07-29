@@ -5,11 +5,13 @@
  * /tools, but gated behind ADMIN_PASSWORD (see api/_lib/adminAuth.mjs)
  * because this one handles real client files, not a stateless generator.
  *
- * Flow: sign in once (12h session cookie) -> name a client + set a passcode
- * -> drop files (uploaded straight to Vercel Blob via api/deliver-upload-
- * token.js, same client-upload handshake /brief already uses) -> get back a
- * cognak.com/files/<token> link + the passcode to send the client, instead of a
- * Hightail link. Recent shares are listed below with a delete action.
+ * Flow: sign in once (1-week session cookie) -> name a client -> drop files
+ * (uploaded straight to Vercel Blob via api/deliver-upload-token.js, same
+ * client-upload handshake /brief already uses) -> get back a
+ * cognak.com/files/<token> link to send the client, instead of a Hightail
+ * link. Recent shares are listed below with a delete action. No passcode any
+ * more (removed 2026-07-29) — the link itself is the credential, matching
+ * /receive, which had already stopped checking one.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
@@ -29,7 +31,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         text nodes either side of the <em> into spans, and a newline there is
         swallowed rather than kept as the space after "Send". */}
     <h1 class="headline send-headline"><em>Send</em> files to clients.</h1>
-    <p class="lede send-lede">Add details, drop files, and set a passcode. The client gets a cognak.com link so nothing leaves this domain.</p>
+    <p class="lede send-lede">Add details, drop files, and get a cognak.com link for clients.</p>
 
     <!-- ------------------------------------------------------- sign in --- -->
     {/* Passkey shows first paint, no flash — but the password fallback is
@@ -145,17 +147,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </div>
 
           <div class="field">
-            <label class="q" for="pass-input">
-              <span class="q-title">Passcode</span>
-              <span class="q-sub">4 character minimum. Make it memorable.</span>
-            </label>
-            <div class="pass-row">
-              <input class="txt mono" id="pass-input" type="text" autocomplete="off" spellcheck="false" />
-              <button type="button" class="btn btn-ghost" id="pass-gen">Generate</button>
-            </div>
-          </div>
-
-          <div class="field">
             <fieldset class="q expiry-set">
               <legend class="q">
                 <span class="q-title">Link expires</span>
@@ -203,13 +194,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <div class="copy-row">
               <input class="txt mono" id="out-link" type="text" readonly />
               <button type="button" class="btn btn-ghost" data-copy="out-link" aria-label="Copy link">Copy</button>
-            </div>
-          </div>
-          <div class="field">
-            <label class="q"><span class="q-title">Passcode</span></label>
-            <div class="copy-row">
-              <input class="txt mono" id="out-pass" type="text" readonly />
-              <button type="button" class="btn btn-ghost" data-copy="out-pass" aria-label="Copy passcode">Copy</button>
             </div>
           </div>
         </div>
@@ -525,8 +509,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .idle-note{ text-align:center; font-family:'Diatype Mono', monospace;
       font-size:.74rem; line-height:1.75; color:var(--warn); margin:1.1rem 0 0; }
 
-    .send .pass-row, .send .copy-row{ display:flex; gap:10px; }
-    .send .pass-row .txt, .send .copy-row .txt{ flex:1 1 auto; min-width:0; }
+    .send .copy-row{ display:flex; gap:10px; }
+    .send .copy-row .txt{ flex:1 1 auto; min-width:0; }
 
     /* -------------------------------------------------------- drop zone --- */
     .send .drop{ border:1.5px dashed var(--line-strong); border-radius:10px; padding:28px 16px;
@@ -749,11 +733,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function randomToken(len = 10) {
       const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789'; // no 0/o/1/i/l
-      const bytes = crypto.getRandomValues(new Uint8Array(len));
-      return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
-    }
-    function randomPasscode(len = 6) {
-      const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
       const bytes = crypto.getRandomValues(new Uint8Array(len));
       return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
     }
@@ -1128,12 +1107,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('is-over'); }));
     drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
 
-    $('pass-gen').addEventListener('click', () => { $('pass-input').value = randomPasscode(); });
-
     function updateCreateBtn() {
       const client = $('client-input').value.trim();
-      const pass = $('pass-input').value.trim();
-      $('create-btn').disabled = !(client && pass.length >= 4 && queued.length > 0);
+      $('create-btn').disabled = !(client && queued.length > 0);
     }
     /* Pill selection state. Radio inputs stay the source of truth (keyboard and
        screen readers get real radio semantics); .on is only the paint. */
@@ -1149,7 +1125,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     $('client-input').addEventListener('input', updateCreateBtn);
-    $('pass-input').addEventListener('input', updateCreateBtn);
 
     /* Update one row's fill and label in place. A full renderFiles() on every
        progress tick would rebuild the <li> and restart the width transition
@@ -1205,8 +1180,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const client = $('client-input').value.trim();
       const project = $('project-input').value.trim();
       const expiresInDays = selectedExpiryDays();
-      const passcode = $('pass-input').value.trim();
-      if (!client || passcode.length < 4 || !queued.length) return;
+      if (!client || !queued.length) return;
 
       $('create-btn').disabled = true;
       const token = randomToken();
@@ -1231,11 +1205,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         const files = queued.filter((i) => i.status === 'ok').map((i) => ({ name: i.file.name, url: i.url, size: i.file.size }));
         if (!files.length) throw new Error('No files uploaded successfully.');
 
-        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, project, passcode, files, expiresInDays } });
+        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, project, files, expiresInDays } });
         if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this share.');
 
         $('out-link').value = r.data.url;
-        $('out-pass').value = passcode;
         swapStep($('new-share'), $('success'));
         await refreshShares();
       } catch (err) {
@@ -1251,7 +1224,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       renderFiles();
       $('client-input').value = '';
       $('project-input').value = '';
-      $('pass-input').value = '';
       $('create-note').textContent = '';
       swapStep($('success'), $('new-share'));
       updateCreateBtn();
