@@ -53,8 +53,19 @@
         });
         var el = document.getElementById('la-time');
         if (el) el.textContent = timeStr + ' ' + weatherEmoji;
+        // Mobile homepage corner: time and temp are separate spans with a dot between.
+        // la-time-sticky gets time only; la-temp-sticky gets the °F value.
         var els = document.getElementById('la-time-sticky');
-        if (els) els.textContent = timeStr + ' ' + weatherEmoji;
+        if (els) els.textContent = timeStr;
+        var elt = document.getElementById('la-temp-sticky');
+        if (elt) {
+            elt.textContent = tempLabel || '';
+            // Show/hide the separator dot once temp is available
+            var dot = elt.previousElementSibling;
+            if (dot && dot.classList.contains('home-hero-time-dot')) {
+                dot.style.display = tempLabel ? '' : 'none';
+            }
+        }
     }
     updateTime();
     setInterval(updateTime, 1000);

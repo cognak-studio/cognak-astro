@@ -39,13 +39,12 @@ const cards = await Promise.all(
     <a href="/projects">Projects</a>
     <a href="/studio">Studio</a>
   </nav>
-  {/* Mobile-only: LA-time readout locked to the top-right hero corner, mirroring
-     the cookie banner top-left. Uses id="la-time-sticky" (populated by the same
-     clock in cognak-global.js) so there's no duplicate #la-time. */}
-  <div class="home-hero-location">
-    <span>Los Angeles, CA</span>
-    <span><span class="pulse-dot" aria-hidden="true">&bull;</span> <span id="la-time-sticky" aria-hidden="true"></span></span>
-  </div>
+  {/* Mobile-only corner readouts. Location sits top-left (where the cookie banner
+     used to live); time sits top-right. Both use id-less clock data populated by
+     cognak-global.js via #la-time-sticky. Cookie moves to bottom-right corner on
+     mobile and reveals on scroll, same as the Studio/Projects corner variant. */}
+  <div class="home-hero-loc" aria-hidden="true">Los Angeles, CA</div>
+  <div class="home-hero-time" aria-hidden="true"><span id="la-time-sticky" aria-hidden="true"></span><span class="pulse-dot home-hero-time-dot" aria-hidden="true">&bull;</span><span id="la-temp-sticky" aria-hidden="true"></span></div>
   <div class="hero-scroll-stage">
     <aside class="main-intro">
       <div class="scroll-discover" aria-hidden="true">

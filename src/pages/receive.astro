@@ -202,6 +202,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        which point it takes the error colour. */
     .receive .expiry-note{ margin:1.2rem 0 0; font-size:.8rem; line-height:1.75;
       color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
+    /* Download All — shown below the list when there are more than 3 files */
+    .receive .dl-all-wrap{ margin-top:1.4rem; padding-top:1.2rem; border-top:1px solid var(--line); }
+    .receive .btn-dl-all{ width:100%; justify-content:center; }
     /* Only the deadline itself takes the warn colour — the instruction around
        it stays in normal ink, so the eye lands on the bit that runs out. */
     .receive .expiry-note .exp-warn{ color:var(--warn); }
@@ -438,6 +441,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
         list.appendChild(li);
       });
+
+      // Download All — only shown when there are more than 3 files.
+      const group = $('files-card').querySelector('.group');
+      const existingWrap = group.querySelector('.dl-all-wrap');
+      if (existingWrap) existingWrap.remove();
+
+      if ((payload.files || []).length >= 3) {
+        const wrap = document.createElement('div');
+        wrap.className = 'dl-all-wrap';
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'btn btn-dl-all';
+        dlBtn.textContent = 'Download all';
+        dlBtn.addEventListener('click', () => {
+          const files = payload.files || [];
+          dlBtn.disabled = true;
+          dlBtn.textContent = 'Downloading…';
+          files.forEach((f, i) => {
+            setTimeout(() => {
+              const a = document.createElement('a');
+              a.href = f.url + (f.url.indexOf('?') === -1 ? '?download=1' : '&download=1');
+              a.setAttribute('download', f.name);
+              a.style.display = 'none';
+              document.body.appendChild(a);
+              a.click();
+              setTimeout(() => document.body.removeChild(a), 1000);
+              if (i === files.length - 1) {
+                setTimeout(() => {
+                  dlBtn.disabled = false;
+                  dlBtn.textContent = 'Download all';
+                }, 800);
+              }
+            }, i * 300);
+          });
+        });
+        wrap.appendChild(dlBtn);
+        group.appendChild(wrap);
+      }
     }
 
     if (!token) {

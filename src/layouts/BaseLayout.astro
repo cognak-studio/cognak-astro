@@ -280,8 +280,9 @@ import '../styles/site.css';
         var el = document.getElementById('cognak-cookie');
         if (!el) return;
         if (document.cookie.indexOf('cognak_consent=') !== -1) { el.style.display = 'none'; return; }
-        // The corner (studio) variant stays put, locked to the viewport corner —
-        // only the homepage banner gets reparented onto <html> for its hero-scroll fade.
+        // Corner variant and mobile homepage: stay put, locked to the viewport corner.
+        // Desktop homepage only: reparent onto <html> so the banner rides with the hero scroll.
+        var isMobileCookie = !isCornerVariant && window.innerWidth <= 720;
         if (!isCornerVariant && window.innerWidth > 720) { document.documentElement.appendChild(el); }
         function setCookie(val) {
           var d = new Date(); d.setFullYear(d.getFullYear() + 1);
@@ -301,9 +302,10 @@ import '../styles/site.css';
           setCookie('declined');
           dismiss();
         });
-        // Corner variant: hidden until the visitor starts scrolling, then fades in
-        // once and stays — it doesn't hide again if they scroll back to the top.
-        if (isCornerVariant) {
+        // Corner variant + mobile homepage: hidden until visitor starts scrolling,
+        // then fades in once and stays. Mobile homepage uses the same reveal pattern
+        // since it now lives at the bottom-right corner just like Studio/Projects.
+        if (isCornerVariant || isMobileCookie) {
           var revealed = false;
           function reveal() {
             if (revealed) return;
