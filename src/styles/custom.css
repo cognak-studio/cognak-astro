@@ -605,6 +605,14 @@ body.non-fixed-nav::after {
 .home-nav-links-mobile a {
     transition: color 0.2s ease;
 }
+@media (max-width: 720px) {
+    /* Match location/time readout size (15px) for uniformity across all
+       mobile homepage nav text. .home-nav is display:none on mobile; these
+       cloned links are what actually shows in the bottom bar on phones. */
+    .home-nav-links-mobile a {
+        font-size: 15px !important;
+    }
+}
 @media (hover: hover) {
 .home-nav-links-mobile a:hover {
     color: var(--cognak-purple-text) !important;

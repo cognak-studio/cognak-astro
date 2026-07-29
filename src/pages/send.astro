@@ -886,7 +886,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        (passkey enrolled, fallback off) never has anything to toggle. */
     async function initGate() {
       const r = await api('/api/admin-login');
-      const modes = (r.ok && r.data) || { hasPasskeys: false, passwordAllowed: true };
+      /* Secure default: if the API is unreachable or returns an error, assume
+         passkeys are required and password is NOT allowed — never expose the
+         password form as a fallback for a network failure. */
+      const modes = (r.ok && r.data) || { hasPasskeys: true, passwordAllowed: false };
       const supported = typeof window.PublicKeyCredential !== 'undefined';
 
       /* One primary button, never two. With a passkey registered that's the
