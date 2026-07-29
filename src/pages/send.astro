@@ -1379,9 +1379,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         filesEl.hidden = !fileNames;
         if (fileNames) filesEl.title = (s.fileNames || []).join('\n');
         li.querySelector('[data-action="copy"]').addEventListener('click', async (e) => {
+          // Capture the button BEFORE the await, not after: the browser nulls
+          // out a DOM event's currentTarget once dispatch finishes, and an
+          // await hands control back to the event loop, so by the time the
+          // clipboard promise settles e.currentTarget is already null. That
+          // was throwing "Cannot read properties of null (reading 'dataset')"
+          // inside markCopied, silently, every single click — the button
+          // never flipped to "Copied" (Pierce, 2026-07-29).
+          const btn = e.currentTarget;
           const url = 'https://cognak.com/files/' + s.token;
           try { await navigator.clipboard.writeText(url); } catch (err) { /* ignore */ }
-          markCopied(e.currentTarget);
+          markCopied(btn);
         });
         li.querySelector('[data-action="delete"]').addEventListener('click', async () => {
           if (!confirm('Delete this share for "' + (s.client || 'this client') + '"? The link stops working immediately.')) return;
