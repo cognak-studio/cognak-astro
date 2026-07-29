@@ -28,7 +28,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     {/* Kept on one source line, same as /tools: the word-splitter turns the
         text nodes either side of the <em> into spans, and a newline there is
         swallowed rather than kept as the space after "Send". */}
-    <h1 class="headline send-headline"><em>Send</em> files to clients, no third-party link required.</h1>
+    <h1 class="headline send-headline"><em>Send</em> files to clients.</h1>
     <p class="lede send-lede">Add details, drop files, and set a passcode. The client gets a cognak.com link so nothing leaves this domain.</p>
 
     <!-- ------------------------------------------------------- sign in --- -->
@@ -515,15 +515,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .note.is-ok{ color:var(--ok); }
 
     /* Sits below the sign-in card, centered under it the way the card's own
-       content is centered. Same quiet treatment as the client-facing expiry
-       line on /receive ("Expires August 7th...") -- .note already resolves
-       to the same --ink-soft as that line, so the monospace face is the
-       only thing this needs to add for the two to match (Pierce,
-       2026-07-28). Margin overrides .note's own 0.7rem: this sits outside
-       the card now, so it needs a little more air than a note packed
-       directly under a field. */
+       content is centered. Margin overrides .note's own 0.7rem: this sits
+       outside the card now, so it needs a little more air than a note packed
+       directly under a field. Size and color match .srow-expiry's "expires in
+       N days" line rather than the client-facing /receive note — this is a
+       heads-up about a security event (getting timed out), so it takes the
+       same warm --warn tone as the other "pay attention" text on this page,
+       not the quiet --ink-soft of a status line (Pierce, 2026-07-29). */
     .send .idle-note{ text-align:center; font-family:'Diatype Mono', monospace;
-      margin:1.1rem 0 0; }
+      font-size:.74rem; line-height:1.75; color:var(--warn); margin:1.1rem 0 0; }
 
     .send .pass-row, .send .copy-row{ display:flex; gap:10px; }
     .send .pass-row .txt, .send .copy-row .txt{ flex:1 1 auto; min-width:0; }
@@ -1051,14 +1051,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
     });
 
-    /* Idle sign-out. The server cookie also expires at 15 minutes, so this is
-       the courtesy half — it clears the dashboard off the screen and says why,
+    /* Idle sign-out. The server cookie also expires at 1 week, so this is the
+       courtesy half — it clears the dashboard off the screen and says why,
        instead of leaving a full client list visible until someone clicks
        something and gets a surprise 401. Any real interaction resets it;
        scroll deliberately doesn't count, since a cat on a trackpad shouldn't
        hold the session open. An in-flight upload does hold it (see below) —
-       signing out mid-upload would fail the very thing you're waiting on. */
-    const IDLE_MS = 15 * 60 * 1000;
+       signing out mid-upload would fail the very thing you're waiting on.
+       Was 15 minutes; Pierce flagged that as wildly fast for a tool he's
+       in and out of all day, so both this and SESSION_MS in adminAuth.mjs
+       moved to a week (Pierce, 2026-07-29). */
+    const IDLE_MS = 7 * 24 * 60 * 60 * 1000;
     let idleTimer = 0;
     let uploading = false;
 
@@ -1067,7 +1070,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (dash.hidden) return;
       idleTimer = setTimeout(() => {
         if (uploading) { resetIdle(); return; }
-        signOut('Signed out after 15 minutes of inactivity.');
+        signOut('Signed out after 1 week of inactivity.');
       }, IDLE_MS);
     }
 

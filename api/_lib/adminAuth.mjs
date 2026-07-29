@@ -17,12 +17,16 @@
 import crypto from 'node:crypto';
 
 const COOKIE_NAME = 'cognak_admin';
-/* 15 minutes. Short on purpose: this session can read every client delivery
-   and delete any of them, and the machine it's used from is a laptop that gets
-   left open. The client-side idle timer in /send logs out at the same mark, so
-   the two agree — but THIS is the one that matters, since a cookie that has
-   expired can't be used by anything, tab closed or not. */
-const SESSION_MS = 15 * 60 * 1000; // 15 minutes
+/* 1 week. Was 15 minutes — deliberately short, since this session can read
+   every client delivery and delete any of them, and the machine it's used
+   from is a laptop that gets left open. Pierce flagged 15 minutes as wildly
+   fast for a tool he's in and out of all day, so this moved out to a week
+   (2026-07-29) — the passkey requirement is now doing the heavy lifting
+   security-wise rather than a short-lived cookie. The client-side idle timer
+   in /send logs out at the same mark, so the two still agree — but THIS is
+   the one that matters, since a cookie that has expired can't be used by
+   anything, tab closed or not. */
+const SESSION_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 
 function sign(payloadB64) {
   const secret = process.env.ADMIN_SECRET || '';
