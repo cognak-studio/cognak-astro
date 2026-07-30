@@ -240,6 +240,38 @@ import '../styles/site.css';
     })();
   </script>
 
+  <!-- List row → project morph. The list is the DEFAULT view on /projects, so most
+       visitors were getting a plain root fade while grid users got the signature
+       thumb→hero morph. The rows are now named too; this just tags the transition
+       so custom.css can drop the old (text) snapshot fast instead of stretching it.
+       Gated on the saved view preference rather than a click flag, because for a
+       cross-document transition the pseudo-elements live in the NEW document and
+       localStorage is the only same-origin signal that survives the navigation. -->
+  <script is:inline>
+    (function () {
+      var isProject = function (p) { return /^\/projects\/[^/]+\/?$/.test(p || ''); };
+      var isArchive = function (p) { return /^\/projects\/?$/.test(p || ''); };
+      var listView = function () {
+        try { return localStorage.getItem('cognak-projects-view') !== 'grid'; } catch (e) { return true; }
+      };
+      var apply = function (vt, fromPath, toPath) {
+        if (!vt || !isArchive(fromPath) || !isProject(toPath) || !listView()) return;
+        try { vt.types.add('list-morph'); } catch (e) {}
+      };
+      window.addEventListener('pageswap', function (e) {
+        if (!e.viewTransition) return;
+        var to = e.activation && e.activation.entry ? new URL(e.activation.entry.url).pathname : '';
+        apply(e.viewTransition, location.pathname, to);
+      });
+      window.addEventListener('pagereveal', function (e) {
+        if (!e.viewTransition) return;
+        var nav = window.navigation;
+        var from = nav && nav.activation && nav.activation.from ? new URL(nav.activation.from.url).pathname : '';
+        apply(e.viewTransition, from, location.pathname);
+      });
+    })();
+  </script>
+
   <style is:inline>
     /* Frosted nav blur kept inline so the standard backdrop-filter survives CSS
        minification, which strips the unprefixed property from the bundle and

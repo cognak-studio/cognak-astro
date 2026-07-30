@@ -3634,6 +3634,25 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
    own compositing layer causes jitter on pages with many projects. The browser
    promotes automatically during the transition itself. */
 
+/* Every morph participant carries a shared view-transition-class so the pseudo-
+   elements can be styled without enumerating the dynamic project-thumb-{slug}
+   names. Both the grid figure AND the list row are named; they're never both
+   visible (display:none swaps them), so the names can't collide. */
+.projects-grid-figure,
+.projects-list-item,
+.img-wide--hero { view-transition-class: proj-thumb; }
+
+/* List row → hero. The old snapshot here is a single line of type, and
+   interpolating its box up to a full-bleed hero visibly stretches the
+   letterforms. Drop the old snapshot fast so what reads is the geometry
+   sweep — the line you clicked opening out into the image — not distorting
+   text. Grid → hero deliberately keeps the full cross-fade: image → image
+   wants it. The 'list-morph' type is set in BaseLayout's pagereveal, gated on
+   the saved view preference, so this can never touch the grid path. */
+html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
+    animation: 90ms ease both vt-fade-out;
+}
+
 /* Nav cross-fades independently so its backdrop-filter doesn't corrupt the root snapshot */
 ::view-transition-old(cognak-nav),
 ::view-transition-new(cognak-nav) {

@@ -1,35 +1,47 @@
 /* COGNAK Projects page scripts — ported from page-projects.php + functions.php
    (vt-isolate). Projects page only. */
 
-/* ── View-transition isolation (functions.php) ────────────────────────────── */
+/* ── View-transition isolation (functions.php) ─────────────────────────────────
+   Only the tile you actually pressed should keep its view-transition-name; every
+   other named element gets 'none' for the duration of the navigation so the
+   browser snapshots one participant instead of twenty. Runs for BOTH views: the
+   grid figures and the list rows are both named project-thumb-{slug} (they're
+   never visible at the same time, so the names can't collide). */
 (function() {
-    var grid = document.querySelector('.projects-grid');
-    if (!grid) return;
-    function clearOthers(keepFig) {
-        grid.querySelectorAll('.projects-grid-figure').forEach(function(fig) {
-            if (fig !== keepFig) {
-                fig.dataset.savedVt = fig.style.viewTransitionName || '';
-                fig.style.viewTransitionName = 'none';
-            }
-        });
-    }
-    function restoreAll() {
-        grid.querySelectorAll('.projects-grid-figure').forEach(function(fig) {
-            if (fig.dataset.savedVt !== undefined) {
-                fig.style.viewTransitionName = fig.dataset.savedVt;
-                delete fig.dataset.savedVt;
-            }
-        });
-    }
-    grid.addEventListener('mousedown', function(e) {
-        var link = e.target.closest('.projects-grid-link');
-        if (!link) return;
-        clearOthers(link.querySelector('.projects-grid-figure'));
-        function onMouseup(ev) {
-            if (!ev.target.closest('.projects-grid-link')) restoreAll();
-            document.removeEventListener('mouseup', onMouseup);
+    var containers = [
+        { root: document.querySelector('.projects-grid'), link: '.projects-grid-link', named: '.projects-grid-figure' },
+        { root: document.querySelector('.projects-list'), link: '.projects-list-item', named: '.projects-list-item'   }
+    ].filter(function(c) { return c.root; });
+    if (!containers.length) return;
+
+    containers.forEach(function(c) {
+        function clearOthers(keep) {
+            c.root.querySelectorAll(c.named).forEach(function(el) {
+                if (el !== keep) {
+                    el.dataset.savedVt = el.style.viewTransitionName || '';
+                    el.style.viewTransitionName = 'none';
+                }
+            });
         }
-        document.addEventListener('mouseup', onMouseup);
+        function restoreAll() {
+            c.root.querySelectorAll(c.named).forEach(function(el) {
+                if (el.dataset.savedVt !== undefined) {
+                    el.style.viewTransitionName = el.dataset.savedVt;
+                    delete el.dataset.savedVt;
+                }
+            });
+        }
+        c.root.addEventListener('mousedown', function(e) {
+            var link = e.target.closest(c.link);
+            if (!link) return;
+            // For the list the link IS the named element; for the grid it's a child.
+            clearOthers(link.matches(c.named) ? link : link.querySelector(c.named));
+            function onMouseup(ev) {
+                if (!ev.target.closest(c.link)) restoreAll();
+                document.removeEventListener('mouseup', onMouseup);
+            }
+            document.addEventListener('mouseup', onMouseup);
+        });
     });
 })();
 
