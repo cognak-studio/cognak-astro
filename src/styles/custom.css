@@ -1452,18 +1452,22 @@ html.home-scrolled #cognak-cookie {
 .hp-bottom .avail-dot         { color: var(--signal-green); }
 /* Projects page */
 .projects-below .availability-sub { color: rgba(58, 49, 59, 0.72); }
-/* The projects dot takes THIS PAGE'S accent — #4A3F6B, the same dark lavender
-   as .projects-display-headline .headline-dark-lavender — rather than the
-   signal green. The green is an acid color built for dark grounds; on this
-   lavender it measures 1.00:1 (identical luminance, invisible), and every way
-   of rescuing it made things worse: a darker green stops being the signal
-   color, and a ring around a 4.5px dot reads as a small outlined circle
-   instead of a dot.
-   Using the page's own accent is the better answer anyway — the dot now belongs
-   to the page it's on, and lands at 7.67:1. Purely decorative either way: the
-   span is aria-hidden and the sentence beside it carries the status, so no
-   contrast rule applies. This is legibility as a design choice, not compliance. */
-.projects-below .avail-dot         { color: #4A3F6B; }
+/* The projects dot takes THIS PAGE'S accent rather than the signal green. The
+   green is an acid color built for dark grounds; on this lavender it measures
+   1.00:1 (identical luminance, invisible), and every way of rescuing it made
+   things worse: a darker green stops being the signal color, and a ring around
+   a 4.5px dot reads as a small outlined circle instead of a dot.
+   Which accent, though: the page has two. #4A3F6B is the HEADLINE accent (the
+   dark lavender on .headline-dark-lavender and the project count);
+   --cognak-purple-text is the INTERACTION accent — every hover on this page
+   lands on it (list titles, category tags, the vintage grade, the sort button).
+   The dot is a live status indicator, so it belongs with the things that
+   respond, not with the things that are set in type. It uses the token, which
+   means it follows the nav state: #9647F0 here under body.fixed-nav, 3.81:1.
+   Purely decorative either way: the span is aria-hidden and the sentence beside
+   it carries the status, so no contrast rule applies. This is legibility as a
+   design choice, not compliance. */
+.projects-below .avail-dot         { color: var(--cognak-purple-text); }
 
 /* ── Homepage particle canvas ── */
 .hp-bottom {
@@ -3457,7 +3461,7 @@ html body.page-template-page-privacy-policy,
     }
 
     /* Availability sub — mobile fixes */
-    .projects-below .avail-dot { color: #4A3F6B !important; }
+    .projects-below .avail-dot { color: var(--cognak-purple-text) !important; }
     .hp-bottom .avail-dot      { color: var(--signal-green) !important; }
     .availability-sub {
         font-family: 'Diatype Variable', sans-serif !important;
