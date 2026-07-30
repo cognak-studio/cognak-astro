@@ -3748,9 +3748,13 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     }
 }
 /* ── 404 page ─────────────────────────────────────────────── */
-/* Navbar — desktop */
+/* Navbar — desktop.
+   Literal rgba of pageBg in 404.astro (#242424) — keep the two in sync. Was
+   rgba(129,129,129,.95), a tint of the old #6F6F6F page, which on the new
+   graphite would sit on the page as a pale slab instead of reading as part
+   of it. Same fix in the mobile block further down. */
 .fourofour-nav {
-    background: rgba(129, 129, 129, 0.95) !important;
+    background: rgba(36, 36, 36, 0.95) !important;
     backdrop-filter: blur(6px) !important;
     -webkit-backdrop-filter: blur(6px) !important;
     z-index: 999999 !important;
@@ -3759,9 +3763,14 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .fourofour-nav .home-bottom-email,
 .fourofour-nav .home-bottom-location,
 .fourofour-nav .inner-nav-links a { color: #EEEEEE !important; }
-.fourofour-nav .pulse-dot { color: #9EED3D !important; }
+/* #AAFF00, not the #9EED3D this page used to use: the 404 canvas dot draws in
+   the homepage availability green, so a differently-green pulse-dot in the nav
+   put two "availability greens" on one screen. One signal green per page — and
+   it's the home value, so the site-wide color-token sweep has one less variant
+   to reconcile. */
+.fourofour-nav .pulse-dot { color: #AAFF00 !important; }
 .fourofour-nav .home-bottom-email:hover,
-.fourofour-nav .inner-nav-links a:hover { color: #9EED3D !important; }
+.fourofour-nav .inner-nav-links a:hover { color: #AAFF00 !important; }
 
 /* Layout */
 .fourofour-template {
@@ -3819,11 +3828,15 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     transition: color 0.2s ease;
     display: block;
 }
-.fourofour-btn:hover { color: #9EED3D; }
+.fourofour-btn:hover { color: #AAFF00; }
 
 @media (max-width: 720px) {
+    /* Literal rgba of the page background, kept in sync with pageBg in
+       404.astro. Was rgba(129,129,129,.95) — a tint of the old #6F6F6F page,
+       which against the new #242424 graphite would have read as a pale slab
+       sitting on top of the page rather than part of it. */
     .home-bottom-bar.inner-page-nav.fourofour-nav {
-        background: rgba(129, 129, 129, 0.95) !important;
+        background: rgba(36, 36, 36, 0.95) !important;
     }
     .fourofour-nav .home-bottom-email,
     .fourofour-nav .home-bottom-location,

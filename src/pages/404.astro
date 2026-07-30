@@ -1,12 +1,24 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+/* pageBg is neutral graphite (#242424), chosen against the site's OTHER dark
+   pages rather than in isolation: /send + /receive are #090C0B (green-black),
+   /brief #140E07 (warm), /tools #16151A, home hero #17151a and /studio #18151A
+   (all violet charcoal). Anything in the #14-#18 range here would have been a
+   fourth violet charcoal and read as a repeat. #242424 is both lighter and
+   completely hueless — it reads as a different material, which is the point:
+   404 is the one page that isn't part of the site proper.
+   It's also the setup for the joke — against this, #AAFF00 is the only
+   saturated thing on the page, and it's the availability dot: the one part
+   still working. Every text color clears AAA on it (lowest is the #D1D1D1
+   accent at 10.2:1). */
 ---
 <BaseLayout
   page="404"
   title="Page not found – COGNAK"
   description="The page you were looking for doesn't exist."
   noindex={true}
-  pageBg="#6F6F6F"
+  pageBg="#242424"
 >
   <style is:inline>
     /* Lost pulse-dot canvas: fixed full-viewport like the projects matrix glow,
@@ -42,7 +54,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var canvas = document.getElementById('fourofour-dot-canvas');
       if (!canvas) return;
       var ctx = canvas.getContext('2d');
-      var GREEN = '170,255,0'; // #AAFF00 — same green as the availability dot
+      /* #AAFF00 — the homepage availability green. The nav pulse-dot and the
+         button hover on this page used to be #9EED3D, so the same page drew
+         two different "availability greens" a few hundred pixels apart; they
+         now all point here. Kept as an rgb triple because the trail and blip
+         ring need per-frame alpha. */
+      var GREEN = '170,255,0';
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
       var W, H;
 

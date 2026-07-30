@@ -76,7 +76,7 @@ Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer
 
 ## /404
 
-- [ ] **Commit to a color.** Flat #6F6F6F is the least chosen-looking decision on the site. Go near-black graphite and let the green dot be the only saturated thing on the page — which is the joke: the availability dot is the only thing still working.
+- [x] **Commit to a color.** Flat #6F6F6F is the least chosen-looking decision on the site. Go near-black graphite and let the green dot be the only saturated thing on the page — which is the joke: the availability dot is the only thing still working. — done 2026-07-30: **#242424**, neutral. NOT a #14-#18 near-black: /tools #16151A, home #17151a, /studio #18151A are all violet charcoal and /send is #090C0B, so a fourth would have been indistinguishable (Pierce flagged this). Hueless + lighter = reads as a different material. Also unified the page on ONE green (#AAFF00, the home value) — nav pulse-dot and btn hover were #9EED3D while the canvas drew #AAFF00. Nav bar rgba (desktop AND mobile) was a tint of the old gray; both now rgba(36,36,36,.95) — keep in sync with pageBg.
 - [ ] **Let the dot find the exits.** Occasionally weight its wander toward the two CTA links' rects. The lost dot quietly shows you the way out. Pure narrative, zero new UI.
 - [ ] **The frown deserves a resolution.** After the 1.6s tilt, carry ":(" on through so it reads as a sideways smile — earning the "either way, we're glad you're here" line.
 - [ ] **The CTAs are the barest element on the page** — the whole point of a 404, with color-only hover and no entrance. Arrow slide-in + staggered entrance after the body.
