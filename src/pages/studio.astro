@@ -505,7 +505,23 @@ body { overflow-x: clip; }
 // ── Studio feature reel ────────────────────────────────────────────
 (function() {
     // POOL drives the studio feature reel — edit this array directly to change it
-    var POOL = [{"type": "video", "src": "/media/2026/06/cognak-studio-video.mp4", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/hex_blog.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2026/06/chefs-kiss-mockup-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/verde-hero.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2015/12/ctp-website-cognak.jpg", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/sweetgains-studio-1.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2026/07/sipmargs-packaging-cognak-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2019/07/strawberry.png", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2024/02/hypr-wall-logo-cognak-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "video", "src": "/media/2026/06/1920x1080-Refresh_1.mp4", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2024/02/letterhead-cover-palisades.png", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2026/04/sidekick-component-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2022/08/nightowl-vodka-espresso-martini-bar-scaled.png", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2025/08/noreaster-riverview-school-design-cognak-scaled.jpg", "client": "", "kind": "", "year": ""}, {"type": "image", "src": "/media/2015/12/zynlo-mockup.jpg", "client": "", "kind": "", "year": ""}];
+        var POOL = [
+        {"type": "video", "src": "/media/2026/06/cognak-studio-video.mp4", "client": "COGNAK", "kind": "Studio reel", "year": "2026"},
+        {"type": "video", "src": "/media/2026/06/hex_blog.mp4", "client": "Hex", "kind": "Web design", "year": "2026"},
+        {"type": "image", "src": "/media/2026/06/chefs-kiss-mockup-scaled.jpg", "client": "Chef’s Kiss", "kind": "Packaging", "year": "2026"},
+        {"type": "video", "src": "/media/2026/06/verde-hero.mp4", "client": "Verde Farms", "kind": "Web design", "year": "2026"},
+        {"type": "image", "src": "/media/2015/12/ctp-website-cognak.jpg", "client": "CTP", "kind": "Website", "year": "2015"},
+        {"type": "video", "src": "/media/2026/06/sweetgains-studio-1.mp4", "client": "Sweetgains", "kind": "Branding", "year": "2026"},
+        {"type": "image", "src": "/media/2026/07/sipmargs-packaging-cognak-scaled.jpg", "client": "SipMargs", "kind": "Packaging", "year": "2026"},
+        {"type": "image", "src": "/media/2019/07/strawberry.png", "client": "Snow Monkey", "kind": "Packaging", "year": "2019"},
+        {"type": "image", "src": "/media/2024/02/hypr-wall-logo-cognak-scaled.jpg", "client": "HYPR", "kind": "Environmental", "year": "2024"},
+        {"type": "video", "src": "/media/2026/06/1920x1080-Refresh_1.mp4", "client": "DuVine Cycling + Adventure", "kind": "Video", "year": "2026"},
+        {"type": "image", "src": "/media/2024/02/letterhead-cover-palisades.png", "client": "Palisades Neuropsychology", "kind": "Branding", "year": "2024"},
+        {"type": "image", "src": "/media/2026/04/sidekick-component-scaled.jpg", "client": "Sidekick", "kind": "Design system", "year": "2026"},
+        {"type": "image", "src": "/media/2022/08/nightowl-vodka-espresso-martini-bar-scaled.png", "client": "NightOwl", "kind": "Packaging", "year": "2022"},
+        {"type": "image", "src": "/media/2025/08/noreaster-riverview-school-design-cognak-scaled.jpg", "client": "Nor’Easter Digital", "kind": "Web design", "year": "2025"},
+        {"type": "image", "src": "/media/2015/12/zynlo-mockup.jpg", "client": "ZYNLO Bank", "kind": "Web design", "year": ""}
+    ];
 
 
     // Reel videos are created after DOMContentLoaded, so the global
@@ -544,32 +560,72 @@ body { overflow-x: clip; }
     var metaEl  = document.querySelector('.sfv-meta');
     var twTimer = null;
 
-    function randHex(len) {
-        var s = '';
-        while (s.length < len) s += Math.random().toString(16).slice(2);
+    /* ---- stable pseudo-random, seeded from the asset path ----
+       render_id / revisions / nda used to be Math.random() on every render, so
+       the same asset reported a different "record" each time you cycled back to
+       it — the one thing a record must never do. FNV-1a over the src gives each
+       asset a fixed identity that survives reloads and stays put across the
+       session, without authoring the values by hand. */
+    function seedOf(str) {
+        var h = 2166136261;
+        for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return h >>> 0;
+    }
+    function seededHex(seed, len) {
+        var s = '', h = seed;
+        while (s.length < len) { h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0; s += h.toString(16); }
         return s.slice(0, len);
     }
+    function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
     function buildMeta(item) {
+        var idx  = POOL.indexOf(item);
+        var seed = seedOf(item.src);
         var fields = [];
+        /* Where you are in the reel, first — it turns a floating asset into an
+           entry in a set, and it's the line that tells you clicking does
+           something even before the image changes. */
+        if (idx >= 0) fields.push('  "asset": "' + pad2(idx + 1) + ' / ' + pad2(POOL.length) + '"');
         if (item.client) fields.push('  "client": "' + item.client + '"');
         if (item.kind)   fields.push('  "type": "' + item.kind + '"');
         if (item.year)   fields.push('  "year": ' + item.year);
-        fields.push('  "render_id": "' + randHex(6) + '"');
-        fields.push('  "revisions": ' + (Math.floor(Math.random() * 8) + 1));
-        fields.push('  "nda": ' + (Math.random() > 0.5 ? 'true' : 'false'));
+        fields.push('  "render_id": "' + seededHex(seed, 6) + '"');
+        fields.push('  "revisions": ' + ((seed % 8) + 1));
+        fields.push('  "nda": ' + (((seed >>> 5) & 1) ? 'true' : 'false'));
         return '{\n' + fields.join(',\n') + '\n}';
+    }
+
+    /* The caret needs its own element, so the text goes in a child span rather
+       than straight onto .sfv-meta (which keeps white-space:pre either way). */
+    var metaTextEl = null, metaCaretEl = null, caretTimer = null;
+    if (metaEl) {
+        metaEl.textContent = '';
+        metaTextEl  = document.createElement('span');
+        metaCaretEl = document.createElement('span');
+        metaCaretEl.className = 'sfv-caret';
+        metaCaretEl.setAttribute('aria-hidden', 'true');
+        metaEl.appendChild(metaTextEl);
+        metaEl.appendChild(metaCaretEl);
     }
 
     function typewrite(text) {
         if (!metaEl) return;
         clearTimeout(twTimer);
-        metaEl.textContent = '';
+        clearTimeout(caretTimer);
+        metaTextEl.textContent = '';
         metaEl.style.opacity = '1';
+        /* Solid while typing, blinking once it stops, then it fades out — the
+           record finishes writing itself and the cursor leaves. */
+        metaEl.classList.add('is-typing');
+        metaEl.classList.remove('is-done');
         var i = 0;
         (function tick() {
-            if (i >= text.length) return;
-            metaEl.textContent += text[i++];
+            if (i >= text.length) {
+                metaEl.classList.remove('is-typing');
+                caretTimer = setTimeout(function() { metaEl.classList.add('is-done'); }, 2000);
+                return;
+            }
+            metaTextEl.textContent += text[i++];
             twTimer = setTimeout(tick, i < 3 ? 0 : 18);
         })();
     }
