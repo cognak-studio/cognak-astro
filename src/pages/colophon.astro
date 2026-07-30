@@ -189,11 +189,66 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       margin: 0 0 1.6rem;
       max-width: 58ch;
     }
+    /* Body links used to be the one dead interaction on the page: green text,
+       a static underline, no :hover and no transition — while .colophon-spec a
+       twelve lines down had both. On a page whose whole audience is people who
+       mouse over type to see what it does, that was the wrong link to leave
+       inert. The resting underline is now held back to 45% so the hover has
+       somewhere to go, and the line itself does the talking (thickens, tightens
+       toward the baseline, goes full green) while the text color holds steady.
+       decoration-color/-thickness and underline-offset are all animatable, so
+       this needs no wrapper spans. Curve is the site's expo
+       (0.16,1,0.3,1) — the one the founder portrait and studio reel use;
+       inline here until the motion tokens land in custom.css. */
     .colophon-body a {
       color: #b6ff2e;
       text-decoration: underline;
+      text-decoration-color: rgba(182,255,46,0.45);
       text-underline-offset: 3px;
       text-decoration-thickness: 1px;
+      transition: text-decoration-color 0.25s cubic-bezier(0.16,1,0.3,1),
+                  text-decoration-thickness 0.25s cubic-bezier(0.16,1,0.3,1),
+                  text-underline-offset 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    .colophon-body a:hover,
+    .colophon-body a:focus-visible {
+      text-decoration-color: #b6ff2e;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 2px;
+    }
+
+    /* Off-site credits announce themselves with a mono arrow — the site's
+       label voice, and the same glyph family as the spec block's type. Scoped
+       to [target="_blank"] so the hello@cognak.com mailto in .colophon-sign
+       doesn't get one: that link isn't leaving the site, it's opening a mail
+       client, and marking it as external would be a small lie.
+       Deliberately NOT applied to the spec block — five of its six rows are
+       external, and an arrow on nearly every line of a block that tight reads
+       as noise rather than signal. The spec rows keep their color-shift hover.
+       Note .colophon-spec is a CHILD of .colophon-body, so the descendant
+       selector alone would have caught it; the :not() on the paragraph is what
+       actually keeps the arrow out of the table. */
+    .colophon-body p:not(.colophon-spec) a[target="_blank"]::after {
+      content: '\2197';
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.8em;
+      line-height: 1;
+      margin-left: 0.22em;
+      opacity: 0.6;
+      display: inline-block;
+      text-decoration: none;
+      transition: opacity 0.25s cubic-bezier(0.16,1,0.3,1),
+                  transform 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    .colophon-body p:not(.colophon-spec) a[target="_blank"]:hover::after,
+    .colophon-body p:not(.colophon-spec) a[target="_blank"]:focus-visible::after {
+      opacity: 1;
+      transform: translate(1px, -1px);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .colophon-body a,
+      .colophon-body p:not(.colophon-spec) a[target="_blank"]::after { transition: none; }
+      .colophon-body p:not(.colophon-spec) a[target="_blank"]:hover::after { transform: none; }
     }
     .colophon-body strong { color: #ffffff; font-weight: 500; }
     .colophon-body code {

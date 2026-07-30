@@ -60,7 +60,7 @@ Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer
 
 ## /colophon
 
-- [ ] **Fix the body links first** (no hover, no transition — worst offender on the page for this audience), and give external credits a mono `↗`.
+- [x] **Fix the body links first** (no hover, no transition — worst offender on the page for this audience), and give external credits a mono `↗`. — done 2026-07-30: resting underline at 45%, hover thickens 1→2px + tightens offset 3→2px + goes full green, 0.25s expo. Mono `↗` on prose external links only; spec block deliberately left arrow-free (5 of 6 rows are external) and keeps its color-shift hover.
 - [ ] **Glyph caption readout.** A tiny fixed mono caption near the canvas ("lowercase g · 1000 upm · 138 pts") updating as the morph cycles — specimen-plate labeling. The data's already in `DATA`.
 - [ ] **Cursor-aware anatomy.** Nodes/handles near the cursor brighten slightly — the artwork begs inspection and it's the only page canvas that ignores the pointer (privacy ripples, 404 flees).
 - [ ] **The ":)" payoff.** Tint the stroke green for just that glyph in the cycle — turns a hidden joke into a discovered one.
