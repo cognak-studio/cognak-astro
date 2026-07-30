@@ -30,10 +30,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="prograil" id="progRail" aria-hidden="true"><span class="prograil-cap prograil-cap--top">0%</span><i id="progFill"></i><span class="prograil-cap prograil-cap--bot">100%</span></div>
       <div class="progbar-m" id="progBarM" aria-hidden="true"><span class="progbar-m-cap">0%</span><span class="progbar-m-track"><i id="progFillM"></i></span><span class="progbar-m-cap">100%</span></div>
       <button class="backlink" id="backBtn" type="button">&larr; Change project type</button>
+      <p class="stepmeta" id="stepMeta" aria-live="polite"></p>
       <h2 class="headline form-headline" id="form-headline"></h2>
       <form id="briefForm" novalidate></form>
       <div class="actions">
-        <button class="btn" id="sendBtn" type="button">Send brief &rarr;</button>
+        <button class="btn" id="sendBtn" type="button"><span class="btn-label">Send brief</span><span class="btn-arrow" aria-hidden="true">&rarr;</span></button>
       </div>
       <div class="formerr" id="formErr" role="alert">Please fill in the required fields.</div>
     </div>
@@ -84,6 +85,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       --cream:#2A2010; --btn:#D6C3A4; --sel:#D6C3A4;
       --line:rgba(207,187,155,0.20); --line-strong:rgba(207,187,155,0.40);
       --placeholder:#9C8763; --err:#FF9E90;
+      /* ---- the orange ----
+         It was written raw ~20 times, with a second, near-identical hover orange
+         sitting beside it. One source of truth now:
+           --orange      the brief's accent, full strength
+           --orange-hi   the lighter hover step (button fill on hover)
+           --orange-rgb  the same color as channels, for the rgba() glows and the
+                         low-opacity mono labels (ptime, bplus-q)
+           --rail-cream  the cream both progress fills start from
+         NOTE: updateProgress() interpolates cream -> orange numerically in JS and
+         therefore hardcodes 237,224,200 -> 239,145,70. If --orange or
+         --rail-cream changes, that math must change with it.
+         The sparkle palette (#F3B072 / #F7D9A8) is deliberately NOT tokenized:
+         it's a glitter spread, and the variety is the point. */
+      --orange:#EF9146; --orange-hi:#F3A25C; --orange-rgb:239,145,70;
+      --rail-cream:#EDE0C8;
       /* Fixed 190px (not vh-based) so the headline text lands at 274px under
          the 84px nav clearance — the shared header position across
          projects/studio/privacy/colophon/brief. */
@@ -124,7 +140,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .brief .form-headline{ font-size:clamp(2rem,5vw,3.2rem); margin-bottom:1.3rem; }
-    .brief .headline em{ font-style:normal; font-weight:500; color:#EF9146; }
+    .brief .headline em{ font-style:normal; font-weight:500; color:var(--orange); }
     .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
     /* Nudge the intro copy above the picker slightly right of the headline. */
     #step-pick .lede{ margin-left:40px; }
@@ -146,8 +162,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Filled line from the top: cream at the top, orange at the growing end,
        glowing along the completed segment (color + glow set in JS). */
     .brief .prograil i{ position:absolute; left:0; right:0; top:0; height:0; border-radius:2px;
-      background:linear-gradient(180deg, #EDE0C8 0%, #EF9146 100%);
-      box-shadow:0 0 8px 1px rgba(239,145,70,.5);
+      background:linear-gradient(180deg, var(--rail-cream) 0%, var(--orange) 100%);
+      box-shadow:0 0 8px 1px rgba(var(--orange-rgb),.5);
       transition:height .5s ease, background .5s ease, box-shadow .5s ease; }
     /* Tiny mono end-caps: 0% at the top, 100% at the bottom of the rail. */
     .brief .prograil-cap{ position:absolute; left:50%; transform:translateX(-50%);
@@ -185,8 +201,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       /* Filled line from the left: cream at the start, orange at the growing
          end, glowing along the completed segment (width + color set in JS). */
       .brief .progbar-m i{ position:absolute; left:0; top:0; bottom:0; width:0; border-radius:2px;
-        background:linear-gradient(90deg, #EDE0C8 0%, #EF9146 100%);
-        box-shadow:0 0 8px 1px rgba(239,145,70,.5);
+        background:linear-gradient(90deg, var(--rail-cream) 0%, var(--orange) 100%);
+        box-shadow:0 0 8px 1px rgba(var(--orange-rgb),.5);
         transition:width .5s ease, background .5s ease, box-shadow .5s ease; }
     }
 
@@ -200,7 +216,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:background .25s ease;
       font-family:inherit; }
     .brief .pcard:hover{ background:var(--field-focus); }
-    .brief .pcard:hover .idx, .brief .pcard:hover h3, .brief .pcard:hover p, .brief .pcard:hover .arrow{ color:#EF9146; }
+    .brief .pcard:hover .idx, .brief .pcard:hover h3, .brief .pcard:hover p, .brief .pcard:hover .arrow{ color:var(--orange); }
     .brief .pcard:active{ transform:scale(.995); }
     .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; transition:color .2s ease; }
     .brief .pcard h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; margin:.7rem 0 .35rem; transition:color .2s ease; }
@@ -212,7 +228,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* flex (not inline-flex) + fit-content: block-level so no inline strut
        nudges it below the shared header position, still shrink-wrapped. */
     .brief .backlink{ position:relative; display:flex; width:fit-content; align-items:center; gap:.5rem; background:none; border:none;
-      color:#EF9146; font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3; letter-spacing:.16em;
+      color:var(--orange); font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3; letter-spacing:.16em;
       text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 2.2rem; transition:color .2s ease; }
     .brief .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
     .brief .backlink:hover{ color:#F5A65E; }
@@ -240,8 +256,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Track is lightened and thicker; JS paints an orange fill up to the value
        so the slider reads clearly against the dark WebGL background. */
     .brief input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:999px; background:rgba(207,187,155,0.22); outline:none; cursor:pointer; }
-    .brief input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid #EF9146; box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
-    .brief input[type=range]::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid #EF9146; box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
+    .brief input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid var(--orange); box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
+    .brief input[type=range]::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid var(--orange); box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
     .brief .rangeends{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-soft); margin-top:.55rem; }
 
     .brief input[type=text], .brief input[type=email], .brief input[type=url], .brief textarea{
@@ -250,12 +266,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       transition:border-color .2s ease,background .2s ease,box-shadow .2s ease; outline:none; }
     .brief input::placeholder, .brief textarea::placeholder{ color:var(--placeholder); }
-    .brief input:focus, .brief textarea:focus{ border-color:#EF9146; background:var(--field-focus); }
+    .brief input:focus, .brief textarea:focus{ border-color:var(--orange); background:var(--field-focus); }
     /* Recolor the site's global :focus-visible outline (custom.css sets it to
        purple #9F50FF !important) to the brief's orange, page-wide. */
     .brief a:focus-visible, .brief button:focus-visible, .brief input:focus-visible,
     .brief textarea:focus-visible, .brief select:focus-visible, .brief [tabindex]:focus-visible{
-      outline-color:#EF9146 !important; }
+      outline-color:var(--orange) !important; }
     .brief textarea{ min-height:92px; resize:vertical; }
     .brief .field.invalid input, .brief .field.invalid textarea{ border-color:var(--err); }
 
@@ -335,7 +351,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; color:var(--ink);
       font-family:'Diatype Mono', monospace; border-bottom:1px solid var(--line-strong);
       padding:6px 2px; transition:border-color .2s ease; }
-    .brief .ce-hashwrap:focus-within{ border-color:#EF9146; }
+    .brief .ce-hashwrap:focus-within{ border-color:var(--orange); }
     .brief .ce-hashwrap .ce-hex{ width:7ch; background:none; border:none; outline:none; box-shadow:none; color:var(--ink);
       font-family:inherit; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
     .brief .ce-hashwrap .ce-hex:focus{ background:none; border:none; box-shadow:none; }
@@ -360,9 +376,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem;
       display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
     .brief .btn{ font-family:inherit; font-size:1rem; cursor:pointer; border-radius:999px; padding:15px 30px;
-      border:1px solid #EF9146; background:#EF9146; color:var(--cream); font-weight:500;
+      border:1px solid var(--orange); background:var(--orange); color:var(--cream); font-weight:500;
       transition:box-shadow .25s ease,background .2s ease; }
-    .brief .btn:hover{ background:#F3A25C; box-shadow:0 0 24px rgba(239,145,70,.45); }
+    .brief .btn:hover{ background:var(--orange-hi); box-shadow:0 0 24px rgba(var(--orange-rgb),.45); }
     .brief .btn:active{ transform:scale(.98); }
     .brief .btn-ghost{ background:none; color:var(--ink); border:1px solid var(--ink); }
     .brief .btn-ghost:hover{ background:rgba(222,203,175,.10); box-shadow:none; }
@@ -394,8 +410,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     /* picker cards: time-to-complete, mono, lighter orange (top-right) */
     .brief .pcard .ptime{ position:absolute; top:22px; right:22px; font-family:'Diatype Mono', monospace;
-      font-size:.62rem; letter-spacing:.14em; color:rgba(239,145,70,.55); transition:color .2s ease; }
-    .brief .pcard:hover .ptime{ color:#EF9146; }
+      font-size:.62rem; letter-spacing:.14em; color:rgba(var(--orange-rgb),.55); transition:color .2s ease; }
+    .brief .pcard:hover .ptime{ color:var(--orange); }
 
     /* fieldset/legend semantics for choice groups (radios/checkboxes/colors) —
        visually identical to the label.q it replaces */
@@ -410,7 +426,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .bplus{ margin-top:16px; }
     .brief .bplus[hidden]{ display:none; }
     .brief .bplus-q{ display:block; font-family:'Diatype Mono', monospace; font-size:.68rem;
-      letter-spacing:.16em; text-transform:uppercase; color:rgba(239,145,70,.75); margin-bottom:11px; }
+      letter-spacing:.16em; text-transform:uppercase; color:rgba(var(--orange-rgb),.75); margin-bottom:11px; }
     .brief .bplus-chips{ display:flex; flex-wrap:wrap; gap:10px; }
     .brief button.pill{ font-family:inherit; }
 
@@ -427,9 +443,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        solid when the upload completes. Row content sits above it (z-index). */
     .brief .upfile > *{ position:relative; z-index:1; }
     .brief .upfile .uf-fill{ position:absolute; left:0; top:0; bottom:0; width:0; z-index:0;
-      background:#EF9146; transition:width .35s ease; }
+      background:var(--orange); transition:width .35s ease; }
     .brief .upfile.done .uf-fill{ width:100%; }
-    /* dark ink on the orange fill clears WCAG AA (#2A2010 on #EF9146). Each
+    /* dark ink on the orange fill clears WCAG AA (#2A2010 on var(--orange)). Each
        element flips as the fill reaches its side: name (left) early, size /
        percentage + remove-x (right) near the end or on done. */
     .brief .upfile.name-lit .ufname{ color:#2A2010; }
@@ -472,19 +488,130 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       /* thin, sharp 4-point glint */
       clip-path:polygon(50% 0,54% 46%,100% 50%,54% 54%,50% 100%,46% 54%,0 50%,46% 46%);
       animation:sentSpark 2.2s ease-in-out infinite; }
-    .brief .spark.s1{ top:-6px;   left:8px;    width:4px; animation-delay:.1s;  animation-duration:2.1s; background:#EF9146; }
+    .brief .spark.s1{ top:-6px;   left:8px;    width:4px; animation-delay:.1s;  animation-duration:2.1s; background:var(--orange); }
     .brief .spark.s2{ top:-3px;   left:44%;    width:3px; animation-delay:.8s;  animation-duration:1.8s; background:#F7D9A8; }
     .brief .spark.s3{ top:3px;    right:-6px;  width:5px; animation-delay:1.3s; animation-duration:2.4s; background:#F3B072; }
     .brief .spark.s4{ bottom:-5px; left:32%;    width:4px; animation-delay:1.7s; animation-duration:2.0s; background:#DECBAF; }
-    .brief .spark.s5{ bottom:-2px; right:-2px;  width:3px; animation-delay:.5s;  animation-duration:1.7s; background:#EF9146; }
+    .brief .spark.s5{ bottom:-2px; right:-2px;  width:3px; animation-delay:.5s;  animation-duration:1.7s; background:var(--orange); }
     .brief .spark.s6{ top:34%;    right:-10px; width:4px; animation-delay:2.1s; animation-duration:2.3s; background:#F3B072; }
     .brief .spark.s7{ top:-7px;   left:70%;    width:3px; animation-delay:1.0s; animation-duration:1.9s; background:#F7D9A8; }
-    .brief .spark.s8{ top:44%;    left:-4px;   width:3px; animation-delay:2.4s; animation-duration:2.2s; background:#EF9146; }
+    .brief .spark.s8{ top:44%;    left:-4px;   width:3px; animation-delay:2.4s; animation-duration:2.2s; background:var(--orange); }
     .brief .spark.s9{ bottom:-6px; left:62%;    width:5px; animation-delay:.3s;  animation-duration:2.6s; background:#DECBAF; }
     @keyframes sentSpark{ 0%,100%{ opacity:0; transform:scale(.2) rotate(0deg); }
       50%{ opacity:1; transform:scale(1) rotate(45deg); } }
     @media (prefers-reduced-motion:reduce){
       .brief .spark{ animation:none; opacity:.85; transform:scale(1); }
+    }
+
+    /* ============================================================
+       PATCH 2026-07-30 — stepup.md /brief pass.
+       Sent-screen choreography, submit state machine, form feedback,
+       rail completion. Motion uses --ease-out-expo (custom.css).
+       ============================================================ */
+
+    /* ---- submit button state machine ----
+       Was: a bare textContent swap to "Sending…" with no disabled styling, so
+       the button stayed bright and clickable-looking through the whole request.
+       Now the arrow leaves first (it's a promise of forward motion — it
+       shouldn't sit there while we wait), a shimmer runs while in flight, and
+       a "Sent ✓" beat lands before the screen changes. */
+    .brief .btn{ position:relative; overflow:hidden; }
+    .brief .btn .btn-label, .brief .btn .btn-arrow{ position:relative; z-index:1; }
+    .brief .btn .btn-arrow{ display:inline-block; margin-left:.5em;
+      transition:transform .34s var(--ease-out-expo), opacity .22s ease; }
+    .brief .btn.is-sending .btn-arrow, .brief .btn.is-sent .btn-arrow{
+      transform:translateX(14px); opacity:0; }
+    .brief .btn:disabled{ cursor:default; }
+    .brief .btn.is-sending{ background:rgba(var(--orange-rgb),.55); border-color:rgba(var(--orange-rgb),.55);
+      box-shadow:none; }
+    /* shimmer sweep while the request is in flight */
+    .brief .btn.is-sending::after{ content:""; position:absolute; inset:0; z-index:0;
+      background:linear-gradient(100deg, transparent 20%, rgba(255,255,255,.28) 50%, transparent 80%);
+      transform:translateX(-100%); animation:btnShimmer 1.15s linear infinite; }
+    @keyframes btnShimmer{ to{ transform:translateX(100%); } }
+    .brief .btn.is-sent{ background:var(--orange); border-color:var(--orange); box-shadow:0 0 26px rgba(var(--orange-rgb),.5); }
+    .brief .btn.is-failed{ animation:btnShake .42s ease both; background:var(--err); border-color:var(--err); }
+    @keyframes btnShake{ 0%,100%{transform:translateX(0)} 15%{transform:translateX(-6px)}
+      35%{transform:translateX(5px)} 55%{transform:translateX(-3px)} 78%{transform:translateX(2px)} }
+    @media (prefers-reduced-motion:reduce){
+      .brief .btn .btn-arrow{ transition:none; }
+      .brief .btn.is-sending::after{ animation:none; }
+      .brief .btn.is-failed{ animation:none; }
+    }
+
+    /* ---- invalid fields: a restrained shake instead of an instant red border ----
+       ±3px, once. The border color and the " — required" suffix still carry the
+       message; this only draws the eye to where it is. */
+    .brief .field.invalid{ animation:fieldShake .38s ease both; }
+    @keyframes fieldShake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-3px)}
+      45%{transform:translateX(3px)} 70%{transform:translateX(-2px)} }
+    @media (prefers-reduced-motion:reduce){ .brief .field.invalid{ animation:none; } }
+
+    /* ---- chip checkmark draws in ---- */
+    /* The base transform is rotate(-45deg); every keyframe must restate it or
+       the tick snaps upright mid-animation. */
+    .brief .chip.on::after{ animation:chipCheck .26s var(--ease-out-expo) both; transform-origin:20% 80%; }
+    @keyframes chipCheck{
+      from{ opacity:0; transform:rotate(-45deg) scale(.2); }
+      60% { opacity:1; transform:rotate(-45deg) scale(1.18); }
+      to  { opacity:1; transform:rotate(-45deg) scale(1); }
+    }
+    /* ---- pill selection gets a micro spring ---- */
+    .brief .pill.on{ animation:pillPop .3s var(--ease-out-expo) both; }
+    @keyframes pillPop{ 0%{transform:scale(.94)} 55%{transform:scale(1.04)} 100%{transform:scale(1)} }
+    @media (prefers-reduced-motion:reduce){
+      .brief .chip.on::after, .brief .pill.on{ animation:none; }
+    }
+
+    /* ---- budget follow-up rises instead of popping ----
+       .bplus toggles the `hidden` attribute, so display flips none<->block and
+       the animation replays on each reveal without any JS. (Safe here because
+       .bplus is a div — note the site-wide `.btn{display:inline-flex}` rule
+       defeats `hidden` on buttons.) */
+    .brief .bplus:not([hidden]){ animation:bplusRise .42s var(--ease-out-expo) both; }
+    @keyframes bplusRise{ from{ opacity:0; transform:translateY(-8px); } to{ opacity:1; transform:none; } }
+    @media (prefers-reduced-motion:reduce){ .brief .bplus:not([hidden]){ animation:none; } }
+
+    /* ---- the 100% moment ----
+       One swell along the completed rail, and the bottom end-cap tints orange
+       and stops being a label for a number you haven't reached yet. */
+    .brief .prograil.is-complete .prograil-cap--bot,
+    .brief .progbar-m.is-complete .progbar-m-cap:last-child{ color:var(--orange); transition:color .5s ease; }
+    .brief .prograil.just-complete i,
+    .brief .progbar-m.just-complete i{ animation:railSwell .9s var(--ease-out-expo) both; }
+    @keyframes railSwell{
+      0%  { box-shadow:0 0 8px 1px rgba(var(--orange-rgb),.75); }
+      35% { box-shadow:0 0 22px 4px rgba(var(--orange-rgb),.95); }
+      100%{ box-shadow:0 0 10px 2px rgba(var(--orange-rgb),.75); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .brief .prograil.just-complete i, .brief .progbar-m.just-complete i{ animation:none; }
+    }
+
+    /* ---- Sent screen choreography ----
+       This was a hard display swap — the emotional payoff of the whole funnel
+       and the only step on the page with no transition at all. Each part now
+       rises in turn: eyebrow, then the headline word by word, then the lede,
+       then the ghost button. The sparks are HELD until the headline has landed
+       (JS adds .sparks-go) — glitter that starts before there's anything to
+       celebrate reads as decoration; glitter that arrives on the word "Got it"
+       reads as a reaction. */
+    #sent .sent-eyebrow, #sent .lede, #sent .btn-ghost, #sent .sw{
+      opacity:0; transform:translateY(9px); }
+    #sent.sent-in .sent-eyebrow, #sent.sent-in .lede, #sent.sent-in .btn-ghost, #sent.sent-in .sw{
+      opacity:1; transform:none;
+      transition:opacity .52s ease var(--d,0s), transform .52s var(--ease-out-expo) var(--d,0s); }
+    #sent .sw{ display:inline-block; will-change:transform; }
+    /* sparks are inert until armed */
+    #sent .spark{ animation-play-state:paused; opacity:0; }
+    #sent .sent-eyebrow.sparks-go .spark{ animation-play-state:running; }
+    @media (prefers-reduced-motion:reduce){
+      #sent .sent-eyebrow, #sent .lede, #sent .btn-ghost, #sent .sw{ opacity:1; transform:none; transition:none; }
+      /* The earlier reduced-motion rule parks the sparks at opacity .85 with no
+         animation. `#sent .spark` above out-specifies it (id beats class), so
+         without restating the opacity here they'd stay invisible — the sent
+         screen would lose its glitter entirely for reduced-motion users. */
+      #sent .spark{ animation-play-state:running; opacity:.85; }
     }
 
     /* soft veil that dims the WebGL texture behind the reading column only
@@ -759,6 +886,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function selectDiscipline(key){
       state.discipline=key;state.colors=[];state.editing=-1;
       state.files=[];state.budgetPlus=null;
+      lastPct=0; // so the 100% swell can fire again on a second brief
       var d=DISCIPLINES[key];
       var groups=groupsFor(key);
       state.groupData=groups;
@@ -769,7 +897,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           g.fields.map(fieldHTML).join('')+'</div>';
       }).join('');
       document.getElementById('form-headline').textContent=d.headline;
-      document.getElementById('sent').style.display='none';
+      /* Reset the Sent screen so a second brief in the same session replays its
+         entrance instead of appearing already-arrived. */
+      var sentEl=document.getElementById('sent');
+      sentEl.style.display='none';
+      sentEl.classList.remove('sent-in');
+      var eb=sentEl.querySelector('.sent-eyebrow');
+      if(eb) eb.classList.remove('sparks-go');
       wireForm();
       showForm();
     }
@@ -1136,7 +1270,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function setRangeFill(r){
       var min=+r.min, max=+r.max, v=+r.value;
       var pct=max>min?((v-min)/(max-min))*100:0;
-      r.style.background='linear-gradient(90deg, #EF9146 0%, #EF9146 '+pct+'%, rgba(207,187,155,0.22) '+pct+'%, rgba(207,187,155,0.22) 100%)';
+      r.style.background='linear-gradient(90deg, var(--orange) 0%, var(--orange) '+pct+'%, rgba(207,187,155,0.22) '+pct+'%, rgba(207,187,155,0.22) 100%)';
     }
 
     /* Sit the rail just left of the text column, responsive to its margin/padding. */
@@ -1193,22 +1327,66 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var t=pct/100;
       var r=Math.round(237+(239-237)*t), g=Math.round(224+(145-224)*t), b=Math.round(200+(70-200)*t);
       var end='rgb('+r+','+g+','+b+')';
-      var glow='0 0 8px 1px rgba(239,145,70,'+(0.25+0.5*t).toFixed(2)+')';
+      var glow='0 0 8px 1px rgba(var(--orange-rgb),'+(0.25+0.5*t).toFixed(2)+')';
       var fill=document.getElementById('progFill');
       if(fill){
         /* Desktop rail: a filled line down from the top. */
         fill.style.height='max(6px,'+pct+'%)';
-        fill.style.background='linear-gradient(180deg, #EDE0C8 0%, '+end+' 100%)';
+        fill.style.background='linear-gradient(180deg, var(--rail-cream) 0%, '+end+' 100%)';
         fill.style.boxShadow=glow;
       }
       var fillM=document.getElementById('progFillM');
       if(fillM){
         /* Mobile bar: the same fill sweeping left -> right. */
         fillM.style.width='max(6px,'+pct+'%)';
-        fillM.style.background='linear-gradient(90deg, #EDE0C8 0%, '+end+' 100%)';
+        fillM.style.background='linear-gradient(90deg, var(--rail-cream) 0%, '+end+' 100%)';
         fillM.style.boxShadow=glow;
       }
+
+      /* ---- the 100% moment ----
+         Reaching complete used to be silent: the fill just stopped growing.
+         Now the rail swells once and the bottom end-cap tints orange, so the
+         thing that has been tracking you all the way down finally answers.
+         Fired on the TRANSITION to 100 only (lastPct guard) — updateProgress
+         runs on every keystroke, and a glow that re-swells each time you touch
+         an already-complete form is noise, not a reward. */
+      var wasComplete=lastPct>=100, isComplete=pct>=100;
+      [document.getElementById('progRail'), document.getElementById('progBarM')].forEach(function(el){
+        if(!el) return;
+        el.classList.toggle('is-complete', isComplete);
+        if(isComplete && !wasComplete){
+          el.classList.remove('just-complete');
+          void el.offsetWidth;            // restart the animation
+          el.classList.add('just-complete');
+        }
+        if(!isComplete) el.classList.remove('just-complete');
+      });
+      lastPct=pct;
+
+      updateStepMeta(pct);
       renderRailNotes(form);
+    }
+    var lastPct=0;
+
+    /* ---- .stepmeta ----
+       Styled in custom CSS and already named in showForm()'s entrance stagger,
+       but nothing ever rendered it. It reads "02 / BRANDING — ~4 MIN LEFT",
+       which is the point: the picker promises a duration per discipline and the
+       rail tracks completion, but nothing connected the two. The minutes here
+       are that promise counted DOWN against real progress, so the rail stops
+       being an abstract percentage. At 100% it stops estimating and says so. */
+    function updateStepMeta(pct){
+      var el=document.getElementById('stepMeta');
+      if(!el||!state.discipline) return;
+      var idx=0, mins=0;
+      PICKER_META.forEach(function(m,i){
+        if(m[0]===state.discipline){ idx=i+1; mins=parseInt(m[2],10)||0; }
+      });
+      var label=(DISCIPLINES[state.discipline]||{}).label||state.discipline;
+      var head='0'+idx+' / '+String(label).toUpperCase();
+      if(pct>=100){ el.textContent=head+' — READY TO SEND'; return; }
+      var left=Math.max(1, Math.ceil(mins*(1-pct/100)));
+      el.textContent=head+' — ~'+left+' MIN LEFT';
     }
 
     /* ---- rail receipt: a section name materializes beside the rail when
@@ -1316,17 +1494,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var body=buildBrief();
       var files=state.files.filter(function(f){return f.status==='done'&&f.url;})
         .map(function(f){return {name:f.name,url:f.url,size:f.size};});
+      /* ---- submit state machine ----
+         arrow slides away -> shimmer while in flight -> a "Sent ✓" beat that
+         lands BEFORE the screen changes -> shake + red on failure. The beat
+         matters: without it the button and the whole screen change in the same
+         frame, so the click never gets acknowledged on its own terms. */
       var btn=document.getElementById('sendBtn');
-      var label=btn.textContent;
-      btn.disabled=true;btn.textContent='Sending…';
+      var labelEl=btn.querySelector('.btn-label');
+      var label=labelEl?labelEl.textContent:btn.textContent;
+      btn.disabled=true;
+      btn.classList.remove('is-failed','is-sent');
+      btn.classList.add('is-sending');
+      if(labelEl) labelEl.textContent='Sending…';
       fetch('/api/brief',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({discipline:d.label,who:who,email:email,text:body,files:files})})
         .then(function(r){if(!r.ok)throw new Error('send failed');return r.json();})
-        .then(function(){showSent();})
+        .then(function(){
+          btn.classList.remove('is-sending');
+          btn.classList.add('is-sent');
+          if(labelEl) labelEl.textContent='Sent ✓';
+          var beat=reduceMotion()?0:300;
+          setTimeout(function(){
+            showSent();
+            /* Reset the button underneath, so a Back to the form (or "Start
+               another brief") never finds it stuck in the sent state. */
+            btn.classList.remove('is-sent');
+            btn.disabled=false;
+            if(labelEl) labelEl.textContent=label;
+          }, beat);
+        })
         .catch(function(){
           errEl.textContent='Something went wrong sending your brief. Please try again, or email us directly at pierce@cognak.com.';
           errEl.style.display='block';
-          btn.disabled=false;btn.textContent=label;
+          btn.classList.remove('is-sending');
+          btn.classList.add('is-failed');
+          btn.disabled=false;
+          if(labelEl) labelEl.textContent=label;
+          setTimeout(function(){ btn.classList.remove('is-failed'); }, 900);
         });
     });
     function firstFilled(ids){
@@ -1335,10 +1539,88 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if(fld){var v=fieldValue(fld);if(v)return v;}}
       return '';
     }
+    /* Wrap each word of an element in <span class="sw"> so the headline can be
+       staggered word by word. Walks child nodes rather than touching innerHTML,
+       so the <em>Got it</em> accent survives — its words get wrapped in place,
+       inside the em, and keep the orange. */
+    /* Named distinctly from cognak-global.js's own splitWords (that one is
+       IIFE-scoped and uses .stagger-word; this one is page-scope and uses .sw). */
+    function splitSentWords(el){
+      if(el.getAttribute('data-split')==='1') return;
+      (function walk(node){
+        Array.prototype.slice.call(node.childNodes).forEach(function(n){
+          if(n.nodeType===3){
+            var parts=n.nodeValue.split(/(\s+)/);
+            if(!parts.length) return;
+            var frag=document.createDocumentFragment();
+            parts.forEach(function(p){
+              if(!p) return;
+              if(/^\s+$/.test(p)){ frag.appendChild(document.createTextNode(p)); return; }
+              var s=document.createElement('span');
+              s.className='sw'; s.textContent=p;
+              frag.appendChild(s);
+            });
+            node.replaceChild(frag,n);
+          } else if(n.nodeType===1 && !n.classList.contains('sw') && !n.classList.contains('sparkles')){
+            walk(n);
+          }
+        });
+      })(el);
+      el.setAttribute('data-split','1');
+    }
+
+    /* ---- the Sent screen ----
+       Was `display:none` -> `display:block`, i.e. the one step in the funnel with
+       no transition, at the exact moment the visitor most deserves one. Now the
+       form crossfades out first (reusing .step-hide, same 260ms as every other
+       step change on this page), then Sent rises in parts: eyebrow, headline
+       word by word, lede, ghost button. Sparks are armed only once the headline
+       has landed. */
     function showSent(){
-      document.getElementById('formwrap').style.display='none';
-      document.getElementById('sent').style.display='block';
-      window.scrollTo(0,0);refreshScroll();
+      var wrap=document.getElementById('formwrap');
+      var sent=document.getElementById('sent');
+      var eyebrow=sent.querySelector('.sent-eyebrow');
+      var head=sent.querySelector('.headline');
+
+      if(reduceMotion()){
+        wrap.style.display='none';
+        sent.style.display='block'; sent.classList.add('sent-in');
+        if(eyebrow) eyebrow.classList.add('sparks-go');
+        window.scrollTo(0,0);refreshScroll();
+        return;
+      }
+
+      if(head) splitSentWords(head);
+      sent.classList.remove('sent-in');
+      wrap.classList.add('step-hide');
+
+      setTimeout(function(){
+        wrap.style.display='none'; wrap.classList.remove('step-hide');
+        sent.style.display='block';
+        window.scrollTo(0,0); refreshScroll();
+
+        /* Build the running order, then hand each element its own delay via a
+           --d custom property (the CSS transition reads it). Words carry the
+           bulk of the stagger; the lede and button follow the last word. */
+        var words=head?Array.prototype.slice.call(head.querySelectorAll('.sw')):[];
+        var t=0, STEP=0.055;
+        if(eyebrow){ eyebrow.style.setProperty('--d','0s'); t=0.16; }
+        words.forEach(function(w){ w.style.setProperty('--d',t.toFixed(3)+'s'); t+=STEP; });
+        var headDone=t;
+        var lede=sent.querySelector('.lede');
+        var ghost=sent.querySelector('.btn-ghost');
+        if(lede)  lede.style.setProperty('--d',(headDone+0.06).toFixed(3)+'s');
+        if(ghost) ghost.style.setProperty('--d',(headDone+0.18).toFixed(3)+'s');
+
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          sent.classList.add('sent-in');
+        }); });
+
+        /* Arm the glitter only after the last headline word has settled. */
+        if(eyebrow){
+          setTimeout(function(){ eyebrow.classList.add('sparks-go'); }, (headDone+0.52)*1000);
+        }
+      }, 260);
     }
     /* Return to the project picker (from the form OR the sent screen), matching
        the forward crossfade. Called by browser Back via the popstate handler. */
