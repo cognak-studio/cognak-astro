@@ -3145,15 +3145,39 @@ html body.page-template-page-privacy-policy,
 .privacy-body {
     margin-left: 18%;
     max-width: 600px;
+    /* Feeds the section numbers below. Resetting on the container (not on
+       body) keeps the count local to the policy, so the intro paragraph above
+       the first h2 stays unnumbered. */
+    counter-reset: pp-section;
 }
+/* Section headers are the site's label voice — uppercase and tracked out — but
+   were the one place it wasn't set in mono (the colophon spec labels are the
+   closest sibling: mono, uppercase, 0.12em). Now matched, and numbered, which
+   also feeds this page's printed-document conceit: the canvas already draws
+   crop marks and a baseline grid around the column.
+   12px rather than the old 13px because mono runs visually larger at the same
+   size. */
 .privacy-body h2 {
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: 13px;
+    font-family: 'Diatype Mono', monospace;
+    font-size: 12px;
     font-weight: 500;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #815275;
     margin: 56px 0 16px;
+}
+/* Numbered by CSS counter rather than by hand: sections can be added or
+   reordered without renumbering anything, and decimal-leading-zero gives the
+   01 form natively. Held at 55% so the numbers read as quiet register marks
+   beside the section name rather than competing with it.
+   NOTE these h2s are in the word-stagger's SELECTORS, so the name splits into
+   .stagger-word spans and reveals word by word — a ::before isn't part of that
+   split, so the number lands as a unit the moment the heading reveals and the
+   name fills in beside it. Intentional. */
+.privacy-body h2::before {
+    content: counter(pp-section, decimal-leading-zero) ' \00B7 ';
+    counter-increment: pp-section;
+    color: rgba(129,82,117,0.55);
 }
 .privacy-body p {
     font-family: 'Diatype Variable', sans-serif;

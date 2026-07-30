@@ -69,7 +69,7 @@ Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer
 
 ## /privacy-policy
 
-- [ ] **Numbered mono section headers** (`01 · Analytics` in Diatype Mono) — the site's "label voice" is mono everywhere except here, and it feeds the page's print conceit.
+- [x] **Numbered mono section headers** (`01 · Analytics` in Diatype Mono) — the site's "label voice" is mono everywhere except here, and it feeds the page's print conceit. — done 2026-07-30: UPPERCASE (matches the existing rule + colophon spec labels), Diatype Mono 12px/0.12em, numbers via CSS counter on `.privacy-body` (add/reorder sections and they renumber themselves) at 55% opacity. In `custom.css`, not the page file.
 - [ ] **Cookie ledger + live consent readout.** Replace the prose cookie list with a hairline mono table, and add `your current choice: declined — change` that reads the cookie and re-fires the consent update. Genuinely useful and perfectly on-message.
 - [ ] **Deliver the headline's promise.** One-line mono glosses under each section — "in short: we count visits, not people."
 - [ ] **Baseline-lock the type.** The canvas draws a baseline grid derived from the body line-height, but the text doesn't actually sit on it — designers will check. Quantize the margins and the whole conceit clicks.
