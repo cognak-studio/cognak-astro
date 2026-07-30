@@ -2213,6 +2213,41 @@ html.pv-grid .projects-list,
     gap: 0;
     margin-bottom: 0;
     flex-shrink: 0;
+    /* Gutter for the active marker. padding + equal negative margin = net zero
+       layout change, so the tab labels stay aligned with the panel copy below
+       them; the marker lives inside the padding rather than in the page margin
+       (which narrows to ~35px on phones and would have clipped it). */
+    position: relative;
+    padding-left: 20px;
+    margin-left: -20px;
+}
+/* Active-tab marker: a 2px pink rule that glides DOWN between the tabs — the
+   tab list is a vertical stack, so the travel is vertical, not the horizontal
+   underline a tab marker usually implies. Sits between the site's two existing
+   thin-rule precedents: the homepage .scroll-discover-track (1px vertical pink)
+   and the /brief .prograil (2px vertical). Position and height come from
+   --marker-y / --marker-h, set in studio.astro from the active tab's
+   offsetTop/offsetHeight (recalculated on resize and on fonts.ready, since the
+   labels are clamp()-sized and shift with both). */
+.studio-tabs::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: #FFB2E4;
+    height: var(--marker-h, 0px);
+    transform: translateY(var(--marker-y, 0px));
+    opacity: 0;
+    transition: transform .42s var(--ease-out-expo),
+                height .42s var(--ease-out-expo),
+                opacity .3s ease;
+}
+/* Only shown once JS has measured a real position, so it can't flash at 0,0. */
+.studio-tabs.has-marker::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+    .studio-tabs::before { transition: none; }
 }
 .studio-tab {
     font-family: 'Diatype Variable', sans-serif;
@@ -2253,12 +2288,28 @@ html.pv-grid .projects-list,
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.35s ease;
+    /* Panels are grid-stacked in one cell, so the incoming one can rise while
+       the outgoing fades with no reflow. 7px on the expo curve — enough to read
+       as arriving, not enough to look like a slide-in. */
+    transform: translateY(7px);
+    transition: opacity .42s ease, transform .42s var(--ease-out-expo);
 }
 .studio-tab-panel--active {
     visibility: visible;
     opacity: 1;
     pointer-events: auto;
+    transform: none;
+}
+/* The panels are focusable (tabindex=0, per the tab pattern) so keyboard users
+   can reach and scroll the content; suppress the default ring on mouse focus. */
+.studio-tab-panel:focus { outline: none; }
+.studio-tab-panel:focus-visible {
+    outline: 1px solid rgba(255,178,228,0.3);
+    outline-offset: 6px;
+    border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .studio-tab-panel { transform: none; transition: opacity .2s ease; }
 }
 /* Tab panel words: skip word-by-word stagger, let the whole panel fade as one block */
 .studio-tab-panel .stagger-word {

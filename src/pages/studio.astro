@@ -320,18 +320,20 @@ body { overflow-x: clip; }
     <div class="studio-columns">
     <div class="studio-subhead">
 
-        <nav class="studio-tabs" aria-label="Studio sections">
-            <button class="studio-tab studio-tab--active" data-tab="approach">Approach</button>
-            <button class="studio-tab" data-tab="founder">Founder</button>
-        </nav>
+        <!-- role="tablist" rather than <nav>: this switches content in place, it
+             isn't site navigation, so a nav landmark here misreports the page. -->
+        <div class="studio-tabs" role="tablist" aria-orientation="vertical">
+            <button class="studio-tab studio-tab--active" data-tab="approach" role="tab" id="tab-btn-approach" aria-controls="tab-approach" aria-selected="true" tabindex="0">Approach</button>
+            <button class="studio-tab" data-tab="founder" role="tab" id="tab-btn-founder" aria-controls="tab-founder" aria-selected="false" tabindex="-1">Founder</button>
+        </div>
 
         <div class="studio-tab-panels">
-            <div class="studio-tab-panel studio-tab-panel--active studio-tab-panel--entrance" id="tab-approach">
+            <div class="studio-tab-panel studio-tab-panel--active studio-tab-panel--entrance" id="tab-approach" role="tabpanel" aria-labelledby="tab-btn-approach" tabindex="0">
                 <p>The studio is small by design. Small means the people who pitch you are the people who build it.</p>
                 <p>Small means the people responsible for your work are the people accountable for it. No layers to absorb the feedback, dilute the thinking, or slow things down.</p>
                 <p>We understand the problem before we propose the solution. The structure we build is earned, not imposed. The work that comes out the other side doesn't chase what's current; it's <span class="award-name" data-award-pop>award-winning</span> because it's built to outlast it.</p>
             </div>
-            <div class="studio-tab-panel" id="tab-founder">
+            <div class="studio-tab-panel" id="tab-founder" role="tabpanel" aria-labelledby="tab-btn-founder" tabindex="0">
                 <p><span class="founder-name">Pierce Liefeld</span> founded COGNAK with a simple premise: there's no reason a small studio can't do what a large agency does. Usually better, and without the overhead baked into the cost.</p>
                 <p>An MFA in sculpture and years of work across brand, digital, and development mean the taste and the range are real. A tight network of developers, motion designers, 3D artists, and production specialists means the scope is too. The difference is you work directly with the person responsible for all of it.</p>
             </div>
@@ -425,14 +427,67 @@ body { overflow-x: clip; }
 
 <script is:inline>
 (function() {
+    var tabList = document.querySelector('.studio-tabs');
     var tabs   = document.querySelectorAll('.studio-tab');
     var panels = document.querySelectorAll('.studio-tab-panel');
+
+    /* ---- active-tab marker ----
+       Drive the 2px pink rule from the active tab's own box rather than
+       hardcoding offsets: the labels are clamp(19px, 2vw, 28px), so their height
+       and position move with the viewport AND again when the webfont swaps in.
+       .studio-tabs is position:relative, so offsetTop is already relative to it. */
+    function moveMarker() {
+        if (!tabList) return;
+        var active = tabList.querySelector('.studio-tab--active');
+        if (!active) return;
+        tabList.style.setProperty('--marker-y', active.offsetTop + 'px');
+        tabList.style.setProperty('--marker-h', active.offsetHeight + 'px');
+        tabList.classList.add('has-marker');
+    }
+    moveMarker();
+    window.addEventListener('resize', moveMarker);
+    // Webfont swap changes the label metrics after first paint.
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(moveMarker).catch(function() {});
+    }
+
+    function activate(tab, focusIt) {
+        tabs.forEach(function(t) {
+            var on = (t === tab);
+            t.classList.toggle('studio-tab--active', on);
+            t.setAttribute('aria-selected', on ? 'true' : 'false');
+            // Roving tabindex: only the selected tab is in the tab order, so Tab
+            // moves past the tablist rather than through every tab in it.
+            t.setAttribute('tabindex', on ? '0' : '-1');
+        });
+        panels.forEach(function(p) { p.classList.remove('studio-tab-panel--active'); });
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('studio-tab-panel--active');
+        moveMarker();
+        if (focusIt) tab.focus();
+    }
+
+    // Vertical tablist: Up/Down move between tabs (wrapping), Home/End jump to
+    // the ends. Left/Right are accepted too since the visual stack doesn't stop
+    // people reaching for them.
+    if (tabList) {
+        tabList.addEventListener('keydown', function(e) {
+            var list = Array.prototype.slice.call(tabs);
+            var i = list.indexOf(document.activeElement);
+            if (i === -1) return;
+            var next = null;
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = list[(i + 1) % list.length];
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = list[(i - 1 + list.length) % list.length];
+            else if (e.key === 'Home') next = list[0];
+            else if (e.key === 'End') next = list[list.length - 1];
+            if (!next) return;
+            e.preventDefault();
+            activate(next, true);
+        });
+    }
+
     tabs.forEach(function(tab) {
         tab.addEventListener('click', function() {
-            tabs.forEach(function(t) { t.classList.remove('studio-tab--active'); });
-            panels.forEach(function(p) { p.classList.remove('studio-tab-panel--active'); });
-            tab.classList.add('studio-tab--active');
-            document.getElementById('tab-' + tab.dataset.tab).classList.add('studio-tab-panel--active');
+            activate(tab, false);
         });
     });
 })();
