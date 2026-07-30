@@ -74,12 +74,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       pointer-events: none;
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
-      line-height: 1.4;
+      line-height: 1.6;
       letter-spacing: 0.04em;
-      white-space: nowrap;
       color: #a9abbd;
       opacity: 0;
     }
+    /* Two short lines rather than one long one, so the block stays narrow
+       enough to tuck into the gutter below-right of the glyph. Each line is
+       nowrap and the container is sized by the longer of the two — no
+       max-width, so there's no ragged wrapping to babysit if a glyph name
+       or a measurement ever gets longer. */
+    #glyph-caption .gc-line { display: block; white-space: nowrap; }
     #glyph-caption .gc-name { color: #b6ff2e; }
     #glyph-caption .gc-sep { opacity: 0.45; padding: 0 0.5em; }
     @media (max-width: 900px) {
@@ -428,39 +433,50 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var m = measureGlyph(key);
         var idxLabel = ('0' + (i + 1)).slice(-2) + ' / ' + ('0' + order.length).slice(-2);
         var sep = '<span class="gc-sep">·</span>';
-        return idxLabel + sep +
-               '<span class="gc-name">' + NAMES[key] + '</span>' + sep +
-               meta.upm + ' upm' + sep +
-               m.contours + (m.contours === 1 ? ' contour' : ' contours') + sep +
-               'h ' + m.height;
+        return '<span class="gc-line">' + idxLabel + sep +
+                 '<span class="gc-name">' + NAMES[key] + '</span>' +
+               '</span>' +
+               '<span class="gc-line">' +
+                 meta.upm + ' upm' + sep +
+                 m.contours + (m.contours === 1 ? ' contour' : ' contours') + sep +
+                 'h ' + m.height +
+               '</span>';
       });
 
       /* Anchored to the SHARED bbox (DATA.meta), not the current glyph's own —
          a per-glyph anchor would make the label hop every time the morph
          resolved. The plate label holds still; the specimen moves.
 
-         Horizontal is NOT simply the glyph's left edge: layout() shifts the
-         glyph 300px left of its locked position, which puts that edge roughly
-         220px INSIDE the text column's right edge — a caption there lands on
-         the headline. So the label starts at whichever is further right, the
-         glyph's left edge or just past the text column, which on every desktop
-         width lands it in the empty gutter beside the copy. The trailing clamp
-         keeps it inside the viewport at the narrow end of the breakpoint; if
-         both clamps fight (very narrow desktop), the viewport wins and the
-         label may graze the column — acceptable, since at z-index 0 the text
-         always renders over it.
+         Sits DOWN AND RIGHT of the glyph, so the specimen's mass reads as
+         up-and-left of its label. Horizontally that means the glyph's right
+         edge (never its left: layout() shifts the glyph 300px left of its
+         locked position, putting that edge inside the text column, where a
+         label would land on the headline).
 
-         Vertical is a plate label above the specimen, with a 96px floor so it
-         can't ride into the top edge on short windows. */
+         Vertically it is bottom-anchored against the MEASURED height of the
+         fixed bottom nav rather than a guessed offset — the nav is
+         position:fixed at z-index 100, and the glyph's own bottom edge lands
+         at roughly 0.93vh, i.e. already behind it. NAV_CLEAR is the breathing
+         room above the bar; raise it if the label still reads as crowded.
+
+         Both axes clamp to the viewport, and the left clamp wins if the two
+         fight on a narrow desktop — acceptable, since at z-index 0 the text
+         always renders over the label rather than under it. */
+      var NAV_CLEAR = 44; // px of air between the caption and the bottom nav
+      function navHeight() {
+        var nav = document.querySelector('.home-bottom-bar');
+        return nav ? nav.getBoundingClientRect().height : 72;
+      }
+
       function positionCaption() {
         if (!caption || vw <= 900) return;
         var L = layout();
-        var glyphLeft = meta.minx * L.scale + L.ox;
-        var glyphTop = -meta.maxy * L.scale + L.oy;
-        var left = Math.max(glyphLeft, contentRight + 24);
-        left = Math.min(left, vw - caption.offsetWidth - 24);
+        var glyphRight = meta.maxx * L.scale + L.ox;
+        var left = Math.min(glyphRight + 24, vw - caption.offsetWidth - 24);
+        left = Math.max(left, 24);
         caption.style.left = Math.round(left) + 'px';
-        caption.style.top = Math.round(Math.max(96, glyphTop - 28 - caption.offsetHeight)) + 'px';
+        caption.style.top = 'auto';
+        caption.style.bottom = Math.round(navHeight() + NAV_CLEAR) + 'px';
       }
 
       var shownCaption = -1;
