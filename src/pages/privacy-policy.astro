@@ -18,12 +18,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <p>COGNAK LLC is a design and development studio based in Los Angeles, California. This page explains how we handle data when you visit cognak.com.</p>
 
       <h2>Analytics</h2>
+      <div class="pp-gloss">We count visits, not people.</div>
       <p>We use Google Analytics (GA4) to collect anonymous, aggregate data about how visitors use this site: pages visited, session duration, and general geographic region. This data is never linked to any individual and is not sold or shared with third parties.</p>
       <p>We also run Google Ads to advertise our services. If you accept cookies, Google Ads may set cookies to measure whether an ad led to a visit or inquiry, and to improve the relevance of ads you see. No personally identifiable information is collected or shared.</p>
       <p>You can opt out of Google Analytics tracking at any time using the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a>. You can manage Google ad personalization at <a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>.</p>
 
       <h2>Cookies</h2>
-      <p>Every cookie this site can set, what it does, and how long it lasts. All tracking is consent-gated — declining prevents any analytics or ad cookie from being set at all.</p>
+      <div class="pp-gloss">Nothing is set until you say yes.</div>
+      <p>Every cookie this site can set, what it does, and how long it lasts. All tracking is consent-gated. Declining prevents any analytics or ad cookie from being set at all.</p>
 
       {/* Deliberately a <div>, not a <p> or <table>: custom.css sets
           `html.js .privacy-body p` to opacity:0 awaiting the word-stagger,
@@ -70,12 +72,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
 
       <h2>Contact</h2>
+      <div class="pp-gloss">Your email is used to reply, and nothing else.</div>
       <p>If you reach out via hello@cognak.com, your email and message are used solely to respond to your inquiry. No information is stored beyond standard email retention.</p>
 
       <h2>Your Rights</h2>
+      <div class="pp-gloss">Ask, and we delete it.</div>
       <p>EU visitors may request access to or deletion of any personal data we hold by contacting <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
 
       <h2>Intellectual Property</h2>
+      <div class="pp-gloss">The work here isn't yours to reuse.</div>
       <p>All work, imagery, and content displayed on cognak.com is the property of COGNAK LLC or its respective clients and is protected by copyright. Nothing on this site may be reproduced, copied, or redistributed without prior written permission from COGNAK LLC.</p>
 
       <h2>Questions</h2>
@@ -116,6 +121,37 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
     #cognak-main { position: relative; z-index: 1; }
 
+    /* ---- plain-English glosses --------------------------------------------
+       The headline promises "minus the legalese" and the prose underneath,
+       while readable, is still policy prose. These are the payoff: one line
+       per section, in the label voice, set off by a hairline rule so they read
+       as an aside rather than lead copy. Someone who skims only these six
+       lines should still leave correctly informed.
+
+       06 Questions deliberately has none — it's a single email address, and
+       glossing it would be padding to complete a pattern.
+
+       A <div>, not a <p>: `html.js .privacy-body p` is held at opacity:0 for
+       the word-stagger, which only reveals what's in its SELECTORS list. */
+    .pp-gloss {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #3A313B;
+      border-left: 1px solid rgba(129,82,117,0.35);
+      padding-left: 14px;
+      margin: 0 0 28.8px; /* 1x the 28.8px baseline grid — see custom.css */
+    }
+    .pp-gloss::before {
+      content: 'In short';
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 10px;
+      color: rgba(129,82,117,0.75);
+      margin-bottom: 2px;
+    }
+
     /* ---- cookie ledger ----------------------------------------------------
        Hairline mono table, built as a grid so it stacks on mobile (a real
        <table> can't). Same construction as the colophon spec block. */
@@ -131,7 +167,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       border-top: 1px solid rgba(129,82,117,0.35);
       border-bottom: 1px solid rgba(129,82,117,0.35);
       padding: 1.4rem 0;
-      margin: 0 0 20px;
+      margin: 0 0 28.8px; /* 1x */
     }
     .pp-ck-head {
       text-transform: uppercase;
@@ -172,7 +208,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       letter-spacing: 0.06em;
       line-height: 1.9;
       color: #3A313B;
-      margin: 0 0 20px;
+      margin: 0 0 28.8px; /* 1x */
     }
     .pp-consent-label { text-transform: uppercase; color: rgba(129,82,117,0.75); letter-spacing: 0.12em; font-size: 10px; }
     .pp-consent-state { text-transform: uppercase; color: #815275; font-weight: 500; margin: 0 0.15em 0 0.4em; }
@@ -337,7 +373,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       var touch = window.matchMedia('(hover: none)').matches;
 
-      var dpr = 1, vw = 0, vh = 0, spacing = 28.8;
+      var dpr = 1, vw = 0, vh = 0, spacing = 28.8, gridPhase = 0;
       function resize() {
         dpr = Math.min(window.devicePixelRatio || 1, 2);
         vw = window.innerWidth;
@@ -346,8 +382,37 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         canvas.height = Math.round(vh * dpr);
         var p = document.querySelector('.privacy-body p');
         if (p) {
-          var lh = parseFloat(getComputedStyle(p).lineHeight);
+          var cs = getComputedStyle(p);
+          var lh = parseFloat(cs.lineHeight);
           if (lh > 8) spacing = lh;
+
+          /* Phase the ruled lines onto the text's actual BASELINES instead of
+             an arbitrary origin at the top of the document. The margins in
+             custom.css are quantized to `spacing`, so once the first baseline
+             is on a rule every following line stays on one.
+
+             Aligning the grid to the type (rather than pushing the type to fit
+             an arbitrary grid) keeps the layout untouched — the rules are
+             decoration, the copy is not.
+
+             Baseline position inside a line box is (leading / 2) + ascent.
+             fontBoundingBox* comes from the font's own metrics, so it's stable
+             across strings; the 0.8em fallback is for engines that don't
+             report it. */
+          var asc, desc;
+          try {
+            ctx.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+            var m = ctx.measureText('x');
+            asc = m.fontBoundingBoxAscent;
+            desc = m.fontBoundingBoxDescent;
+          } catch (e) {}
+          var fs = parseFloat(cs.fontSize) || 16;
+          var baselineInBox = (asc && desc)
+            ? (spacing - (asc + desc)) / 2 + asc
+            : (spacing - fs) / 2 + fs * 0.8;
+
+          var top = p.getBoundingClientRect().top + (window.scrollY || 0);
+          gridPhase = (top + baselineInBox) % spacing;
         }
       }
       resize();
@@ -400,7 +465,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         my += (ty - my) * 0.12;
 
         var scrollY = window.scrollY || 0;
-        var offset = spacing - (scrollY % spacing);
+        // Modulo twice: the inner result can be negative (scrollY > gridPhase),
+        // and a negative start would skip the first rule.
+        var offset = (((gridPhase - scrollY) % spacing) + spacing) % spacing;
         var t = now * 0.001;
 
         for (var y = offset - spacing; y < vh + spacing; y += spacing) {
@@ -430,6 +497,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         if (!reduced) requestAnimationFrame(frame);
       }
+
+      /* The phase depends on where the first paragraph lands, which depends on
+         the headline's height, which depends on the webfont. Measuring only at
+         script time would lock in the fallback-font layout and leave the rules
+         a few px off every baseline once Diatype swaps in. */
+      function remeasure() {
+        resize();
+        if (reduced) frame(performance.now());
+      }
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(remeasure).catch(function () {});
+      }
+      window.addEventListener('load', remeasure);
 
       requestAnimationFrame(function (now) {
         frame(now);

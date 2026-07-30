@@ -3132,6 +3132,17 @@ html body.page-template-page-privacy-policy,
     min-height: 100vh;
     padding: 190px 70px 120px;
 }
+/* ── Privacy: baseline grid ──
+   The canvas behind this page rules horizontal lines at exactly the body
+   line-height (16px x 1.8 = 28.8px, read from the DOM at runtime), so every
+   vertical margin in the column is quantized to a multiple of 28.8 — otherwise
+   the type drifts off the rules it's drawn against, which on a page that
+   advertises a print conceit is the first thing a designer checks.
+   1x = 28.8, 0.5x = 14.4, 1.5x = 43.2, 2x = 57.6.
+   Margins only: h2 and .pp-gloss have their own line boxes that aren't whole
+   multiples, so a heading + gloss pair still drifts slightly before the next
+   paragraph re-syncs. Locking those too would need fixed heights and would
+   fight the variable-height cookie ledger. */
 .privacy-headline {
     font-family: 'Diatype Variable', sans-serif;
     font-size: clamp(20px, 5.5vw, 62px);
@@ -3139,7 +3150,7 @@ html body.page-template-page-privacy-policy,
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: #815275;
-    margin: 0 0 56px 18%;
+    margin: 0 0 57.6px 18%; /* 2x */
     max-width: 600px;
 }
 .privacy-body {
@@ -3164,7 +3175,7 @@ html body.page-template-page-privacy-policy,
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #815275;
-    margin: 56px 0 16px;
+    margin: 57.6px 0 14.4px; /* 2x / 0.5x */
 }
 /* Numbered by CSS counter rather than by hand: sections can be added or
    reordered without renumbering anything, and decimal-leading-zero gives the
@@ -3182,9 +3193,12 @@ html body.page-template-page-privacy-policy,
 .privacy-body p {
     font-family: 'Diatype Variable', sans-serif;
     font-size: 16px;
+    /* This 1.8 IS the grid: the canvas reads it off this rule at runtime
+       (see privacy-policy.astro's resize()). Changing it re-spaces the drawn
+       lines, so re-check every quantized margin above if you touch it. */
     line-height: 1.8;
     color: #3A313B;
-    margin: 0 0 20px;
+    margin: 0 0 28.8px; /* 1x */
 }
 .privacy-body a {
     color: #3A313B;
@@ -3220,7 +3234,8 @@ html body.page-template-page-privacy-policy,
         font-size: clamp(24px, 7vw, 42px) !important;
         margin-left: 0 !important;
         padding-top: 100px !important;
-        margin-bottom: 40px !important;
+        margin-bottom: 43.2px !important; /* 1.5x — body line-height is
+            unchanged on mobile, so the grid spacing is still 28.8 */
     }
     .privacy-body {
         margin-left: 0;
