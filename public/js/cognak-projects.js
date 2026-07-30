@@ -149,37 +149,106 @@
         localStorage.setItem('cognak-projects-view', 'list');
     });
 
-    function sortItems() {
-        var gridItems = Array.prototype.slice.call(grid.querySelectorAll('.projects-grid-item'));
-        gridItems.sort(function(a, b) {
-            if (mode === 'alpha') {
-                return a.dataset.title.localeCompare(b.dataset.title);
-            } else {
-                return parseInt(b.dataset.date) - parseInt(a.dataset.date);
-            }
-        });
-        gridItems.forEach(function(item) { grid.appendChild(item); });
+    function comparator(a, b) {
+        if (mode === 'alpha') return a.dataset.title.localeCompare(b.dataset.title);
+        return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+    }
 
-        var listItems = Array.prototype.slice.call(list.querySelectorAll('.projects-list-item'));
-        listItems.sort(function(a, b) {
-            if (mode === 'alpha') {
-                return a.dataset.title.localeCompare(b.dataset.title);
-            } else {
-                return parseInt(b.dataset.date) - parseInt(a.dataset.date);
-            }
+    var EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)'; // mirrors --ease-out-expo in custom.css
+    var FLIP_MS = 520;
+    var FLIP_STAGGER_MS = 120;  // total spread across the whole reorder, not per item
+    var FLIP_MARGIN = 200;      // px beyond the viewport that still animates
+
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    /* Reorder a container with a FLIP.
+
+       Why hand-rolled instead of document.startViewTransition(): the tiles and
+       rows carry PERMANENT view-transition-names for the thumb-to-hero
+       navigation morph, so a same-document transition would snapshot all 53 at
+       once (exactly what vt-isolate exists to prevent). Worse, the root rules in
+       custom.css are tuned for navigation - ::view-transition-old(root) is
+       {animation:none; opacity:0} - so a same-document transition would blank
+       the outgoing page unless every existing VT rule grew a carve-out.
+
+       Only items within FLIP_MARGIN of the viewport animate. With 53 rows that
+       is the difference between smooth and janky, and the ones that cheat are
+       off-screen by definition.
+
+       The stagger is keyed to TRAVEL DISTANCE, not index: whatever moves
+       furthest starts last. That reads as the list settling into its new order,
+       and it makes the alpha/chronological swap legible as a reordering rather
+       than a reshuffle. Index-keyed stagger produces a wave sweeping top-to-
+       bottom, which says nothing about what actually changed. */
+    function reorder(container, selector, animate) {
+        var items = Array.prototype.slice.call(container.querySelectorAll(selector));
+        if (!items.length) return;
+
+        if (!animate || reduceMotion.matches) {
+            items.sort(comparator).forEach(function(el) { container.appendChild(el); });
+            return;
+        }
+
+        // FIRST - where everything is now.
+        var vh = window.innerHeight;
+        var first = items.map(function(el) {
+            var r = el.getBoundingClientRect();
+            return { top: r.top, left: r.left, near: r.bottom > -FLIP_MARGIN && r.top < vh + FLIP_MARGIN };
         });
-        listItems.forEach(function(item) { list.appendChild(item); });
+
+        // Reorder.
+        items.slice().sort(comparator).forEach(function(el) { container.appendChild(el); });
+
+        // LAST + INVERT - measure the deltas before animating any of them, so
+        // one item's animation can't perturb another's measurement.
+        var moves = [];
+        var maxDist = 0;
+        items.forEach(function(el, i) {
+            if (!first[i].near) return;
+            var r = el.getBoundingClientRect();
+            var dx = first[i].left - r.left;
+            var dy = first[i].top - r.top;
+            if (!dx && !dy) return;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > maxDist) maxDist = dist;
+            moves.push({ el: el, dx: dx, dy: dy, dist: dist });
+        });
+        if (!moves.length) return;
+
+        // PLAY.
+        moves.forEach(function(m) {
+            m.el.animate(
+                [
+                    { transform: 'translate(' + m.dx.toFixed(2) + 'px, ' + m.dy.toFixed(2) + 'px)' },
+                    { transform: 'translate(0, 0)' }
+                ],
+                {
+                    duration: FLIP_MS,
+                    delay: maxDist ? (m.dist / maxDist) * FLIP_STAGGER_MS : 0,
+                    easing: EXPO,
+                    fill: 'both'
+                }
+            );
+        });
+    }
+
+    // animate=false for the on-load call below: the server already renders in the
+    // default (newest-first) order, so that pass is a no-op sort, and skipping the
+    // FLIP avoids 53 getBoundingClientRect() reads during first paint.
+    function sortItems(animate) {
+        reorder(grid, '.projects-grid-item', animate);
+        reorder(list, '.projects-list-item', animate);
     }
 
     btn.addEventListener('click', function() {
         mode = (mode === 'newest') ? 'alpha' : 'newest';
         btn.dataset.mode = mode;
         btn.setAttribute('aria-label', mode === 'newest' ? 'Sort: newest first' : 'Sort: alphabetical');
-        sortItems();
+        sortItems(true);
         initLazyLoad();
     });
 
-    sortItems();
+    sortItems(false);
 
     function initLazyLoad() {
         var all = grid.querySelectorAll('.projects-grid-item');

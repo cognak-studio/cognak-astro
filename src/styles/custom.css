@@ -19,13 +19,29 @@
    no longer this color. Rather than keep a second, muddier green around for
    light pages (#6BBF00 was that compromise and only managed 1.87:1 — retired),
    light pages use THEIR OWN accent for the same job: the projects availability
-   dot is #4A3F6B, that page's dark lavender. One acid green, used only where it
-   works; each light page speaks in its own color.
+   dot takes that page's interaction purple (--cognak-purple-text). One acid
+   green, used only where it works; each light page speaks in its own color.
+   (See the .projects-below .avail-dot rule for why it's the INTERACTION accent
+   and not the headline lavender #4A3F6B.)
 
    So: never darken this green for a light background, and never use it as text
    on one. */
 :root {
     --signal-green: #AAFF00;
+}
+
+/* ── Motion tokens ──
+   The site has ~37 distinct durations and 5 cubic-beziers, and ~95% of
+   transitions are a plain `ease`. This is the start of one vocabulary. Sweep
+   the rest onto these rather than adding a sixth curve.
+
+   --ease-out-expo is the curve the site's best moments already use (the founder
+   portrait, the studio reel). It leaves fast and lands slow, which is what makes
+   a large element settle rather than arrive. Use it for anything that MOVES a
+   meaningful distance. Keep plain `ease` for small color/opacity fades — an
+   expo curve on a 0.15s color swap is imperceptible and just noise in the code. */
+:root {
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Prevent orphans sitewide ── */
