@@ -1,5 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+/* Colophons traditionally date themselves — a printed one names the day the
+   type was set. This resolves at BUILD time, not request time, so it names the
+   day this deploy was cut and then stays put until the next one, which is the
+   honest reading of "when was this set". Vercel builds in UTC, so a late-night
+   Los Angeles deploy dates as the following day; that's a day's drift on a
+   date whose whole job is to be approximate. */
+const buildDate = new Date().toLocaleDateString('en-GB', {
+  day: 'numeric', month: 'long', year: 'numeric'
+});
 ---
 <BaseLayout
   page="colophon"
@@ -32,6 +42,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <span>Motion</span><span><a href="https://lenis.darkroom.engineering" target="_blank" rel="noopener">Lenis</a> smooth scroll, <a href="https://www.unicorn.studio" target="_blank" rel="noopener">UnicornStudio</a>, custom canvas</span>
         <span>Served from</span><span><a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a></span>
         <span>Made in</span><span>Los Angeles, California</span>
+        <span>Set</span><span>{buildDate}</span>
       </p>
 
       <p class="colophon-sign">No page builders. No templates. Built by hand at COGNAK. If you care about this sort of thing, so do we: <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
@@ -327,6 +338,105 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .colophon-spec span:nth-child(odd) { margin-top: 1rem; }
       .colophon-spec span:nth-child(2) { margin-top: 0; }
     }
+
+    /* ---- print ------------------------------------------------------------
+       A colophon is exactly the page a type nerd prints, and the screen page
+       prints appallingly by default: klein blue flooding the sheet, an
+       invisible canvas eating a page, and — worst — mostly BLANK, because the
+       word-stagger reveal leaves .stagger-word at opacity 0 until its
+       IntersectionObserver fires, and content below the fold never has. So the
+       reveal guards below aren't polish; without them the printout is empty
+       past the first screen.
+
+       Everything ornamental goes (canvas, glyph caption, fixed nav), the page
+       inverts to ink on paper, and link destinations get spelled out — a
+       printed credit that just says "Dinamo" with no URL is a dead end. */
+    @media print {
+      @page { margin: 18mm; }
+
+      html, body {
+        background: #ffffff !important;
+        color: #111111 !important;
+      }
+      #colophon-anatomy,
+      #glyph-caption,
+      .home-bottom-bar { display: none !important; }
+
+      /* The screen layout hangs the column off a big top pad and a vw-based
+         indent, and clips overflow for the headline's negative margin — none
+         of which means anything on paper. */
+      #cognak-main { overflow: visible !important; }
+      .colophon {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: #111111 !important;
+      }
+
+      /* Reveal guards. .stagger-word is the site-wide splitter's output;
+         .colophon-spec/.colophon-sign use this page's own IO fade. Both start
+         hidden and both must be forced on for print. */
+      .stagger-word,
+      .colophon-headline,
+      .colophon-body,
+      .colophon-body p,
+      .colophon-spec,
+      .colophon-sign {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+      }
+
+      .colophon-headline {
+        color: #111111 !important;
+        font-size: 20pt !important;
+        line-height: 1.25 !important;
+        margin: 0 0 16pt !important;
+        max-width: none !important;
+      }
+      .colophon-headline em { font-style: italic !important; }
+
+      .colophon-body p {
+        color: #222222 !important;
+        font-size: 10.5pt !important;
+        line-height: 1.55 !important;
+        max-width: 68ch !important;
+        margin-bottom: 10pt !important;
+      }
+      .colophon-body strong { color: #000000 !important; }
+      .colophon-body code { color: #111111 !important; }
+
+      .colophon-body a {
+        color: #111111 !important;
+        text-decoration-color: #111111 !important;
+        text-decoration-thickness: 1px !important;
+      }
+      /* The screen arrow is meaningless on paper — the URL replaces it.
+         !important on `content` rather than a longer selector: the arrow rule
+         is scoped to p:not(.colophon-spec) and would otherwise out-specify
+         this and swallow the URL on exactly the prose links that need it. */
+      .colophon-body a[href^="http"]::after {
+        content: ' (' attr(href) ')' !important;
+        font-family: 'Diatype Mono', monospace;
+        font-size: 0.82em;
+        color: #555555 !important;
+        opacity: 1 !important;
+        transform: none !important;
+        word-break: break-all;
+      }
+
+      .colophon-spec {
+        color: #111111 !important;
+        border-top: 1px solid #111111 !important;
+        border-bottom: 1px solid #111111 !important;
+        padding: 10pt 0 !important;
+        margin: 14pt 0 !important;
+        max-width: none !important;
+        break-inside: avoid;
+      }
+      .colophon-spec span:nth-child(odd) { color: #555555 !important; }
+      .colophon-sign { color: #333333 !important; break-inside: avoid; }
+    }
   </style>
 
   <script is:inline>
@@ -536,12 +646,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         return out;
       }
 
-      function drawContour(pts, alpha) {
+      /* The outline is bone white for the six letters and tints toward the
+         signal green for the ":)" — the page's hidden joke, which until now
+         drew identically to every other frame and so read as just another
+         shape in the cycle. `tint` is 0..1 (the `smile` value in frame()), so
+         the color arrives WITH the morph rather than snapping on at the end:
+         the outline is already greening while the k is still resolving into
+         the smile, which is what makes it feel found rather than announced. */
+      var INK = [244, 244, 238];
+      var SIGNAL = [182, 255, 46];
+      function drawContour(pts, alpha, tint) {
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
         for (var i = 1; i < N; i++) ctx.lineTo(pts[i].x, pts[i].y);
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(244,244,238,' + alpha + ')';
+        var k = tint || 0;
+        ctx.strokeStyle = 'rgba(' +
+          Math.round(INK[0] + (SIGNAL[0] - INK[0]) * k) + ',' +
+          Math.round(INK[1] + (SIGNAL[1] - INK[1]) * k) + ',' +
+          Math.round(INK[2] + (SIGNAL[2] - INK[2]) * k) + ',' + alpha + ')';
         ctx.lineWidth = 1;
         ctx.stroke();
       }
@@ -692,10 +815,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         stepPointer();
         updateCaption(idx, next, phase, fadeMul);
 
+        /* How much of the ":)" is on screen this frame: 1 while it holds,
+           and t / 1-t through the morphs on either side of it. Reading BOTH
+           endpoints is what makes it work in both directions — k into smile
+           (next is the smile, so it rises with t) and smile into c (idx is
+           the smile, so it falls with t). */
+        var smile = (order[idx] === ':)' ? 1 - t : 0) + (order[next] === ':)' ? t : 0);
+
         drawFill(contoursForFrame, 0.10 * fadeMul);
         for (var c2 = 0; c2 < NC; c2++) {
           var pts = contoursForFrame[c2];
-          drawContour(pts, 0.12 * fadeMul);
+          drawContour(pts, 0.12 * fadeMul, smile);
           drawNodes(pts, now, fadeMul);
         }
         rafId = reduced ? null : requestAnimationFrame(frame);
