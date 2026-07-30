@@ -4,9 +4,32 @@
 /* ── View-transition isolation (functions.php) ─────────────────────────────────
    Only the tile you actually pressed should keep its view-transition-name; every
    other named element gets 'none' for the duration of the navigation so the
-   browser snapshots one participant instead of twenty. Runs for BOTH views: the
+   browser snapshots one participant instead of fifty. Runs for BOTH views: the
    grid figures and the list rows are both named project-thumb-{slug} (they're
-   never visible at the same time, so the names can't collide). */
+   never visible at the same time, so the names can't collide).
+
+   TWO BUGS FIXED HERE, both latent in the original grid-only version and both
+   only visible from the SECOND click onward — which is why this read as "the
+   morph just stopped working" rather than "the morph never worked":
+
+   1. Nothing restored the names after a real navigation. The old mouseup handler
+      only restored on an ABORTED click; a completed click left every other tile
+      at 'none', and Chrome then served the archive back from bfcache in exactly
+      that state. The next click's 'keep' element was already 'none', so there
+      was no participant to pair with the hero and the morph silently degraded to
+      a plain root fade. Fixed by restoring on pageshow, which fires on bfcache
+      restore and is a harmless no-op on a fresh load.
+
+   2. The restore read from a stash of the PREVIOUS value (dataset.savedVt). On
+      the second pass that stash was itself 'none', so the real name was
+      overwritten and permanently destroyed — restoring became a no-op that wrote
+      'none' back over 'none'. Verified live: all 53 rows sat at 'none' with all
+      53 stashes reading 'none'. Fixed by snapshotting the canonical names ONCE
+      at init, before anything can clear them, so restore always has ground truth.
+
+   Ordering note: pagereveal runs BEFORE pageshow, so a back-navigation's own
+   morph has already captured its snapshot by the time we restore — restoring
+   cannot disturb the transition that is currently playing. */
 (function() {
     var containers = [
         { root: document.querySelector('.projects-grid'), link: '.projects-grid-link', named: '.projects-grid-figure' },
@@ -14,28 +37,33 @@
     ].filter(function(c) { return c.root; });
     if (!containers.length) return;
 
+    // Ground truth, captured before any handler can touch it. Astro writes the
+    // name as an inline style, so this reads it straight off the server markup.
+    var canonical = new WeakMap();
     containers.forEach(function(c) {
-        function clearOthers(keep) {
+        c.root.querySelectorAll(c.named).forEach(function(el) {
+            canonical.set(el, el.style.viewTransitionName || '');
+        });
+    });
+
+    function restoreAll() {
+        containers.forEach(function(c) {
             c.root.querySelectorAll(c.named).forEach(function(el) {
-                if (el !== keep) {
-                    el.dataset.savedVt = el.style.viewTransitionName || '';
-                    el.style.viewTransitionName = 'none';
-                }
+                var name = canonical.get(el);
+                if (name !== undefined) el.style.viewTransitionName = name;
             });
-        }
-        function restoreAll() {
-            c.root.querySelectorAll(c.named).forEach(function(el) {
-                if (el.dataset.savedVt !== undefined) {
-                    el.style.viewTransitionName = el.dataset.savedVt;
-                    delete el.dataset.savedVt;
-                }
-            });
-        }
+        });
+    }
+
+    containers.forEach(function(c) {
         c.root.addEventListener('mousedown', function(e) {
             var link = e.target.closest(c.link);
             if (!link) return;
             // For the list the link IS the named element; for the grid it's a child.
-            clearOthers(link.matches(c.named) ? link : link.querySelector(c.named));
+            var keep = link.matches(c.named) ? link : link.querySelector(c.named);
+            c.root.querySelectorAll(c.named).forEach(function(el) {
+                if (el !== keep) el.style.viewTransitionName = 'none';
+            });
             function onMouseup(ev) {
                 if (!ev.target.closest(c.link)) restoreAll();
                 document.removeEventListener('mouseup', onMouseup);
@@ -43,6 +71,8 @@
             document.addEventListener('mouseup', onMouseup);
         });
     });
+
+    window.addEventListener('pageshow', restoreAll);
 })();
 
 /* ── Odometer tick-up on project count ────────────────────────────────────── */
