@@ -216,18 +216,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .step-fade.step-hide{ transform:none; }
     }
 
-    /* Literal #0E1413, not var(--card) — the bar is a sibling of .send/.receive,
-       so the page's custom properties don't reach it. Keep this in sync with
-       --card; the bar and the cards are meant to be the same surface.
+    /* Literal rgba of --card (#0E1413), not var(--card) — the bar is a sibling
+       of .send/.receive, so the page's custom properties don't reach it. Keep
+       this in sync with --card; the bar and the cards share a surface tone.
 
-       No backdrop-filter, deliberately. Blurring a fixed bar that sits over an
-       ALWAYS-ANIMATING canvas means re-running a full-width gaussian every
-       frame forever, not just while scrolling — that was the bulk of the lag.
-       The cards dropped translucency for the same reason (see .acard above);
-       the bar now matches them. */
-    .home-bottom-bar.inner-page-nav.send-nav{ background:#0E1413 !important;
-      -webkit-backdrop-filter:none !important; backdrop-filter:none !important;
-      contain:paint; }
+       Frosted like every other inner-page nav: translucent tint + the 6px
+       backdrop blur inherited from the base .inner-page-nav rule (and
+       BaseLayout's inline fallback). The bar was opaque with blur disabled
+       until 2026-07-30 as a perf guard against blurring over the
+       always-animating transit canvas; the background's load has since been
+       lightened, so the full frost is back to match the rest of the site. */
+    .home-bottom-bar.inner-page-nav.send-nav{ background:rgba(14,20,19,0.75) !important; }
     .send-nav .home-bottom-email,
     .send-nav .home-bottom-location,
     .send-nav .inner-nav-links a,
