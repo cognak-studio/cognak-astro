@@ -10,6 +10,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   pageBg="#0E06D2"
 >
   <canvas id="colophon-anatomy" aria-hidden="true"></canvas>
+  {/* Specimen-plate label for the glyph on the canvas. Positioned in JS from
+      the same layout() the canvas draws with, and fed real measurements taken
+      off the outline data — not decoration pretending to be data. Decorative
+      in the a11y sense though (it labels artwork, and the artwork itself is
+      aria-hidden), hence hidden from AT. */}
+  <div id="glyph-caption" aria-hidden="true"></div>
 
   <main id="cognak-main"><section class="colophon">
 
@@ -56,6 +62,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       z-index: 0;
       pointer-events: none;
     }
+    /* ---- glyph caption ---------------------------------------------------
+       Sits at z-index 0 with the canvas, BELOW #cognak-main, because it's part
+       of the artwork layer — if the text column ever reaches it, the text wins.
+       Hidden below 900px: that's the same breakpoint where layout() stops
+       locking the glyph beside the text column and centers it behind the copy,
+       where a caption would land straight on the body text. */
+    #glyph-caption {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      line-height: 1.4;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      color: #a9abbd;
+      opacity: 0;
+    }
+    #glyph-caption .gc-name { color: #b6ff2e; }
+    #glyph-caption .gc-sep { opacity: 0.45; padding: 0 0.5em; }
+    @media (max-width: 900px) {
+      #glyph-caption { display: none; }
+    }
+
     #cognak-main {
       position: relative;
       z-index: 1;
@@ -354,7 +384,104 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         canvas.width = Math.round(vw * dpr);
         canvas.height = Math.round(vh * dpr);
         if (contentEl) contentRight = contentEl.getBoundingClientRect().right;
+        positionCaption();
       }
+
+      /* ---------------------------------------------------- glyph caption ---
+         A specimen-plate label for whatever the canvas is currently drawing.
+         Every number in it is measured off the outline data at boot rather
+         than authored, so it can't drift out of sync with the artwork.
+
+         Contour counts are real: each glyph pads its unused slots with a
+         degenerate contour (every point identical) so all entries share the
+         same NC, and those padding contours are what gets filtered here —
+         which is why o/g/a report 2, the smiley reports 3, and c/n/k report 1.
+         Height is that glyph's own bbox in font units, NOT the shared
+         DATA.meta box (which spans k's ascender to g's descender and would
+         print the same number seven times). */
+      var caption = document.getElementById('glyph-caption');
+      var NAMES = {
+        'c': 'lowercase c', 'o': 'lowercase o', 'g': 'lowercase g',
+        'n': 'lowercase n', 'a': 'lowercase a', 'k': 'lowercase k',
+        ':)': 'colon + paren'
+      };
+
+      function measureGlyph(key) {
+        var contours = glyphs[key];
+        var real = 0, lo = Infinity, hi = -Infinity;
+        for (var c = 0; c < contours.length; c++) {
+          var pts = contours[c], degenerate = true;
+          for (var i = 1; i < pts.length; i++) {
+            if (pts[i][0] !== pts[0][0] || pts[i][1] !== pts[0][1]) { degenerate = false; break; }
+          }
+          if (degenerate) continue;
+          real++;
+          for (var j = 0; j < pts.length; j++) {
+            if (pts[j][1] < lo) lo = pts[j][1];
+            if (pts[j][1] > hi) hi = pts[j][1];
+          }
+        }
+        return { contours: real, height: Math.round(hi - lo) };
+      }
+
+      var CAPTIONS = order.map(function (key, i) {
+        var m = measureGlyph(key);
+        var idxLabel = ('0' + (i + 1)).slice(-2) + ' / ' + ('0' + order.length).slice(-2);
+        var sep = '<span class="gc-sep">·</span>';
+        return idxLabel + sep +
+               '<span class="gc-name">' + NAMES[key] + '</span>' + sep +
+               meta.upm + ' upm' + sep +
+               m.contours + (m.contours === 1 ? ' contour' : ' contours') + sep +
+               'h ' + m.height;
+      });
+
+      /* Anchored to the SHARED bbox (DATA.meta), not the current glyph's own —
+         a per-glyph anchor would make the label hop every time the morph
+         resolved. The plate label holds still; the specimen moves.
+
+         Horizontal is NOT simply the glyph's left edge: layout() shifts the
+         glyph 300px left of its locked position, which puts that edge roughly
+         220px INSIDE the text column's right edge — a caption there lands on
+         the headline. So the label starts at whichever is further right, the
+         glyph's left edge or just past the text column, which on every desktop
+         width lands it in the empty gutter beside the copy. The trailing clamp
+         keeps it inside the viewport at the narrow end of the breakpoint; if
+         both clamps fight (very narrow desktop), the viewport wins and the
+         label may graze the column — acceptable, since at z-index 0 the text
+         always renders over it.
+
+         Vertical is a plate label above the specimen, with a 96px floor so it
+         can't ride into the top edge on short windows. */
+      function positionCaption() {
+        if (!caption || vw <= 900) return;
+        var L = layout();
+        var glyphLeft = meta.minx * L.scale + L.ox;
+        var glyphTop = -meta.maxy * L.scale + L.oy;
+        var left = Math.max(glyphLeft, contentRight + 24);
+        left = Math.min(left, vw - caption.offsetWidth - 24);
+        caption.style.left = Math.round(left) + 'px';
+        caption.style.top = Math.round(Math.max(96, glyphTop - 28 - caption.offsetHeight)) + 'px';
+      }
+
+      var shownCaption = -1;
+      function updateCaption(idx, next, phase, fadeMul) {
+        if (!caption || vw <= 900) return;
+        /* Swap at the morph's midpoint, where the form is most ambiguous, so
+           the label appears to resolve WITH the shape instead of announcing
+           the next glyph while the old one is still legible. */
+        var m = phase < HOLD ? 0 : (phase - HOLD) / MORPH;
+        var which = m < 0.5 ? idx : next;
+        if (which !== shownCaption) {
+          shownCaption = which;
+          caption.innerHTML = CAPTIONS[which];
+          positionCaption();
+        }
+        /* Dips to 0.15 at the midpoint and recovers — one sine hump across the
+           morph, flat at full through the hold. */
+        var dip = m > 0 ? 1 - 0.85 * Math.sin(Math.PI * m) : 1;
+        caption.style.opacity = (dip * fadeMul).toFixed(3);
+      }
+
       resize();
       window.addEventListener('resize', resize);
 
@@ -423,6 +550,57 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         ctx.fill('evenodd');
       }
 
+      /* ------------------------------------------------- cursor proximity ---
+         The artwork invites inspection, so it answers the pointer: nodes and
+         handles near the cursor brighten, and their tangent handles extend a
+         little, so the area under your cursor reads like a live bezier editor.
+
+         ptrX/ptrY are lerped toward the real cursor (ptrTX/ptrTY) rather than
+         tracking it exactly — the light drags a frame or two behind, which
+         reads as illumination instead of a hit-test. ptrS is a separate 0..1
+         strength so the glow retreats smoothly when the pointer leaves the
+         window rather than freezing lit wherever it exited.
+
+         Desktop-with-a-real-pointer only: on touch, (hover:hover) fails and
+         the effect never arms, so there's no phantom hotspot parked wherever
+         the last tap landed. Under reduced motion the rAF loop renders exactly
+         one frame, so responding to the pointer would mean re-rendering on
+         every mousemove — precisely what that mode is asking us not to do. */
+      var HOVERABLE = window.matchMedia('(hover: hover)').matches && !reduced;
+      var PROX_R = 190;    // px — radius of influence
+      var PROX_GAIN = 1.8; // alpha multiplier at dead center is 1 + this
+      var ptrTX = -9999, ptrTY = -9999;  // raw cursor target
+      var ptrX = -9999, ptrY = -9999;    // lerped influence point
+      var ptrS = 0, ptrST = 0;           // strength, and its target
+
+      if (HOVERABLE) {
+        window.addEventListener('mousemove', function (e) {
+          ptrTX = e.clientX; ptrTY = e.clientY; ptrST = 1;
+          // First move after arming (or after leaving): jump the influence
+          // point to the cursor instead of sweeping across the whole glyph
+          // from its off-screen start, which would light up every node on
+          // the way.
+          if (ptrX < -9000) { ptrX = ptrTX; ptrY = ptrTY; }
+        }, { passive: true });
+        document.addEventListener('mouseleave', function () { ptrST = 0; }, { passive: true });
+      }
+
+      function stepPointer() {
+        if (!HOVERABLE) return;
+        ptrX += (ptrTX - ptrX) * 0.15;
+        ptrY += (ptrTY - ptrY) * 0.15;
+        ptrS += (ptrST - ptrS) * 0.12;
+      }
+
+      // 0 at the radius edge, 1 under the cursor, smoothstepped between.
+      function proximity(x, y) {
+        if (!HOVERABLE || ptrS < 0.002) return 0;
+        var d = Math.hypot(x - ptrX, y - ptrY);
+        if (d >= PROX_R) return 0;
+        var q = 1 - d / PROX_R;
+        return q * q * (3 - 2 * q) * ptrS;
+      }
+
       function drawNodes(pts, t, fadeMul) {
         var step = 10;
         for (var i = 0; i < N; i += step) {
@@ -432,25 +610,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           var dx = next.x - prev.x, dy = next.y - prev.y;
           var len = Math.hypot(dx, dy) || 1;
           dx /= len; dy /= len;
-          var h = 16;
           var pulse = 0.6 + 0.4 * Math.sin(t * 0.0012 + i * 0.7);
+
+          /* Deliberately NOT damping `pulse` toward 1 as prox rises: letting
+             the existing per-node breathing show through makes the halo
+             slightly uneven, which keeps the hand-drawn quality and avoids a
+             flashlight-cone look. If it ever reads as too busy, damping pulse
+             here is the one-line way to make the lit area steady. */
+          var prox = proximity(p.x, p.y);
+          var boost = 1 + PROX_GAIN * prox;
+          // Handles extend with proximity — the geometry tell, not just alpha.
+          var h = 16 + 4 * prox;
 
           // Green handles kept at their existing brightness (not part of the
           // "10% more visible" bump below — only the white outline/nodes are).
-          ctx.strokeStyle = 'rgba(182,255,46,' + (0.12 * pulse * fadeMul) + ')';
+          ctx.strokeStyle = 'rgba(182,255,46,' + (0.12 * pulse * fadeMul * boost) + ')';
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(p.x - dx * h, p.y - dy * h);
           ctx.lineTo(p.x + dx * h, p.y + dy * h);
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(182,255,46,' + (0.17 * pulse * fadeMul) + ')';
+          ctx.fillStyle = 'rgba(182,255,46,' + (0.17 * pulse * fadeMul * boost) + ')';
           ctx.beginPath();
           ctx.arc(p.x - dx * h, p.y - dy * h, 2, 0, 6.2832);
           ctx.arc(p.x + dx * h, p.y + dy * h, 2, 0, 6.2832);
           ctx.fill();
 
-          ctx.fillStyle = 'rgba(244,244,238,' + (0.22 * pulse * fadeMul) + ')';
+          ctx.fillStyle = 'rgba(244,244,238,' + (0.22 * pulse * fadeMul * boost) + ')';
           ctx.fillRect(p.x - 2.5, p.y - 2.5, 5, 5);
         }
       }
@@ -485,6 +672,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         var A = glyphs[order[idx]], B = glyphs[order[next]];
         var contoursForFrame = new Array(NC);
         for (var c = 0; c < NC; c++) contoursForFrame[c] = lerpContour(A[c], B[c], t, L);
+
+        stepPointer();
+        updateCaption(idx, next, phase, fadeMul);
 
         drawFill(contoursForFrame, 0.10 * fadeMul);
         for (var c2 = 0; c2 < NC; c2++) {
