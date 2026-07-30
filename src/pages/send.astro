@@ -630,6 +630,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        cancelling every button's hidden attribute. This restores hidden as the
        hard override it's supposed to be, for buttons and anything else. */
     .send [hidden]{ display:none !important; }
+
+    /* ---- gate first paint ------------------------------------------------
+       The sign-in gate is the no-JS default (it stays in the markup unhidden
+       so a scripting failure still shows a way in), but with JS it must NOT
+       paint until checkAuth() has heard back from the server. Without this,
+       an already-signed-in reload painted the gate, ran the .rise reveal on
+       it, and then had to fade it back out via swapStep() once the auth fetch
+       resolved — the login flash. checkAuth() adds .gate-ready only on the
+       signed-OUT path, so the signed-in path never shows the gate at all. */
+    html.js .send #gate:not(.gate-ready){ display:none !important; }
     .send .actions{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:1.6rem; }
     .send .signout-row{ justify-content:flex-end; margin-top:0; }
     .send .btn{ font-family:inherit; font-size:.94rem; font-weight:500; cursor:pointer;
@@ -806,12 +816,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     const gate = $('gate');
     const dash = $('dash');
 
+    /* Reveal the sign-in gate. Separate from `gate.hidden = false` because the
+       gate is also held back by `html.js #gate:not(.gate-ready)` in the CSS —
+       both have to come off, and the .rise/.in fade is re-armed here so the
+       gate animates in properly whenever it IS the right thing to show. */
+    function showGate() {
+      gate.classList.remove('in');
+      gate.hidden = false;
+      gate.classList.add('gate-ready');
+      if (REDUCE()) { gate.classList.add('in'); return; }
+      requestAnimationFrame(() => requestAnimationFrame(() => gate.classList.add('in')));
+    }
+
     async function checkAuth() {
       const r = await api('/api/deliver-list');
       if (r.ok) {
-        // First paint on an already-signed-in reload: no transition, the gate
-        // was never actually on screen. Only animate when it's a real sign-in.
-        if (gate.hidden) { dash.hidden = false; }
+        // Already signed in: the gate has never painted (the CSS holds it back
+        // until showGate() runs), so drop straight into the dashboard with no
+        // transition. Only animate the swap when it's a real sign-in.
+        if (!gate.classList.contains('gate-ready')) { gate.hidden = true; dash.hidden = false; }
         else { swapStep(gate, dash); }
         // Clear any leftover "signed out after inactivity" note so it
         // doesn't sit there, stale, above the dashboard on the next visit.
@@ -821,8 +844,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         resetIdle();
         return true;
       }
-      gate.hidden = false;
       dash.hidden = true;
+      showGate();
       await initGate();
       return false;
     }
@@ -830,8 +853,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     async function signOut(reason) {
       clearTimeout(idleTimer);
       await api('/api/admin-logout', { method: 'POST' });
-      gate.hidden = false;
       dash.hidden = true;
+      showGate();
       // Re-ask which methods are on offer: a passkey may have been enrolled
       // during this very session, in which case the password box must go.
       await initGate();
@@ -1413,8 +1436,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     checkAuth();
+    /* #gate is deliberately excluded: it gets its .in from showGate(), only
+       once auth has come back signed-out. Adding it here would start the
+       gate's fade the frame after load, before we know whether it belongs on
+       screen at all — which is exactly what caused the login flash. */
     requestAnimationFrame(() => {
-      document.querySelectorAll('.send .rise').forEach((el) => el.classList.add('in'));
+      document.querySelectorAll('.send .rise:not(#gate)').forEach((el) => el.classList.add('in'));
     });
   </script>
 
