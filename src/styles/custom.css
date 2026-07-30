@@ -1,3 +1,33 @@
+/* ── Signal green ──
+   ONE acid green for the whole site. Replaces four near-identical values that
+   had drifted apart: #AAFF00 (home + studio dots), #9EED3D (404 nav/cursor),
+   #b6ff2e (colophon links) and #6BBF00 (projects dot). #AAFF00 is the pick —
+   it's the original availability-dot green, the most acid of the four (zero
+   blue channel), and the strongest on the dark pages where it does most of its
+   work.
+
+   Measured against every page background:
+     /send #090C0B 15.9:1   /brief #140E07 15.5:1   /tools #16151A 14.7:1
+     home #17151a  14.7:1   /studio #18151A 14.7:1  colophon #0E06D2 8.6:1
+     404 #6F6F6F    4.1:1
+     /projects #EAE5F2 1.0:1   /privacy #F1D6EA 1.1:1   <- see the rule below
+
+   THE LIGHT-SURFACE RULE: this green is for dark grounds only. It cannot carry
+   contrast on a light one — #AAFF00 and #EAE5F2 have almost identical
+   luminance, so the ratio is 1.00:1 and the shape is detectable by hue alone.
+   Reaching even 3:1 needs luminance <= 0.23, which is a dark forest green, i.e.
+   no longer this color. Rather than keep a second, muddier green around for
+   light pages (#6BBF00 was that compromise and only managed 1.87:1 — retired),
+   light pages use THEIR OWN accent for the same job: the projects availability
+   dot is #4A3F6B, that page's dark lavender. One acid green, used only where it
+   works; each light page speaks in its own color.
+
+   So: never darken this green for a light background, and never use it as text
+   on one. */
+:root {
+    --signal-green: #AAFF00;
+}
+
 /* ── Prevent orphans sitewide ── */
 h1, h2, h3, h4, h5, h6 {
     text-wrap: balance;
@@ -12,11 +42,11 @@ a, button, [role="button"] {
 }
 
 ::selection {
-    background: #AAFF00;
+    background: var(--signal-green);
     color: #000;
 }
 ::-moz-selection {
-    background: #AAFF00;
+    background: var(--signal-green);
     color: #000;
 }
 
@@ -1419,10 +1449,21 @@ html.home-scrolled #cognak-cookie {
 }
 /* Homepage */
 .hp-bottom .availability-sub { color: rgba(255, 255, 255, 0.6); }
-.hp-bottom .avail-dot         { color: #AAFF00; }
+.hp-bottom .avail-dot         { color: var(--signal-green); }
 /* Projects page */
 .projects-below .availability-sub { color: rgba(58, 49, 59, 0.72); }
-.projects-below .avail-dot         { color: #6BBF00; }
+/* The projects dot takes THIS PAGE'S accent — #4A3F6B, the same dark lavender
+   as .projects-display-headline .headline-dark-lavender — rather than the
+   signal green. The green is an acid color built for dark grounds; on this
+   lavender it measures 1.00:1 (identical luminance, invisible), and every way
+   of rescuing it made things worse: a darker green stops being the signal
+   color, and a ring around a 4.5px dot reads as a small outlined circle
+   instead of a dot.
+   Using the page's own accent is the better answer anyway — the dot now belongs
+   to the page it's on, and lands at 7.67:1. Purely decorative either way: the
+   span is aria-hidden and the sentence beside it carries the status, so no
+   contrast rule applies. This is legibility as a design choice, not compliance. */
+.projects-below .avail-dot         { color: #4A3F6B; }
 
 /* ── Homepage particle canvas ── */
 .hp-bottom {
@@ -1892,12 +1933,14 @@ html.pv-grid .projects-list,
    stagger, mirroring projects/studio's accent-fade. */
 .colophon-headline em,
 .privacy-headline .pp-accent,
+.fourofour-accent,
 #step-pick .headline em { animation: headline-accent-fade 0.6s ease 0.15s both; }
 @media (prefers-reduced-motion: reduce) {
     .studio-display-headline .headline-pink,
     .projects-display-headline .headline-dark-lavender,
     .colophon-headline em,
     .privacy-headline .pp-accent,
+    .fourofour-accent,
     #step-pick .headline em { animation: none; }
 }
 
@@ -3414,8 +3457,8 @@ html body.page-template-page-privacy-policy,
     }
 
     /* Availability sub — mobile fixes */
-    .projects-below .avail-dot { color: #6BBF00 !important; }
-    .hp-bottom .avail-dot      { color: #AAFF00 !important; }
+    .projects-below .avail-dot { color: #4A3F6B !important; }
+    .hp-bottom .avail-dot      { color: var(--signal-green) !important; }
     .availability-sub {
         font-family: 'Diatype Variable', sans-serif !important;
         margin-top: 12px !important;
@@ -3489,6 +3532,8 @@ html.js .studio-display-headline,
 html.js .projects-display-headline,
 html.js .colophon-headline,
 html.js .privacy-headline,
+html.js .fourofour-headline,
+html.js .fourofour-body,
 html.js #step-pick .headline,
 html.js .colophon-body > p:not(.colophon-spec):not(.colophon-sign),
 html.js #step-pick .lede,
@@ -3496,11 +3541,18 @@ html.js .privacy-body p,
 html.js .privacy-body h2 {
     opacity: 0;
 }
+/* THIS BLOCK IS NOT OPTIONAL. The stagger script in cognak-global.js returns
+   early under reduced motion, before it splits words or sets opacity back to
+   1 — so anything added to the hide list above WITHOUT a matching entry here
+   renders permanently invisible for those users. Add to both lists or neither.
+   (/send shipped exactly this bug in July 2026.) */
 @media (prefers-reduced-motion: reduce) {
     html.js .studio-display-headline,
     html.js .projects-display-headline,
     html.js .colophon-headline,
     html.js .privacy-headline,
+    html.js .fourofour-headline,
+    html.js .fourofour-body,
     html.js #step-pick .headline,
     html.js .colophon-body > p:not(.colophon-spec):not(.colophon-sign),
     html.js #step-pick .lede,
@@ -3748,13 +3800,9 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     }
 }
 /* ── 404 page ─────────────────────────────────────────────── */
-/* Navbar — desktop.
-   Literal rgba of pageBg in 404.astro (#242424) — keep the two in sync. Was
-   rgba(129,129,129,.95), a tint of the old #6F6F6F page, which on the new
-   graphite would sit on the page as a pale slab instead of reading as part
-   of it. Same fix in the mobile block further down. */
+/* Navbar — desktop */
 .fourofour-nav {
-    background: rgba(36, 36, 36, 0.95) !important;
+    background: rgba(129, 129, 129, 0.95) !important;
     backdrop-filter: blur(6px) !important;
     -webkit-backdrop-filter: blur(6px) !important;
     z-index: 999999 !important;
@@ -3763,14 +3811,11 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .fourofour-nav .home-bottom-email,
 .fourofour-nav .home-bottom-location,
 .fourofour-nav .inner-nav-links a { color: #EEEEEE !important; }
-/* #AAFF00, not the #9EED3D this page used to use: the 404 canvas dot draws in
-   the homepage availability green, so a differently-green pulse-dot in the nav
-   put two "availability greens" on one screen. One signal green per page — and
-   it's the home value, so the site-wide color-token sweep has one less variant
-   to reconcile. */
-.fourofour-nav .pulse-dot { color: #AAFF00 !important; }
+/* Was #9EED3D while the canvas drew #AAFF00 — two "availability greens" on one
+   screen. Both now the single token. */
+.fourofour-nav .pulse-dot { color: var(--signal-green) !important; }
 .fourofour-nav .home-bottom-email:hover,
-.fourofour-nav .inner-nav-links a:hover { color: #AAFF00 !important; }
+.fourofour-nav .inner-nav-links a:hover { color: var(--signal-green) !important; }
 
 /* Layout */
 .fourofour-template {
@@ -3794,12 +3839,38 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     max-width: 1000px;
 }
 .fourofour-accent { color: #D1D1D1; white-space: nowrap; }
+
+/* The frown pays off on hover: it tips a full 90deg into an upright face AND
+   the mouth turns up, landing on a smile that earns the "either way, we're
+   glad you're here" line below.
+
+   The 90deg has to be paired with mirroring the paren, because rotation ALONE
+   can never turn a frown into a smile — rotating preserves the relationship
+   between the eyes and the curve of the mouth, so ":(" at any angle is still
+   sad (at 180deg it's just "):"). Mirroring only the paren turns "(" into ")",
+   which under the same 90deg rotation puts the eyes on top and the mouth
+   curving up. That's why the glyph is split into two spans in 404.astro.
+
+   The mouth flip is delayed 0.5s so the beat reads as tip-then-smile rather
+   than one simultaneous morph. */
 .fourofour-frown {
     display: inline-block;
     transition: transform 1.6s ease;
     transform-origin: center;
 }
-.fourofour-headline:hover .fourofour-frown { transform: rotate(22deg); }
+.fourofour-frown .ff-mouth {
+    display: inline-block;
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+    transform-origin: center;
+}
+@media (hover: hover) {
+    .fourofour-headline:hover .fourofour-frown { transform: rotate(90deg); }
+    .fourofour-headline:hover .fourofour-frown .ff-mouth { transform: scaleX(-1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .fourofour-frown,
+    .fourofour-frown .ff-mouth { transition: none; }
+}
 
 .fourofour-body {
     font-family: "Diatype Variable", sans-serif;
@@ -3825,18 +3896,60 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     line-height: 1.15;
     color: #D4D4D4;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, opacity 0.5s ease, transform 0.5s ease;
     display: block;
 }
-.fourofour-btn:hover { color: #AAFF00; }
+.fourofour-btn:hover { color: var(--signal-green); }
+
+/* The CTAs are the entire point of a 404 and had color-only hover with no
+   entrance at all — the barest element on the page. An arrow that slides in
+   from behind the text on hover, and a staggered arrival after the body.
+
+   The arrow is inline-block so it can transform, which creates a line-break
+   opportunity in front of it — hence the nowrap, or "studio →" could orphan the
+   arrow onto its own line (the trap already hit on the colophon's external
+   links). The nowrap is scoped to hover devices ONLY: the arrow never appears
+   without hover, and forcing "Discover the studio" onto one line at
+   clamp(32px, 8vw, 48px) is exactly how this site has produced mobile
+   horizontal overflow before. */
+.fourofour-btn::after {
+    content: '\2192';
+    display: inline-block;
+    margin-left: 0.3em;
+    opacity: 0;
+    transform: translateX(-0.35em);
+    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (hover: hover) {
+    .fourofour-btn { white-space: nowrap; }
+    .fourofour-btn:hover::after {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+/* Entrance. Gated on html.js so a no-JS visit shows the CTAs immediately;
+   .is-in is added by the reveal script in 404.astro, which runs OUTSIDE the
+   reduced-motion early-return so these can never be stranded hidden. */
+html.js .fourofour-btn {
+    opacity: 0;
+    transform: translateY(10px);
+}
+html.js .fourofour-btn.is-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+    html.js .fourofour-btn {
+        opacity: 1;
+        transform: none;
+        transition: color 0.2s ease;
+    }
+    .fourofour-btn::after { transition: none; }
+}
 
 @media (max-width: 720px) {
-    /* Literal rgba of the page background, kept in sync with pageBg in
-       404.astro. Was rgba(129,129,129,.95) — a tint of the old #6F6F6F page,
-       which against the new #242424 graphite would have read as a pale slab
-       sitting on top of the page rather than part of it. */
     .home-bottom-bar.inner-page-nav.fourofour-nav {
-        background: rgba(36, 36, 36, 0.95) !important;
+        background: rgba(129, 129, 129, 0.95) !important;
     }
     .fourofour-nav .home-bottom-email,
     .fourofour-nav .home-bottom-location,

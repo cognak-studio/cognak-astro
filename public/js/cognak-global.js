@@ -81,7 +81,7 @@
     var TEMP_PILL_COLORS = {
         colophon: ['#A9C4FF', '#0700AC'],  // light periwinkle / klein blue
         privacy:  ['#1A0E18', '#FFFFFF'],  // near-black plum / white
-        '404':    ['#9EED3D', '#17151A']   // acid green / near-black
+        '404':    ['#AAFF00', '#17151A']   // acid green / near-black
     };
     document.addEventListener('mouseover', function(e) {
         if (!tempLabel) return;

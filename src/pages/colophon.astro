@@ -96,7 +96,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
        max-width, so there's no ragged wrapping to babysit if a glyph name
        or a measurement ever gets longer. */
     #glyph-caption .gc-line { display: block; white-space: nowrap; }
-    #glyph-caption .gc-name { color: #b6ff2e; }
+    #glyph-caption .gc-name { color: var(--signal-green); }
     #glyph-caption .gc-sep { opacity: 0.45; padding: 0 0.5em; }
     @media (max-width: 900px) {
       #glyph-caption { display: none; }
@@ -221,7 +221,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     .colophon-headline em {
       font-style: normal;
       font-weight: 500;
-      color: #b6ff2e;
+      color: var(--signal-green);
     }
     /* Match the projects/studio headline scale on mobile (they drop to
        clamp(24px,7vw,42px) at ≤720px; colophon had no override, read smaller). */
@@ -247,9 +247,9 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
        (0.16,1,0.3,1) — the one the founder portrait and studio reel use;
        inline here until the motion tokens land in custom.css. */
     .colophon-body a {
-      color: #b6ff2e;
+      color: var(--signal-green);
       text-decoration: underline;
-      text-decoration-color: rgba(182,255,46,0.45);
+      text-decoration-color: rgba(170,255,0,0.45);
       text-underline-offset: 3px;
       text-decoration-thickness: 1px;
       transition: text-decoration-color 0.25s cubic-bezier(0.16,1,0.3,1),
@@ -258,7 +258,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     }
     .colophon-body a:hover,
     .colophon-body a:focus-visible {
-      text-decoration-color: #b6ff2e;
+      text-decoration-color: var(--signal-green);
       text-decoration-thickness: 2px;
       text-underline-offset: 2px;
     }
@@ -307,7 +307,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     .colophon-body code {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.88em;
-      color: #b6ff2e;
+      color: var(--signal-green);
     }
     .colophon-spec {
       display: grid;
@@ -329,7 +329,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
       text-decoration: none;
       transition: color 0.25s ease;
     }
-    .colophon-spec a:hover { color: #b6ff2e; }
+    .colophon-spec a:hover { color: var(--signal-green); }
     .colophon-spec span:nth-child(odd) {
       color: #a9abbd;
       text-transform: uppercase;
@@ -683,7 +683,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
          the outline is already greening while the k is still resolving into
          the smile, which is what makes it feel found rather than announced. */
       var INK = [244, 244, 238];
-      var SIGNAL = [182, 255, 46];
+      var SIGNAL = [170, 255, 0];
       function drawContour(pts, alpha, tint) {
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
@@ -792,14 +792,14 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
 
           // Green handles kept at their existing brightness (not part of the
           // "10% more visible" bump below — only the white outline/nodes are).
-          ctx.strokeStyle = 'rgba(182,255,46,' + (0.12 * pulse * fadeMul * boost) + ')';
+          ctx.strokeStyle = 'rgba(170,255,0,' + (0.12 * pulse * fadeMul * boost) + ')';
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(p.x - dx * h, p.y - dy * h);
           ctx.lineTo(p.x + dx * h, p.y + dy * h);
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(182,255,46,' + (0.17 * pulse * fadeMul * boost) + ')';
+          ctx.fillStyle = 'rgba(170,255,0,' + (0.17 * pulse * fadeMul * boost) + ')';
           ctx.beginPath();
           ctx.arc(p.x - dx * h, p.y - dy * h, 2, 0, 6.2832);
           ctx.arc(p.x + dx * h, p.y + dy * h, 2, 0, 6.2832);

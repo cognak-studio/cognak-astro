@@ -1,24 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-
-/* pageBg is neutral graphite (#242424), chosen against the site's OTHER dark
-   pages rather than in isolation: /send + /receive are #090C0B (green-black),
-   /brief #140E07 (warm), /tools #16151A, home hero #17151a and /studio #18151A
-   (all violet charcoal). Anything in the #14-#18 range here would have been a
-   fourth violet charcoal and read as a repeat. #242424 is both lighter and
-   completely hueless — it reads as a different material, which is the point:
-   404 is the one page that isn't part of the site proper.
-   It's also the setup for the joke — against this, #AAFF00 is the only
-   saturated thing on the page, and it's the availability dot: the one part
-   still working. Every text color clears AAA on it (lowest is the #D1D1D1
-   accent at 10.2:1). */
 ---
 <BaseLayout
   page="404"
   title="Page not found – COGNAK"
   description="The page you were looking for doesn't exist."
   noindex={true}
-  pageBg="#242424"
+  pageBg="#6F6F6F"
 >
   <style is:inline>
     /* Lost pulse-dot canvas: fixed full-viewport like the projects matrix glow,
@@ -36,7 +24,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <canvas id="fourofour-dot-canvas" aria-hidden="true"></canvas>
   <main id="cognak-main">
     <section class="fourofour-template">
-      <h1 class="fourofour-headline">You've caught us in a <span class="fourofour-accent">404 error.</span><br>This page doesn't exist <span class="fourofour-frown" aria-hidden="true">:(</span></h1>
+      <h1 class="fourofour-headline">You've caught us in a <span class="fourofour-accent">404 error.</span><br>This page doesn't exist <span class="fourofour-frown" aria-hidden="true"><span class="ff-eyes">:</span><span class="ff-mouth">(</span></span></h1>
       <p class="fourofour-body">You accidentally followed a dead link, mistyped something, or we moved it without telling anyone. Either way, we're glad you're here.</p>
       <div class="fourofour-buttons">
         <a href="/projects" class="fourofour-btn">View projects</a>
@@ -46,20 +34,37 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </main>
 
   <script is:inline>
+    /* CTA entrance. Deliberately its OWN script, above the canvas one and with
+       no early return of any kind: the CTAs are hidden by `html.js
+       .fourofour-btn{opacity:0}` in custom.css, so whatever reveals them must
+       run unconditionally. Putting this inside the canvas IIFE below would
+       strand them invisible for every reduced-motion visitor, since that block
+       returns before doing anything. */
+    (function () {
+      var btns = document.querySelectorAll('.fourofour-btn');
+      if (!btns.length) return;
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      btns.forEach(function (b, i) {
+        // After the body copy's own stagger, then 90ms apart.
+        setTimeout(function () { b.classList.add('is-in'); }, reduced ? 0 : 620 + i * 90);
+      });
+    })();
+  </script>
+
+  <script is:inline>
     // ── Lost pulse-dot: a lone avail-dot-green dot wanders the page looking
     //    for the missing page, leaving a fading trail. Pauses now and then
-    //    and shows a small "?" while it thinks. Skipped for reduced motion.
+    //    and shows a small "?" while it thinks.
     (function () {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       var canvas = document.getElementById('fourofour-dot-canvas');
       if (!canvas) return;
       var ctx = canvas.getContext('2d');
-      /* #AAFF00 — the homepage availability green. The nav pulse-dot and the
-         button hover on this page used to be #9EED3D, so the same page drew
-         two different "availability greens" a few hundred pixels apart; they
-         now all point here. Kept as an rgb triple because the trail and blip
-         ring need per-frame alpha. */
-      var GREEN = '170,255,0';
+      /* Reduced motion used to `return` here, which left the page as flat gray
+         with no subject at all — the dot IS the page's idea, and losing all of
+         it is a worse outcome than losing the movement. Now it draws a single
+         static dot instead: same character, no animation. */
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var GREEN = '170,255,0'; // #AAFF00 — same green as the availability dot
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
       var W, H;
 
@@ -74,7 +79,39 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       resize();
 
       var dot = { x: W * 0.72, y: H * 0.6, vx: 0, vy: 0, tx: 0, ty: 0, trail: [], pause: 0, scare: 0 };
+
+      /* The dot is looking for the missing page — so now and then it drifts
+         over one of the two ways out. Roughly one waypoint in three targets a
+         CTA's rect instead of open space, which over a few cycles reads as the
+         lost thing quietly showing you the exits. No new UI, no pointing: it
+         just spends time where the links are.
+
+         Rects are read at pick() time rather than cached, so this stays correct
+         after a resize or scroll without any invalidation bookkeeping — it runs
+         a handful of times a minute, not per frame. getBoundingClientRect is in
+         viewport coordinates, which is what the fixed canvas draws in. */
+      var EXIT_BIAS = 0.34;
+      function exitTarget() {
+        var els = document.querySelectorAll('.fourofour-btn');
+        if (!els.length) return null;
+        var r = els[Math.floor(Math.random() * els.length)].getBoundingClientRect();
+        if (r.width < 1 || r.bottom < 0 || r.top > H) return null;
+        // Anywhere along the link, biased just below its baseline so the dot
+        // passes under the words rather than sitting on top of them.
+        return {
+          x: r.left + Math.random() * r.width,
+          y: r.top + r.height * (0.65 + Math.random() * 0.5)
+        };
+      }
       function pick() {
+        if (Math.random() < EXIT_BIAS) {
+          var e = exitTarget();
+          if (e) {
+            dot.tx = Math.max(14, Math.min(W - 14, e.x));
+            dot.ty = Math.max(14, Math.min(H - 14, e.y));
+            return;
+          }
+        }
         dot.tx = 40 + Math.random() * (W - 80);
         dot.ty = 40 + Math.random() * (H - 80);
       }
@@ -158,9 +195,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           ctx.fillText('?', dot.x + 11, dot.y - 11);
         }
 
+        if (!reduced) requestAnimationFrame(frame);
+      }
+
+      if (reduced) {
+        /* One still frame: the dot parked near a CTA with its ring, no trail,
+           no loop. Redrawn on resize so it doesn't end up off-screen. */
+        function still() {
+          ctx.clearRect(0, 0, W, H);
+          var e = exitTarget();
+          var x = e ? e.x : W * 0.72;
+          var y = e ? e.y : H * 0.6;
+          ctx.beginPath();
+          ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgb(' + GREEN + ')';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(' + GREEN + ',0.34)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        window.addEventListener('resize', function () { resize(); still(); });
+        // After layout settles, so exitTarget() measures the real CTA position.
+        window.addEventListener('load', still);
+        still();
+      } else {
         requestAnimationFrame(frame);
       }
-      requestAnimationFrame(frame);
     })();
   </script>
 </BaseLayout>
