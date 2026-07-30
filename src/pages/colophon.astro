@@ -358,9 +358,31 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
         background: #ffffff !important;
         color: #111111 !important;
       }
+      /* The site footer is navigation (email, socials, back-to-top) — all of
+         it dead on paper, and it was printing as a third block under the
+         sign-off. The sign-off already carries the address. */
       #colophon-anatomy,
       #glyph-caption,
-      .home-bottom-bar { display: none !important; }
+      .home-bottom-bar,
+      .main-footer { display: none !important; }
+
+      /* Our own colophon line, printed only. The browser draws its own
+         header/footer (date, title, URL, page count) in a UA font that CSS
+         cannot reach or restyle — that furniture is turned off from the print
+         dialog's More settings, not from here. This is the replacement: the
+         same information that's worth keeping, set in the page's own mono. */
+      .colophon-body::after {
+        content: 'cognak.com/colophon';
+        display: block;
+        margin-top: 18pt;
+        padding-top: 8pt;
+        border-top: 1px solid #cccccc;
+        font-family: 'Diatype Mono', monospace;
+        font-size: 8pt;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #777777;
+      }
 
       /* The screen layout hangs the column off a big top pad and a vw-based
          indent, and clips overflow for the headline's negative margin — none
