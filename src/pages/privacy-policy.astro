@@ -23,7 +23,51 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <p>You can opt out of Google Analytics tracking at any time using the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a>. You can manage Google ad personalization at <a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>.</p>
 
       <h2>Cookies</h2>
-      <p>We use one first-party cookie (<code>cognak_consent</code>) to store your cookie preference. If you accept cookies, Google Analytics sets its own cookies (<code>_ga</code>, <code>_ga_*</code>) to measure site usage across sessions, and Google Ads sets cookies (<code>_gcl_*</code>) to measure ad conversions. All tracking is consent-gated; declining cookies prevents any analytics or ad cookies from being set.</p>
+      <p>Every cookie this site can set, what it does, and how long it lasts. All tracking is consent-gated — declining prevents any analytics or ad cookie from being set at all.</p>
+
+      {/* Deliberately a <div>, not a <p> or <table>: custom.css sets
+          `html.js .privacy-body p` to opacity:0 awaiting the word-stagger,
+          which only reveals elements listed in cognak-global.js's SELECTORS.
+          A new <p> here would be invisible forever — the bug that shipped on
+          /send. Grid rather than <table> to match the colophon spec block's
+          construction and to stack cleanly on mobile. */}
+      <div class="pp-cookies">
+        <div class="pp-ck-head">Cookie</div>
+        <div class="pp-ck-head">Set by</div>
+        <div class="pp-ck-head">Purpose</div>
+        <div class="pp-ck-head">Lifetime</div>
+
+        <div class="pp-ck-name" data-label="Cookie">cognak_consent</div>
+        <div data-label="Set by">COGNAK</div>
+        <div data-label="Purpose">Remembers this choice</div>
+        <div data-label="Lifetime">1 year</div>
+
+        <div class="pp-ck-name" data-label="Cookie">_ga</div>
+        <div data-label="Set by">Google Analytics</div>
+        <div data-label="Purpose">Tells return visits apart</div>
+        <div data-label="Lifetime">2 years</div>
+
+        <div class="pp-ck-name" data-label="Cookie">_ga_*</div>
+        <div data-label="Set by">Google Analytics</div>
+        <div data-label="Purpose">Keeps session state</div>
+        <div data-label="Lifetime">2 years</div>
+
+        <div class="pp-ck-name" data-label="Cookie">_gcl_*</div>
+        <div data-label="Set by">Google Ads</div>
+        <div data-label="Purpose">Measures ad conversions</div>
+        <div data-label="Lifetime">90 days</div>
+      </div>
+
+      <p class="pp-cookies-note">Only <code>cognak_consent</code> is ours, and it is the only one set if you decline. The rest appear solely after you accept.</p>
+
+      {/* JS-gated in CSS: with no JS this can't read your cookie, and a
+          control that reports a state it can't verify is worse than none.
+          The ledger above stays visible either way. */}
+      <div class="pp-consent" id="pp-consent" hidden>
+        <span class="pp-consent-label">Your current choice:</span>
+        <span class="pp-consent-state" id="pp-consent-state">—</span>
+        <span class="pp-consent-actions" id="pp-consent-actions"></span>
+      </div>
 
       <h2>Contact</h2>
       <p>If you reach out via hello@cognak.com, your email and message are used solely to respond to your inquiry. No information is stored beyond standard email retention.</p>
@@ -71,6 +115,93 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
     }
     #cognak-main { position: relative; z-index: 1; }
+
+    /* ---- cookie ledger ----------------------------------------------------
+       Hairline mono table, built as a grid so it stacks on mobile (a real
+       <table> can't). Same construction as the colophon spec block. */
+    .pp-cookies {
+      display: grid;
+      grid-template-columns: max-content max-content 1fr max-content;
+      gap: 0.55rem 1.6rem;
+      align-items: baseline;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #3A313B;
+      border-top: 1px solid rgba(129,82,117,0.35);
+      border-bottom: 1px solid rgba(129,82,117,0.35);
+      padding: 1.4rem 0;
+      margin: 0 0 20px;
+    }
+    .pp-ck-head {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 10px;
+      color: rgba(129,82,117,0.75);
+    }
+    .pp-ck-name { color: #815275; }
+    .pp-cookies-note { font-size: 14px !important; color: #6b5f6b !important; }
+
+    /* Stacked on narrow screens: each cell reintroduces its column header from
+       the data-label, and the header row itself is dropped. */
+    @media (max-width: 600px) {
+      .pp-cookies { grid-template-columns: 1fr; gap: 0; }
+      .pp-ck-head { display: none; }
+      .pp-cookies > div[data-label] { padding: 1px 0; }
+      .pp-cookies > div[data-label]::before {
+        content: attr(data-label) ' \00B7 ';
+        color: rgba(129,82,117,0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 10px;
+      }
+      /* Gap between stacked records. Applied to every name cell including the
+         first — :first-of-type would match the first DIV among siblings, which
+         is a .pp-ck-head, so it would never hit a name cell anyway, and the
+         box already has 1.4rem of padding above the first row. */
+      .pp-cookies > .pp-ck-name { margin-top: 1rem; }
+    }
+
+    /* ---- live consent readout ---------------------------------------------
+       Hidden until JS confirms it can actually read the cookie (the [hidden]
+       attribute comes off in script). No-JS keeps the ledger and loses only
+       the control, which is the honest failure mode. */
+    .pp-consent {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      line-height: 1.9;
+      color: #3A313B;
+      margin: 0 0 20px;
+    }
+    .pp-consent-label { text-transform: uppercase; color: rgba(129,82,117,0.75); letter-spacing: 0.12em; font-size: 10px; }
+    .pp-consent-state { text-transform: uppercase; color: #815275; font-weight: 500; margin: 0 0.15em 0 0.4em; }
+    .pp-consent-actions button {
+      font: inherit;
+      background: none;
+      border: 0;
+      padding: 0;
+      margin-left: 0.9em;
+      color: #3A313B;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-color: rgba(58,49,59,0.3);
+      transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    }
+    @media (hover: hover) {
+      .pp-consent-actions button:hover { color: #815275; text-decoration-color: #815275; }
+    }
+    /* Confirmation beat after a change — the state word pulses once so the
+       click has a visible consequence beyond the word swapping. */
+    .pp-consent-state.is-changed { animation: pp-consent-pulse 0.9s ease; }
+    @keyframes pp-consent-pulse {
+      0%   { background: rgba(129,82,117,0.28); }
+      100% { background: rgba(129,82,117,0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .pp-consent-state.is-changed { animation: none; }
+    }
   </style>
 
   <script is:inline>
@@ -78,6 +209,124 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     window.scrollTo(0, 0);
     /* Headline + body text reveal is handled by the site-wide word-stagger in
        cognak-global.js (same as projects/studio) — no local observer here. */
+  </script>
+
+  <script is:inline>
+    /* ---------------------------------------------- live consent readout ---
+       Reads cognak_consent and lets you change it from here.
+
+       This is the ONLY way to change your mind on the whole site: the banner
+       in BaseLayout hides itself permanently once the cookie exists
+       (`if (document.cookie.indexOf('cognak_consent=') !== -1) ... display =
+       none`), so an accepted visitor was accepted forever with no exit.
+
+       Two things the banner doesn't have to do, which this must:
+       1. Send an explicit DENIED consent update. The banner's decline path
+          skips it because consent mode already defaults to denied — but
+          accepted -> declined is a real transition and has to be sent.
+       2. Clear the cookies already on disk. Declining after having accepted
+          leaves _ga / _ga_* / _gcl_* sitting there; on this page of all
+          pages, saying "declined" while they persist would be a lie.
+
+       Cookie name and expiry are duplicated from BaseLayout's banner — if
+       either changes, change it in both places. */
+    (function () {
+      var wrap = document.getElementById('pp-consent');
+      if (!wrap) return;
+
+      var stateEl = document.getElementById('pp-consent-state');
+      var actionsEl = document.getElementById('pp-consent-actions');
+
+      function read() {
+        var m = document.cookie.match(/(?:^|;\s*)cognak_consent=([^;]*)/);
+        return m ? m[1] : '';
+      }
+
+      function write(val) {
+        var d = new Date();
+        d.setFullYear(d.getFullYear() + 1);
+        document.cookie = 'cognak_consent=' + val + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+      }
+
+      /* GA/Ads cookies are JS-set (not HttpOnly), so they're expirable from
+         here — but only with a matching domain attribute, and GA writes _ga on
+         the registrable domain while some are written host-only. Rather than
+         guess, expire each name against every plausible domain variant; the
+         ones that don't match are no-ops. */
+      function clearAnalyticsCookies() {
+        var host = location.hostname;
+        var parts = host.split('.');
+        var domains = ['', host, '.' + host];
+        if (parts.length > 2) {
+          var root = parts.slice(-2).join('.');
+          domains.push(root, '.' + root);
+        }
+        var names = document.cookie.split(';').map(function (c) {
+          return c.split('=')[0].trim();
+        }).filter(function (n) {
+          return n && (n === '_ga' || n.indexOf('_ga_') === 0 || n.indexOf('_gcl') === 0 || n.indexOf('_gid') === 0);
+        });
+        names.forEach(function (n) {
+          domains.forEach(function (dom) {
+            document.cookie = n + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/' +
+                              (dom ? ';domain=' + dom : '');
+          });
+        });
+      }
+
+      var GRANTED = {
+        analytics_storage: 'granted', ad_storage: 'granted',
+        ad_user_data: 'granted', ad_personalization: 'granted'
+      };
+      var DENIED = {
+        analytics_storage: 'denied', ad_storage: 'denied',
+        ad_user_data: 'denied', ad_personalization: 'denied'
+      };
+
+      function set(val, announce) {
+        write(val);
+        try {
+          if (typeof gtag === 'function') {
+            gtag('consent', 'update', val === 'accepted' ? GRANTED : DENIED);
+          }
+        } catch (e) {}
+        if (val === 'declined') clearAnalyticsCookies();
+        render(announce);
+      }
+
+      function button(label, val) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.addEventListener('click', function () { set(val, true); });
+        return b;
+      }
+
+      function render(announce) {
+        var v = read();
+        stateEl.textContent = v === 'accepted' ? 'Accepted'
+                            : v === 'declined' ? 'Declined'
+                            : 'Not set';
+        actionsEl.textContent = '';
+        if (v === 'accepted') {
+          actionsEl.appendChild(button('decline instead', 'declined'));
+        } else if (v === 'declined') {
+          actionsEl.appendChild(button('accept instead', 'accepted'));
+        } else {
+          actionsEl.appendChild(button('accept', 'accepted'));
+          actionsEl.appendChild(button('decline', 'declined'));
+        }
+        if (announce) {
+          stateEl.classList.remove('is-changed');
+          // Reflow so the animation restarts on a repeat change.
+          void stateEl.offsetWidth;
+          stateEl.classList.add('is-changed');
+        }
+      }
+
+      render(false);
+      wrap.hidden = false;
+    })();
   </script>
 
   <script is:inline>
