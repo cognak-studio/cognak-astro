@@ -3902,29 +3902,27 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .fourofour-btn:hover { color: var(--signal-green); }
 
 /* The CTAs are the entire point of a 404 and had color-only hover with no
-   entrance at all — the barest element on the page. An arrow that slides in
-   from behind the text on hover, and a staggered arrival after the body.
+   entrance at all — the barest element on the page. They now carry the SAME
+   arrow as the homepage projects link and make the same move: the mark points
+   down at rest and rotates -90deg to point right on hover. Deliberately not a
+   bespoke arrow — this is the site's existing gesture, so the 404 reads as part
+   of the same hand. Kept in sync with .hp-projects-arrow above.
 
-   The arrow is inline-block so it can transform, which creates a line-break
-   opportunity in front of it — hence the nowrap, or "studio →" could orphan the
-   arrow onto its own line (the trap already hit on the colophon's external
-   links). The nowrap is scoped to hover devices ONLY: the arrow never appears
-   without hover, and forcing "Discover the studio" onto one line at
-   clamp(32px, 8vw, 48px) is exactly how this site has produced mobile
-   horizontal overflow before. */
-.fourofour-btn::after {
-    content: '\2192';
+   nowrap is scoped to hover devices only: the SVG is inline-block, which opens
+   a line-break opportunity in front of it, but forcing "Discover the studio"
+   onto one line at clamp(32px, 8vw, 48px) overflows a 390px phone — measured
+   ~356px of text against ~342px of available width. Mobile keeps the ability to
+   wrap; this site has shipped horizontal-overflow bugs exactly this way. */
+.fourofour-arrow {
     display: inline-block;
-    margin-left: 0.3em;
-    opacity: 0;
-    transform: translateX(-0.35em);
-    transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    vertical-align: middle;
+    margin-left: -0.12em;
+    transition: transform 0.3s ease;
 }
 @media (hover: hover) {
     .fourofour-btn { white-space: nowrap; }
-    .fourofour-btn:hover::after {
-        opacity: 1;
-        transform: translateX(0);
+    .fourofour-btn:hover .fourofour-arrow {
+        transform: rotate(-90deg);
     }
 }
 /* Entrance. Gated on html.js so a no-JS visit shows the CTAs immediately;
@@ -3944,7 +3942,7 @@ html.js .fourofour-btn.is-in {
         transform: none;
         transition: color 0.2s ease;
     }
-    .fourofour-btn::after { transition: none; }
+    .fourofour-arrow { transition: none; }
 }
 
 @media (max-width: 720px) {
