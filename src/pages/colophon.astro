@@ -274,6 +274,13 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
        Note .colophon-spec is a CHILD of .colophon-body, so the descendant
        selector alone would have caught it; the :not() on the paragraph is what
        actually keeps the arrow out of the table. */
+    /* nowrap so the arrow can never be orphaned onto the next line without its
+       link text: display:inline-block on the ::after below creates a line-break
+       opportunity in front of it, and "Dinamo ↗" sitting at a line end was
+       enough to trigger it. Safe to apply here because every external link in
+       this page's prose is a single word (Dinamo, Astro, Lenis, Vercel) —
+       revisit if a multi-word external link ever gets added. */
+    .colophon-body p:not(.colophon-spec) a[target="_blank"] { white-space: nowrap; }
     .colophon-body p:not(.colophon-spec) a[target="_blank"]::after {
       content: '\2197';
       font-family: 'Diatype Mono', monospace;
