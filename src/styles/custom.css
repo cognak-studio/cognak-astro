@@ -3410,6 +3410,83 @@ body.pagers-idle a[rel="next"] {
     color: var(--cognak-purple-text);
 }
 
+/* ── Project detail entrance ─────────────────────────────────────────────────
+   This page had NO motion of any kind until the gallery reveal; everything
+   around it appeared statically, which made the gallery look like the only
+   thing that had loaded. Choreographed by ROLE, not DOM order.
+
+   Local to this page rather than added to cognak-global.js's SELECTORS, for the
+   same reason the /studio manifesto is local: the global splitter fires
+   per-element on intersection and can't express "title, then category, then
+   the record, then the two prose groups, then the CTA". It also can't be
+   scoped safely — `.title` is ALSO the class on the prev/next pagers.
+
+   EVERY hidden element needs BOTH the html.js hide below AND the
+   reduced-motion escape under it. Miss the escape and reduced-motion visitors
+   get a blank page — that is exactly how the invisible headline shipped on
+   /send in July 2026. The two lists must be edited together. */
+/* The TITLE is hidden at the container level, not by .stagger-word alone: the
+   splitter runs after first paint, so the full 70px headline would render, then
+   snap to invisible the instant it was split. JS sets this back to 1 the moment
+   the split completes — the words are individually at opacity 0 by then, so
+   nothing pops. */
+html.js .template-single-project .information .title {
+    opacity: 0;
+}
+html.js .template-single-project .information .category,
+html.js .template-single-project .project-vintage,
+html.js .template-single-project .details-main .col,
+html.js .template-single-project .info-invite {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.55s ease, transform 0.55s var(--ease-out-expo);
+}
+html.js .template-single-project .information .category.pd-in,
+html.js .template-single-project .project-vintage.pd-in,
+html.js .template-single-project .details-main .col.pd-in,
+html.js .template-single-project .info-invite.pd-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* The record rows WIPE rather than rise — mono type arriving left-to-right
+   reads like a receipt printing, which is what this block already is. Chosen
+   over a typewriter because the site already types in three places (homepage
+   hover-meta, studio reel, hp-def) and a fourth starts to read as a tic.
+   clip-path takes the ::before bullet with it, so the marker wipes in with its
+   row instead of sitting there waiting. */
+html.js .template-single-project .details-extra .col p {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.42s var(--ease-out-expo);
+    transition-delay: var(--pd-d, 0ms);
+}
+html.js .template-single-project .details-extra .col p.pd-in {
+    clip-path: inset(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.js .template-single-project .information .category,
+    html.js .template-single-project .project-vintage,
+    html.js .template-single-project .details-main .col,
+    html.js .template-single-project .info-invite {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+    html.js .template-single-project .details-extra .col p {
+        clip-path: none;
+        transition: none;
+    }
+    /* Reduced motion returns BEFORE splitting, so the container itself has to
+       come back — without this the headline is simply gone. */
+    html.js .template-single-project .information .title,
+    html.js .template-single-project .information .title .stagger-word {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
 @media (max-width: 900px) {
     .template-single-project .info-split {
         grid-template-columns: 1fr;

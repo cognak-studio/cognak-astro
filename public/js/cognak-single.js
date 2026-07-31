@@ -171,3 +171,123 @@
 
     imgs.forEach(function(img) { observer.observe(img); });
 })();
+
+/* ── Project detail entrance choreography ────────────────────────────────────
+   The last page on the site with no entrance. Ordered by ROLE:
+
+     title words  ->  category  ->  grade  ->  record rows (wipe)
+                  ->  the two prose groups  ->  the CTA
+
+   Local rather than bolted onto cognak-global.js's SELECTORS, for the same
+   reason /studio's manifesto is: the global splitter animates each element the
+   moment IT intersects, which cannot express an ordering across siblings. It
+   also could not be scoped safely — `.title` is the class on the prev/next
+   pagers too, so a global selector would stagger those as well.
+
+   Reuses the site's own `.stagger-word` / `.stagger-in` spec (28ms cadence,
+   inline-block at opacity 0 so the words hold their space and nothing
+   reflows). Everything else rides `.pd-in`.
+
+   The splitter walks TEXT NODES ONLY, exactly like the global one — the title
+   is plain text on every project, but if an <em> is ever added to a project
+   title it will NOT stagger, it will appear immediately. That is the same
+   limitation that forced `headline-accent-fade` elsewhere on the site. */
+(function () {
+  var info = document.querySelector('.template-single-project .information');
+  if (!info) return;
+
+  var reduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var title    = info.querySelector('.title');
+  var category = info.querySelector('.category');
+  var vintage  = info.querySelector('.project-vintage');
+  var rows     = Array.prototype.slice.call(info.querySelectorAll('.details-extra .col p'));
+  var groups   = Array.prototype.slice.call(info.querySelectorAll('.details-main .col'));
+  var cta      = info.querySelector('.info-invite');
+
+  // Reduced motion: the CSS already restores everything. Don't split the title
+  // into spans it will never animate — leave the markup alone.
+  if (reduced) return;
+
+  var WORD_MS  = 28;   // matches the site-wide stagger cadence
+  var ROW_MS   = 70;   // between record rows
+  var GROUP_MS = 80;   // between the two prose groups (the audit's number)
+
+  function splitWords(el) {
+    if (!el || el.dataset.pdSplit) return [];
+    el.dataset.pdSplit = '1';
+    var out = [];
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var texts = [];
+    while (walker.nextNode()) texts.push(walker.currentNode);
+    texts.forEach(function (node) {
+      var parts = node.nodeValue.split(/(\s+)/);
+      var frag = document.createDocumentFragment();
+      parts.forEach(function (part) {
+        if (!part) return;
+        if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); return; }
+        var span = document.createElement('span');
+        span.className = 'stagger-word';
+        span.textContent = part;
+        frag.appendChild(span);
+        out.push(span);
+      });
+      node.parentNode.replaceChild(frag, node);
+    });
+    return out;
+  }
+
+  var words = splitWords(title);
+  /* Reveal the container the moment the words exist and are individually
+     hidden. `html.js .information .title{opacity:0}` holds it from first paint
+     so the unsplit headline never flashes; if this line is ever removed the
+     title stays invisible forever. */
+  if (title) title.style.opacity = '1';
+
+  function play() {
+    var t = 0;
+    words.forEach(function (w, i) {
+      setTimeout(function () { w.classList.add('stagger-in'); }, i * WORD_MS);
+    });
+    t = words.length * WORD_MS + 90;
+
+    if (category) setTimeout(function () { category.classList.add('pd-in'); }, t);
+    t += 110;
+    if (vintage) setTimeout(function () { vintage.classList.add('pd-in'); }, t);
+    t += 130;
+
+    /* Rows are handed their stagger as a custom property the CSS transition
+       reads, rather than one timer each — same approach as the /brief Sent
+       screen and the gallery reveal. One class add, the CSS does the rest. */
+    rows.forEach(function (p, i) { p.style.setProperty('--pd-d', (i * ROW_MS) + 'ms'); });
+    setTimeout(function () {
+      rows.forEach(function (p) { p.classList.add('pd-in'); });
+    }, t);
+    t += rows.length * ROW_MS + 120;
+
+    groups.forEach(function (col, i) {
+      setTimeout(function () { col.classList.add('pd-in'); }, t + i * GROUP_MS);
+    });
+    t += groups.length * GROUP_MS + 120;
+
+    if (cta) setTimeout(function () { cta.classList.add('pd-in'); }, t);
+  }
+
+  /* The hero is tall, so on most viewports the information block starts just
+     below the fold — but not always (short heroes, long titles, zoomed-out
+     windows). Fire immediately if it is already showing, otherwise wait for it. */
+  var rect = info.getBoundingClientRect();
+  if (rect.top < window.innerHeight * 0.9) {
+    setTimeout(play, 260);
+  } else if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      obs.disconnect();
+      play();
+    }, { threshold: 0, rootMargin: '0px 0px -10% 0px' });
+    obs.observe(info);
+  } else {
+    play();
+  }
+})();
