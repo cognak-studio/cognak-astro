@@ -4318,11 +4318,30 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
 .fourofour-btn:hover { color: var(--signal-green); }
 
 /* The CTAs are the entire point of a 404 and had color-only hover with no
-   entrance at all — the barest element on the page. They now carry the SAME
-   arrow as the homepage projects link and make the same move: the mark points
-   down at rest and rotates -90deg to point right on hover. Deliberately not a
-   bespoke arrow — this is the site's existing gesture, so the 404 reads as part
-   of the same hand. Kept in sync with .hp-projects-arrow above.
+   entrance at all — the barest element on the page. They carry the SAME arrow
+   mark as the homepage projects link, so the 404 reads as part of the same
+   hand. Kept in sync with .hp-projects-arrow above — but NOT its rest state.
+
+   **The mark points RIGHT here, always.** It was inherited pointing DOWN,
+   which is correct on the homepage (that link means "continue down the page")
+   and nonsense here, where both CTAs navigate AWAY. The base transform is a
+   permanent rotate(-90deg); the hover no longer rotates anything.
+
+   The hover move is a reveal instead: the arrow sits tucked back behind the
+   last word at opacity 0 and slides out to its place as it fades in, so it
+   reads as emerging from behind the link rather than being decoration that was
+   always sitting there. Because it starts fully transparent there's no need to
+   occlude it with a z-index — nothing is visible to occlude.
+
+   TRANSFORM ORDER MATTERS: translateX must come BEFORE rotate. Listed after,
+   the translation runs along the element's own rotated axis and the arrow
+   slides vertically instead of horizontally.
+
+   The arrow stays IN FLOW (inline-block) rather than absolutely positioned, so
+   its slot is reserved at rest and revealing it can't reflow the line.
+
+   Non-hover devices get the arrow statically visible in that same right-facing
+   rest position — a hover-only reveal would mean phones never see it at all.
 
    nowrap is scoped to hover devices only: the SVG is inline-block, which opens
    a line-break opportunity in front of it, but forcing "Discover the studio"
@@ -4333,12 +4352,19 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
     display: inline-block;
     vertical-align: middle;
     margin-left: -0.12em;
-    transition: transform 0.3s ease;
+    transform: rotate(-90deg);
 }
 @media (hover: hover) {
     .fourofour-btn { white-space: nowrap; }
+    .fourofour-arrow {
+        opacity: 0;
+        transform: translateX(-0.6em) rotate(-90deg);
+        transition: opacity 0.28s ease,
+                    transform 0.5s var(--ease-out-expo);
+    }
     .fourofour-btn:hover .fourofour-arrow {
-        transform: rotate(-90deg);
+        opacity: 1;
+        transform: translateX(0) rotate(-90deg);
     }
 }
 /* Entrance. Gated on html.js so a no-JS visit shows the CTAs immediately;
@@ -4358,6 +4384,8 @@ html.js .fourofour-btn.is-in {
         transform: none;
         transition: color 0.2s ease;
     }
+    /* No transition, but the reveal itself is kept — without this the arrow
+       would simply be missing for reduced-motion visitors on a hover device. */
     .fourofour-arrow { transition: none; }
 }
 

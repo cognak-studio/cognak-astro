@@ -26,11 +26,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <section class="fourofour-template">
       <h1 class="fourofour-headline">You've caught us in a <span class="fourofour-accent">404 error.</span><br>This page doesn't exist <span class="fourofour-frown" aria-hidden="true"><span class="ff-eyes">:</span><span class="ff-mouth">(</span></span></h1>
       <p class="fourofour-body">You accidentally followed a dead link, mistyped something, or we moved it without telling anyone. Either way, we're glad you're here.</p>
-      {/* Same arrow mark and same move as the homepage projects link (see
-          .hp-projects-arrow in custom.css): a down-pointing stem + chevron that
-          rotates -90deg to point right on hover. Kept as inline SVG rather than
-          a CSS ::after glyph so it IS the homepage's arrow, not a lookalike —
-          currentColor means it picks up the signal green on hover for free. */}
+      {/* Same arrow MARK as the homepage projects link (see .hp-projects-arrow
+          in custom.css), but not the same rest state: here it is permanently
+          rotated to point RIGHT. Down is right on the homepage, where the link
+          means "continue down the page"; on a 404 both CTAs navigate away, so a
+          down arrow said nothing true. The hover move is now a reveal — the
+          arrow slides out from behind the last word as it fades in. Kept as
+          inline SVG rather than a CSS ::after glyph so it IS the homepage's
+          arrow, not a lookalike — currentColor means it picks up the signal
+          green on hover for free. */}
       <div class="fourofour-buttons">
         <a href="/projects" class="fourofour-btn">View projects <span class="fourofour-arrow"><svg width="0.7em" height="0.7em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="6,15 12,21 18,15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
         <a href="/studio" class="fourofour-btn">Discover the studio <span class="fourofour-arrow"><svg width="0.7em" height="0.7em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="6,15 12,21 18,15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>

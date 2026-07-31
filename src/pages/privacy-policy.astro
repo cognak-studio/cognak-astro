@@ -124,9 +124,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* ---- plain-English glosses --------------------------------------------
        The headline promises "minus the legalese" and the prose underneath,
        while readable, is still policy prose. These are the payoff: one line
-       per section, in the label voice, set off by a hairline rule so they read
-       as an aside rather than lead copy. Someone who skims only these six
-       lines should still leave correctly informed.
+       per section. Someone who skims only these five lines should still leave
+       correctly informed.
+
+       REVISED 2026-07-31 (Pierce): was mono 12px behind a hairline left rule
+       with a stacked uppercase "IN SHORT" eyebrow — an aside. Now bold body
+       copy reading "In short: ..." inline, so it leads the section instead of
+       sitting beside it. The rule and the mono are gone deliberately; don't
+       reinstate them.
 
        06 Questions deliberately has none — it's a single email address, and
        glossing it would be padding to complete a pattern.
@@ -134,22 +139,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        A <div>, not a <p>: `html.js .privacy-body p` is held at opacity:0 for
        the word-stagger, which only reveals what's in its SELECTORS list. */
     .pp-gloss {
-      font-family: 'Diatype Mono', monospace;
-      font-size: 12px;
-      line-height: 1.6;
+      font-family: 'Diatype Variable', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      /* Matches .privacy-body p exactly (16px / 1.8) — the gloss now reads as
+         an emphasized first line of the section rather than a marginal note,
+         so it has to sit on the same baseline rhythm as the prose it leads. */
+      line-height: 1.8;
       color: #3A313B;
-      border-left: 1px solid rgba(129,82,117,0.35);
-      padding-left: 14px;
       margin: 0 0 28.8px; /* 1x the 28.8px baseline grid — see custom.css */
     }
+    /* Inline label, not a stacked eyebrow: "In short: We count visits, not
+       people." reads as one sentence. Kept as a ::before so the six glosses
+       stay single-purpose divs in the markup and the wording changes in one
+       place. Note the trailing space is inside the quotes — it's generated
+       content, so HTML whitespace collapsing never sees it. */
     .pp-gloss::before {
-      content: 'In short';
-      display: block;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      font-size: 10px;
-      color: rgba(129,82,117,0.75);
-      margin-bottom: 2px;
+      content: 'In short: ';
     }
 
     /* ---- cookie ledger ----------------------------------------------------
