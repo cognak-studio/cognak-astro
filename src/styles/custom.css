@@ -3268,7 +3268,18 @@ body.pagers-idle a[rel="next"] {
 .template-single-project .info-lead .category:last-child {
     margin-bottom: 0 !important;
 }
-.template-single-project .info-invite { grid-area: invite; margin-top: 56px; }
+/* Pinned to the BOTTOM of the left column, not floated under the chip. Row 2
+   is 1fr and .details spans both rows, so the row stretches to the height of
+   the three text groups; align-self:end drops the invitation onto that
+   baseline. The empty space then sits BETWEEN the identity and the invitation,
+   which is the point — the column opens up instead of trailing off.
+   margin-top is a floor for the case where .details is short enough that the
+   two blocks would otherwise touch. */
+.template-single-project .info-invite {
+    grid-area: invite;
+    align-self: end;
+    margin-top: 56px;
+}
 .template-single-project .information .details {
     grid-area: details;
     /* Beats screen.css's `display:flex` and the flex-start/100px gap override
@@ -3304,31 +3315,80 @@ body.pagers-idle a[rel="next"] {
     white-space: nowrap;
 }
 
-/* The soft door. Sized to sit below the title without competing with the
-   70px type above it or the clamp(22px,3vw,58px) "Start a project" below. */
+/* The soft door, at "Start a project" scale — same clamp, weight, tracking and
+   1.0 leading as .projects-start-link, so the two CTAs on this page read as the
+   same object at two commitment levels rather than as a button and a footnote.
+
+   The statement line is off-black (#4E464F, already in the system) and the LINK
+   is the full cognak black (#3A313B), so the eye lands on the actionable half.
+
+   Only the line wraps. "Let's make something together." is ~860px at the 58px
+   ceiling against a ~770px column, so it breaks to two lines on wide screens —
+   which is fine, it's a statement. "Say hello" is held on one line. */
 .template-single-project .info-invite-line {
-    margin: 0 0 8px;
+    margin: 0 0 0.12em;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 15px;
-    line-height: 1.75;
-    color: #6d6d6d;
+    font-size: clamp(22px, 3.0vw, 58px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: #4E464F;
 }
+
+/* HOVER — a sibling of .projects-start-link's move, not a copy of it.
+   That one fades its solid fill to transparent in place, revealing a
+   bottom-to-top purple gradient: the colour arrives everywhere at once.
+   Here the gradient is horizontal and oversized (250%), parked with its dark
+   half over the text; on hover the fill dissolves WHILE the gradient slides,
+   so the purple wipes across the word left to right instead of blooming.
+   Same technique, same family, different gesture.
+
+   The fill dissolves FAST (0.18s) under a slower slide, so what you watch is
+   the gradient travelling, not the black letting go. Matched durations read as
+   a crossfade instead of a wipe.
+
+   EASING IS NOT --ease-out-expo HERE, and that is deliberate. Expo puts ~90% of
+   its travel in the first ~20% of the duration: perfect for something arriving
+   at a destination, useless for a sweep you are meant to WATCH cross the word —
+   at 0.7s the whole wipe would be over in ~140ms and read as an instant colour
+   flip. A symmetric ease-in-out keeps the traverse legible. This is the one
+   place on the site where expo is the wrong answer; don't "fix" it back.
+
+   -webkit-text-fill-color is opaque AT REST, exactly as .projects-start-link
+   does it: if background-clip:text is ever unsupported the word still renders
+   in solid black rather than vanishing. */
 .template-single-project .info-invite-link {
+    display: inline-block;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--cognak-purple-text);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-thickness: 1px;
-    text-decoration-color: rgba(150, 71, 240, 0.35);
-    transition: text-decoration-color 0.25s var(--ease-out-expo),
-                text-underline-offset 0.25s var(--ease-out-expo);
+    font-size: clamp(22px, 3.0vw, 58px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    white-space: nowrap;
+    text-decoration: none;
+    color: #3A313B;
+    background: linear-gradient(100deg,
+                #9F50FF 0%, #9F50FF 40%, #3A313B 60%, #3A313B 100%);
+    background-size: 250% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: rgba(58, 49, 59, 1);
+    transition: -webkit-text-fill-color 0.18s ease,
+                background-position 0.62s cubic-bezier(0.65, 0, 0.35, 1);
 }
 @media (hover: hover) {
     .template-single-project .info-invite-link:hover {
-        text-decoration-color: currentColor;
-        text-underline-offset: 2px;
+        -webkit-text-fill-color: rgba(58, 49, 59, 0);
+        background-position: 0 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .template-single-project .info-invite-link {
+        transition: -webkit-text-fill-color 0.2s ease;
+    }
+    .template-single-project .info-invite-link:hover {
+        background-position: 0 0;
     }
 }
 
@@ -3341,7 +3401,10 @@ body.pagers-idle a[rel="next"] {
             "invite";
         grid-template-rows: auto auto auto;
     }
-    .template-single-project .info-invite { margin-top: 48px; }
+    .template-single-project .info-invite {
+        align-self: start;
+        margin-top: 48px;
+    }
     .template-single-project .information .details .col { margin-bottom: 34px; }
 }
 /* ── CookieYes banner overrides ── */
