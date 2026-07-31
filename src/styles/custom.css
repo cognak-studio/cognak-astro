@@ -3329,7 +3329,29 @@ body.pagers-idle a[rel="next"] {
     line-height: 1.75 !important;
     color: rgba(58, 49, 59, 0.78) !important;
     margin: 0 !important;
-    padding: 0 !important;
+    /* Hanging indent: padding pushes every line in, and the marker is pulled
+       back out with a negative MARGIN on the ::before (below). A wrapped fact
+       then aligns under its own text rather than under its bullet — "COGNAK as
+       creative lead" wraps on mobile, so this isn't theoretical.
+
+       NOT `text-indent: -1.1em` on the paragraph, which is the more obvious
+       idiom and does not work here: tested live, the bullet renders but lands
+       outside the visible box and disappears. Negative margin on an
+       inline-block marker is deterministic. */
+    padding: 0 0 0 1.1em !important;
+}
+/* Bullets are drawn in CSS, NOT restored to the content. The authored "• " is
+   still stripped in the frontmatter, because 184 of the 188 items have one and
+   4 don't — leaving it to the source would make those 4 silently lose their
+   marker. Generating it here means every row gets one and the spacing after it
+   is a real em rather than whatever character the author happened to type
+   (several use a non-breaking space). */
+.template-single-project .information .details-extra .col p::before {
+    content: '•';
+    display: inline-block;
+    width: 1.1em;
+    margin-left: -1.1em;
+    color: rgba(58, 49, 59, 0.4);
 }
 /* The final row is always the client URL. Underline offset matches the body
    link treatment; the hover lands on the page accent like every other link
