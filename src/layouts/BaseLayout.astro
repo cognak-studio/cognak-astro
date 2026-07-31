@@ -84,18 +84,21 @@ const SB_LIGHT = 'rgba(255, 255, 255, 0.15)'; // for dark pages
 
 /* The one page the rule can't serve at 15%: klein blue is mid-luminance AND
    saturated, so a 15% veil lands at 1.26 (white) or 1.14 (ink) — invisible
-   either way.
+   either way. Darkening it is also inefficient, the blue being already
+   low-luminance: ink at 25% reaches only 1.23, at 50% 1.46, at 70% 1.62.
 
-   Pierce's call is DARKER, not lighter, so this is the same near-black ink,
-   opened up until it's perceptible. Darkening klein blue is inefficient because
-   the blue is already low-luminance: ink at 25% only reaches 1.23, at 50% 1.46.
-   70% gets to 1.62 — matching the perceptual weight the 15% veil has everywhere
-   else — and resolves to a deep navy (#141051), which reads as the page's own
-   blue pushed down rather than a grey bar laid over it.
-   For reference the nav's literal darker blue (#0700AC) only measures 1.23 here,
-   which is why this is a veil and not that colour. */
+   NOTE ON CONTRAST NUMBERS generally: these are a perceptibility proxy, NOT a
+   compliance target. Nothing here is trying to meet WCAG 1.4.11's 3:1 for UI
+   components — no page's bar comes close, and it doesn't need to: the bar is
+   aria-hidden and fully redundant (wheel, trackpad, keyboard and touch all
+   scroll without it). Treat the ratio as "will the eye find it", nothing more.
+
+   40% it is: 1.38, which sits with the light pages (1.35–1.37) rather than above
+   them. An earlier 70% measured 1.62 and read heavier than every other page —
+   consistency argued for lighter, not darker. Still the DARK direction Pierce
+   asked for; it resolves to #120C88, the page's own blue pushed down. */
 const SCROLL_THUMB_OVERRIDE = {
-  colophon: 'rgba(23, 21, 26, 0.70)',
+  colophon: 'rgba(23, 21, 26, 0.40)',
 
   /* /brief is the other page the veil can't serve, for a different reason: its
      WebGL runs full-bleed behind everything and swings from luminance 0 to 46
@@ -554,6 +557,22 @@ import '../styles/site.css';
           gtag('event', 'click_schedule_call', { 'event_category': 'Contact', 'event_label': 'Schedule a Call' });
         }
         gtag_report_conversion('AW-876403750/r1GlCKXGmLwcEKa486ED', href);
+        return;
+      }
+      // "Start a project" (home/projects/studio) and the footer's "write a
+      // brief" link both point at /brief. This is a click-through, not a
+      // lead — the actual conversion fires from brief.astro once a brief is
+      // successfully sent (see the fetch('/api/brief') handler there). Track
+      // the click anyway so the funnel isn't a black box between "clicked
+      // start a project" and "brief sent". Match on path only (strip query/
+      // hash) so ?utm_… params on the link don't break the check, and only
+      // for same-origin links so this can't misfire on an unrelated href
+      // that happens to contain "/brief".
+      var linkPath = (href.split('#')[0] || '').split('?')[0];
+      if (linkPath === '/brief' || linkPath === '/brief/') {
+        if (typeof gtag === 'function') {
+          gtag('event', 'click_start_project', { 'event_category': 'Contact', 'event_label': linkPath });
+        }
       }
     });
   </script>
