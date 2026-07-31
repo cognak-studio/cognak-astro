@@ -61,36 +61,41 @@ const bodyClass = isHome ? 'non-fixed-nav' : 'fixed-nav';
    the form controls above and the browser's own canvas colour. */
 const PAGE_BG_FALLBACK = { home: '#17151a', project: '#ffffff' };
 
-/* Thumb colour for the CUSTOM overlay scrollbar (#cognak-scrollbar). Consumed as
-   --sb-thumb; the native scrollbar is hidden entirely, see custom.css.
+/* Thumb colour for the CUSTOM overlay scrollbar (#cognak-scrollbar), consumed as
+   --sb-thumb. The native scrollbar is hidden entirely — see custom.css.
 
-   The rule is CHROME, not accent — the bar takes the page's own hue and stays
-   out of the way, rather than the bright interaction colour, which read as a
-   saturated stripe down the edge.
+   ONE RULE, not a palette: the bar is the page's own ink at 15%. It reads as a
+   veil over the background rather than a coloured element, so it recedes on
+   every page without needing a per-page decision.
 
-   BUT it is now the ONLY scroll indicator on the page, so it also has to be
-   visible. The first pass used each page's nav colour literally, which measured
-   1.00:1 on home and studio and 1.06:1 on send — i.e. we'd have removed the
-   native scrollbar and replaced it with nothing. The dark pages therefore keep
-   their hue and saturation and lift only LUMINANCE, to ~2.6:1 against their own
-   background: quiet, still unmistakably the page's colour, but actually there.
-   Contrast vs the page background is in the comments below — keep any new page
-   above ~2.2:1 or the bar effectively doesn't exist. */
-const SCROLL_THUMB = {
-  home:     '#5E566A', // 2.60 — hero violet-black, lifted
-  studio:   '#5E566B', // 2.60 — nav violet-charcoal, lifted
-  send:     '#8FC2F2', // 10.45 — the page's light blue (--accent-soft, the headline em)
-  receive:  '#8FC2F2', // 10.45 — matches send
-  colophon: '#0700AC', // 1.23 — the nav's darker blue, Pierce's call. Deliberately
-                       //        near-invisible against the klein blue; do not
-                       //        "fix" the contrast without asking.
-  projects: '#4A3F6B', // 7.67 — headline dark lavender, NOT the hover purple
-  project:  '#C4C4CC', // 1.73 — light gray: this page is WHITE, so the lavender
-                       //        above would have been a hard stripe on it
-  tools:    '#B0A3CF', // 7.77 — the "Tools" headline purple (--accent-soft, not --accent)
-  brief:    '#EF9146', // 8.04 — the one page where the accent was already right
-  privacy:  '#6E2050', // 7.83 — the red-plum of the "privacy policy" headline (.pp-accent)
-  '404':    '#AAFF00', // 4.07 — signal green on purpose: it's the only thing still working
+   "Ink" means the OPPOSITE of the page, which is the part worth understanding.
+   Near-black at 15% over a near-black page is arithmetically no change —
+   measured 1.00:1 on home, studio and tools, i.e. an invisible scrollbar. So
+   dark pages take white at 15% and light pages take the Cognak near-black at
+   15%. Same idea, same weight, expressed against whatever the page is:
+
+     dark  (white @15%)  home 1.56  studio 1.56  brief 1.51  send 1.48  tools 1.56
+     light (ink   @15%)  projects 1.36  privacy 1.35  project 1.37  404 1.36
+
+   Deliberately subtle — this is a 15% veil, not an accent. Anything under ~1.35
+   stops being perceptible, which is the floor to respect if a page is added. */
+const SB_INK   = 'rgba(23, 21, 26, 0.15)';    // Cognak near-black, for light pages
+const SB_LIGHT = 'rgba(255, 255, 255, 0.15)'; // for dark pages
+
+/* The one page the rule can't serve at 15%: klein blue is mid-luminance AND
+   saturated, so a 15% veil lands at 1.26 (white) or 1.14 (ink) — invisible
+   either way.
+
+   Pierce's call is DARKER, not lighter, so this is the same near-black ink,
+   opened up until it's perceptible. Darkening klein blue is inefficient because
+   the blue is already low-luminance: ink at 25% only reaches 1.23, at 50% 1.46.
+   70% gets to 1.62 — matching the perceptual weight the 15% veil has everywhere
+   else — and resolves to a deep navy (#141051), which reads as the page's own
+   blue pushed down rather than a grey bar laid over it.
+   For reference the nav's literal darker blue (#0700AC) only measures 1.23 here,
+   which is why this is a veil and not that colour. */
+const SCROLL_THUMB_OVERRIDE = {
+  colophon: 'rgba(23, 21, 26, 0.70)',
 };
 
 function relLuminance(hex) {
@@ -106,7 +111,7 @@ function relLuminance(hex) {
 
 const schemeBg   = pageBg || PAGE_BG_FALLBACK[page] || '#ffffff';
 const isDarkPage = relLuminance(schemeBg) < 0.25;
-const scrollThumb = SCROLL_THUMB[page] || 'rgba(255,255,255,0.28)';
+const scrollThumb = SCROLL_THUMB_OVERRIDE[page] || (isDarkPage ? SB_LIGHT : SB_INK);
 
 // Cache-buster for the unhashed /js/ scripts, stable across the whole build:
 // the deploy's commit SHA on Vercel, else an hour-rounded timestamp locally.
