@@ -21,7 +21,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <main id="cognak-main"><section class="brief">
 
     <div id="step-pick">
-      <h1 class="headline">Good work starts with a good <em>brief</em>. Let's write yours.</h1>
+      <h1 class="headline">Good work starts with a good <em>brief</em>. Submit yours.</h1>
       <p class="lede">The idea, the audience, the way it should feel. Give us the essentials and we'll have the sum of it before we ever get on a call.</p>
       <div class="picker rise" id="picker"></div>
     </div>
@@ -34,7 +34,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <h2 class="headline form-headline" id="form-headline"></h2>
       <form id="briefForm" novalidate></form>
       <div class="actions">
-        <button class="btn" id="sendBtn" type="button"><span class="btn-label">Send brief</span><span class="btn-arrow" aria-hidden="true">&rarr;</span></button>
+        <button class="btn" id="sendBtn" type="button"><span class="btn-label">Submit brief</span><span class="btn-arrow" aria-hidden="true">&rarr;</span></button>
       </div>
       <div class="formerr" id="formErr" role="alert">Please fill in the required fields.</div>
     </div>
@@ -519,11 +519,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        ============================================================ */
 
     /* ---- submit button state machine ----
-       Was: a bare textContent swap to "Sending…" with no disabled styling, so
+       Was: a bare textContent swap to "Submitting…" with no disabled styling, so
        the button stayed bright and clickable-looking through the whole request.
        Now the arrow leaves first (it's a promise of forward motion — it
        shouldn't sit there while we wait), a shimmer runs while in flight, and
-       a "Sent ✓" beat lands before the screen changes. */
+       a "Submitted ✓" beat lands before the screen changes. */
     .brief .btn{ position:relative; overflow:hidden; }
     .brief .btn .btn-label, .brief .btn .btn-arrow{ position:relative; z-index:1; }
     .brief .btn .btn-arrow{ display:inline-block; margin-left:.5em;
@@ -1504,7 +1504,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var files=state.files.filter(function(f){return f.status==='done'&&f.url;})
         .map(function(f){return {name:f.name,url:f.url,size:f.size};});
       /* ---- submit state machine ----
-         arrow slides away -> shimmer while in flight -> a "Sent ✓" beat that
+         arrow slides away -> shimmer while in flight -> a "Submitted ✓" beat that
          lands BEFORE the screen changes -> shake + red on failure. The beat
          matters: without it the button and the whole screen change in the same
          frame, so the click never gets acknowledged on its own terms. */
@@ -1514,14 +1514,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       btn.disabled=true;
       btn.classList.remove('is-failed','is-sent');
       btn.classList.add('is-sending');
-      if(labelEl) labelEl.textContent='Sending…';
+      if(labelEl) labelEl.textContent='Submitting…';
       fetch('/api/brief',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({discipline:d.label,who:who,email:email,text:body,files:files})})
         .then(function(r){if(!r.ok)throw new Error('send failed');return r.json();})
         .then(function(){
           btn.classList.remove('is-sending');
           btn.classList.add('is-sent');
-          if(labelEl) labelEl.textContent='Sent ✓';
+          if(labelEl) labelEl.textContent='Submitted ✓';
           /* ---- conversion tracking ----
              This fires once, right here, only after /api/brief has confirmed
              the email actually sent — not on the "Start a project" click that

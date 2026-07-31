@@ -3240,10 +3240,15 @@ body.pagers-idle a[rel="next"] {
 .template-single-project .info-split {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+    /* "extra" is More details, parked with the identity rather than beside the
+       prose. It gets its own ROW instead of living inside .info-lead so the
+       mobile order can differ: on a phone the narrative should come before the
+       four facts, which a nested block could not express. */
     grid-template-areas:
         "lead   details"
+        "extra  details"
         "invite details";
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto 1fr;
     column-gap: 80px;
     align-items: start;
 }
@@ -3280,11 +3285,20 @@ body.pagers-idle a[rel="next"] {
     align-self: end;
     margin-top: 56px;
 }
-.template-single-project .information .details {
+/* Scoped to .details-main, NOT bare .details — there are now two `.details`
+   wrappers on the page and a bare rule would drop More details into the same
+   grid area, stacking the two on top of each other. */
+.template-single-project .information .details-main {
     grid-area: details;
     /* Beats screen.css's `display:flex` and the flex-start/100px gap override
        above, both of which are meaningless once this is a block stack. */
     display: block !important;
+}
+.template-single-project .information .details-extra {
+    grid-area: extra;
+    display: block !important;
+    margin-top: 44px;
+    max-width: 420px;
 }
 .template-single-project .information .details .col {
     width: auto !important;
@@ -3295,23 +3309,21 @@ body.pagers-idle a[rel="next"] {
     margin-bottom: 0;
 }
 
-/* Cask grade. Uses the page's OWN accent (--cognak-purple-text) rather than
-   introducing a fourth purple — the colour-token item is still open and the
-   category directly above it is already this value. Measured 4.70:1 on white,
-   so it clears AA for normal text; it carries real information (the grade), so
-   it has to. currentColor on the border keeps the two in lockstep if the token
-   ever moves. */
-.template-single-project .vintage-chip {
-    display: inline-block;
-    margin-top: 18px;
-    padding: 4px 9px;
-    border: 1px solid currentColor;
-    border-radius: 2px;
-    color: var(--cognak-purple-text);
+/* Cask grade, styled to match .list-item-vintage on /projects exactly — the
+   same mark should not read as a bordered purple badge in one place and a quiet
+   grey note in another. Mono 12px / 0.08em / uppercase from .list-item-tag,
+   rgba(58,49,59,0.34) from .list-item-vintage, no border and no chip.
+   Deliberately NOT the page accent: at 0.34 alpha it sits a shade behind the
+   category above it, which is the hierarchy it has in the archive list too. */
+.template-single-project .project-vintage {
+    display: block;
+    margin-top: 14px;
     font-family: 'Diatype Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.12em;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    color: rgba(58, 49, 59, 0.34);
     white-space: nowrap;
 }
 
@@ -3395,11 +3407,18 @@ body.pagers-idle a[rel="next"] {
 @media (max-width: 900px) {
     .template-single-project .info-split {
         grid-template-columns: 1fr;
+        /* Narrative first, then the four facts, then the invitation. Source
+           order puts "extra" second; only the grid can express this. */
         grid-template-areas:
             "lead"
             "details"
+            "extra"
             "invite";
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto auto auto auto;
+    }
+    .template-single-project .information .details-extra {
+        margin-top: 34px;
+        max-width: none;
     }
     .template-single-project .info-invite {
         align-self: start;

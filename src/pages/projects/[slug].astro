@@ -140,8 +140,21 @@ const jsonLd = {
           <div class="info-lead">
             <h1 class="title">{d.title}</h1>
             <p class="category">{d.category}</p>
-            {vintage && <span class="vintage-chip">{vintage}</span>}
+            {vintage && <span class="project-vintage">{vintage}</span>}
           </div>
+
+          {/* "More details" is paired with the identity, not with the two
+              narrative groups: it's four short facts, and holding it in a
+              column beside 400-word prose gave it a weight it doesn't have.
+              Kept inside a `.details` wrapper so every existing
+              `.information .details h2 / p / ul / a` rule still applies —
+              moving it out of that scope would silently drop its typography. */}
+          <aside class="details details-extra">
+            <div class="col">
+              <h2>More details</h2>
+              <Fragment set:html={d.moreDetails ?? ''} />
+            </div>
+          </aside>
 
           {/* Soft door. The hard ask ("Start a project" -> /brief) sits at the
               bottom of this same page, so this one is deliberately a LOWER
@@ -153,18 +166,14 @@ const jsonLd = {
             <a class="info-invite-link" href="mailto:hello@cognak.com">Say hello</a>
           </div>
 
-          <aside class="details">
+          <aside class="details details-main">
             <div class="col">
               <h2>About the client</h2>
               <Fragment set:html={d.aboutTheClient ?? ''} />
             </div>
-            <div class="col">
+            <div class="col end">
               <h2>The work</h2>
               <Fragment set:html={d.theWork ?? ''} />
-            </div>
-            <div class="col end">
-              <h2>More details</h2>
-              <Fragment set:html={d.moreDetails ?? ''} />
             </div>
           </aside>
         </div>
