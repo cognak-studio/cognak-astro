@@ -183,14 +183,18 @@ const jsonLd = {
             </div>
           </aside>
 
-          {/* Soft door. The hard ask ("Start a project" -> /brief) sits at the
-              bottom of this same page, so this one is deliberately a LOWER
-              commitment and a different destination — the footer already frames
-              the site's CTAs as "a question, a project, a conversation", and two
-              identical asks on one page would collapse that into one. */}
+          {/* ONE CTA per project page, and it lives here rather than at the
+              bottom. Two asks (a soft mailto here, "Start a project" after the
+              gallery) split the intent and neither carried weight; this is the
+              site's standard closing block — same .hp-start-wrap +
+              .projects-start-link + availability beacon as /projects and
+              /studio, gradient hover included — parked at the foot of the
+              identity column where the eye already ends up. */}
           <div class="info-invite">
-            <p class="info-invite-line">Let's make something together.</p>
-            <a class="info-invite-link" href="mailto:hello@cognak.com">Say hello</a>
+            <div class="hp-start-wrap">
+              <a href="/brief" class="projects-start-link">Start a project</a>
+              <span class="availability-sub"><span class="avail-dot" aria-hidden="true"></span> Currently booking 30–60 days out</span>
+            </div>
           </div>
 
           <aside class="details details-main">
@@ -218,25 +222,6 @@ const jsonLd = {
         <Content />
       </figure>
     )}
-
-    {/* Every project page dead-ended in prev/next before this: you could read
-        the whole case study and the only thing on offer was another case study.
-        This is the SAME block /projects and /studio close with — .hp-start-wrap
-        + .projects-start-link + .availability-sub, not a bespoke button — so
-        the detail page makes the site's existing closing gesture rather than
-        inventing a new one.
-
-        It sits BEFORE the pagers on purpose: the pagers mean "keep browsing",
-        the CTA means "hire us", and the funnel reads better when the ask comes
-        before the alternative. Wrapped in .container--work-single so it lines
-        up with the title and the three detail columns rather than the
-        full-bleed gallery above it. */}
-    <div class:list={["container--work-single", "project-start", { "project-start--nogallery": !hasGallery }]}>
-      <div class="hp-start-wrap">
-        <a href="/brief" class="projects-start-link">Start a project</a>
-        <span class="availability-sub"><span class="avail-dot" aria-hidden="true"></span> Currently booking 30–60 days out</span>
-      </div>
-    </div>
 
     <nav id="work-pagers" class="pagers group">
       {prev && (

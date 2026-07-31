@@ -3375,81 +3375,17 @@ body.pagers-idle a[rel="next"] {
     white-space: nowrap;
 }
 
-/* The soft door, at "Start a project" scale — same clamp, weight, tracking and
-   1.0 leading as .projects-start-link, so the two CTAs on this page read as the
-   same object at two commitment levels rather than as a button and a footnote.
+/* The single CTA sits here, at the foot of the identity column. It reuses the
+   site's standard block (.hp-start-wrap + .projects-start-link + the
+   availability beacon) so nothing bespoke is introduced — including the
+   gradient text-fill hover .projects-start-link already carries.
 
-   The statement line is off-black (#4E464F, already in the system) and the LINK
-   is the full cognak black (#3A313B), so the eye lands on the actionable half.
-
-   Only the line wraps. "Let's make something together." is ~860px at the 58px
-   ceiling against a ~770px column, so it breaks to two lines on wide screens —
-   which is fine, it's a statement. "Say hello" is held on one line. */
-.template-single-project .info-invite-line {
-    margin: 0 0 0.12em;
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: clamp(22px, 3.0vw, 58px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
-    color: #4E464F;
-}
-
-/* HOVER — a sibling of .projects-start-link's move, not a copy of it.
-   That one fades its solid fill to transparent in place, revealing a
-   bottom-to-top purple gradient: the colour arrives everywhere at once.
-   Here the gradient is horizontal and oversized (250%), parked with its dark
-   half over the text; on hover the fill dissolves WHILE the gradient slides,
-   so the purple wipes across the word left to right instead of blooming.
-   Same technique, same family, different gesture.
-
-   The fill dissolves FAST (0.18s) under a slower slide, so what you watch is
-   the gradient travelling, not the black letting go. Matched durations read as
-   a crossfade instead of a wipe.
-
-   EASING IS NOT --ease-out-expo HERE, and that is deliberate. Expo puts ~90% of
-   its travel in the first ~20% of the duration: perfect for something arriving
-   at a destination, useless for a sweep you are meant to WATCH cross the word —
-   at 0.7s the whole wipe would be over in ~140ms and read as an instant colour
-   flip. A symmetric ease-in-out keeps the traverse legible. This is the one
-   place on the site where expo is the wrong answer; don't "fix" it back.
-
-   -webkit-text-fill-color is opaque AT REST, exactly as .projects-start-link
-   does it: if background-clip:text is ever unsupported the word still renders
-   in solid black rather than vanishing. */
-.template-single-project .info-invite-link {
-    display: inline-block;
-    font-family: 'Diatype Variable', sans-serif;
-    font-size: clamp(22px, 3.0vw, 58px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
-    white-space: nowrap;
-    text-decoration: none;
-    color: #3A313B;
-    background: linear-gradient(100deg,
-                #9F50FF 0%, #9F50FF 40%, #3A313B 60%, #3A313B 100%);
-    background-size: 250% 100%;
-    background-position: 100% 0;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: rgba(58, 49, 59, 1);
-    transition: -webkit-text-fill-color 0.18s ease,
-                background-position 0.62s cubic-bezier(0.65, 0, 0.35, 1);
-}
-@media (hover: hover) {
-    .template-single-project .info-invite-link:hover {
-        -webkit-text-fill-color: rgba(58, 49, 59, 0);
-        background-position: 0 0;
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    .template-single-project .info-invite-link {
-        transition: -webkit-text-fill-color 0.2s ease;
-    }
-    .template-single-project .info-invite-link:hover {
-        background-position: 0 0;
-    }
+   THE BEACON IS PURPLE, NOT THE SIGNAL GREEN. Project detail resolves to a
+   WHITE page (see the scrollbar's PAGE_BG_FALLBACK) and #AAFF00 measures
+   ~1.00:1 on white — identical luminance, invisible. Same call /projects made
+   for the same reason: on a light ground the page uses its own accent. */
+.template-single-project .info-invite .avail-dot {
+    color: var(--cognak-purple-text);
 }
 
 @media (max-width: 900px) {
@@ -3468,7 +3404,6 @@ body.pagers-idle a[rel="next"] {
         margin-top: 28px;
         max-width: none;
     }
-    .project-start--nogallery { margin-top: 40px; }
     .template-single-project .info-invite {
         align-self: start;
         margin-top: 48px;
@@ -4356,38 +4291,6 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     margin: 0;
 }
 
-/* Closing CTA on project detail. Spacing is deliberately asymmetric: a large
-   gap above separates it from the gallery (it is a change of subject, not the
-   next image), a smaller one below because the pagers that follow are a quieter
-   footnote and shouldn't feel like a third section.
-
-   THE DOT IS PURPLE, NOT THE SIGNAL GREEN. Project detail resolves to a WHITE
-   page (see the scrollbar's PAGE_BG_FALLBACK), and #AAFF00 measures ~1.00:1 on
-   white — identical luminance, invisible. Same call /projects made for the same
-   reason: on a light ground the page uses its own accent. Detail pages sit
-   inside the projects section, so they borrow that page's interaction accent
-   rather than inventing one. */
-.project-start {
-    margin-top: 120px;
-    margin-bottom: 80px;
-}
-/* 19 of the 54 projects have no gallery, so nothing sits between the
-   information block and this CTA. At the full 120px (on top of .information's
-   own 55px bottom margin) that left a ~175px void — the page read as broken
-   rather than spacious. The <figure> itself is omitted entirely in that case,
-   so this only has to close the remaining gap. */
-.project-start--nogallery {
-    margin-top: 56px;
-}
-.project-start .avail-dot {
-    color: var(--cognak-purple-text);
-}
-@media (max-width: 720px) {
-    .project-start {
-        margin-top: 72px;
-        margin-bottom: 56px;
-    }
-}
 
 /* Reveal. Same spec as the homepage's .hp-lazy, deliberately reused rather than
    re-invented: 12px rise, 0.5s, plain ease. This page had NO motion of any kind
