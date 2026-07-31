@@ -2225,22 +2225,29 @@ html.pv-grid .projects-list,
    tab list is a vertical stack, so the travel is vertical, not the horizontal
    underline a tab marker usually implies. 1px matches the homepage's
    .scroll-discover-track exactly (1px vertical pink), which is the site's other
-   vertical position indicator — same width, same hue, same job. Position and
-   height come from --marker-y / --marker-h, set in studio.astro from the active
-   tab's offsetTop/offsetHeight (recalculated on resize and on fonts.ready,
-   since the labels are clamp()-sized and shift with both). */
+   vertical position indicator — same width, same hue, same job. Its two edges
+   come from --m-top / --m-bot, set in studio.astro from the active tab's
+   offsetTop/offsetHeight (recalculated on resize and on fonts.ready, since the
+   labels are clamp()-sized and shift with both). */
 .studio-tabs::before {
     content: "";
     position: absolute;
     left: 0;
-    top: 0;
     width: 1px;
     background: #FFB2E4;
-    height: var(--marker-h, 0px);
-    transform: translateY(var(--marker-y, 0px));
+    /* The two EDGES are animated independently rather than a position + height.
+       On a move, the leading edge gets a short duration and the trailing edge a
+       longer one, so the rule stretches while it travels and gathers itself as
+       it lands. The stretch is a consequence of the lag, not a separate phase —
+       which is what stops it reading as a bounce. Durations come from
+       --t-top / --t-bot, swapped per direction in studio.astro.
+       Both edges use the expo curve, which has NO overshoot; introducing a
+       springy curve here is what would put the bounce back. */
+    top: var(--m-top, 0px);
+    bottom: var(--m-bot, 100%);
     opacity: 0;
-    transition: transform .42s var(--ease-out-expo),
-                height .42s var(--ease-out-expo),
+    transition: top var(--t-top, .34s) var(--ease-out-expo),
+                bottom var(--t-bot, .34s) var(--ease-out-expo),
                 opacity .3s ease;
 }
 /* Only shown once JS has measured a real position, so it can't flash at 0,0. */
@@ -3631,7 +3638,12 @@ html.js #step-pick .headline,
 html.js .colophon-body > p:not(.colophon-spec):not(.colophon-sign),
 html.js #step-pick .lede,
 html.js .privacy-body p,
-html.js .privacy-body h2 {
+html.js .privacy-body h2,
+/* NOTE: .studio-manifesto is NOT driven by cognak-global.js — it has its own
+   entrance in studio.astro (the accents have to land last, which the global
+   text-node-only splitter can't express). It still needs the same pre-JS hide
+   and the same reduced-motion escape below. */
+html.js .studio-manifesto {
     opacity: 0;
 }
 /* THIS BLOCK IS NOT OPTIONAL. The stagger script in cognak-global.js returns
@@ -3650,7 +3662,8 @@ html.js .privacy-body h2 {
     html.js .colophon-body > p:not(.colophon-spec):not(.colophon-sign),
     html.js #step-pick .lede,
     html.js .privacy-body p,
-    html.js .privacy-body h2 { opacity: 1; }
+    html.js .privacy-body h2,
+    html.js .studio-manifesto { opacity: 1; }
 }
 .stagger-word {
     display: inline-block;

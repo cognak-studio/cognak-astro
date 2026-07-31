@@ -436,35 +436,50 @@ body { overflow-x: clip; }
        hardcoding offsets: the labels are clamp(19px, 2vw, 28px), so their height
        and position move with the viewport AND again when the webfont swaps in.
        .studio-tabs is position:relative, so offsetTop is already relative to it. */
-    var STRETCH_MS = 170;   // how long the rule stays spanning before it contracts
-    var lastY = null, lastH = null, stretchTimer = null;
+    var LEAD_MS  = 340;   // the edge moving into the new position
+    var TRAIL_MS = 620;   // the edge it drags behind it — the gap IS the stretch
+    var lastTop = null;
     var tabsPRM = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    function setMarker(y, h) {
-        tabList.style.setProperty('--marker-y', y + 'px');
-        tabList.style.setProperty('--marker-h', h + 'px');
-    }
+    /* Animate the rule's two EDGES independently instead of moving a fixed-height
+       bar. Travelling DOWN, the bottom edge leads and the top edge trails, so the
+       rule elongates on the way and gathers itself as it settles; travelling UP,
+       the roles swap. The stretch falls out of the duration difference, so the
+       motion is one continuous glide — no hold, no contract step, nothing that
+       reads as a bounce.
 
-    /* stretch=true only on an actual tab change. The rule first grows to SPAN
-       both the old and the new tab, then contracts onto the new one — so it
-       reads as a single continuous rule redrawing itself rather than a block
-       sliding down. Deliberately not a scale-squash: this is a 1px hairline, and
-       scaling it vertically would soften the edge. */
-    function moveMarker(stretch) {
+       Both edges ride the expo curve, which does not overshoot. If this ever
+       needs to feel springier, lengthen TRAIL_MS rather than reaching for an
+       elastic curve — overshoot is exactly the bounce we're avoiding. */
+    function moveMarker(animate) {
         if (!tabList) return;
         var active = tabList.querySelector('.studio-tab--active');
         if (!active) return;
-        var y = active.offsetTop, h = active.offsetHeight;
-        clearTimeout(stretchTimer);
-        if (stretch && lastY !== null && y !== lastY && !tabsPRM.matches) {
-            var top = Math.min(lastY, y);
-            var bot = Math.max(lastY + lastH, y + h);
-            setMarker(top, bot - top);
-            stretchTimer = setTimeout(function() { setMarker(y, h); }, STRETCH_MS);
+
+        var top = active.offsetTop;
+        // Distance from the list's bottom edge. clientHeight is the padding box,
+        // and .studio-tabs has no vertical padding, so this matches offsetTop's
+        // frame of reference.
+        var bot = tabList.clientHeight - (top + active.offsetHeight);
+
+        var lead = LEAD_MS + 'ms', trail = TRAIL_MS + 'ms';
+        if (!animate || tabsPRM.matches || lastTop === null || top === lastTop) {
+            // Initial placement, resize, font swap: both edges land together.
+            // 0s on the first call keeps the rule from sweeping in from the top.
+            var d = (lastTop === null || !animate) ? '0s' : lead;
+            tabList.style.setProperty('--t-top', d);
+            tabList.style.setProperty('--t-bot', d);
+        } else if (top > lastTop) {
+            tabList.style.setProperty('--t-top', trail);  // trailing edge
+            tabList.style.setProperty('--t-bot', lead);   // leading edge
         } else {
-            setMarker(y, h);
+            tabList.style.setProperty('--t-top', lead);   // leading edge
+            tabList.style.setProperty('--t-bot', trail);  // trailing edge
         }
-        lastY = y; lastH = h;
+
+        tabList.style.setProperty('--m-top', top + 'px');
+        tabList.style.setProperty('--m-bot', bot + 'px');
+        lastTop = top;
         tabList.classList.add('has-marker');
     }
     moveMarker(false);
@@ -514,6 +529,89 @@ body { overflow-x: clip; }
             activate(tab, false);
         });
     });
+})();
+</script>
+
+<script is:inline>
+/* ── Manifesto entrance ───────────────────────────────────────────────
+   The thesis sentence was the only prominent line on the site with no entrance.
+
+   WHY THIS ISN'T JUST ADDED TO cognak-global.js's SELECTORS: that splitter only
+   walks TEXT nodes — element children are re-appended whole and never receive
+   .stagger-word. (That's exactly why every other page needs the separate
+   `headline-accent-fade` rule for its <em>/accent spans.) Here the accents are
+   the payoff, so the global path would have left "built with intent" as the only
+   words already visible — landing FIRST instead of last, the precise opposite of
+   the intent.
+
+   So: same visual spec as the site stagger (.stagger-word / .stagger-in, 28ms
+   cadence, shared CSS), but ordering assigned by ROLE rather than DOM position.
+   The sentence assembles around three holes, then the pink words drop in on a
+   wider beat. Because .stagger-word is inline-block at opacity 0, the holes hold
+   their space — nothing reflows when they land. */
+(function() {
+    var el = document.querySelector('.studio-manifesto');
+    if (!el) return;
+
+    var ACCENT = '.manifesto-premium, .manifesto-intentional, .manifesto-human';
+    var STEP = 28;    // site cadence for the ordinary words
+    var BEAT = 130;   // wider spacing for the three accents, so they read as beats
+    var GAP  = 120;   // pause after the last ordinary word
+
+    // Always reveal the container, whatever path we take below. The pre-JS rule
+    // hides it to avoid flashing the unsplit line; failing to undo that is how
+    // /send shipped an invisible headline in July 2026.
+    function reveal() { el.style.opacity = '1'; }
+
+    var accents = Array.prototype.slice.call(el.querySelectorAll(ACCENT));
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { reveal(); return; }
+
+    // Split text nodes into words; leave element children (the accents) intact
+    // but enlist them into the same animation by adding the class directly.
+    var nodes = Array.prototype.slice.call(el.childNodes);
+    var plain = [];
+    el.innerHTML = '';
+    nodes.forEach(function(node) {
+        if (node.nodeType === 3) {
+            node.textContent.split(' ').forEach(function(word, i) {
+                if (i > 0) el.appendChild(document.createTextNode(' '));
+                if (!word) return;
+                var span = document.createElement('span');
+                span.className = 'stagger-word';
+                span.textContent = word;
+                el.appendChild(span);
+                plain.push(span);
+            });
+        } else {
+            if (node.nodeType === 1 && node.matches && node.matches(ACCENT)) {
+                node.classList.add('stagger-word');
+            }
+            el.appendChild(node);
+        }
+    });
+    reveal();
+
+    function run() {
+        plain.forEach(function(w, i) { w.style.transitionDelay = (i * STEP) + 'ms'; });
+        var after = plain.length * STEP + GAP;
+        accents.forEach(function(w, i) { w.style.transitionDelay = (after + i * BEAT) + 'ms'; });
+        plain.concat(accents).forEach(function(w) { w.classList.add('stagger-in'); });
+    }
+
+    // Matches the global system's trigger so it feels like the same mechanism.
+    if (el.getBoundingClientRect().top < window.innerHeight) {
+        setTimeout(run, 120);
+        return;
+    }
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            obs.unobserve(entry.target);
+            run();
+        });
+    }, { threshold: 0, rootMargin: '0px 0px -5% 0px' });
+    obs.observe(el);
 })();
 </script>
 
