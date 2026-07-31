@@ -34,20 +34,32 @@
     var dragging  = false;
     var trackH = 0, thumbH = 0, maxScroll = 0, trackTop = 0;
 
-    /* Which end the nav occupies, and how much. Measured rather than assumed:
-       inner pages pin it to the top, the homepage to the bottom, and the
-       homepage also swaps modes on scroll. */
+    /* Which end the nav occupies, and how much.
+
+       Read from COMPUTED STYLE + offsetHeight, deliberately NOT from
+       getBoundingClientRect(). The rect is affected by transforms, and the
+       homepage nav animates — so any frame where it was mid-transform made the
+       geometric test ("is its bottom edge at the viewport bottom?") fail, and
+       navInset() returned zero. The track then ran full height with a longer
+       thumb, until a later metrics() caught the nav settled and the inset
+       snapped back on. That is the homepage bug where the bar lost its bottom
+       ~15% after scrolling down and back up.
+
+       Computed top/bottom resolve to used values, so a fixed bar with bottom:0
+       reports bottom "0px" no matter what transform is on it, and offsetHeight
+       ignores transforms too. Deterministic on every frame. */
     function navInset() {
         var nav = document.querySelector('.home-bottom-bar');
         if (!nav) return { top: 0, bottom: 0 };
         var cs = window.getComputedStyle(nav);
         if (cs.display === 'none' || cs.position !== 'fixed') return { top: 0, bottom: 0 };
-        var r = nav.getBoundingClientRect();
-        if (r.height <= 0) return { top: 0, bottom: 0 };
-        if (r.top <= 1) return { top: Math.round(r.height) + NAV_GAP, bottom: 0 };
-        if (Math.abs(r.bottom - window.innerHeight) <= 1) {
-            return { top: 0, bottom: Math.round(r.height) + NAV_GAP };
-        }
+        var h = nav.offsetHeight;
+        if (!h) return { top: 0, bottom: 0 };
+        var topPx = parseFloat(cs.top);
+        var botPx = parseFloat(cs.bottom);
+        // Inner pages pin the nav to the top, the homepage to the bottom.
+        if (!isNaN(topPx) && Math.abs(topPx) < 1) return { top: h + NAV_GAP, bottom: 0 };
+        if (!isNaN(botPx) && Math.abs(botPx) < 1) return { top: 0, bottom: h + NAV_GAP };
         return { top: 0, bottom: 0 };
     }
 
