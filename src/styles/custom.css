@@ -3290,6 +3290,18 @@ body.pagers-idle a[rel="next"] {
    grid area, stacking the two on top of each other. */
 .template-single-project .information .details-main {
     grid-area: details;
+    /* Optically aligned to the TITLE'S CAP HEIGHT, not its line box. Both
+       columns start on the same grid line, but a 70px/1.06 headline carries
+       ~21px of ascender space above its capitals while the 13px "About the
+       client" label carries ~4px — so "About" sat 17px higher than "Bose" and
+       the two columns read as misaligned even though they were flush.
+       MEASURED TWO WAYS, both agreeing on 17px. Canvas TextMetrics on the live
+       page: title fontBoundingBoxAscent 68 vs actualBoundingBoxAscent 49, plus
+       2.1px half-leading = 21.1px above the capitals; the 13px label carries
+       3.9px. 21.1 − 3.9 = 17.2. Then swept empirically — residual misalignment
+       at margin-top 0/6/9/12/15/18px was −17.2/−11.2/−8.2/−5.2/−2.2/+0.8, i.e.
+       zero at 17.2. Recheck if the title's size or line-height changes. */
+    margin-top: 17px;
     /* Beats screen.css's `display:flex` and the flex-start/100px gap override
        above, both of which are meaningless once this is a block stack. */
     display: block !important;
@@ -3489,8 +3501,16 @@ body.pagers-idle a[rel="next"] {
    VS/VSOP/XO column it explains rather than under the titles, and offset below
    the last row's rule so it reads as a footnote to the table, not another row.
    Faint by design — it answers a question you only ask once. */
+/* Hidden in grid view, matching .projects-list's own two hooks exactly. */
+html.pv-grid .projects-grade-note,
+.projects-archive.is-grid-view .projects-grade-note {
+    display: none;
+}
 .projects-grade-note {
-    margin: 14px 0 0;
+    /* .projects-list carries margin-bottom:100px, so a plain top margin would
+       drop this 100px below the last row instead of just under it. Pulled back
+       up against the rule, then the 100px is restored below it. */
+    margin: -86px 0 100px;
     text-align: right;
     font-family: 'Diatype Mono', monospace;
     font-size: 11px;
@@ -3610,6 +3630,11 @@ html.js .template-single-project .details-extra .col p.pd-in {
     .template-single-project .information .details-extra {
         margin-top: 28px;
         max-width: none;
+    }
+    /* Columns stack below 900px, so the optical alignment has nothing to align
+       to — it would just be a stray gap above "About the client". */
+    .template-single-project .information .details-main {
+        margin-top: 0;
     }
     .template-single-project .info-invite {
         align-self: start;

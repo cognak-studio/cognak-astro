@@ -140,13 +140,19 @@ const LAZY_AFTER = 8;
           {p.category && <span class="list-item-tag"><span class="list-item-cats">{p.category}</span>{p.vintage && <span class="list-item-vintage">&nbsp;· {p.vintage}</span>}</span>}
         </a>
       ))}
-      {/* Grade legend. Lives INSIDE .projects-list on purpose: the list is
-          display:none in grid view, so the note hides and shows with the only
-          view that actually renders the grades — no separate toggle to keep in
-          sync. aria-hidden because it explains a decorative suffix; the row
-          links already read out their own title and category. */}
-      <p class="projects-grade-note" aria-hidden="true">VS under 4 years &middot; VSOP 4&ndash;10 &middot; XO 10+</p>
     </div>
+
+    {/* Grade legend — a SIBLING of .projects-list, never a child of it.
+        Inside the list it rendered FIRST, above every row: cognak-projects.js's
+        sort does `items.sort(...).forEach(el => container.appendChild(el))`, so
+        every row gets re-appended AFTER any non-row child and the legend is
+        left stranded at the top. Nothing about the markup order survives a sort.
+        Visibility instead follows the same two hooks the list itself uses
+        (html.pv-grid pre-paint / .is-grid-view via JS), so it still only shows
+        in the view that renders grades.
+        aria-hidden: it explains a decorative suffix, and the rows already read
+        out their own title and category. */}
+    <p class="projects-grade-note" aria-hidden="true">VS under 4 years &middot; VSOP 4&ndash;10 &middot; XO 10+</p>
 
     <div class="projects-below">
       <div class="projects-below-right">

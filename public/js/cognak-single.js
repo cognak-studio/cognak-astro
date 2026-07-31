@@ -291,3 +291,36 @@
     play();
   }
 })();
+
+/* ── Hero video: resume on re-entry ──────────────────────────────────────────
+   Chrome pauses an off-screen muted autoplay video to save power, and does not
+   reliably resume it when you scroll back. Combined with a missing poster that
+   produced a blank white block where the hero should be — the figure kept its
+   793px, the video kept its 793px, and nothing painted. The poster (added in
+   [slug].astro) means the element always has SOMETHING to draw; this makes it
+   move again.
+
+   Also pauses on exit, deliberately: an off-screen looping video decoding
+   frames nobody can see is pure battery. That's what the browser was trying to
+   do on its own — this just makes the resume half reliable.
+
+   `play()` returns a promise that rejects if the browser declines (a tab in the
+   background, a power-saving mode). Caught and ignored: a hero that stays on
+   its poster frame is a fine outcome, an unhandled rejection in the console is
+   not. */
+(function () {
+  var video = document.querySelector('.hero-video');
+  if (!video || !('IntersectionObserver' in window)) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        var pr = video.play();
+        if (pr && pr.catch) pr.catch(function () {});
+      } else if (!video.paused) {
+        video.pause();
+      }
+    });
+  }, { threshold: 0 }).observe(video);
+})();
