@@ -207,8 +207,28 @@ body { overflow-x: clip; }
         var SPEED_NORMAL = 0.000075; // rad/ms — ~140s per revolution
         var SPEED_HOVER  = SPEED_NORMAL * 0.13;
 
-        var currentSpeed = SPEED_NORMAL;
-        var targetSpeed  = SPEED_NORMAL;
+        /* This ring was the only animation on the page that ignored
+           prefers-reduced-motion — it kept turning regardless. It can't simply be
+           switched off, because the logos are position:fixed and are placed by
+           this loop: with no loop they'd stack at 0,0. So under reduced motion we
+           keep the geometry and drop the movement — speed 0, no self-scheduling
+           RAF, and a re-render only when scroll or resize actually moves the
+           ring's centre. Note Lenis doesn't initialise under reduced motion
+           either, so _lenis is undefined and the velocity coupling below is
+           naturally inert. */
+        var RING_PRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        /* Scroll-velocity coupling: fast scrolling visibly whips the ring, then
+           the existing 0.055 lerp eases it back to its resting speed over ~0.3s.
+           Sign is preserved, so scrolling up briefly winds it backwards.
+           VEL_REF is roughly the Lenis velocity of a brisk flick; anything faster
+           clamps rather than spinning absurdly. */
+        var VEL_REF   = 60;
+        var BOOST_MAX = SPEED_NORMAL * 10;
+
+        var hovering     = false;
+        var currentSpeed = RING_PRM ? 0 : SPEED_NORMAL;
+        var targetSpeed  = RING_PRM ? 0 : SPEED_NORMAL;
         var globalAngle  = Math.PI / 2; // first logo starts at front-bottom
 
         var rx, ry, cx, cy;
@@ -257,8 +277,10 @@ body { overflow-x: clip; }
 
         window.addEventListener('resize', measureStatic);
 
-        section.addEventListener('mouseenter', function() { targetSpeed = SPEED_HOVER; });
-        section.addEventListener('mouseleave', function() { targetSpeed = SPEED_NORMAL; });
+        // Hover state is now a flag rather than a direct write, because the base
+        // speed has to be recombined with the scroll boost every frame.
+        section.addEventListener('mouseenter', function() { hovering = true; });
+        section.addEventListener('mouseleave', function() { hovering = false; });
 
         var lastTs = null;
         var ringFadeStart = null;
@@ -273,11 +295,19 @@ body { overflow-x: clip; }
             if (ringFadeStart === null) ringFadeStart = ts + RING_FADE_DELAY;
             var ringRaw = Math.max(0, Math.min(1, (ts - ringFadeStart) / RING_FADE_DURATION));
             var ringOpacity = ringRaw * ringRaw * (3 - 2 * ringRaw); // smoothstep
+            if (RING_PRM) ringOpacity = 1; // no fade-in either — just be there
 
             // cx/cy are kept current by the scroll listener — no DOM read needed here
 
-            currentSpeed += (targetSpeed - currentSpeed) * 0.055;
-            globalAngle  += currentSpeed * dt;
+            if (!RING_PRM) {
+                var vel = 0;
+                var ln = window._lenis;
+                if (ln && typeof ln.velocity === 'number' && isFinite(ln.velocity)) vel = ln.velocity;
+                var boost = Math.max(-1, Math.min(1, vel / VEL_REF)) * BOOST_MAX;
+                targetSpeed = (hovering ? SPEED_HOVER : SPEED_NORMAL) + boost;
+                currentSpeed += (targetSpeed - currentSpeed) * 0.055;
+                globalAngle  += currentSpeed * dt;
+            }
 
             for (var i = 0; i < N; i++) {
                 var theta = globalAngle + (i / N) * TAU;
@@ -308,11 +338,20 @@ body { overflow-x: clip; }
                 el.style.transform = 'translate(-50%,-50%) scale(' + scale.toFixed(4) + ')';
             }
 
-            requestAnimationFrame(frame);
+            if (!RING_PRM) requestAnimationFrame(frame);
         }
 
         measureStatic();
         requestAnimationFrame(frame);
+
+        /* Reduced motion: the loop above runs exactly once, so the ring has to be
+           re-drawn whenever its centre moves. measureStatic()/updateCenterFromScroll
+           only recompute cx/cy — they don't paint. */
+        if (RING_PRM) {
+            var redraw = function() { requestAnimationFrame(frame); };
+            window.addEventListener('scroll', redraw, { passive: true });
+            window.addEventListener('resize', redraw);
+        }
     })();
     </script>
     <!-- ═══ / LOGO RING ═════════════════════════════════════════════ -->
@@ -648,7 +687,7 @@ body { overflow-x: clip; }
         el.classList.add('is-active');
         if (triggerEl) { triggerEl.classList.add('is-tapped'); activeTrigger = triggerEl; }
         return setTimeout(function() {
-            el.classList.remove('is-active');
+            el.classList.remove('is-active', 'is-armed');
             clearTrigger();
         }, 3000);
     }
@@ -670,7 +709,10 @@ body { overflow-x: clip; }
     // Tap anywhere else dismisses immediately
     document.addEventListener('click', function() {
         if (portrait) portrait.classList.remove('is-active');
-        if (badges)   badges.classList.remove('is-active');
+        // is-armed is only ever set by the desktop hover path, but a hybrid
+        // touch+pointer device can reach both — clear it here so a stale arm
+        // can't outlive the badges it belongs to.
+        if (badges)   badges.classList.remove('is-active', 'is-armed');
         clearTimeout(portraitTimer);
         clearTimeout(badgesTimer);
         clearTrigger();
@@ -923,22 +965,69 @@ body { overflow-x: clip; }
         });
     });
 
-    // ── "award-winning" hover — purple pill cursor + CSSDA badges pop right ──
+    /* ── "award-winning" hover — purple pill cursor + CSSDA badges pop right ──
+       The badges are real links to the CSSDA entry but were unreachable: the wrap
+       sits at left: calc(100% + 20px), well right of the word that triggers it,
+       so moving toward a badge fired mouseleave and closed them mid-journey.
+
+       HIDE_GRACE keeps them open while the pointer crosses the gap; entering the
+       wrap cancels the close entirely, so they stay up as long as you're on them.
+       ARM_DELAY holds off pointer-events for a beat after they appear, so a click
+       already in motion can't land on a badge that just materialised under the
+       cursor. Touch is unaffected — the CSS only arms under (hover:hover). */
     var awardNames  = document.querySelectorAll('.award-name');
     var awardBadges = document.getElementById('award-badges-pop');
+    var HIDE_GRACE = 260, ARM_DELAY = 150;
+    var awardHideTimer = null, awardArmTimer = null;
+
+    function showAwardBadges() {
+        if (!awardBadges) return;
+        clearTimeout(awardHideTimer);
+        clearTimeout(awardArmTimer);
+        awardBadges.classList.add('is-active');
+        awardArmTimer = setTimeout(function() { awardBadges.classList.add('is-armed'); }, ARM_DELAY);
+    }
+    function hideAwardBadges() {
+        if (!awardBadges) return;
+        clearTimeout(awardArmTimer);
+        clearTimeout(awardHideTimer);
+        awardHideTimer = setTimeout(function() {
+            awardBadges.classList.remove('is-active', 'is-armed');
+        }, HIDE_GRACE);
+    }
+
     awardNames.forEach(function(el) {
         el.addEventListener('mouseenter', function() {
             cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-next');
             cursor.classList.add('is-founder');
             if (label) label.textContent = 'Ta-da!';
-            if (awardBadges) awardBadges.classList.add('is-active');
+            showAwardBadges();
         });
         el.addEventListener('mouseleave', function() {
+            /* Drop the pill immediately rather than on the delayed hide: the
+               global cursor handler early-returns while is-founder is set, so
+               holding it would freeze the cursor for the whole grace period. */
             cursor.classList.remove('is-founder');
             if (label) label.textContent = '';
-            if (awardBadges) awardBadges.classList.remove('is-active');
+            hideAwardBadges();
         });
     });
+
+    if (awardBadges) {
+        awardBadges.addEventListener('mouseenter', function() {
+            clearTimeout(awardHideTimer);
+            cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-next');
+            cursor.classList.add('is-founder');
+            // There is no OS cursor on this site, so the pill has to carry the
+            // affordance — otherwise nothing says these are now clickable.
+            if (label) label.textContent = 'View on CSSDA ↗';
+        });
+        awardBadges.addEventListener('mouseleave', function() {
+            cursor.classList.remove('is-founder');
+            if (label) label.textContent = '';
+            hideAwardBadges();
+        });
+    }
 
     // ── "record" hover — blue pill cursor linking to the colophon ──
     var colophonNames = document.querySelectorAll('.colophon-name');

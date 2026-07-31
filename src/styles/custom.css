@@ -2069,12 +2069,33 @@ html.pv-grid .projects-list,
        element made Chrome briefly rasterize the shadow as a hard rectangle
        instead of following the circular clip during the pop-in transition. */
     box-shadow: 0 9px 20px rgba(0,0,0,0.45);
-    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease;
-    /* Visually present but never navigates — prevents iOS scroll-jump on mobile
-       and accidental CSSDA navigation on desktop. The link href stays in the
-       DOM for crawlers/credibility but is not user-interactive. */
+    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease,
+                box-shadow 0.25s ease;
+    /* Inert by DEFAULT, and permanently so on touch: tapping one of these on iOS
+       caused a scroll-jump, and the badges are shown by a 3s timer there rather
+       than by a pointer that can dwell on them. Desktop re-enables it below, but
+       only once the wrap is ARMED — see .is-armed. */
     pointer-events: none;
     cursor: default;
+}
+/* ---- clickable badges (desktop pointers only) ----
+   The badges popped open delightfully and then couldn't be clicked, even though
+   each one wraps a real link to the CSSDA entry. Two things had to be true
+   before enabling them:
+     1. .is-armed — added ~150ms AFTER activation, so a click already in flight
+        as they pop in can't land on a badge that just appeared under the cursor.
+     2. A hide GRACE PERIOD in studio.astro — the wrap sits at
+        left: calc(100% + 20px), far from the word that triggers it, so without a
+        delay on mouseleave the badges vanish the instant you move toward them.
+        Arming alone would have produced targets that disappear before reaching. */
+@media (hover: hover) and (pointer: fine) {
+    .award-badges-wrap.is-active.is-armed .award-badge-pop-link {
+        pointer-events: auto;
+    }
+    .award-badges-wrap.is-active.is-armed .award-badge-pop-link:hover {
+        transform: scale(1.06) translateY(-2px);
+        box-shadow: 0 14px 28px rgba(0,0,0,0.55);
+    }
 }
 .award-badge-pop {
     display: block;
