@@ -432,23 +432,47 @@ body { overflow-x: clip; }
     var panels = document.querySelectorAll('.studio-tab-panel');
 
     /* ---- active-tab marker ----
-       Drive the 2px pink rule from the active tab's own box rather than
+       Drive the 1px pink rule from the active tab's own box rather than
        hardcoding offsets: the labels are clamp(19px, 2vw, 28px), so their height
        and position move with the viewport AND again when the webfont swaps in.
        .studio-tabs is position:relative, so offsetTop is already relative to it. */
-    function moveMarker() {
+    var STRETCH_MS = 170;   // how long the rule stays spanning before it contracts
+    var lastY = null, lastH = null, stretchTimer = null;
+    var tabsPRM = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function setMarker(y, h) {
+        tabList.style.setProperty('--marker-y', y + 'px');
+        tabList.style.setProperty('--marker-h', h + 'px');
+    }
+
+    /* stretch=true only on an actual tab change. The rule first grows to SPAN
+       both the old and the new tab, then contracts onto the new one — so it
+       reads as a single continuous rule redrawing itself rather than a block
+       sliding down. Deliberately not a scale-squash: this is a 1px hairline, and
+       scaling it vertically would soften the edge. */
+    function moveMarker(stretch) {
         if (!tabList) return;
         var active = tabList.querySelector('.studio-tab--active');
         if (!active) return;
-        tabList.style.setProperty('--marker-y', active.offsetTop + 'px');
-        tabList.style.setProperty('--marker-h', active.offsetHeight + 'px');
+        var y = active.offsetTop, h = active.offsetHeight;
+        clearTimeout(stretchTimer);
+        if (stretch && lastY !== null && y !== lastY && !tabsPRM.matches) {
+            var top = Math.min(lastY, y);
+            var bot = Math.max(lastY + lastH, y + h);
+            setMarker(top, bot - top);
+            stretchTimer = setTimeout(function() { setMarker(y, h); }, STRETCH_MS);
+        } else {
+            setMarker(y, h);
+        }
+        lastY = y; lastH = h;
         tabList.classList.add('has-marker');
     }
-    moveMarker();
-    window.addEventListener('resize', moveMarker);
+    moveMarker(false);
+    // Resize/font-swap are re-measurements, not transitions — never stretch.
+    window.addEventListener('resize', function() { moveMarker(false); });
     // Webfont swap changes the label metrics after first paint.
     if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(moveMarker).catch(function() {});
+        document.fonts.ready.then(function() { moveMarker(false); }).catch(function() {});
     }
 
     function activate(tab, focusIt) {
@@ -462,7 +486,7 @@ body { overflow-x: clip; }
         });
         panels.forEach(function(p) { p.classList.remove('studio-tab-panel--active'); });
         document.getElementById('tab-' + tab.dataset.tab).classList.add('studio-tab-panel--active');
-        moveMarker();
+        moveMarker(true);
         if (focusIt) tab.focus();
     }
 

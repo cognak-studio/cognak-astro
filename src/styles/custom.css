@@ -2221,21 +2221,20 @@ html.pv-grid .projects-list,
     padding-left: 20px;
     margin-left: -20px;
 }
-/* Active-tab marker: a 2px pink rule that glides DOWN between the tabs — the
+/* Active-tab marker: a 1px pink rule that glides DOWN between the tabs — the
    tab list is a vertical stack, so the travel is vertical, not the horizontal
-   underline a tab marker usually implies. Sits between the site's two existing
-   thin-rule precedents: the homepage .scroll-discover-track (1px vertical pink)
-   and the /brief .prograil (2px vertical). Position and height come from
-   --marker-y / --marker-h, set in studio.astro from the active tab's
-   offsetTop/offsetHeight (recalculated on resize and on fonts.ready, since the
-   labels are clamp()-sized and shift with both). */
+   underline a tab marker usually implies. 1px matches the homepage's
+   .scroll-discover-track exactly (1px vertical pink), which is the site's other
+   vertical position indicator — same width, same hue, same job. Position and
+   height come from --marker-y / --marker-h, set in studio.astro from the active
+   tab's offsetTop/offsetHeight (recalculated on resize and on fonts.ready,
+   since the labels are clamp()-sized and shift with both). */
 .studio-tabs::before {
     content: "";
     position: absolute;
     left: 0;
     top: 0;
-    width: 2px;
-    border-radius: 1px;
+    width: 1px;
     background: #FFB2E4;
     height: var(--marker-h, 0px);
     transform: translateY(var(--marker-y, 0px));
