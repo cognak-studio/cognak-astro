@@ -3300,6 +3300,66 @@ body.pagers-idle a[rel="next"] {
     margin-top: 44px;
     max-width: 420px;
 }
+
+/* More details, set as a MONO SPEC LIST rather than prose. It sits under the
+   client name in the left column, where the sans body copy of the two
+   narrative groups would read as a third paragraph of the same substance —
+   which it isn't. It's four fixed facts (duration, role, location, url) with
+   the same shape on all 53 projects, so it's a record, and the type says so.
+
+   The voice is the site's existing label voice: mono, uppercase, tracked —
+   the colophon spec block, the /projects list tags and the cask grade
+   directly above it all speak it. `!important` throughout because the
+   `.information .details h2 / p` rules above force the sans treatment on
+   everything inside a `.details` wrapper, and this is the one that opts out.
+
+   Hairline rules do the separating, which is why the authored "• " is stripped
+   in the frontmatter — a bullet AND a rule is one separator too many. */
+/* SPECIFICITY: `.information` is required in this selector. Without it this is
+   (0,2,1) against the existing `.template-single-project .information .details
+   h2` at (0,3,1), which is !important AND higher — so the mono never applied
+   and the label silently stayed sans. Caught in a browser, not by the compiler.
+   With `.information` the two tie at (0,3,1) and this one wins on order. */
+.template-single-project .information .details-extra h2 {
+    font-family: 'Diatype Mono', monospace !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    color: rgba(58, 49, 59, 0.45) !important;
+    margin: 0 0 4px !important;
+}
+.template-single-project .information .details-extra .col p {
+    font-family: 'Diatype Mono', monospace !important;
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+    color: #3A313B !important;
+    margin: 0 !important;
+    padding: 12px 0 !important;
+    border-top: 1px solid rgba(58, 49, 59, 0.12);
+}
+/* Closes the record. :last-child is safe here — unlike the gallery, these are
+   real sibling <p>s with no <picture> wrapper confusing the selector. */
+.template-single-project .information .details-extra .col p:last-child {
+    border-bottom: 1px solid rgba(58, 49, 59, 0.12);
+}
+/* The final row is always the client URL. Underline offset matches the body
+   link treatment; the hover lands on the page accent like every other link
+   on the archive side of the site. */
+.template-single-project .information .details-extra .col a {
+    font-weight: 400 !important;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(58, 49, 59, 0.28);
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+@media (hover: hover) {
+    .template-single-project .information .details-extra .col a:hover {
+        color: var(--cognak-purple-text);
+        text-decoration-color: currentColor;
+    }
+}
 .template-single-project .information .details .col {
     width: auto !important;
     max-width: none !important;
