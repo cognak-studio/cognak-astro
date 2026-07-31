@@ -33,7 +33,12 @@ body { overflow-x: clip; }
 .studio-start-wrap .projects-start-link { color: #fff !important; }
 .studio-start-wrap .projects-start-link:hover { color: #FFB2E4 !important; }
 .studio-start-wrap .availability-sub    { color: rgba(255,255,255,0.6) !important; }
-.studio-start-wrap .avail-dot           { color: var(--signal-green) !important; }
+/* The availability dot is PINK here — see custom.css `.studio-start-wrap
+   .avail-dot`. It used to be forced to the signal green from this file AND from
+   an inline style, so custom.css's stated intent lost twice over and the code
+   contradicted itself in three places. Studio speaks pink (tab marker, nav
+   pulse-dot, manifesto accents), the same way /projects' dot takes that page's
+   purple. Don't reintroduce an override here. */
 .studio-colophon-note {
     margin: 1.6rem auto 0;
     max-width: 46ch;
@@ -417,7 +422,7 @@ body { overflow-x: clip; }
 
     <div class="hp-start-wrap studio-start-wrap studio-manifesto-cta">
         <a href="/brief" class="projects-start-link">Start a project</a>
-        <span class="availability-sub" style="color: rgba(255,255,255,0.6);"><span class="avail-dot" style="color: var(--signal-green);" aria-hidden="true"></span> Currently booking 30&#x2013;60 days out</span>
+        <span class="availability-sub" style="color: rgba(255,255,255,0.6);"><span class="avail-dot" aria-hidden="true"></span> Currently booking 30&#x2013;60 days out</span>
     </div>
 <script is:inline>
 (function() {

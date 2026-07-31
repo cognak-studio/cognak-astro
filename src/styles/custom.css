@@ -1,6 +1,7 @@
 /* ── Signal green ──
    ONE acid green for the whole site. Replaces four near-identical values that
-   had drifted apart: #AAFF00 (home + studio dots), #9EED3D (404 nav/cursor),
+   had drifted apart: #AAFF00 (home + studio dots — studio has since gone pink,
+   see the accent rule below), #9EED3D (404 nav/cursor),
    #b6ff2e (colophon links) and #6BBF00 (projects dot). #AAFF00 is the pick —
    it's the original availability-dot green, the most acid of the four (zero
    blue channel), and the strongest on the dark pages where it does most of its
@@ -23,6 +24,15 @@
    green, used only where it works; each light page speaks in its own color.
    (See the .projects-below .avail-dot rule for why it's the INTERACTION accent
    and not the headline lavender #4A3F6B.)
+
+   THE RULE GENERALISED (2026-07-30): a page with its own strong accent uses it
+   for the dot, dark or light. /studio is a DARK page where the green was
+   perfectly legible — it went pink #FFB2E4 anyway, because that page speaks pink
+   throughout (tab marker, nav pulse-dot, manifesto accents) and a lone green dot
+   read as imported. So the green is now the DEFAULT, not the mandate: it holds
+   the homepage and the 404, and yields wherever a page has a voice of its own.
+   /studio previously contradicted itself three ways — pink here, green forced
+   from studio.astro, green again from an inline style.
 
    So: never darken this green for a light background, and never use it as text
    on one. */
@@ -57,14 +67,60 @@ a, button, [role="button"] {
     touch-action: manipulation;
 }
 
-::selection {
-    background: var(--signal-green);
-    color: #000;
-}
-::-moz-selection {
-    background: var(--signal-green);
-    color: #000;
-}
+/* ── Selection ──
+   The nav is already tinted per page; selection was the missing member of that
+   pattern — one acid-green-on-black rule sat on every page, which clashed badly
+   on the pink privacy page and the klein-blue colophon.
+
+   Each page now selects in its OWN accent, keyed off body[data-page] (set from
+   the `page` prop in BaseLayout). Same principle as the availability dot: the
+   green is the default and yields where a page has a voice of its own.
+
+   Every pair below is MEASURED, text against selection background:
+     home / 404    green / black          17.01:1
+     colophon      green / klein blue      8.61:1
+     privacy       plum  / pink            9.32:1
+     projects      purple / white          4.71:1
+     studio        pink  / charcoal       10.97:1
+     brief         orange / dark cream     6.71:1
+     send/receive  blue  / near-black     10.45:1
+     tools         purple / charcoal       6.29:1
+   All pass AA; most pass AAA. A selection you can't read is worse than one that
+   clashes, so keep any new page above 4.5:1.
+
+   NOTE ::selection does NOT inherit and cannot be grouped in a selector list —
+   one invalid/unknown pseudo-element invalidates the WHOLE list in every
+   browser, so -moz-selection has to be written out separately every time. That
+   is why this block is repetitive rather than DRY. */
+::selection      { background: var(--signal-green); color: #000; }
+::-moz-selection { background: var(--signal-green); color: #000; }
+
+body[data-page="colophon"] ::selection      { background: var(--signal-green); color: #0E06D2; }
+body[data-page="colophon"] ::-moz-selection { background: var(--signal-green); color: #0E06D2; }
+
+body[data-page="privacy"] ::selection      { background: #4A2840; color: #F1D6EA; }
+body[data-page="privacy"] ::-moz-selection { background: #4A2840; color: #F1D6EA; }
+
+body[data-page="projects"] ::selection,
+body[data-page="project"]  ::selection      { background: #9647F0; color: #fff; }
+body[data-page="projects"] ::-moz-selection,
+body[data-page="project"]  ::-moz-selection { background: #9647F0; color: #fff; }
+
+body[data-page="studio"] ::selection      { background: #FFB2E4; color: #18151A; }
+body[data-page="studio"] ::-moz-selection { background: #FFB2E4; color: #18151A; }
+
+/* Hardcoded, NOT var(--orange)/var(--cream): those tokens are scoped to the
+   .brief element, so they don't resolve at body level. Keep in sync by hand. */
+body[data-page="brief"] ::selection      { background: #EF9146; color: #2A2010; }
+body[data-page="brief"] ::-moz-selection { background: #EF9146; color: #2A2010; }
+
+body[data-page="send"]    ::selection,
+body[data-page="receive"] ::selection      { background: #8FC2F2; color: #090C0B; }
+body[data-page="send"]    ::-moz-selection,
+body[data-page="receive"] ::-moz-selection { background: #8FC2F2; color: #090C0B; }
+
+body[data-page="tools"] ::selection      { background: #B47CFF; color: #16151A; }
+body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; }
 
 /* ── Custom Cursor ── */
 * { cursor: none !important; }
