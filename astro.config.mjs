@@ -34,9 +34,13 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => {
-        // /tools, /send, /receive are unlisted internal/utility pages —
-        // noindex, no nav link anywhere.
-        if (/\/(tools|send|receive)\/?$/.test(page)) return false;
+        // /send and /receive are unlisted internal utility pages — noindex,
+        // no nav link anywhere. (/tools was here too until 2026-07-31; it's
+        // now footer-linked and indexable, so it belongs in the sitemap.)
+        if (/\/(send|receive)\/?$/.test(page)) return false;
+        // /colophon is noindex in BaseLayout, so keep it out of the sitemap
+        // too — a noindex URL listed in a sitemap is a mixed signal.
+        if (/\/colophon\/?$/.test(page)) return false;
         // Drop noindex project pages from the sitemap (match live SEO).
         const m = page.match(/\/projects\/([^/]+)\/?$/);
         if (m && NOINDEX.has(m[1])) return false;
