@@ -60,20 +60,43 @@ const bodyClass = isHome ? 'non-fixed-nav' : 'fixed-nav';
    with always-visible ones, which is worse than the default we're fixing. */
 const PAGE_BG_FALLBACK = { home: '#17151a', project: '#ffffff' };
 
-/* Thumb colour per page, matching the ::selection accents in custom.css. Carried
-   at 60% alpha so the bar reads as a tint of the page, not a saturated stripe. */
-const SCROLL_ACCENT = {
-  home:     '#9F50FF',
-  projects: '#9647F0',
-  project:  '#9647F0',
-  studio:   '#FFB2E4',
-  brief:    '#EF9146',
-  colophon: '#AAFF00',
-  privacy:  '#4A2840',
-  send:     '#8FC2F2',
-  receive:  '#8FC2F2',
-  tools:    '#B47CFF',
-  '404':    '#AAFF00',
+/* Thumb colour per page. 8-digit hex, so each page carries its OWN alpha — there
+   is deliberately no blanket alpha, because these aren't all accents.
+
+   The rule is CHROME, not accent: most pages take their nav colour (including
+   the nav's own translucency) so the scrollbar reads as another piece of the
+   page's furniture and recedes. Where a page has no dark chrome to borrow, it
+   takes a quiet tone from its own palette — never the bright interaction colour,
+   which turned the bar into a saturated stripe down the edge.
+
+   Track stays `transparent` everywhere. That matters most on /studio and /brief:
+   the WebGL canvas is `position:fixed; inset:0; width:100vw`, so it extends
+   under the scrollbar gutter and shows through a transparent track instead of
+   being covered by a black band.
+
+     home      hero background #17151a — recedes into the hero
+     studio    nav rgba(23,21,26,.75)
+     send/rec  nav rgba(14,20,19,.75)
+     colophon  nav rgba(7,0,172,.8)  — the darker blue, not the page's #0E06D2
+     projects  #4A3F6B, the headline dark lavender (NOT the hover purple)
+     tools     #B0A3CF, the light purple of the "Tools" headline (--accent-soft,
+               NOT --accent, which is the hover colour)
+     brief     stays orange — the one page where the accent was right
+     privacy   plum, matching its ::selection
+     404       signal green, on purpose: the joke is that it's the only thing
+               still working on that page */
+const SCROLL_THUMB = {
+  home:     '#17151ABF',
+  projects: '#4A3F6BBF',
+  project:  '#4A3F6BBF',
+  studio:   '#17151ABF',
+  brief:    '#EF9146BF',
+  colophon: '#0700ACCC',
+  privacy:  '#4A2840BF',
+  send:     '#0E1413BF',
+  receive:  '#0E1413BF',
+  tools:    '#B0A3CFE6',
+  '404':    '#AAFF0099',
 };
 
 function relLuminance(hex) {
@@ -89,7 +112,7 @@ function relLuminance(hex) {
 
 const schemeBg   = pageBg || PAGE_BG_FALLBACK[page] || '#ffffff';
 const isDarkPage = relLuminance(schemeBg) < 0.25;
-const scrollThumb = (SCROLL_ACCENT[page] || '#9F50FF') + '99'; // 8-digit hex = 60% alpha
+const scrollThumb = SCROLL_THUMB[page] || '#17151ABF';
 
 // Cache-buster for the unhashed /js/ scripts, stable across the whole build:
 // the deploy's commit SHA on Vercel, else an hour-rounded timestamp locally.
