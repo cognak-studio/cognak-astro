@@ -1539,12 +1539,14 @@ html.home-scrolled #cognak-cookie {
 
 /* ── "+ more" end state ──────────────────────────────────────────────────────
    Once every hidden tile is out, this button stops revealing and starts
-   NAVIGATING to /projects, so it has to stop looking like a reveal control.
-   The + becomes the site's own arrow — the same SVG as .hp-projects-arrow on
-   the heading link above the grid, which points at the same destination — and
-   "more" becomes "all projects".
+   NAVIGATING to /projects, so it has to stop looking like a reveal control:
+   the + fades out and "more" becomes "all projects".
 
-   The + is deliberately NOT rotated 45deg into an x (the original audit's
+   NO ARROW (Pierce, 2026-07-31). An earlier pass morphed the + into the site's
+   .hp-projects-arrow. It was removed because it did no work the two words
+   weren't already doing — the label alone carries the change of meaning.
+
+   The + is also deliberately NOT rotated 45deg into an x (the original audit's
    suggestion): x conventionally reads as close/dismiss, which is the opposite
    of the meaning being announced.
 
@@ -1557,31 +1559,21 @@ html.home-scrolled #cognak-cookie {
    the right edge stays pinned and the growth is leftward — nothing else moves.
    If --w-more / --w-all are ever absent the fallback is auto-ish: the label
    collapses, so JS must set them before .is-exhausted lands. */
+/* The glyph KEEPS its slot when the + fades out — it is not collapsed. The
+   button has no background, border or left-hand neighbour, so the vacated
+   space is pure whitespace inside a box whose right edge is pinned: literally
+   nothing renders there. Collapsing it would mean either overflow:hidden (which
+   silently re-anchors an inline-block's baseline, throwing the + off the
+   label's line at rest) or a second measured width transition. Neither buys a
+   pixel anyone can see. */
 .hp-more-glyph {
     position: relative;
     display: inline-block;
     vertical-align: baseline;
 }
-.hp-more-arrow {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    display: inline-flex;
-    opacity: 0;
-    /* Centred over the +, not left-anchored: the arrow is 0.7em and the glyph
-       box is only as wide as the +, so left:0 would push it into the word gap. */
-    transform: translate(-50%, -50%) rotate(-45deg) scale(0.7);
-    transition: opacity 0.28s ease,
-                transform 0.45s var(--ease-out-expo);
-    pointer-events: none;
-}
 .hp-more-btn.is-exhausted .hp-more-plus {
     opacity: 0;
     transform: rotate(45deg) scale(0.7);
-}
-.hp-more-btn.is-exhausted .hp-more-arrow {
-    opacity: 1;
-    transform: translate(-50%, -50%) rotate(0deg) scale(1);
 }
 .hp-more-plus {
     transition: opacity 0.22s ease,
@@ -1626,17 +1618,10 @@ html.home-scrolled #cognak-cookie {
     opacity: 1;
     transform: translateY(0);
 }
-@media (hover: hover) {
-    /* Same gesture as .hp-projects-link:hover .hp-projects-arrow. */
-    .hp-more-btn.is-exhausted:hover .hp-more-arrow {
-        transform: translate(-50%, -50%) rotate(-90deg) scale(1);
-    }
-}
 @media (prefers-reduced-motion: reduce) {
     .hp-more-label,
     .hp-more-word,
-    .hp-more-plus,
-    .hp-more-arrow {
+    .hp-more-plus {
         transition: none !important;
     }
 }

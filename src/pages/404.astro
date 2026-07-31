@@ -62,8 +62,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <script is:inline>
     // ── Lost pulse-dot: a lone avail-dot-green dot wanders the page looking
-    //    for the missing page, leaving a fading trail. Pauses now and then
-    //    and shows a small "?" while it thinks.
+    //    for the missing page, leaving a fading trail. Pauses now and then to
+    //    look around — the pause itself carries the hesitation, so it does NOT
+    //    draw a "?" (removed 2026-07-31, Pierce: the page already says 404;
+    //    the punctuation was labelling a joke it was also telling). dot.pause
+    //    still drives the stillness, it just isn't annotated any more.
     (function () {
       var canvas = document.getElementById('fourofour-dot-canvas');
       if (!canvas) return;
@@ -197,12 +200,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         ctx.strokeStyle = 'rgba(' + GREEN + ',' + (0.8 * (1 - p)).toFixed(3) + ')';
         ctx.lineWidth = 1;
         ctx.stroke();
-
-        if (dot.pause > 30) {
-          ctx.font = '12px "Diatype Mono", ui-monospace, monospace';
-          ctx.fillStyle = 'rgba(255,255,255,0.55)';
-          ctx.fillText('?', dot.x + 11, dot.y - 11);
-        }
 
         if (!reduced) requestAnimationFrame(frame);
       }

@@ -127,11 +127,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        per section. Someone who skims only these five lines should still leave
        correctly informed.
 
-       REVISED 2026-07-31 (Pierce): was mono 12px behind a hairline left rule
-       with a stacked uppercase "IN SHORT" eyebrow — an aside. Now bold body
-       copy reading "In short: ..." inline, so it leads the section instead of
-       sitting beside it. The rule and the mono are gone deliberately; don't
-       reinstate them.
+       REVISED 2026-07-31 (Pierce), twice: was mono 12px behind a hairline left
+       rule with a stacked uppercase "IN SHORT" eyebrow — an aside. Then bold
+       body copy prefixed "In short:". Now just the bold sentence, no label at
+       all: the page's whole promise is "minus the legalese", so announcing a
+       plain-English summary implied there was legalese to summarise. The line
+       is short, bold and first — it doesn't need to introduce itself.
+       The rule, the mono and the label are all gone deliberately; don't
+       reinstate any of them.
 
        06 Questions deliberately has none — it's a single email address, and
        glossing it would be padding to complete a pattern.
@@ -149,14 +152,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color: #3A313B;
       margin: 0 0 28.8px; /* 1x the 28.8px baseline grid — see custom.css */
     }
-    /* Inline label, not a stacked eyebrow: "In short: We count visits, not
-       people." reads as one sentence. Kept as a ::before so the six glosses
-       stay single-purpose divs in the markup and the wording changes in one
-       place. Note the trailing space is inside the quotes — it's generated
-       content, so HTML whitespace collapsing never sees it. */
-    .pp-gloss::before {
-      content: 'In short: ';
-    }
+
 
     /* ---- cookie ledger ----------------------------------------------------
        Hairline mono table, built as a grid so it stacks on mobile (a real
