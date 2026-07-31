@@ -7,6 +7,7 @@ projectType: Packaging Design
 projectYear: 2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
+activeClient: true
 homepageFeature: false
 metaDescription: Packaging design and 3D renderings for sparkling margarita brand SipMARGS — by COGNAK.
 aboutTheClient: <p><a href="https://www.sipmargs.com">SipMARGS</a> is a ready-to-drink sparkling margarita brand bringing real, tequila-made margaritas to a crisp, sparkling can. Built for beach days, boat days, and everything in between, the brand has quickly become one of the standout names in the RTD cocktail space.</p>

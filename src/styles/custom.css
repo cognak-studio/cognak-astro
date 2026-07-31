@@ -3386,7 +3386,13 @@ body.pagers-idle a[rel="next"] {
    Deliberately NOT the page accent: at 0.34 alpha it sits a shade behind the
    category above it, which is the hierarchy it has in the archive list too. */
 .template-single-project .project-vintage {
-    display: block;
+    /* INLINE-BLOCK, not block: the hover note is positioned at
+       `left: calc(100% + 16px)`, and as a block this element spans the whole
+       ~770px column, which threw the note off past the right-hand text.
+       Shrink-to-fit makes 100% mean "the width of the grade", which is what the
+       offset is measured from. It still sits on its own line — the category
+       above it is a block <p>. */
+    display: inline-block;
     margin-top: 14px;
     font-family: 'Diatype Mono', monospace;
     font-size: 12px;
@@ -3395,6 +3401,108 @@ body.pagers-idle a[rel="next"] {
     text-transform: uppercase;
     color: rgba(58, 49, 59, 0.34);
     white-space: nowrap;
+}
+
+/* Live-client status, folded onto the grade line: "XO · 12Y · ACTIVE".
+   It reads at full strength while the grade beside it stays at 0.34 — the
+   status is the part that's news; the vintage is context.
+
+   THE GREEN IS NOT THE SIGNAL GREEN, and it can't be. Detail pages are WHITE
+   and #AAFF00 measures 1.23:1 there — effectively invisible. Measured
+   alternatives on white: #4F7A00 = 5.10:1, #9A6414 = 4.99:1. Both clear AA for
+   normal text, which this needs: unlike the availability beacon elsewhere on
+   the site, the dot here is NOT decorative — it encodes state. (The word beside
+   it carries the meaning too, so the dot is belt-and-braces, but a status
+   indicator nobody can see is not a status indicator.)
+   This is the light-surface rule working as intended: the acid green is for
+   dark grounds, and a light page uses a value that survives it. */
+.template-single-project .pv-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.template-single-project .pv-status--active { color: #4F7A00; }
+.template-single-project .pv-status--past   { color: #9A6414; }
+.template-single-project .pv-dot {
+    width: 4.5px;
+    height: 4.5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+}
+
+/* Hidden explainer on the grade. VS/VSOP/XO is a cognac conceit — obvious once
+   you know, opaque until then — so it earns a quiet reveal rather than
+   permanent copy taking up a line on all 53 pages.
+
+   ABSOLUTELY POSITIONED so it cannot shift the layout. .project-vintage sits
+   between the category and the details stack in a grid row; if this note took
+   part in flow, every hover would push the record down by a line.
+
+   PLACED TO THE RIGHT, not below. Below was tried first and fails: the note is
+   ~14px tall and starts 6px under the grade, while .details-extra opens exactly
+   20px under it — the note's descenders and the first record row land on the
+   same pixel. There is 500px of empty column to the right of "XO · 12Y ·
+   ACTIVE" and nothing else competing for it.
+
+   Mouse-only, and that is a deliberate limit rather than an oversight: the
+   information is NOT exclusive to this hover — /projects carries the same
+   legend permanently under the list, where the grades are actually compared.
+   Same reasoning as the /studio award badges. */
+.template-single-project .project-vintage {
+    position: relative;
+}
+.template-single-project .pv-note {
+    position: absolute;
+    left: calc(100% + 16px);
+    top: 50%;
+    white-space: nowrap;
+    font-family: 'Diatype Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: none;
+    color: rgba(58, 49, 59, 0.42);
+    opacity: 0;
+    /* Slides in FROM the grade, so it reads as the grade explaining itself
+       rather than a tooltip arriving from nowhere. translateY(-50%) has to be
+       restated in both states — an inline transform replaces, not merges. */
+    transform: translate(-6px, -50%);
+    pointer-events: none;
+    transition: opacity 0.28s ease, transform 0.38s var(--ease-out-expo);
+}
+@media (hover: hover) {
+    .template-single-project .project-vintage:hover .pv-note {
+        opacity: 1;
+        transform: translate(0, -50%);
+    }
+}
+/* Below 900px the note would run past the viewport edge (it is nowrap and the
+   column is full width), and there is no hover to reveal it anyway. */
+@media (max-width: 900px) {
+    .template-single-project .pv-note { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .template-single-project .pv-note { transition: none; }
+}
+
+/* Grade legend under the archive list. Right-aligned so it sits under the
+   VS/VSOP/XO column it explains rather than under the titles, and offset below
+   the last row's rule so it reads as a footnote to the table, not another row.
+   Faint by design — it answers a question you only ask once. */
+.projects-grade-note {
+    margin: 14px 0 0;
+    text-align: right;
+    font-family: 'Diatype Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(58, 49, 59, 0.32);
+}
+@media (max-width: 720px) {
+    /* The grades themselves are hidden on mobile (.list-item-tag display:none),
+       so a legend for them would explain something that isn't on screen. */
+    .projects-grade-note { display: none; }
 }
 
 /* The single CTA sits here, at the foot of the identity column. It reuses the

@@ -140,6 +140,12 @@ const LAZY_AFTER = 8;
           {p.category && <span class="list-item-tag"><span class="list-item-cats">{p.category}</span>{p.vintage && <span class="list-item-vintage">&nbsp;· {p.vintage}</span>}</span>}
         </a>
       ))}
+      {/* Grade legend. Lives INSIDE .projects-list on purpose: the list is
+          display:none in grid view, so the note hides and shows with the only
+          view that actually renders the grades — no separate toggle to keep in
+          sync. aria-hidden because it explains a decorative suffix; the row
+          links already read out their own title and category. */}
+      <p class="projects-grade-note" aria-hidden="true">VS under 4 years &middot; VSOP 4&ndash;10 &middot; XO 10+</p>
     </div>
 
     <div class="projects-below">

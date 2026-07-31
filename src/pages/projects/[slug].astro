@@ -58,7 +58,30 @@ if (projectUnix > 0 && projectUnix < NOW_UNIX) {
    by CSS, so it can't be hidden with a rule. The block is set as a mono spec
    list with hairline rules doing the separating, and a literal bullet inside
    that reads as a leftover. Items authored WITHOUT a bullet are untouched. */
-const moreDetailsHtml = (d.moreDetails ?? '').replace(/(<p[^>]*>)\s*•[\s\u00A0]*/g, '$1');
+let moreDetailsHtml = (d.moreDetails ?? '').replace(/(<p[^>]*>)\s*•[\s\u00A0]*/g, '$1');
+
+/* Drop the FIRST detail row when it merely restates engagement length —
+   "5+ year relationship", "1-month project", "Ongoing project". The cask grade
+   directly above already carries duration ("XO · 12Y") and now carries live
+   status too, so the row was saying the same thing a third way, in a third
+   format. 42 of the 49 projects with details match; the other 7 open with a URL
+   or a location and are left alone.
+
+   KNOWN TRADE-OFF: the grade is year-granular, so "6+ month project" collapses
+   to "VS · <1Y" and month-level precision is lost. Accepted for consistency —
+   delete this one replace() to bring the rows back. */
+const RESTATES_DURATION = /^(\d+\s*\+?\s*[-–]?\s*(year|month|week)s?\b|ongoing\b)/i;
+moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/, (whole, inner) =>
+  RESTATES_DURATION.test(inner.replace(/<[^>]+>/g, '').trim()) ? '' : whole
+);
+
+/* Client status. Folded into the grade rather than given its own row: the
+   grade already answers "how long", and "is it still live" is the one thing it
+   couldn't say — which is exactly what the old "ongoing relationship" copy was
+   selling. undefined renders nothing at all. */
+const clientStatus = d.activeClient === true ? 'Active'
+                   : d.activeClient === false ? 'Past'
+                   : null;
 
 /* Does this project actually have a gallery? 17 of the 53 don't, and an empty
    <figure> plus the CTA's full 120px top margin left a large void between the
@@ -165,7 +188,20 @@ const jsonLd = {
           <div class="info-lead">
             <h1 class="title">{d.title}</h1>
             <p class="category">{d.category}</p>
-            {vintage && <span class="project-vintage">{vintage}</span>}
+            {(vintage || clientStatus) && (
+              <span class="project-vintage">
+                {vintage}
+                {vintage && (
+                  <span class="pv-note" aria-hidden="true">Cask grade &mdash; VS under 4 years &middot; VSOP 4&ndash;10 &middot; XO 10+</span>
+                )}
+                {vintage && clientStatus && ' · '}
+                {clientStatus && (
+                  <span class:list={["pv-status", clientStatus === 'Active' ? 'pv-status--active' : 'pv-status--past']}>
+                    <span class="pv-dot" aria-hidden="true"></span>{clientStatus}
+                  </span>
+                )}
+              </span>
+            )}
           </div>
 
           {/* "More details" is paired with the identity, not with the two

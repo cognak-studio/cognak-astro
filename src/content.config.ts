@@ -31,6 +31,12 @@ const projects = defineCollection({
       hero: image(),
       hover: image().optional(),
       images: z.array(image()).default([]),
+      /* OPTIONAL on purpose — three states, not two. `true` renders "· ACTIVE"
+         on the cask grade, `false` renders "· PAST", and LEAVING IT OUT renders
+         neither. That means the 53 existing projects need no bulk authoring:
+         flag the live ones as you go and the rest simply show the grade, as
+         they do today. Don't give this a .default(). */
+      activeClient: z.boolean().optional(),
       homepageFeature: z.boolean().default(false),
       homepagePosition: z.number().optional(),
       metaDescription: z.string().optional(),
