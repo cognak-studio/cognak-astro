@@ -51,8 +51,26 @@
             minute: '2-digit',
             hour12: true
         });
+        /* The emoji goes in its own span so CSS can scale it down (.wx-emoji).
+           At an identical 14px an emoji fills almost its whole em box while
+           lowercase Latin uses about half of it — measured, the sun glyph renders
+           14.6px wide against ~8px per letter — so it reads a size larger than
+           the type beside it and gives the whole location item extra weight.
+           Reuses one span rather than rebuilding it: this runs every second. */
         var el = document.getElementById('la-time');
-        if (el) el.textContent = timeStr + ' ' + weatherEmoji;
+        if (el) {
+            var wx = el.querySelector('.wx-emoji');
+            if (!wx) {
+                el.textContent = timeStr + ' ';
+                wx = document.createElement('span');
+                wx.className = 'wx-emoji';
+                el.appendChild(wx);
+            } else {
+                // firstChild is the time text node created above
+                if (el.firstChild && el.firstChild.nodeType === 3) el.firstChild.nodeValue = timeStr + ' ';
+            }
+            if (wx.textContent !== weatherEmoji) wx.textContent = weatherEmoji;
+        }
         // Mobile homepage corner: time and temp are separate spans with a dot between.
         // la-time-sticky gets time only; la-temp-sticky gets the °F value.
         var els = document.getElementById('la-time-sticky');

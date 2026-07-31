@@ -459,8 +459,17 @@ import '../styles/site.css';
     <div class="footer-inner">
       <div class="footer-top">
         <div class="footer-contact">
+          {/* Three doors, ordered by commitment: a question, a project, a
+             conversation. The brief was previously reachable ONLY from the
+             bottom of home / projects / studio — so anyone arriving on a case
+             study, the colophon, privacy or 404 had no route to it at all. The
+             footer is on every page and is by definition the end of the page,
+             which is where someone is ready to act. Sitewide on purpose; it does
+             not clash with the big "Start a project" block on those three pages
+             because this reads as contact information, not a CTA. */}
           <span class="footer-label">Get in touch</span>
           <a href="mailto:hello@cognak.com" class="footer-email-link">hello@cognak.com</a>
+          <a href="/brief" class="footer-email-link">write a brief</a>
           <a href="https://calendar.app.google/U4EdR5gEVfaGkWhN8" class="footer-email-link">schedule a call</a>
         </div>
         <div class="footer-social">

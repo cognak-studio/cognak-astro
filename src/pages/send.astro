@@ -812,6 +812,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       });
     }
 
+    /* The gate->dash swap wasn't the only height change. renderShares() runs
+       AFTER the shares fetch resolves, so Lenis measured the dashboard while the
+       list was still empty and then the cards arrived against a stale limit —
+       the page dead-ended partway down, with the Sign-in security card and the
+       whole footer unreachable. Deleting a share, adding files, and expanding
+       the security card all move the height too.
+       Rather than chase each call site, watch the dashboard: any height change
+       re-measures. rAF-coalesced so a burst of mutations costs one resize. */
+    (function observeDashHeight() {
+      if (!window.ResizeObserver) return;
+      var pending = false, lastH = 0;
+      var ro = new ResizeObserver(function (entries) {
+        var h = entries[0] && entries[0].target ? entries[0].target.offsetHeight : 0;
+        if (h === lastH || pending) return;
+        lastH = h;
+        pending = true;
+        requestAnimationFrame(function () { pending = false; syncScroll(); });
+      });
+      // document.body rather than #dash: catches the gate, the dashboard, and
+      // anything else that grows the page.
+      ro.observe(document.body);
+    })();
+
     /* -------------------------------------------------------------- auth --- */
     const gate = $('gate');
     const dash = $('dash');

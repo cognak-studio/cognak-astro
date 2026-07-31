@@ -145,6 +145,19 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     #cognak-scrollbar i::before { transition: none; }
 }
 
+/* Weather emoji in the nav clock. Same font-size as the text around it still
+   renders visibly larger — an emoji fills nearly its whole em box where
+   lowercase Latin uses about half (measured: 14.6px wide vs ~8px per letter),
+   and it's full colour against monochrome type. Scaled back so it sits WITH the
+   14px text instead of shouting over it. line-height:1 keeps it from reopening
+   the line box; the span is created in cognak-global.js. */
+.wx-emoji {
+    font-size: 0.85em;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: baseline;
+}
+
 /* ── Prevent orphans sitewide ── */
 h1, h2, h3, h4, h5, h6 {
     text-wrap: balance;
