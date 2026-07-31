@@ -8,6 +8,14 @@
    Behaviour: appears while scrolling, fades after a moment of stillness, and can
    be dragged to scroll. Colour comes from --sb-thumb, set per page in BaseLayout.
 
+   THE TRACK STOPS AT THE NAV. The nav is fixed and opaque, so a full-height bar
+   either slid underneath it (looking like it began mid-air) or sat on top of it.
+   The track is inset by the nav's height instead, and the thumb's travel is
+   computed against that shortened track — so "thumb at the bottom" still means
+   "end of the page", just measured over the space the bar can actually occupy.
+   The nav is top-anchored on inner pages and bottom-anchored on the homepage, so
+   which end gets inset is measured, not assumed.
+
    Lenis note: when Lenis is running, the bar is driven from Lenis' own scroll
    value, NOT window.scrollY. Reading scrollY here would make the bar lag behind
    the smoothed motion by a frame or more and look broken. Lenis is not
@@ -20,22 +28,49 @@
     var thumb = bar.querySelector('i');
     var MIN_THUMB = 32;     // px — never let it shrink to an unusable sliver
     var IDLE_MS   = 900;    // how long after the last scroll before it fades
+    var NAV_GAP   = 10;     // breathing room between the nav edge and the track
 
     var idleTimer = null;
     var dragging  = false;
-    var trackH = 0, thumbH = 0, maxScroll = 0;
+    var trackH = 0, thumbH = 0, maxScroll = 0, trackTop = 0;
+
+    /* Which end the nav occupies, and how much. Measured rather than assumed:
+       inner pages pin it to the top, the homepage to the bottom, and the
+       homepage also swaps modes on scroll. */
+    function navInset() {
+        var nav = document.querySelector('.home-bottom-bar');
+        if (!nav) return { top: 0, bottom: 0 };
+        var cs = window.getComputedStyle(nav);
+        if (cs.display === 'none' || cs.position !== 'fixed') return { top: 0, bottom: 0 };
+        var r = nav.getBoundingClientRect();
+        if (r.height <= 0) return { top: 0, bottom: 0 };
+        if (r.top <= 1) return { top: Math.round(r.height) + NAV_GAP, bottom: 0 };
+        if (Math.abs(r.bottom - window.innerHeight) <= 1) {
+            return { top: 0, bottom: Math.round(r.height) + NAV_GAP };
+        }
+        return { top: 0, bottom: 0 };
+    }
 
     function metrics() {
         var doc = document.documentElement;
-        trackH    = window.innerHeight;
+        var inset = navInset();
+
+        trackTop = inset.top;
+        bar.style.top    = inset.top + 'px';
+        bar.style.bottom = inset.bottom + 'px';
+
+        trackH    = Math.max(0, window.innerHeight - inset.top - inset.bottom);
         maxScroll = Math.max(0, doc.scrollHeight - window.innerHeight);
-        if (maxScroll <= 0) {
+
+        if (maxScroll <= 0 || trackH <= 0) {
             bar.classList.remove('is-visible');
             thumbH = 0;
             return false;
         }
-        // Proportional height, floored so it stays grabbable on very long pages.
+        // Proportional to how much of the document fits on screen, floored so it
+        // stays grabbable on very long pages.
         thumbH = Math.max(MIN_THUMB, Math.round(trackH * (window.innerHeight / doc.scrollHeight)));
+        if (thumbH > trackH) thumbH = trackH;
         thumb.style.height = thumbH + 'px';
         return true;
     }
@@ -69,8 +104,8 @@
 
     /* ── drag to scroll ────────────────────────────────────────────────────────
        Map pointer travel along the track to document scroll. Pointer capture
-       keeps the gesture alive even when the pointer leaves the 14px strip, which
-       is most of the time once you start moving. */
+       keeps the gesture alive once the pointer leaves the narrow strip, which
+       happens almost immediately. */
     var startY = 0, startScroll = 0;
 
     thumb.addEventListener('pointerdown', function (e) {
@@ -80,8 +115,7 @@
         startScroll = currentScroll();
         bar.classList.add('is-dragging');
         try { thumb.setPointerCapture(e.pointerId); } catch (err) {}
-        // Stop the page selecting text while dragging.
-        e.preventDefault();
+        e.preventDefault(); // stop the page selecting text mid-drag
     });
 
     thumb.addEventListener('pointermove', function (e) {
@@ -92,7 +126,7 @@
         var target = Math.min(maxScroll, Math.max(0, startScroll + delta));
         var l = window._lenis;
         if (l && l.scrollTo) {
-            // immediate: the bar should track the pointer 1:1, not ease behind it.
+            // immediate: the bar should track the pointer 1:1, not ease behind it
             l.scrollTo(target, { immediate: true, force: true });
         } else {
             window.scrollTo(0, target);
@@ -120,8 +154,8 @@
         return true;
     }
 
-    // Lenis is created on DOMContentLoaded, so it may not exist yet; poll briefly,
-    // and keep the native listener regardless as a safety net.
+    // Lenis is created on DOMContentLoaded, so it may not exist yet; poll briefly.
+    // The native listener below stays attached regardless as a safety net.
     if (!attachLenis()) {
         var tries = 0;
         var poll = setInterval(function () {
@@ -131,11 +165,20 @@
     window.addEventListener('scroll', function () { onScroll(); }, { passive: true });
     window.addEventListener('resize', function () { metrics(); onScroll(); });
 
+    // The homepage nav changes height/anchor when it enters nav-mode, which moves
+    // where the track has to start. Watch the class rather than re-measuring the
+    // nav on every scroll frame.
+    var navEl = document.querySelector('.home-bottom-bar');
+    if (navEl && window.MutationObserver) {
+        new MutationObserver(function () { metrics(); render(currentScroll()); })
+            .observe(navEl, { attributes: true, attributeFilter: ['class', 'style'] });
+    }
+
     // Content height changes after images/fonts/WebGL settle, and /brief swaps in
     // a whole questionnaire — re-measure rather than trusting the first reading.
     if (window.ResizeObserver) {
-        var ro = new ResizeObserver(function () { metrics(); render(currentScroll()); });
-        ro.observe(document.body);
+        new ResizeObserver(function () { metrics(); render(currentScroll()); })
+            .observe(document.body);
     }
     window.addEventListener('load', function () { metrics(); onScroll(); });
 

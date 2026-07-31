@@ -81,12 +81,15 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 /* --sb-thumb is set per page in BaseLayout (each page takes its nav/chrome
    colour, not its bright accent). z-index sits just under the custom cursor
    (9999999) so the cursor still paints over it. */
+/* top/bottom are set from JS — the track is inset by the nav's height so the bar
+   never runs underneath it. Which end gets inset is measured (inner pages pin
+   the nav to the top, the homepage to the bottom). */
 #cognak-scrollbar {
     position: fixed;
     top: 0;
     right: 0;
     bottom: 0;
-    width: 14px;              /* hit area; the visible rule is 4px */
+    width: 16px;              /* hit area; the visible rule is 6px */
     z-index: 9999998;
     pointer-events: none;     /* only the thumb is interactive */
     opacity: 0;
@@ -113,8 +116,8 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     top: 0;
     bottom: 0;
     right: 4px;
-    width: 4px;
-    border-radius: 2px;
+    width: 6px;
+    border-radius: 3px;
     background: var(--sb-thumb, rgba(255,255,255,0.35));
     transition: width 0.18s ease, right 0.18s ease;
 }
@@ -122,9 +125,9 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    Hover-capable pointers only — there is no hover on touch, and touch devices
    use overlay scrollbars anyway. */
 @media (hover: hover) {
-    #cognak-scrollbar i:hover::before { width: 6px; right: 3px; }
+    #cognak-scrollbar i:hover::before { width: 9px; right: 3px; }
 }
-#cognak-scrollbar.is-dragging i::before { width: 6px; right: 3px; }
+#cognak-scrollbar.is-dragging i::before { width: 9px; right: 3px; }
 #cognak-scrollbar.is-dragging { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
     #cognak-scrollbar { transition: none; }
