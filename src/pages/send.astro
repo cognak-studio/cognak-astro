@@ -772,11 +772,31 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        a cross-origin URL regardless of CSP. Served from our own origin,
        `worker-src 'self'` already covers it. Loaded on demand — nothing is
        fetched unless a PDF is actually queued. See public/js/pdfjs/README.md. */
+    /* Astro runs this <script> through Vite, which tries to RESOLVE dynamic
+       imports at build time — and files in public/ aren't modules in the graph,
+       they're copied verbatim, so the build dies with
+       "[UNRESOLVED_IMPORT] Could not resolve '/js/pdfjs/pdf.min.mjs'".
+       (The esm.sh imports elsewhere on this page are fine as literals because
+       Vite leaves absolute http(s) specifiers alone.)
+
+       THE SPECIFIER MUST BE OPAQUE TO THE BUNDLER, not merely non-literal.
+       `PDFJS_DIR + 'pdf.min.mjs'` LOOKS dynamic, but both operands are consts
+       holding literals, so esbuild can constant-fold it straight back into
+       "/js/pdfjs/pdf.min.mjs" before the resolver runs — and a folded
+       expression can lose the vite-ignore annotation along with it. Building
+       the URL with `new URL(..., location.origin)` cannot be folded, because
+       location.origin does not exist until the browser evaluates it.
+       Keep BOTH the runtime URL and the annotation: belt and braces. */
+    const PDFJS_DIR = '/js/pdfjs/';
+    function pdfjsUrl(file) {
+      return new URL(PDFJS_DIR + file, location.origin).href;
+    }
     let _pdfjs = null;
     function pdfjs() {
       if (!_pdfjs) {
-        _pdfjs = import('/js/pdfjs/pdf.min.mjs').then((mod) => {
-          mod.GlobalWorkerOptions.workerSrc = '/js/pdfjs/pdf.worker.min.mjs';
+        const url = pdfjsUrl('pdf.min.mjs');
+        _pdfjs = import(/* @vite-ignore */ url).then((mod) => {
+          mod.GlobalWorkerOptions.workerSrc = pdfjsUrl('pdf.worker.min.mjs');
           return mod;
         }).catch((e) => { _pdfjs = null; throw e; });
       }
