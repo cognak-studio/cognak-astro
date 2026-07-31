@@ -96,6 +96,14 @@ const SB_LIGHT = 'rgba(255, 255, 255, 0.15)'; // for dark pages
    which is why this is a veil and not that colour. */
 const SCROLL_THUMB_OVERRIDE = {
   colophon: 'rgba(23, 21, 26, 0.70)',
+
+  /* /brief is the other page the veil can't serve, for a different reason: its
+     WebGL runs full-bleed behind everything and swings from luminance 0 to 46
+     (measured), so a translucent thumb gets modulated by whatever frame the
+     animation is on and shimmers as you scroll. OPAQUE fixes that — the bar
+     stops reacting to the background entirely. #37322C is exactly what the 15%
+     white veil resolves to over this page's #140E07, frozen. */
+  brief: '#37322C',
 };
 
 function relLuminance(hex) {

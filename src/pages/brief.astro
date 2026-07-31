@@ -100,6 +100,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
          it's a glitter spread, and the variety is the point. */
       --orange:#EF9146; --orange-hi:#F3A25C; --orange-rgb:239,145,70;
       --rail-cream:#EDE0C8;
+      /* OPAQUE, deliberately. This page's WebGL runs behind everything, and its
+         luminance swings from 0 to 46 (measured off a screenshot) — so a
+         translucent track was being modulated by whatever frame the animation
+         was on, rendering anywhere from #2C2922 to #5A4531 and reading as noise
+         rather than a control. #3D3529 is the average of what the old
+         rgba(207,187,155,0.22) actually produced, frozen so the texture can't
+         move it. Anything laid over the WebGL that should look solid needs the
+         same treatment. */
+      --track:#3D3529;
       /* Fixed 190px (not vh-based) so the headline text lands at 274px under
          the 84px nav clearance — the shared header position across
          projects/studio/privacy/colophon/brief. */
@@ -255,7 +264,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .rangeval{ font-size:1.15rem; font-weight:500; color:var(--ink); margin-bottom:.7rem; }
     /* Track is lightened and thicker; JS paints an orange fill up to the value
        so the slider reads clearly against the dark WebGL background. */
-    .brief input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:999px; background:rgba(207,187,155,0.22); outline:none; cursor:pointer; }
+    .brief input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:999px; background:var(--track); outline:none; cursor:pointer; }
     .brief input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid var(--orange); box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
     .brief input[type=range]::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid var(--orange); box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
     .brief .rangeends{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-soft); margin-top:.55rem; }
@@ -1270,7 +1279,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function setRangeFill(r){
       var min=+r.min, max=+r.max, v=+r.value;
       var pct=max>min?((v-min)/(max-min))*100:0;
-      r.style.background='linear-gradient(90deg, var(--orange) 0%, var(--orange) '+pct+'%, rgba(207,187,155,0.22) '+pct+'%, rgba(207,187,155,0.22) 100%)';
+      r.style.background='linear-gradient(90deg, var(--orange) 0%, var(--orange) '+pct+'%, var(--track) '+pct+'%, var(--track) 100%)';
     }
 
     /* Sit the rail just left of the text column, responsive to its margin/padding. */
