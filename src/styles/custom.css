@@ -54,6 +54,83 @@
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* ── Scrollbar ──
+   The native scrollbar is HIDDEN and replaced by a custom overlay bar
+   (#cognak-scrollbar, driven by cognak-scrollbar.js).
+
+   WHY. A classic scrollbar reserves a gutter, and fixed elements are laid out
+   against the layout viewport, which EXCLUDES that gutter — so every fixed nav
+   on the site stopped ~11px short of the right edge, with a strip of bare page
+   background beside it. Widening the nav does NOT fix it: the element's rect
+   grows but its paint is still clipped to the layout viewport (measured: rect
+   right 1410, painted edge 1399), and a transparent scrollbar track composites
+   over the ROOT background, never over page content. There is also no CSS to ask
+   for overlay scrollbars — that is an OS-level setting (macOS uses overlay on a
+   trackpad and switches to classic once a mouse is attached, which is why this
+   is invisible to some people and obvious to others).
+
+   So the only way to reclaim the space is to remove the native scrollbar and
+   draw our own floating one. scrollbar-width covers Firefox + Chrome;
+   ::-webkit-scrollbar is needed for Safari, which ignores the standard property.
+   Scrolling itself is untouched — wheel, trackpad, keyboard, touch and Lenis all
+   behave exactly as before. */
+html { scrollbar-width: none; }
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* --sb-thumb is set per page in BaseLayout (each page takes its nav/chrome
+   colour, not its bright accent). z-index sits just under the custom cursor
+   (9999999) so the cursor still paints over it. */
+#cognak-scrollbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 14px;              /* hit area; the visible rule is 4px */
+    z-index: 9999998;
+    pointer-events: none;     /* only the thumb is interactive */
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+#cognak-scrollbar.is-visible { opacity: 1; }
+/* Nothing to scroll — stay out of the way entirely. */
+#cognak-scrollbar.is-idle    { opacity: 0; }
+#cognak-scrollbar i {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    display: block;
+    pointer-events: auto;
+    /* Positioned by transform, not top: it runs on the compositor and keeps the
+       bar in step with Lenis' smoothed scroll instead of lagging a frame. */
+    will-change: transform;
+}
+#cognak-scrollbar i::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 4px;
+    width: 4px;
+    border-radius: 2px;
+    background: var(--sb-thumb, rgba(255,255,255,0.35));
+    transition: width 0.18s ease, right 0.18s ease;
+}
+/* Thicken slightly while grabbed or hovered, so it acknowledges the pointer.
+   Hover-capable pointers only — there is no hover on touch, and touch devices
+   use overlay scrollbars anyway. */
+@media (hover: hover) {
+    #cognak-scrollbar i:hover::before { width: 6px; right: 3px; }
+}
+#cognak-scrollbar.is-dragging i::before { width: 6px; right: 3px; }
+#cognak-scrollbar.is-dragging { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+    #cognak-scrollbar { transition: none; }
+    #cognak-scrollbar i::before { transition: none; }
+}
+
 /* ── Prevent orphans sitewide ── */
 h1, h2, h3, h4, h5, h6 {
     text-wrap: balance;
@@ -726,6 +803,12 @@ body.non-fixed-nav::after {
     position: fixed;
     bottom: 0;
     left: 0;
+    /* NOTE: `right: 0` is correct and deliberate. Widening this to 100vw to reach
+       under a classic scrollbar's gutter does NOT work — the element's rect grows
+       but fixed content is clipped to the layout viewport, so it never paints
+       there (measured: rect right 1410, painted edge still 1399). The gutter is
+       solved by removing the native scrollbar entirely — see the custom overlay
+       scrollbar below and in cognak-scrollbar.js. */
     right: 0;
     z-index: 100;
     display: flex;

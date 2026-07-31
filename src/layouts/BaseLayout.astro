@@ -204,7 +204,7 @@ import '../styles/site.css';
   <meta name="theme-color" content="#3a313b" />
   {isHome && <style is:inline set:html={`html,body{background:#17151a!important}`}></style>}
   {pageBg && <style is:inline set:html={`html,body{background-color:${pageBg}!important}`}></style>}
-  <style is:inline set:html={`html{color-scheme:${isDarkPage ? 'dark' : 'light'};scrollbar-color:${scrollThumb} transparent;scrollbar-width:thin}`}></style>
+  <style is:inline set:html={`html{color-scheme:${isDarkPage ? 'dark' : 'light'};--sb-thumb:${scrollThumb}}`}></style>
   <title set:html={title}></title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://assets.unicorn.studio" />
@@ -373,6 +373,15 @@ import '../styles/site.css';
   <a href="#cognak-main" class="skip-to-main">Skip to main content</a>
   <div id="cognak-cursor"><span id="cognak-cursor-label"></span><img id="cognak-cursor-img" src="" alt="" /><video id="cognak-cursor-video" src="" muted loop playsinline webkit-playsinline preload="auto" aria-hidden="true"></video></div>
 
+  <!-- Custom overlay scrollbar. The native one is hidden (see custom.css) so it
+       stops reserving a gutter — that gutter is what cut every fixed nav ~11px
+       short of the right edge on any machine using classic scrollbars (macOS with
+       a mouse attached, most of Windows). This floats over the content instead,
+       the way macOS overlay scrollbars do, so nothing loses width.
+       aria-hidden because it duplicates scrolling the page already exposes;
+       keyboard scrolling is unaffected. -->
+  <div id="cognak-scrollbar" aria-hidden="true"><i></i></div>
+
   {showCookieBanner && (
     <Fragment>
     {/* No aria-modal: the banner is non-blocking (no focus trap, page stays interactive),
@@ -538,6 +547,7 @@ import '../styles/site.css';
   <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js" defer></script>
   <script src={`/js/cognak-lenis-init.js?v=${jsV}`} defer></script>
   <script src={`/js/cognak-global.js?v=${jsV}`} defer></script>
+  <script src={`/js/cognak-scrollbar.js?v=${jsV}`} defer></script>
 
   {/* UnicornStudio: the init script lazy-loads the WebGL library itself
       (on idle, once the hero is near the viewport) — see cognak-unicorn-init.js. */}
