@@ -69,9 +69,16 @@
         }
         // Proportional to how much of the document fits on screen, floored so it
         // stays grabbable on very long pages.
-        thumbH = Math.max(MIN_THUMB, Math.round(trackH * (window.innerHeight / doc.scrollHeight)));
-        if (thumbH > trackH) thumbH = trackH;
-        thumb.style.height = thumbH + 'px';
+        var next = Math.max(MIN_THUMB, Math.round(trackH * (window.innerHeight / doc.scrollHeight)));
+        if (next > trackH) next = trackH;
+        // Only touch the DOM when it actually changed. metrics() runs from a
+        // ResizeObserver that fires often on the homepage (lazy tiles revealing,
+        // WebGL settling) and rewriting an identical height every time is both
+        // wasted layout and a chance to interrupt the easing transition.
+        if (next !== thumbH) {
+            thumbH = next;
+            thumb.style.height = thumbH + 'px';
+        }
         return true;
     }
 

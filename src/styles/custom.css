@@ -109,6 +109,17 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     /* Positioned by transform, not top: it runs on the compositor and keeps the
        bar in step with Lenis' smoothed scroll instead of lagging a frame. */
     will-change: transform;
+    /* The thumb's LENGTH is proportional to document height, and the homepage's
+       document genuinely grows while you scroll (lazy project tiles reveal, the
+       hero WebGL settles). So the thumb legitimately has to resize — the problem
+       was that it snapped. Easing it turns a jarring jump into a settle.
+       Suppressed while dragging, where the size is fixed and any transition
+       would just feel like lag. */
+    transition: height 0.3s var(--ease-out-expo);
+}
+#cognak-scrollbar.is-dragging i { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+    #cognak-scrollbar i { transition: none; }
 }
 #cognak-scrollbar i::before {
     content: "";

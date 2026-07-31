@@ -79,14 +79,17 @@ const PAGE_BG_FALLBACK = { home: '#17151a', project: '#ffffff' };
 const SCROLL_THUMB = {
   home:     '#5E566A', // 2.60 — hero violet-black, lifted
   studio:   '#5E566B', // 2.60 — nav violet-charcoal, lifted
-  send:     '#3F5A55', // 2.62 — nav teal-black, lifted
-  receive:  '#3F5A55', // 2.62 — matches send
-  colophon: '#6F69FF', // 2.60 — klein blue lifted (the nav's darker blue read 1.23)
+  send:     '#8FC2F2', // 10.45 — the page's light blue (--accent-soft, the headline em)
+  receive:  '#8FC2F2', // 10.45 — matches send
+  colophon: '#0700AC', // 1.23 — the nav's darker blue, Pierce's call. Deliberately
+                       //        near-invisible against the klein blue; do not
+                       //        "fix" the contrast without asking.
   projects: '#4A3F6B', // 7.67 — headline dark lavender, NOT the hover purple
-  project:  '#4A3F6B', // 9.48 — same family, on white
+  project:  '#C4C4CC', // 1.73 — light gray: this page is WHITE, so the lavender
+                       //        above would have been a hard stripe on it
   tools:    '#B0A3CF', // 7.77 — the "Tools" headline purple (--accent-soft, not --accent)
   brief:    '#EF9146', // 8.04 — the one page where the accent was already right
-  privacy:  '#4A2840', // 9.32 — plum, matching its ::selection
+  privacy:  '#6E2050', // 7.83 — the red-plum of the "privacy policy" headline (.pp-accent)
   '404':    '#AAFF00', // 4.07 — signal green on purpose: it's the only thing still working
 };
 
