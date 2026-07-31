@@ -108,7 +108,18 @@ const cards = await Promise.all(
         ))}
       </div>
       <div class="hp-more-wrap">
-        <a href="/projects" class="hp-more-btn" id="hp-load-more"><span class="hp-more-plus">+</span> more</a>
+        {/* Two-state button. Resting: "+ more" reveals the hidden tiles. Once
+           they're all out it navigates to /projects instead, so the glyph and
+           label morph to say so — see the "+ more" end-state block in
+           cognak-home.js. The arrow is the SAME inline SVG as
+           .hp-projects-arrow on the heading link above, deliberately: in its
+           end state this button and that link do the identical job. aria-label
+           carries the accessible name (JS swaps it) so the stacked labels can
+           stay aria-hidden and nothing is read twice. */}
+        <a href="/projects" class="hp-more-btn" id="hp-load-more" aria-label="Show more projects">
+          <span class="hp-more-glyph" aria-hidden="true"><span class="hp-more-plus">+</span><span class="hp-more-arrow"><svg width="0.7em" height="0.7em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><polyline points="6,15 12,21 18,15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span>
+          <span class="hp-more-label" aria-hidden="true"><span class="hp-more-word hp-more-word--more">more</span><span class="hp-more-word hp-more-word--all">all projects</span></span>
+        </a>
       </div>
     </div>
 

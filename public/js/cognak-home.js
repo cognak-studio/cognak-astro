@@ -533,7 +533,48 @@
     if (!btn) return;
     var loaded = false;
 
+    var label = btn.querySelector('.hp-more-label');
+    var wMore = btn.querySelector('.hp-more-word--more');
+    var wAll  = btn.querySelector('.hp-more-word--all');
+
+    /* Measure BOTH labels and hand them to CSS as --w-more / --w-all so the
+       button can transition its width instead of snapping. Measured, not
+       guessed: the words are a variable font at a clamp()ed size, so the ratio
+       changes with the viewport. Re-measured on fonts.ready (the fallback face
+       is a different width) and on resize (the clamp moves).
+       offsetWidth is fine here even though .hp-more-word--all is absolutely
+       positioned — it's laid out, just out of flow. */
+    function measure() {
+        if (!label || !wMore || !wAll) return;
+        var a = Math.ceil(wMore.getBoundingClientRect().width);
+        var b = Math.ceil(wAll.getBoundingClientRect().width);
+        if (!a || !b) return;
+        label.style.setProperty('--w-more', a + 'px');
+        label.style.setProperty('--w-all',  b + 'px');
+    }
+    measure();
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(measure);
+    }
+    window.addEventListener('resize', measure);
+
+    /* The button stops revealing and starts navigating, so it has to stop
+       claiming to reveal. Widths must already be set or the label collapses. */
+    function exhaust() {
+        measure();
+        btn.classList.add('is-exhausted');
+        btn.setAttribute('aria-label', 'View all projects');
+    }
+
+    // Nothing hidden to begin with (6 or fewer featured projects) — the button
+    // was never a reveal control, so say so from the start, with no animation.
+    if (!document.querySelector('#hp-grid .hp-hidden')) {
+        loaded = true;
+        exhaust();
+    }
+
     btn.addEventListener('click', function(e) {
+        // Already exhausted: fall through to the <a href> and navigate.
         if (loaded) return;
         e.preventDefault();
         loaded = true;
@@ -559,6 +600,10 @@
         var revealDuration = (toShow.length - 1) * 90 + 400;
         setTimeout(function() {
             if (window._lenis) { window._lenis.resize(); }
+            // Morph AFTER the last tile lands, not on click: the new label is a
+            // reaction to the grid being complete, and morphing mid-reveal
+            // would compete with the tiles for attention.
+            exhaust();
         }, revealDuration);
     });
 })();

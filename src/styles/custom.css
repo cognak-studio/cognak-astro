@@ -1537,6 +1537,110 @@ html.home-scrolled #cognak-cookie {
 }
 }
 
+/* ── "+ more" end state ──────────────────────────────────────────────────────
+   Once every hidden tile is out, this button stops revealing and starts
+   NAVIGATING to /projects, so it has to stop looking like a reveal control.
+   The + becomes the site's own arrow — the same SVG as .hp-projects-arrow on
+   the heading link above the grid, which points at the same destination — and
+   "more" becomes "all projects".
+
+   The + is deliberately NOT rotated 45deg into an x (the original audit's
+   suggestion): x conventionally reads as close/dismiss, which is the opposite
+   of the meaning being announced.
+
+   WIDTH: "all projects" is far wider than "more". Both words are stacked
+   absolutely inside .hp-more-label, whose width is driven by --w-more /
+   --w-all — px values MEASURED in JS after fonts.ready, because the two words
+   are in a variable font at a clamp()ed size and can't be guessed. Without the
+   transition the button snaps to its new width; with it, it opens into the new
+   meaning. The wrap is justify-content:flex-end and this is its only child, so
+   the right edge stays pinned and the growth is leftward — nothing else moves.
+   If --w-more / --w-all are ever absent the fallback is auto-ish: the label
+   collapses, so JS must set them before .is-exhausted lands. */
+.hp-more-glyph {
+    position: relative;
+    display: inline-block;
+    vertical-align: baseline;
+}
+.hp-more-arrow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: inline-flex;
+    opacity: 0;
+    /* Centred over the +, not left-anchored: the arrow is 0.7em and the glyph
+       box is only as wide as the +, so left:0 would push it into the word gap. */
+    transform: translate(-50%, -50%) rotate(-45deg) scale(0.7);
+    transition: opacity 0.28s ease,
+                transform 0.45s var(--ease-out-expo);
+    pointer-events: none;
+}
+.hp-more-btn.is-exhausted .hp-more-plus {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.7);
+}
+.hp-more-btn.is-exhausted .hp-more-arrow {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+.hp-more-plus {
+    transition: opacity 0.22s ease,
+                transform 0.45s var(--ease-out-expo);
+}
+
+.hp-more-label {
+    position: relative;
+    display: inline-block;
+    width: var(--w-more, auto);
+    transition: width 0.5s var(--ease-out-expo);
+    text-align: left;
+    white-space: nowrap;
+    vertical-align: baseline;
+}
+.hp-more-word {
+    display: inline-block;
+    transition: opacity 0.26s ease, transform 0.45s var(--ease-out-expo);
+}
+/* The inactive word is taken out of flow so it can't widen the label. The
+   ACTIVE one stays in flow so the label keeps a real line box (and therefore a
+   baseline) even before JS measures. */
+.hp-more-word--all {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transform: translateY(6px);
+}
+.hp-more-btn.is-exhausted .hp-more-label {
+    width: var(--w-all, auto);
+}
+.hp-more-btn.is-exhausted .hp-more-word--more {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+}
+.hp-more-btn.is-exhausted .hp-more-word--all {
+    position: relative;
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (hover: hover) {
+    /* Same gesture as .hp-projects-link:hover .hp-projects-arrow. */
+    .hp-more-btn.is-exhausted:hover .hp-more-arrow {
+        transform: translate(-50%, -50%) rotate(-90deg) scale(1);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hp-more-label,
+    .hp-more-word,
+    .hp-more-plus,
+    .hp-more-arrow {
+        transition: none !important;
+    }
+}
+
 /* Bottom section */
 .hp-bottom {
     margin-top: 120px;
