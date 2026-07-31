@@ -30,8 +30,17 @@ Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer
 
 ## Homepage
 
-- [ ] **Hover-meta exit typing.** On mouseleave, backspace the JSON out at 2× speed instead of letting stale meta linger. Keeps the terminal fiction coherent.
-- [ ] **Wire the dead video cursor.** Emit `data-hero-video` on cards so the 140px cursor panel plays the reel for video projects (DuVine has a hoverVideo ready). The CSS and JS branch already exist.
+- [x] **Hover-meta exit typing.** On mouseleave, backspace the JSON out at 2× speed instead of letting stale meta linger. Keeps the terminal fiction coherent. — done 2026-07-31, in `cognak-home.js`.
+  - There was NO `mouseleave` handler on the cards at all, only `mouseenter` — so the record parked on screen describing a tile you'd stopped pointing at, and only cleared when the whole grid scrolled out of view. Backspace runs at 9ms against the 18ms type-in (`ERASE_MS` / `TYPE_MS`).
+  - **`EXIT_GRACE = 60ms`.** A card→card move fires `mouseleave` then `mouseenter`; without the grace the erase starts and is instantly clobbered, which reads as a flicker. `typewrite()` clears `exitTimer`, so leaving the GRID rubs the record out while moving BETWEEN cards stays a clean swap. The IntersectionObserver teardown clears `exitTimer` too — otherwise a queued erase fires against already-hidden meta.
+  - **Bigger fix, folded in: the record was lying about itself.** `render_id`, `revisions` and `nda` were `Math.random()` PER HOVER, so re-hovering the same tile reported a different render ID, a different revision count and a flipped NDA status. Identical bug and identical premise to the /studio reel's POOL metadata. Now seeded from an FNV-1a hash of the project title through a small LCG (`seededRand`) — **callers must pull the three values in a FIXED order** or they stop being stable. Verified: 10/10 featured projects get unique render_ids, and repeat calls match.
+  - Seeded off `data-project-title`, NOT the slug — the title is already on the card and the slug isn't, so this needed no change to `index.astro`. If a project is ever retitled its render_id changes; that's acceptable for set dressing.
+  - `randHex()` is gone (replaced, not orphaned — don't leave it for the dead-code sweep).
+  - Reduced motion: `backspace()` hides instantly instead of erasing. NOTE the type-IN still runs under reduced motion — that's pre-existing behaviour in this block and was deliberately left alone, unlike the `.hp-def` typewriter which does bail. Worth a decision if reduced motion gets a proper pass.
+- [~] **Wire the dead video cursor.** Emit `data-hero-video` on cards so the 140px cursor panel plays the reel for video projects (DuVine has a hoverVideo ready). The CSS and JS branch already exist. — SKIPPED by Pierce 2026-07-31. Don't re-raise for the homepage.
+  - **The audit's premise is wrong here.** The homepage tile ALREADY plays the hover video: `index.astro` renders a `<video class="hp-hover-media">` per card and `cognak-home.js` (card-tilt block) calls `.play()` on mouseenter. Feeding the same clip to the cursor puts it on screen twice, inches apart — the same duplication trap that killed the /projects grid-hover item. Not marginal: 5 of the 6 visible featured tiles have video (Wellness, HEX, DuVine, Verde, Bose), and both the tile and the cursor would resolve the identical `hoverVideo ?? heroVideo`.
+  - The place it WOULD have worked is /projects — both views there feed the cursor a still (`cursorHero`), grid hover is deliberately dead, and the list rows are text only, so the cursor is the only media on screen. 7 archive projects have video. Offered and declined 2026-07-31 along with the homepage.
+  - So `is-video` in `cognak-global.js` (the `pane.dataset.heroVideo` branch, ~line 317) is now DEAD BY DESIGN, not by oversight. If the dead-code sweep reaches it, that's a deliberate decision to record — not a bug to fix.
 - [ ] **"+ more" end-state morph.** After revealing hidden tiles, the second click silently navigates to /projects. Rotate the + 45° and morph the label to "all projects →" so the changed meaning is honest.
 - [ ] **Weather-reactive dust motes.** `fetchWeather()` already knows LA conditions — on rain codes, let the motes fall like drizzle. Zero extra network.
 - [ ] **Odd-count grid hole.** Featured grid is 2-col with no odd-count handling (the archive grid solved this with `direction: rtl`).
@@ -144,3 +153,22 @@ Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer
 ---
 
 **Suggested first batch:** motion/color tokens + per-page selection, the brief Sent screen, and the project gallery treatment.
+
+---
+
+## Shipped outside the audit
+
+Work that landed in the same push cycles but was never an audit item. Recorded
+here so the tracker doesn't read as the whole picture.
+
+- **"write a brief" link in the footer, sitewide**, under the email address
+  (`.footer-email-link`). Came from /brief being reachable only from the bottom
+  of three pages.
+- **/send footer was missing** — the page cropped above the saved-passkeys
+  section. Fixed with a `ResizeObserver` on `document.body` calling `syncScroll()`.
+- **Emoji scaling** — `.wx-emoji` span (`font-size:.85em`) around the weather
+  emoji in `cognak-global.js`. The span is REUSED, not rebuilt, because that
+  code runs every second.
+- **Mobile nav sizing** on the homepage hero corners.
+- `.projects-below .avail-dot` now uses `--cognak-purple-text`; the studio
+  start-wrap dot stays pink `#FFB2E4`.

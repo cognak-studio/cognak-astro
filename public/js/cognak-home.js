@@ -225,8 +225,20 @@
     document.body.appendChild(metaEl);
 
     var twTimer = null;
+    var exitTimer = null;
     var metaVisible = 0;
     var startWrap = document.querySelector('.hp-start-wrap');
+
+    var TYPE_MS    = 18;   // type-in cadence
+    var ERASE_MS   = 9;    // backspace runs at 2x, per the audit
+    /* A card->card move fires mouseleave then mouseenter. Without a grace the
+       erase starts and is immediately clobbered by the new record, which reads
+       as a flicker. The grace lets leaving the GRID rub the record out while a
+       move BETWEEN cards stays a clean swap. */
+    var EXIT_GRACE = 60;
+
+    var REDUCED = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function scrollFade() {
         if (!startWrap) return 1;
@@ -242,14 +254,41 @@
     window.addEventListener('scroll', applyOpacity, { passive: true });
     window.addEventListener('resize', applyOpacity);
 
-    function randHex(len) {
-        var s = '';
-        while (s.length < len) s += Math.random().toString(16).slice(2);
-        return s.slice(0, len);
+    /* The set-dressing fields below used to be Math.random() PER HOVER, so
+       re-hovering the same tile reported a different render_id, a different
+       revision count and a flipped NDA status — the record contradicted itself
+       and the terminal fiction fell over. Seeded from an FNV-1a hash of the
+       project title instead: fixed identity per project, stable across hovers
+       and reloads, nothing to hand-author. Same fix, same reason, as the
+       /studio reel's POOL metadata. */
+    function fnv1a(str) {
+        var h = 0x811c9dc5;
+        for (var i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+        }
+        return h >>> 0;
+    }
+
+    // One seed has to feed three fields, so wrap it in a small LCG. Callers
+    // must pull in a FIXED order for the values to stay stable.
+    function seededRand(seed) {
+        var s = seed >>> 0;
+        return function() {
+            s = (s * 1664525 + 1013904223) >>> 0;
+            return s / 4294967296;
+        };
+    }
+
+    function seededHex(rand, len) {
+        var out = '';
+        while (out.length < len) out += Math.floor(rand() * 4294967296).toString(16);
+        return out.slice(0, len);
     }
 
     function buildMeta(card) {
         var title = card.dataset.projectTitle || '';
+        var rand  = seededRand(fnv1a(title || card.dataset.projectType || 'cognak'));
         var type  = card.dataset.projectType  || '';
         var year  = card.dataset.projectYear  || '';
         var dateS = parseInt(card.dataset.projectDate || '0', 10);
@@ -268,14 +307,15 @@
             fields.push('  "aged": "' + (w > 0 ? w + 'y ' : '') + m + 'm"');
             fields.push('  "cask": "' + grade + '"');
         }
-        fields.push('  "render_id": "' + randHex(6) + '"');
-        fields.push('  "revisions": ' + (Math.floor(Math.random() * 8) + 1));
-        fields.push('  "nda": ' + (Math.random() > 0.5 ? 'true' : 'false'));
+        fields.push('  "render_id": "' + seededHex(rand, 6) + '"');
+        fields.push('  "revisions": ' + (Math.floor(rand() * 8) + 1));
+        fields.push('  "nda": ' + (rand() > 0.5 ? 'true' : 'false'));
         return '{\n' + fields.join(',\n') + '\n}';
     }
 
     function typewrite(text) {
         clearTimeout(twTimer);
+        clearTimeout(exitTimer);
         metaEl.textContent = '';
         metaVisible = 1;
         applyOpacity();
@@ -283,13 +323,36 @@
         (function tick() {
             if (i >= text.length) return;
             metaEl.textContent += text[i++];
-            twTimer = setTimeout(tick, 18);
+            twTimer = setTimeout(tick, TYPE_MS);
+        })();
+    }
+
+    function hideMeta() {
+        metaEl.textContent = '';
+        metaVisible = 0;
+        applyOpacity();
+    }
+
+    // Backspace the record out rather than letting stale meta linger over a
+    // grid nobody is pointing at.
+    function backspace() {
+        clearTimeout(twTimer);
+        if (REDUCED) { hideMeta(); return; }
+        (function tick() {
+            var t = metaEl.textContent;
+            if (!t.length) { hideMeta(); return; }
+            metaEl.textContent = t.slice(0, -1);
+            twTimer = setTimeout(tick, ERASE_MS);
         })();
     }
 
     cards.forEach(function(card) {
         card.addEventListener('mouseenter', function() {
             typewrite(buildMeta(card));
+        });
+        card.addEventListener('mouseleave', function() {
+            clearTimeout(exitTimer);
+            exitTimer = setTimeout(backspace, EXIT_GRACE);
         });
     });
 
@@ -298,6 +361,7 @@
         new IntersectionObserver(function(entries) {
             if (!entries[0].isIntersecting) {
                 clearTimeout(twTimer);
+                clearTimeout(exitTimer);
                 metaVisible = 0;
                 applyOpacity();
             }
