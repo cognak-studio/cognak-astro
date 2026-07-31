@@ -3217,6 +3217,133 @@ body.pagers-idle a[rel="next"] {
         gap: 10px !important;
     }
 }
+
+/* ── Project detail: asymmetric information block ────────────────────────────
+   Identity (title / category / grade / invitation) holds the left; the three
+   text groups stack in a measured right-hand column.
+
+   THE TYPE IS NOT TOUCHED. Everything above this stays: mono purple category,
+   15px/1.75 body, sentence-case 13px labels. Those are deliberate overrides,
+   not WordPress residue — an earlier read of screen.css alone missed the
+   `!important` layer and wrongly diagnosed 13px body copy and 30% columns.
+   Measure the live page before "fixing" this block again.
+
+   grid-template-areas rather than nested wrappers: it puts the invitation
+   under the title on desktop but AFTER the three groups on mobile, where a CTA
+   wedged between the category and the case study would interrupt the read.
+   `details` spans both rows so it starts at the top beside the title.
+
+   420px right column vs the 357px each column had before — the measure gets
+   slightly WIDER, not narrower, because there is now one column instead of
+   three. Longest group in the archive is 564 chars (startup-institute),
+   roughly 10 lines here; the median is 294. */
+.template-single-project .info-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+    grid-template-areas:
+        "lead   details"
+        "invite details";
+    grid-template-rows: auto 1fr;
+    column-gap: 80px;
+    align-items: start;
+}
+.template-single-project .info-lead   { grid-area: lead; }
+/* The title was effectively never wrapping in a full-width container; in the
+   narrower left column most of them now break to 2 lines (DuVine's 29
+   characters at 70px need ~930px and the column is ~770px at max width).
+   line-height computed to exactly 1.0, which is fine for a single line and
+   collides for two. 1.06 is the smallest value that clears the descenders. */
+.template-single-project .info-lead .title {
+    line-height: 1.06 !important;
+}
+/* The category carries `margin: 0 0 55px` for the old stacked layout. In the
+   lead column the grade chip follows it, and 55px + the chip's 18px reads as a
+   gap rather than a pairing. Zeroed here only; the invitation's own 56px
+   top margin still separates the block below. */
+.template-single-project .info-lead .category {
+    margin-bottom: 0 !important;
+}
+/* No grade (a project with no `date`): the invitation would otherwise sit
+   16px too high, since the chip's margin-top is what spaces the lead block. */
+.template-single-project .info-lead .category:last-child {
+    margin-bottom: 0 !important;
+}
+.template-single-project .info-invite { grid-area: invite; margin-top: 56px; }
+.template-single-project .information .details {
+    grid-area: details;
+    /* Beats screen.css's `display:flex` and the flex-start/100px gap override
+       above, both of which are meaningless once this is a block stack. */
+    display: block !important;
+}
+.template-single-project .information .details .col {
+    width: auto !important;
+    max-width: none !important;
+    margin-bottom: 34px;
+}
+.template-single-project .information .details .col:last-child {
+    margin-bottom: 0;
+}
+
+/* Cask grade. Uses the page's OWN accent (--cognak-purple-text) rather than
+   introducing a fourth purple — the colour-token item is still open and the
+   category directly above it is already this value. Measured 4.70:1 on white,
+   so it clears AA for normal text; it carries real information (the grade), so
+   it has to. currentColor on the border keeps the two in lockstep if the token
+   ever moves. */
+.template-single-project .vintage-chip {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 4px 9px;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    color: var(--cognak-purple-text);
+    font-family: 'Diatype Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* The soft door. Sized to sit below the title without competing with the
+   70px type above it or the clamp(22px,3vw,58px) "Start a project" below. */
+.template-single-project .info-invite-line {
+    margin: 0 0 8px;
+    font-family: 'Diatype Variable', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #6d6d6d;
+}
+.template-single-project .info-invite-link {
+    font-family: 'Diatype Variable', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--cognak-purple-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    text-decoration-color: rgba(150, 71, 240, 0.35);
+    transition: text-decoration-color 0.25s var(--ease-out-expo),
+                text-underline-offset 0.25s var(--ease-out-expo);
+}
+@media (hover: hover) {
+    .template-single-project .info-invite-link:hover {
+        text-decoration-color: currentColor;
+        text-underline-offset: 2px;
+    }
+}
+
+@media (max-width: 900px) {
+    .template-single-project .info-split {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "lead"
+            "details"
+            "invite";
+        grid-template-rows: auto auto auto;
+    }
+    .template-single-project .info-invite { margin-top: 48px; }
+    .template-single-project .information .details .col { margin-bottom: 34px; }
+}
 /* ── CookieYes banner overrides ── */
 .cky-consent-bar {
     background: rgba(18, 15, 20, 0.92) !important;
@@ -4051,6 +4178,105 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .projects-grid-figure,
 .projects-list-item,
 .img-wide--hero { view-transition-class: proj-thumb; }
+
+/* ── Project detail: body gallery ────────────────────────────────────────────
+   The gallery was the page's biggest gap: 97 images across 36 projects, sitting
+   flush edge-to-edge with no spacing, no reveal and no lazy fade — the raw
+   WordPress body markup, rendered.
+
+   SCOPED TO .project-gallery, NEVER BARE .img-wide: the hero figure carries
+   .img-wide too, so `.img-wide img` would put a 16px gap under the hero and
+   hold the hero image at opacity 0 awaiting an observer.
+
+   The markup is out of our hands — it's WordPress-era `<p>` wrappers with
+   `<picture>` inside, and one `<p>` can hold five images. `#cognak-main picture
+   { display: contents }` (further up) makes the pictures layout-transparent, so
+   the img is effectively a direct child of the p and margin-bottom on the IMG
+   is the only reliable place to put the rhythm — a rule on the p would space
+   the groups, not the pictures.
+
+   16px matches the .projects-grid gap exactly, so the number is already in the
+   system rather than newly invented.
+
+   ZEROING THE TRAILING GAP IS NOT A CSS SELECTOR PROBLEM YOU CAN WIN. The
+   obvious `.project-gallery > *:last-child img:last-child` is WRONG: every img
+   sits inside a <picture> after a <source>, so `img:last-child` is true for
+   EVERY image, and that rule would strip the gap from all five images in
+   DuVine's last paragraph rather than just the final one. CSS has no
+   "last image in the subtree" selector, and not every image is guaranteed to be
+   picture-wrapped (a plain markdown image isn't). So JS tags the real last one
+   with .is-last. If the JS never runs, the only consequence is 16px of extra
+   space before the pagers — invisible.
+
+   17 projects render this figure EMPTY. Because the margin lives on the images
+   and not on the figure, an empty gallery collapses to nothing by itself — no
+   :empty guard needed (and :empty would be unreliable anyway, since a
+   whitespace text node defeats it). */
+.project-gallery img {
+    margin-bottom: 16px;
+}
+.project-gallery img.is-last {
+    margin-bottom: 0;
+}
+/* WordPress body paragraphs carry their own margins, which would make the gap
+   between two images in DIFFERENT paragraphs bigger than between two in the
+   same one. Zeroed so the 16px rhythm is the only spacing in play. */
+.project-gallery p {
+    margin: 0;
+}
+
+/* Closing CTA on project detail. Spacing is deliberately asymmetric: a large
+   gap above separates it from the gallery (it is a change of subject, not the
+   next image), a smaller one below because the pagers that follow are a quieter
+   footnote and shouldn't feel like a third section.
+
+   THE DOT IS PURPLE, NOT THE SIGNAL GREEN. Project detail resolves to a WHITE
+   page (see the scrollbar's PAGE_BG_FALLBACK), and #AAFF00 measures ~1.00:1 on
+   white — identical luminance, invisible. Same call /projects made for the same
+   reason: on a light ground the page uses its own accent. Detail pages sit
+   inside the projects section, so they borrow that page's interaction accent
+   rather than inventing one. */
+.project-start {
+    margin-top: 120px;
+    margin-bottom: 80px;
+}
+.project-start .avail-dot {
+    color: var(--cognak-purple-text);
+}
+@media (max-width: 720px) {
+    .project-start {
+        margin-top: 72px;
+        margin-bottom: 56px;
+    }
+}
+
+/* Reveal. Same spec as the homepage's .hp-lazy, deliberately reused rather than
+   re-invented: 12px rise, 0.5s, plain ease. This page had NO motion of any kind
+   before, so this is the vocabulary the entrance-choreography item will inherit.
+
+   Gated on html.js so a no-JS visit shows every image immediately, and the
+   reduced-motion block below restores them too. Both escapes are mandatory
+   here — this exact pattern (hide in CSS, reveal in JS, forget one of the
+   escapes) is what shipped an invisible headline on /send in July. */
+html.js .project-gallery img {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition-delay: var(--gd, 0ms);
+}
+html.js .project-gallery img.is-in {
+    opacity: 1;
+    transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+    html.js .project-gallery img {
+        opacity: 1;
+        transform: none;
+        transition: none;
+        transition-delay: 0ms;
+    }
+}
+
 
 /* List row → hero. The old snapshot here is a single line of type, and
    interpolating its box up to a full-bleed hero visibly stretches the

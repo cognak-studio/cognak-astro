@@ -193,11 +193,36 @@
             .observe(navEl, { attributes: true, attributeFilter: ['class', 'style'] });
     }
 
-    // Content height changes after images/fonts/WebGL settle, and /brief swaps in
-    // a whole questionnaire — re-measure rather than trusting the first reading.
+    /* Content height changes after images/fonts/WebGL settle, /brief swaps in a
+       whole questionnaire, and /send renders its share list after a fetch —
+       re-measure rather than trusting the first reading.
+
+       ** NEVER observe document.body HERE. ** custom.css:463 sets
+       `html, body { height: 100% }` (WordPress-era), which pins body's box to
+       the viewport permanently: content that overflows it grows
+       documentElement.scrollHeight but leaves body.offsetHeight unchanged
+       forever. A ResizeObserver on a box that never changes size never fires.
+       Measured on /send 2026-07-31: injecting 800px of content moved
+       scrollHeight 1387 -> 2187 while body.offsetHeight stayed 945.
+       That silently disabled this observer, and an identical one on /send, from
+       the day each shipped. #cognak-main is NOT pinned and does grow (945 ->
+       1706 in the same test); every page renders one.
+
+       LENIS IS RESIZED HERE TOO, deliberately. Lenis caches the document height
+       and clamps wheel scrolling to it, so a stale reading dead-ends the page
+       partway down — on /send that made the whole footer unreachable. Fixing it
+       centrally means every page with async content gets it, rather than each
+       page hand-rolling its own sync. This file already reads window._lenis for
+       the scroll position, so it is not a new dependency. */
     if (window.ResizeObserver) {
-        new ResizeObserver(function () { metrics(); render(currentScroll()); })
-            .observe(document.body);
+        var growTarget = document.getElementById('cognak-main') || document.body;
+        new ResizeObserver(function () {
+            try {
+                if (window._lenis && window._lenis.resize) window._lenis.resize();
+            } catch (e) {}
+            metrics();
+            render(currentScroll());
+        }).observe(growTarget);
     }
     window.addEventListener('load', function () { metrics(); onScroll(); });
 

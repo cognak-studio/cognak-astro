@@ -818,21 +818,38 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        the page dead-ended partway down, with the Sign-in security card and the
        whole footer unreachable. Deleting a share, adding files, and expanding
        the security card all move the height too.
-       Rather than chase each call site, watch the dashboard: any height change
-       re-measures. rAF-coalesced so a burst of mutations costs one resize. */
-    (function observeDashHeight() {
+       Rather than chase each call site, watch the page: any height change
+       re-measures. rAF-coalesced so a burst of mutations costs one resize.
+
+       ** DO NOT observe document.body. ** That is what this block did between
+       July 2026 and 2026-07-31, and it never fired once. custom.css:463 sets
+       `html, body { height: 100% }`, pinning body's box to the viewport: content
+       that overflows it grows documentElement.scrollHeight while
+       body.offsetHeight stays exactly innerHeight forever, and a
+       ResizeObserver on a box that never resizes never fires. Measured live:
+       injecting 800px moved scrollHeight 1387 -> 2187, body.offsetHeight stayed
+       945. The footer bug therefore never actually got fixed — it just looked
+       fixed because the swapStep/syncScroll calls cover the gate->dash step,
+       and only the LATER async growth (the share list arriving) was stranded.
+
+       Guarding on documentElement.scrollHeight rather than the target's own
+       height: scrollHeight is the number Lenis actually clamps against, so it
+       is the thing worth reacting to, and it stays correct even if the growth
+       happens somewhere other than the observed element. */
+    (function observePageHeight() {
       if (!window.ResizeObserver) return;
       var pending = false, lastH = 0;
-      var ro = new ResizeObserver(function (entries) {
-        var h = entries[0] && entries[0].target ? entries[0].target.offsetHeight : 0;
+      var ro = new ResizeObserver(function () {
+        var h = document.documentElement.scrollHeight;
         if (h === lastH || pending) return;
         lastH = h;
         pending = true;
         requestAnimationFrame(function () { pending = false; syncScroll(); });
       });
-      // document.body rather than #dash: catches the gate, the dashboard, and
-      // anything else that grows the page.
-      ro.observe(document.body);
+      // #cognak-main is not height-pinned and wraps both the gate and the
+      // dashboard, so it grows with everything this page can render.
+      var target = document.getElementById('cognak-main');
+      if (target) ro.observe(target);
     })();
 
     /* -------------------------------------------------------------- auth --- */

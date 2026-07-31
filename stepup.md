@@ -91,10 +91,36 @@ Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer
 
 ## Project detail (audited via DuVine)
 
-- [ ] **The gallery has no design.** DuVine's five gallery images sit inside a single `<p>`, stacking edge-to-edge with no spacing, no reveal, no lazy fade. Fix: IO-gated fade + 12px rise (the existing `hp-lazy` spec), spacing rhythm between images, stagger when two enter together.
+> **READ THIS BEFORE RE-DIAGNOSING THIS PAGE'S TYPE.** On 2026-07-31 I read
+> `screen.css` alone and reported that the three columns were 13px body copy at
+> `width:30%` with a grey uppercase category — and built a comparison mockup on
+> that basis. All of it was wrong. `custom.css` (~line 3180) overrides this page
+> with `!important`: body is **15px/1.75**, columns are `flex:1` max 400px with a
+> **100px** gap, the category is **Diatype Mono in `--cognak-purple-text`**, and
+> the labels are sentence-case by an explicit `text-transform:none`. Those are
+> deliberate decisions, not WordPress residue. **Measure the live page** (or read
+> past screen.css) before proposing type changes here.
+
+- [x] **Asymmetric editorial layout.** — NOT an audit item; Pierce's call 2026-07-31, chosen from a mockup of three directions. Identity (title / category / grade / invitation) holds the left; the three text groups stack in a 420px right-hand column.
+  - **The three groups are untouched** — same classes, same order, same copy, so all the existing typography still applies. This changed the CONTAINER only.
+  - The right column is 420px against the 357px each column had before, so the reading measure got slightly WIDER, not narrower. Longest group in the archive is 564 chars (startup-institute), ~10 lines here; median 294.
+  - `grid-template-areas`, not nested wrappers: the invitation sits under the title on desktop but AFTER the three groups below 900px, where a CTA wedged between the category and the case study would interrupt the read.
+  - Two knock-on fixes the layout forced: the title's line-height computed to exactly **1.0**, fine while it never wrapped and colliding now that most titles break to two lines in the narrower column (1.06 is the smallest value clearing the descenders); and the category's `margin-bottom: 55px` had to be zeroed in the lead, or the 55px plus the chip's 18px read as a gap rather than a pairing.
+- [x] **Closing CTA on every project page.** — NOT an audit item; Pierce 2026-07-31. Every project used to dead-end in prev/next: you could read a whole case study and the only offer was another case study.
+  - Bottom of the page: the SAME block /projects and /studio close with (`.hp-start-wrap` + `.projects-start-link` + `.availability-sub`), not a bespoke button. Placed BEFORE the pagers — the pagers mean "keep browsing", the CTA means "hire us", and the ask should come before the alternative. Its avail-dot is purple, not the signal green: detail pages resolve to a WHITE background where `#AAFF00` is ~1.00:1, the same reason /projects yields.
+  - In the lead column: a SOFTER door, "Let's make something together. / Say hello" → `mailto:hello@cognak.com`. Deliberately a different destination from the /brief button below it — the footer already frames the site's CTAs as "a question, a project, a conversation", and two identical asks on one page collapse that into one.
+
+- [x] **The gallery has no design.** — done 2026-07-31.
+  - Bigger than the audit implies: **36 of the 53 projects have a gallery, 97 images total** (Alchemy Peppers has 8, DuVine 6, median project 2). This is the dominant look of the section, not an edge case. 17 projects render the figure EMPTY.
+  - Figure now carries `project-gallery`. **Never write a bare `.img-wide img` rule** — the HERO figure carries `.img-wide` too, so that would gap the hero and hold it at opacity 0 awaiting an observer.
+  - 16px rhythm, matching the `.projects-grid` gap so the number is already in the system. Margin goes on the IMG, not the `<p>`: `#cognak-main picture { display: contents }` makes the pictures layout-transparent, and one `<p>` can hold five images, so a rule on the p would space the GROUPS. `.project-gallery p { margin: 0 }` kills the WordPress paragraph margins that would otherwise make cross-paragraph gaps bigger than within-paragraph ones. An empty figure collapses on its own because the margin lives on the images.
+  - **Zeroing the trailing gap is not winnable in CSS.** `img:last-child` is true for EVERY image (each sits after a `<source>` inside its own `<picture>`), so the obvious selector would strip the gap from all five images in DuVine's last paragraph. JS tags the real last one `.is-last`. No-JS fallback is 16px of dead space before the pagers — invisible.
+  - Reveal reuses the homepage `.hp-lazy` spec verbatim (12px rise, 0.5s, plain ease) in `cognak-single.js`. **Stagger is PER OBSERVER BATCH, not per index** — index-keyed means image 6 waits 450ms even when it enters alone and you watch a blank box. Delay is passed as a `--gd` custom property the CSS transition reads (same approach as the /brief Sent screen). Images are `loading="lazy"`, so a not-yet-complete image waits for its own `load` before revealing, with an `error` listener so a broken src can't strand it invisible. html.js gate + reduced-motion escape both present.
 - [ ] **Alt text → captions.** DuVine's alts are already written like captions ("— interior map", "— magazine hero"). Render as optional mono micro-captions that fade in after the image settles. Zero new authoring cost.
 - [ ] **Entrance choreography.** The 70px mono title, category, and three detail columns appear statically — the only page with no entrance at all. Word-stagger the title, accent-fade the category, rise the columns 80ms apart.
-- [ ] **Pay off the vintage.** DuVine is a 2013-dated, 10-year relationship — literally an XO. The cask grade appears in the archive list and homepage hover-meta but never on the detail page. Small mono chip beside the category.
+- [x] **Pay off the vintage.** — done 2026-07-31. Mono chip under the category in the new lead column, format `XO · 12y`, identical thresholds and identical string format to `vintageOf()` on /projects — a project must not read XO in the archive and VSOP here.
+  - **`projectYear` is NOT a usable fallback** (unlike /projects, which risks it): several projects carry a RANGE like `2016-2026`, and `Number()` on that is NaN, which dates them to 1970 and grades the whole archive XO. Only a real `date` produces a chip. Verified across the archive: 16 XO / 16 VSOP / 21 VS, and exactly one project (`vzn`, the superseded seed) has no usable date and correctly renders no chip.
+  - Colour is `--cognak-purple-text`, the page's existing accent and the same value as the category directly above — deliberately NOT a fourth purple while the colour-token item is still open. 4.70:1 on white, so it clears AA for normal text, which it must: the chip carries real information.
 - [ ] **Directional prev/next.** The `proj-switch` crossfade is flat; add a 24px slide keyed to direction under the existing 220ms. Wire the built-but-unused `is-next` spinning-ring cursor to the side pagers.
 - [ ] **End-of-gallery pager peek.** When the last image enters view, slide both pagers fully in for ~1.2s then re-park — a designed "you've reached the end, next?" beat.
 - [ ] **Content nits.** DuVine's `projectType` has a trailing comma (`…Development, '`), `projectYear: 2016-2026` uses a hyphen not an en-dash, and the body still carries `wp-image-2668` classes. Worth a content-collection lint pass.
