@@ -39,6 +39,58 @@ const {
 const isHome = page === 'home';
 const bodyClass = isHome ? 'non-fixed-nav' : 'fixed-nav';
 
+/* Scrollbar + color-scheme.
+   The site had zero scrollbar styling, so every dark page rendered the stock
+   light scrollbar - the most visible browser default left on it.
+
+   Light/dark is DERIVED from the page's own background rather than a hardcoded
+   list, so a new page can't drift out of sync with its own colour (which is how
+   the studio avail-dot ended up contradicting itself in three places). Two pages
+   don't pass pageBg and must be named explicitly: home paints #17151a from CSS,
+   and project detail resolves to white. Assuming "no pageBg = light" would put a
+   light scrollbar on the darkest page on the site, so these fallbacks are
+   load-bearing, not decorative.
+
+   color-scheme also themes native form controls (the /brief range slider, the
+   /tools number spinners, autofill on /send) - intended, and the reason this is
+   derived per page rather than set once globally.
+
+   Safari is intentionally left alone: it doesn't support scrollbar-color, and
+   the ::-webkit-scrollbar alternative would replace macOS overlay scrollbars
+   with always-visible ones, which is worse than the default we're fixing. */
+const PAGE_BG_FALLBACK = { home: '#17151a', project: '#ffffff' };
+
+/* Thumb colour per page, matching the ::selection accents in custom.css. Carried
+   at 60% alpha so the bar reads as a tint of the page, not a saturated stripe. */
+const SCROLL_ACCENT = {
+  home:     '#9F50FF',
+  projects: '#9647F0',
+  project:  '#9647F0',
+  studio:   '#FFB2E4',
+  brief:    '#EF9146',
+  colophon: '#AAFF00',
+  privacy:  '#4A2840',
+  send:     '#8FC2F2',
+  receive:  '#8FC2F2',
+  tools:    '#B47CFF',
+  '404':    '#AAFF00',
+};
+
+function relLuminance(hex) {
+  let h = String(hex || '').replace('#', '').trim();
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  if (h.length !== 6) return 1; // unparseable -> treat as light, i.e. leave it alone
+  const chan = (v) => {
+    const s = parseInt(v, 16) / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * chan(h.slice(0, 2)) + 0.7152 * chan(h.slice(2, 4)) + 0.0722 * chan(h.slice(4, 6));
+}
+
+const schemeBg   = pageBg || PAGE_BG_FALLBACK[page] || '#ffffff';
+const isDarkPage = relLuminance(schemeBg) < 0.25;
+const scrollThumb = (SCROLL_ACCENT[page] || '#9F50FF') + '99'; // 8-digit hex = 60% alpha
+
 // Cache-buster for the unhashed /js/ scripts, stable across the whole build:
 // the deploy's commit SHA on Vercel, else an hour-rounded timestamp locally.
 // Every deploy gets a fresh ?v=, so phones stop running day-old cached JS
@@ -129,6 +181,7 @@ import '../styles/site.css';
   <meta name="theme-color" content="#3a313b" />
   {isHome && <style is:inline set:html={`html,body{background:#17151a!important}`}></style>}
   {pageBg && <style is:inline set:html={`html,body{background-color:${pageBg}!important}`}></style>}
+  <style is:inline set:html={`html{color-scheme:${isDarkPage ? 'dark' : 'light'};scrollbar-color:${scrollThumb} transparent;scrollbar-width:thin}`}></style>
   <title set:html={title}></title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://assets.unicorn.studio" />
