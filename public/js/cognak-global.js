@@ -21,6 +21,38 @@
         return '⛈️';
     }
 
+    /* This closure already knew the LA conditions and kept them to itself —
+       everything above is emoji + label. Republishing the raw reading on
+       `window` lets other page features react to real weather with NO extra
+       network call. First customer: the homepage dust motes, which fall like
+       drizzle when it rains (see cognak-home.js).
+
+       WMO weather codes that count as rain: 51-57 drizzle, 61-67 rain,
+       80-82 rain showers, 95-99 thunderstorm. 71-77 and 85-86 are SNOW and are
+       deliberately excluded — this is Los Angeles, and if it ever does snow
+       downtown the motes should not quietly pretend it's rain.
+
+       The event matters as much as the object: the fetch is async and fires
+       ~2s after load (or on idle), so any consumer has already started running
+       by the time this lands and can't just read the value once at init. */
+    function isRainCode(code) {
+        return (code >= 51 && code <= 67) ||
+               (code >= 80 && code <= 82) ||
+               (code >= 95 && code <= 99);
+    }
+
+    function publishWeather(code, isDay, tempF) {
+        window.COGNAK_WX = {
+            code:  code,
+            isDay: isDay,
+            tempF: tempF,
+            rain:  isRainCode(code)
+        };
+        window.dispatchEvent(new CustomEvent('cognak:weather', {
+            detail: window.COGNAK_WX
+        }));
+    }
+
     function fetchWeather() {
         fetch('https://api.open-meteo.com/v1/forecast?latitude=34.05&longitude=-118.24&current=weather_code,temperature_2m,is_day&timezone=America%2FLos_Angeles')
             .then(function(r) { return r.json(); })
@@ -32,6 +64,7 @@
                 tempHot = tempF >= 90;
                 weatherEmoji = tempHot ? '🔥' : getWeatherEmoji(code, isDay);
                 tempLabel = Math.round(tempF) + '°F';
+                publishWeather(code, isDay, tempF);
             })
             .catch(function() { /* keep current emoji on error */ });
     }

@@ -52,8 +52,18 @@ Full-site audit, 2026-07-27. Goal: every element considered; a visiting designer
   - Arrow is `left:50%` + `translate(-50%,-50%)`, not `left:0` — the glyph box is only as wide as the +, and the 0.7em arrow would otherwise push into the word gap.
   - EDGE CASE HANDLED: if there are ever 6 or fewer featured projects there's nothing to reveal, and the old code just navigated while still saying "more". Now the button initialises straight into its exhausted state with no animation.
   - a11y: `aria-label` on the `<a>` carries the accessible name ("Show more projects" → "View all projects"); the glyph and both stacked labels are `aria-hidden`, so nothing is announced twice.
-- [ ] **Weather-reactive dust motes.** `fetchWeather()` already knows LA conditions — on rain codes, let the motes fall like drizzle. Zero extra network.
-- [ ] **Odd-count grid hole.** Featured grid is 2-col with no odd-count handling (the archive grid solved this with `direction: rtl`).
+- [x] **Weather-reactive dust motes.** `fetchWeather()` already knows LA conditions — on rain codes, let the motes fall like drizzle. Zero extra network. — done 2026-07-31.
+  - "Already knows" was true but unusable: the reading lived in a closure in `cognak-global.js` and only ever became an emoji + a label. It now republishes `window.COGNAK_WX = {code, isDay, tempF, rain}` AND fires a `cognak:weather` event. **The event is the important half** — the fetch lands ~2s after load, so a consumer that reads the value once at init always reads nothing.
+  - Rain = WMO 51-67 (drizzle + rain), 80-82 (showers), 95-99 (thunderstorm). **71-77 and 85-86 are SNOW and are deliberately excluded** — if it ever snows downtown the motes shouldn't quietly claim it's rain.
+  - **`rainT` is lerped at 0.01/frame, never switched.** A hard flip reverses several hundred points on one frame and reads as a bug. Full change takes ~7.7s; it crosses the 0.5 respawn-flip threshold at ~1.1s.
+  - **TUNING — the first version didn't work and the numbers say why.** Gravity 0.018 gave a terminal velocity of ~36px/s against the dust's own ~16px/s rise. Simulated headlessly: 2x is not "different weather", it's dust drifting the wrong way. Now 0.045 → ~87px/s, about 5x, crossing the section in 6.8s instead of 20s.
+  - **The wander impulse had to be damped too** (`1 - 0.75 * rainT`). It's what makes these read as dust: its vertical kick (±0.35) was the same order as the terminal velocity, so at full strength the points jittered downward instead of falling. It never fully stops — this should stay weather, not become a particle grid.
+  - Particles recycle at BOTH edges (`y < -10 || y > H + 40`) regardless of direction. Mid-transition some are still travelling the old way and would otherwise sail off and never return. `init()` also picks its spawn edge and initial drift from the CURRENT `rainT`.
+  - **It rains in LA ~35 days a year, so this would ship unseen and rot.** `window.COGNAK_RAIN_DEBUG = true` in the console starts it within ~1s — `syncWeather()` is re-polled every 60 frames specifically so the flag works without hand-dispatching an event. Use it before assuming the feature is broken.
+- [x] **Odd-count grid hole.** Featured grid is 2-col with no odd-count handling (the archive grid solved this with `direction: rtl`). — CLOSED 2026-07-31, no code changed. Pierce: "left justify orphan, but I will never have an odd number."
+  - **It cannot currently happen.** 10 projects are featured against a 2-column desktop grid — 5 clean rows — and the pre-reveal state shows 6, also even. Below 720px `.hp-grid` is forced to `1fr`, where a hole is impossible by definition.
+  - **A left-justified orphan is already the behaviour.** Default LTR grid auto-placement puts an odd last tile in column 1 with the gap on the right. Adding CSS for it would be a no-op rule — deliberately not added.
+  - **Do NOT copy the archive's `direction: rtl` here.** It works on /projects because that grid is date-sorted and nobody notices rows filling right-to-left. The homepage grid is curated by `homepagePosition`, so rtl would silently transpose 1↔2, 3↔4, and so on down the page.
 
 ## /projects
 

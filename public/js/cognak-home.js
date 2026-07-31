@@ -784,6 +784,31 @@
     var mouse    = { x: -9999, y: -9999 };
     var isMobile = window.innerWidth <= 720;
 
+    /* ── Weather-reactive drizzle ────────────────────────────────────────────
+       The motes are dust in a projector beam: they RISE. When it's actually
+       raining in LA they fall instead. Zero extra network — cognak-global.js
+       already fetches the reading for the temperature pill and now republishes
+       it as window.COGNAK_WX + a `cognak:weather` event.
+
+       rainT is lerped, never switched. A hard flip mid-flight reads as a bug:
+       several hundred points reversing on one frame. At 0.01/frame the change
+       takes ~1.7s, which the existing 0.97 damping absorbs into something that
+       looks like the air in the room changing.
+
+       TESTABLE ON DEMAND: it rains in Los Angeles about 35 days a year, so this
+       would otherwise ship unseen and rot silently. Set
+       `window.COGNAK_RAIN_DEBUG = true` in the console and it starts within a
+       couple of seconds — syncWeather() is re-polled every 60 frames precisely
+       so the flag works without dispatching an event by hand. */
+    var rainT = 0, rainTarget = 0, wxPoll = 0;
+
+    function syncWeather() {
+        var wx = window.COGNAK_WX;
+        rainTarget = (window.COGNAK_RAIN_DEBUG || (wx && wx.rain)) ? 1 : 0;
+    }
+    syncWeather();
+    window.addEventListener('cognak:weather', syncWeather);
+
     /* Sparse "dust in a projector beam" density, scaled to section area */
     function targetCount() {
         return Math.max(200, Math.min(900, Math.round(W * H / 4500)));
@@ -805,10 +830,16 @@
 
     function Particle() { this.init(true); }
     Particle.prototype.init = function(scatter) {
+        // Respawn edge and initial drift follow whichever way the air is
+        // currently moving, so a particle recycled mid-transition doesn't
+        // immediately swim against the rest of them.
+        var falling = rainT > 0.5;
         this.x     = Math.random() * W;
-        this.y     = scatter ? Math.random() * H : H + Math.random() * 30;
+        this.y     = scatter ? Math.random() * H
+                   : falling ? -(Math.random() * 30)
+                             : H + Math.random() * 30;
         this.vx    = (Math.random() - 0.5) * 0.7;
-        this.vy    = -(0.08 + Math.random() * 0.3);
+        this.vy    = (falling ? 1 : -1) * (0.08 + Math.random() * 0.3);
         /* Sharp little points: mostly ~1px, a few slightly larger */
         this.r     = 0.5 + Math.random() * 1.1;
         this.a     = 0.25 + Math.random() * 0.55;
@@ -820,8 +851,15 @@
     Particle.prototype.update = function() {
         this.timer--;
         if (this.timer <= 0) {
-            this.vx += (Math.random() - 0.5) * 0.7;
-            this.vy += (Math.random() - 0.5) * 0.35 - 0.05;
+            /* The wander impulse is what makes these read as DUST. Left at full
+               strength while raining it swamps the fall — the vertical kick
+               (+-0.35) is the same order as the terminal velocity, so the
+               points would jitter downward rather than fall. Damped hard as
+               rainT rises; the drift never fully stops, so it stays weather
+               rather than a particle grid. */
+            var wander = 1 - 0.75 * rainT;
+            this.vx += (Math.random() - 0.5) * 0.7 * wander;
+            this.vy += ((Math.random() - 0.5) * 0.35 - 0.05) * wander;
             this.timer = 60 + Math.random() * 140;
         }
         if (!isMobile) {
@@ -833,9 +871,24 @@
                 this.vy += dy / d * f;
             }
         }
+        /* Drizzle: a downward acceleration that grows with rainT, plus extra
+           horizontal damping — rain tracks straighter than drifting dust.
+           Terminal velocity is set by the 0.97 damping below: 0.018/(1-0.97)
+           = 1.5px/frame, ~90px/s. Tuned against the dust's own ~16px/s rise:
+           at 2x it just looked like dust drifting the other way, which is not
+           a different weather, it's a bug. ~5x reads as falling. Much beyond
+           this and it stops being the same motes behaving differently and
+           becomes a second, unrelated effect. */
+        if (rainT > 0.001) {
+            this.vy += 0.045 * rainT;
+            this.vx *= (1 - 0.25 * rainT);
+        }
         this.vx *= 0.97; this.vy *= 0.97;
         this.x += this.vx; this.y += this.vy;
-        if (this.y < -10) { this.init(false); }
+        // Recycle at BOTH edges regardless of direction: mid-transition some
+        // particles are still travelling the old way and would otherwise sail
+        // off and never come back.
+        if (this.y < -10 || this.y > H + 40) { this.init(false); }
         if (this.x < 0) this.x = W;
         if (this.x > W) this.x = 0;
     };
@@ -853,6 +906,8 @@
     resize();
 
     (function loop() {
+        if (++wxPoll >= 60) { wxPoll = 0; syncWeather(); }
+        rainT += (rainTarget - rainT) * 0.01;
         ctx.clearRect(0, 0, W, H);
         particles.forEach(function(p) { p.update(); p.draw(); });
         requestAnimationFrame(loop);
