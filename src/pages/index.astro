@@ -7,6 +7,13 @@ import { getImage } from 'astro:assets';
 const featured = (await getCollection('projects', (p) => p.data.homepageFeature && !p.data.draft))
   .sort((a, b) => (a.data.homepagePosition ?? 99) - (b.data.homepagePosition ?? 99));
 
+/* Total for the superscript on the "all projects" end state — the SAME count
+   /projects puts on its headline, and counted the same way (every non-draft
+   project, not the featured subset). The button navigates to that page, so the
+   two numbers have to agree; deriving it here rather than hardcoding means they
+   can't drift when a project is added. */
+const totalProjects = (await getCollection('projects', (p) => !p.data.draft)).length;
+
 // Pre-resolve thumbnail + cursor-hero URLs (Astro image optimization).
 const cards = await Promise.all(
   featured.map(async (p) => {
@@ -118,7 +125,7 @@ const cards = await Promise.all(
            labels can stay aria-hidden and nothing is read twice. */}
         <a href="/projects" class="hp-more-btn" id="hp-load-more" aria-label="Show more projects">
           <span class="hp-more-glyph" aria-hidden="true"><span class="hp-more-plus">+</span></span>
-          <span class="hp-more-label" aria-hidden="true"><span class="hp-more-word hp-more-word--more">more</span><span class="hp-more-word hp-more-word--all">all projects</span></span>
+          <span class="hp-more-label" aria-hidden="true"><span class="hp-more-word hp-more-word--more">more</span><span class="hp-more-word hp-more-word--all">all projects<sup class="hp-more-count-sup" aria-hidden="true">{totalProjects}</sup></span></span>
         </a>
       </div>
     </div>

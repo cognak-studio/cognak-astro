@@ -795,11 +795,18 @@
        takes ~1.7s, which the existing 0.97 damping absorbs into something that
        looks like the air in the room changing.
 
-       TESTABLE ON DEMAND: it rains in Los Angeles about 35 days a year, so this
-       would otherwise ship unseen and rot silently. Set
-       `window.COGNAK_RAIN_DEBUG = true` in the console and it starts within a
-       couple of seconds — syncWeather() is re-polled every 60 frames precisely
-       so the flag works without dispatching an event by hand. */
+       TESTABLE ON DEMAND, two ways: it rains in Los Angeles about 35 days a
+       year, so this would otherwise ship unseen and rot silently.
+         1. Type "rain" anywhere on the homepage — a toggle, same easter-egg
+            pattern as the "cognak" sparkle burst in cognak-global.js.
+         2. `window.COGNAK_RAIN_DEBUG = true` in the console.
+       syncWeather() is re-polled every 60 frames precisely so the console flag
+       works without dispatching an event by hand.
+
+       The override is a TOGGLE, not a latch: typing "rain" a second time hands
+       control back to the real forecast. If it genuinely is raining in LA, the
+       motes stay falling — the override can force rain on, but it deliberately
+       can't force the actual weather off. */
     var rainT = 0, rainTarget = 0, wxPoll = 0;
 
     function syncWeather() {
@@ -808,6 +815,28 @@
     }
     syncWeather();
     window.addEventListener('cognak:weather', syncWeather);
+
+    /* Type "rain". Deliberately the same matcher shape as the "cognak" egg:
+       reset while a form field has focus (otherwise typing a brief with the
+       word "rain" in it starts a storm), and a restart-on-first-letter fallback
+       so "rrain" still fires. This lives HERE rather than in cognak-global.js
+       because the whole block early-returns without the canvas — which scopes
+       the egg to the homepage for free. */
+    (function() {
+        var SEQ = 'rain', pos = 0;
+        document.addEventListener('keydown', function(e) {
+            var tag = document.activeElement ? document.activeElement.tagName : '';
+            if (tag === 'INPUT' || tag === 'TEXTAREA') { pos = 0; return; }
+            if (e.metaKey || e.ctrlKey || e.altKey) { pos = 0; return; }
+            var k = (e.key || '').toLowerCase();
+            pos = (k === SEQ[pos]) ? pos + 1 : (k === SEQ[0] ? 1 : 0);
+            if (pos === SEQ.length) {
+                pos = 0;
+                window.COGNAK_RAIN_DEBUG = !window.COGNAK_RAIN_DEBUG;
+                syncWeather();
+            }
+        });
+    })();
 
     /* Sparse "dust in a projector beam" density, scaled to section area */
     function targetCount() {
@@ -874,13 +903,17 @@
         /* Drizzle: a downward acceleration that grows with rainT, plus extra
            horizontal damping — rain tracks straighter than drifting dust.
            Terminal velocity is set by the 0.97 damping below: 0.018/(1-0.97)
-           = 1.5px/frame, ~90px/s. Tuned against the dust's own ~16px/s rise:
-           at 2x it just looked like dust drifting the other way, which is not
-           a different weather, it's a bug. ~5x reads as falling. Much beyond
-           this and it stops being the same motes behaving differently and
-           becomes a second, unrelated effect. */
+           = 3px/frame, ~175px/s, crossing the section in ~3.7s against the
+           dust's ~30s rise. Tuned in three passes: 0.018 (~36px/s, only 2x the
+           rise) read as dust drifting the wrong way rather than as weather;
+           0.045 (~88px/s) read as falling but sluggish; 0.09 is the one that
+           reads as rain. Past ~0.15 the points start to streak and stop being
+           recognisably the same motes.
+           GRAVITY IS THE ONLY SPEED KNOB — do not raise it by lowering the
+           0.97 damping below, which also sets how fast the mouse-repulsion
+           impulse and the wander kick decay. */
         if (rainT > 0.001) {
-            this.vy += 0.045 * rainT;
+            this.vy += 0.09 * rainT;
             this.vx *= (1 - 0.25 * rainT);
         }
         this.vx *= 0.97; this.vy *= 0.97;

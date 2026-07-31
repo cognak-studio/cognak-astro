@@ -1618,6 +1618,34 @@ html.home-scrolled #cognak-cookie {
     opacity: 1;
     transform: translateY(0);
 }
+/* Superscript count on the end state, matching .projects-count-sup on the
+   /projects headline — the page this button navigates to. The em-based ratios
+   (0.18em size, -2.4em rise) are copied verbatim so it reads as the same mark
+   at a different scale rather than a second, similar idea.
+
+   COLOR IS THE ONE DIVERGENCE, on purpose. /projects forces #4A3F6B, its
+   headline accent — that's a lavender for a light page and it would be nearly
+   invisible on this near-black. Here the sup inherits currentColor, so it is
+   white at rest and travels to --cognak-purple-text with the label on hover.
+   Same rule the avail-dots follow: the mark is shared, the colour is the
+   page's.
+
+   The `top` offset is a relative-position nudge, so it costs no layout height
+   and the measured --w-all is unaffected by it — but the sup's WIDTH does count
+   toward that measurement, which is what we want. */
+.hp-more-count-sup {
+    font-size: 0.18em;
+    font-weight: 700;
+    letter-spacing: 0;
+    vertical-align: baseline;
+    position: relative;
+    top: -2.4em;
+    margin-left: 0.15em;
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    min-width: 2ch;
+    text-align: left;
+}
 @media (prefers-reduced-motion: reduce) {
     .hp-more-label,
     .hp-more-word,
