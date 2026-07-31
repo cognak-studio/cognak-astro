@@ -1522,6 +1522,25 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           btn.classList.remove('is-sending');
           btn.classList.add('is-sent');
           if(labelEl) labelEl.textContent='Sent ✓';
+          /* ---- conversion tracking ----
+             This fires once, right here, only after /api/brief has confirmed
+             the email actually sent — not on the "Start a project" click that
+             lands someone on this page (BaseLayout.astro logs that separately
+             as the non-conversion event click_start_project) and not on form
+             interaction. Before 2026-07 "Start a project" was a mailto: link,
+             so BaseLayout's sitewide handler counted every click as a
+             conversion (AW-876403750/KaY9CKLGmLwcEKa486ED, the account's
+             "Contacts" goal). Once the button became a link to /brief that
+             stopped firing anything — the click no longer matched the mailto
+             check, and nothing on this page replaced it. Reusing the same
+             conversion action here is deliberate (same "Contacts" goal,
+             same lead intent) and it's actually a tighter signal than the
+             old mailto click ever was: that only proved someone opened a
+             compose window, this proves the brief was delivered. */
+          if(typeof gtag==='function'){
+            gtag('event','brief_submitted',{'event_category':'Contact','event_label':d.label});
+            gtag('event','conversion',{'send_to':'AW-876403750/KaY9CKLGmLwcEKa486ED'});
+          }
           var beat=reduceMotion()?0:300;
           setTimeout(function(){
             showSent();
