@@ -3297,51 +3297,39 @@ body.pagers-idle a[rel="next"] {
 .template-single-project .information .details-extra {
     grid-area: extra;
     display: block !important;
-    margin-top: 44px;
+    /* Tight to the grade above — the two together are one record, not two
+       blocks. Was 44px when the group still had its own heading. */
+    margin-top: 20px;
     max-width: 420px;
 }
 
-/* More details, set as a MONO SPEC LIST rather than prose. It sits under the
-   client name in the left column, where the sans body copy of the two
-   narrative groups would read as a third paragraph of the same substance —
-   which it isn't. It's four fixed facts (duration, role, location, url) with
-   the same shape on all 53 projects, so it's a record, and the type says so.
+/* More details, set as a TIGHT MONO STACK directly under the cask grade. It
+   sits in the left column, where the sans body copy of the two narrative
+   groups would read as a third paragraph of the same substance — which it
+   isn't. It's a handful of fixed facts (duration, role, location, url) with the
+   same shape on every project, so it's a record, and the type says so.
 
-   The voice is the site's existing label voice: mono, uppercase, tracked —
-   the colophon spec block, the /projects list tags and the cask grade
-   directly above it all speak it. `!important` throughout because the
-   `.information .details h2 / p` rules above force the sans treatment on
+   The voice is the site's label voice: mono — the colophon spec block, the
+   /projects list tags and the grade directly above all speak it. `!important`
+   because the `.information .details p` rule above forces the sans treatment on
    everything inside a `.details` wrapper, and this is the one that opts out.
 
-   Hairline rules do the separating, which is why the authored "• " is stripped
-   in the frontmatter — a bullet AND a rule is one separator too many. */
-/* SPECIFICITY: `.information` is required in this selector. Without it this is
-   (0,2,1) against the existing `.template-single-project .information .details
-   h2` at (0,3,1), which is !important AND higher — so the mono never applied
-   and the label silently stayed sans. Caught in a browser, not by the compiler.
-   With `.information` the two tie at (0,3,1) and this one wins on order. */
-.template-single-project .information .details-extra h2 {
-    font-family: 'Diatype Mono', monospace !important;
-    font-size: 11px !important;
-    font-weight: 400 !important;
-    letter-spacing: 0.12em !important;
-    text-transform: uppercase !important;
-    color: rgba(58, 49, 59, 0.45) !important;
-    margin: 0 0 4px !important;
-}
+   NO HEADING AND NO RULES (Pierce, 2026-07-31). An earlier pass had a mono
+   "MORE DETAILS" label and hairline separators between every row. Both went:
+   the label named a few self-evident facts and, being the same mono as the
+   facts themselves, read as one more row; the rules turned a short list into a
+   table it isn't heavy enough to be. The grade above anchors the block.
+
+   The authored "• " is still stripped in the frontmatter — with the rules gone
+   the bullets could technically return, but a mono stack reads cleaner without
+   them. */
 .template-single-project .information .details-extra .col p {
     font-family: 'Diatype Mono', monospace !important;
     font-size: 13px !important;
-    line-height: 1.45 !important;
-    color: #3A313B !important;
+    line-height: 1.75 !important;
+    color: rgba(58, 49, 59, 0.78) !important;
     margin: 0 !important;
-    padding: 12px 0 !important;
-    border-top: 1px solid rgba(58, 49, 59, 0.12);
-}
-/* Closes the record. :last-child is safe here — unlike the gallery, these are
-   real sibling <p>s with no <picture> wrapper confusing the selector. */
-.template-single-project .information .details-extra .col p:last-child {
-    border-bottom: 1px solid rgba(58, 49, 59, 0.12);
+    padding: 0 !important;
 }
 /* The final row is always the client URL. Underline offset matches the body
    link treatment; the hover lands on the page accent like every other link
@@ -3477,9 +3465,10 @@ body.pagers-idle a[rel="next"] {
         grid-template-rows: auto auto auto auto;
     }
     .template-single-project .information .details-extra {
-        margin-top: 34px;
+        margin-top: 28px;
         max-width: none;
     }
+    .project-start--nogallery { margin-top: 40px; }
     .template-single-project .info-invite {
         align-self: start;
         margin-top: 48px;
@@ -4381,6 +4370,14 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .project-start {
     margin-top: 120px;
     margin-bottom: 80px;
+}
+/* 19 of the 54 projects have no gallery, so nothing sits between the
+   information block and this CTA. At the full 120px (on top of .information's
+   own 55px bottom margin) that left a ~175px void — the page read as broken
+   rather than spacious. The <figure> itself is omitted entirely in that case,
+   so this only has to close the remaining gap. */
+.project-start--nogallery {
+    margin-top: 56px;
 }
 .project-start .avail-dot {
     color: var(--cognak-purple-text);
