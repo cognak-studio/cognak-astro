@@ -24,9 +24,10 @@ metaDescription: View COGNAK's work for Accorin, a leading e-commerce agency pro
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 60
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2015/12/accorin-subpage.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2028" src="/media/2015/12/accorin-subpage.jpg" alt="Accorin — subpage" width="2048" height="1509" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2015/12/accorin-subpage.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/accorin-subpage.jpg" alt="Accorin case-studies page on a laptop" width="2048" height="1509" /></picture></p>
 

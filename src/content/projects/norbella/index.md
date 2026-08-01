@@ -3,7 +3,6 @@ title: Norbella
 slug: norbella
 category: Web, Development
 date: '2022-08-09T22:55:41+00:00'
-projectType: Web Design, Development
 projectYear: '2024'
 thumbnail: ./thumb.jpg
 hero: ./hero.png
@@ -26,10 +25,12 @@ metaDescription: View COGNAK's work for Norbella, a media agency partnering with
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 4
+engagementStart: 2024
 homepageFeature: true
 homepagePosition: 9
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2022/08/PXL_20220816_224425882.PORTRAIT-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2555" src="/media/2022/08/PXL_20220816_224425882.PORTRAIT-scaled.jpg" alt="Norbella — pxl 224425882.portrait" width="2048" height="1152" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2022/08/PXL_20220816_224425882.PORTRAIT-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2022/08/PXL_20220816_224425882.PORTRAIT-scaled.jpg" alt="Norbella page designs printed and pinned across a studio wall" width="2048" height="1152" /></picture></p>
 

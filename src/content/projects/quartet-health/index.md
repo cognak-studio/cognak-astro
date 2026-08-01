@@ -3,7 +3,6 @@ title: Quartet Health
 slug: quartet-health
 category: Web, Development
 date: '2019-07-17T00:29:09+00:00'
-projectType: Web Development
 projectYear: 2019-2021
 thumbnail: ./thumb.png
 hero: ./hero.jpg
@@ -27,8 +26,10 @@ metaDescription: View COGNAK's work for Quartet Health, a behavioral health star
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 24
+engagementStart: 2019
 homepageFeature: false
 homepagePosition: 1
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2026/06/quartet-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full" src="/media/2026/06/quartet-hero-cognak-scaled.jpg" alt="Quartet Health — hero" width="2560" height="1886" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2026/06/quartet-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/quartet-hero-cognak-scaled.jpg" alt="Quartet Health — hero" width="2560" height="1886" /></picture></p>

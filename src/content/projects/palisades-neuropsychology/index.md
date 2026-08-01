@@ -22,9 +22,10 @@ metaDescription: View COGNAK's work for Palisades Neuropsychology, pediatric neu
 clientLocation: Los Angeles
 role: led
 activeClient: true
+engagementMonths: 3
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2024/02/letterhead-cover-palisades.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2650" src="/media/2024/02/letterhead-cover-palisades.png" alt="Palisades Neuropsychology — letterhead cover" width="4000" height="3000" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2024/02/letterhead-cover-palisades.webp"/><img loading="lazy" decoding="async" src="/media/2024/02/letterhead-cover-palisades.png" alt="Palisades Neuropsychology — letterhead cover" width="4000" height="3000" /></picture></p>
 

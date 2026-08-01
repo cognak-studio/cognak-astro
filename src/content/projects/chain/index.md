@@ -22,9 +22,10 @@ metaDescription: View COGNAK's work for CHAIN, bottled reinventions of iconic sa
 clientLocation: Los Angeles
 role: led
 activeClient: false
+engagementMonths: 3
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2024/01/cognak-chain-sauce-ranch-and-munchies.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2643" src="/media/2024/01/cognak-chain-sauce-ranch-and-munchies.png" alt="CHAIN — sauce ranch and munchies" width="3000" height="1875" /></picture><picture><source type="image/webp" srcset="/media/2024/01/CHAIN_Pizza-Hut-Rendering_v1-1.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2644" src="/media/2024/01/CHAIN_Pizza-Hut-Rendering_v1-1.png" alt="CHAIN — pizza hut" width="3000" height="1875" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2024/01/cognak-chain-sauce-ranch-and-munchies.webp"/><img loading="lazy" decoding="async" src="/media/2024/01/cognak-chain-sauce-ranch-and-munchies.png" alt="CHAIN — sauce ranch and munchies" width="3000" height="1875" /></picture><picture><source type="image/webp" srcset="/media/2024/01/CHAIN_Pizza-Hut-Rendering_v1-1.webp"/><img loading="lazy" decoding="async" src="/media/2024/01/CHAIN_Pizza-Hut-Rendering_v1-1.png" alt="CHAIN — pizza hut" width="3000" height="1875" /></picture></p>
 

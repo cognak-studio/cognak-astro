@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for Seafood Nutrition Partnership, a nonprof
 clientLocation: Virginia
 role: led
 activeClient: true
+engagementMonths: 3
 homepageFeature: false
 noindex: true
 ---

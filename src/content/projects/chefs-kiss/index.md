@@ -22,6 +22,7 @@ metaDescription: View COGNAK's work for Chef's Kiss, an Idaho-based brand crafti
 clientLocation: Idaho
 role: led
 activeClient: true
+engagementMonths: 24
 homepageFeature: false
 homepagePosition: 5
 ---

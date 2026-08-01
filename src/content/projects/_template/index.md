@@ -9,7 +9,6 @@ title: Project Name            # shown everywhere (grid, page title, OG card)
 slug: project-name             # the URL → /projects/project-name  (lowercase, hyphens)
 category: Branding, Logo, Web
 date: 2026-06-21               # publish date — drives the "newest" sort
-projectType: Web Design        # shown in the home grid hover metadata
 projectYear: 2026
 
 thumbnail: ./thumb.jpg         # REQUIRED — the square tile in both grids
@@ -40,4 +39,4 @@ moreDetails: <p>• Bullet one</p><p>• Bullet two</p>
 ![Project Name — describe this image](./02.jpg)
 
 <!-- ...or raw HTML for full-width images already in /public/media/: -->
-<p><img src="/media/2026/06/project-wide.jpg" alt="Project Name — wide" width="2048" height="1200" /></p>
+<p><img src="/media/2026/06/project-wide.jpg" alt="Project Name            # shown everywhere (grid, page title, OG card) — wide" width="2048" height="1200" /></p>

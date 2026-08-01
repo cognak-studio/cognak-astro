@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for Maya Brenner, a world-renowned jeweler c
 clientLocation: Los Angeles
 role: led-build
 activeClient: false
+engagementMonths: 2
 homepageFeature: false
 noindex: true
 ---

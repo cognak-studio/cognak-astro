@@ -22,6 +22,7 @@ metaDescription: View COGNAK's work for Sidekick, an AI-native cybersecurity sol
 clientLocation: Boston
 role: led-build
 activeClient: true
+engagementMonths: 12
 homepageFeature: false
 ---
 

@@ -24,9 +24,10 @@ metaDescription: View COGNAK's work for REDD, a new generation of protein bars d
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 2
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2021/05/redd-2.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2425" src="/media/2021/05/redd-2.jpg" alt="R.E.D.D. project image" width="2048" height="1509" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/redd-3.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2426" src="/media/2021/05/redd-3.jpg" alt="R.E.D.D. project image" width="2048" height="1509" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/redd-4.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2427" src="/media/2021/05/redd-4.jpg" alt="R.E.D.D. project image" width="2048" height="1509" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/redd-5.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2428" src="/media/2021/05/redd-5.jpg" alt="R.E.D.D. project image" width="2048" height="1509" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/05/redd-2.webp"/><img loading="lazy" decoding="async" src="/media/2021/05/redd-2.jpg" alt="R.E.D.D. “Radiant Energy Seriously Delivered” shipper box rendered on teal" width="2048" height="1509" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/redd-3.webp"/><img loading="lazy" decoding="async" src="/media/2021/05/redd-3.jpg" alt="R.E.D.D. “Radiant Energy Seriously Delivered” shipper box rendered on amber" width="2048" height="1509" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/redd-4.webp"/><img loading="lazy" decoding="async" src="/media/2021/05/redd-4.jpg" alt="R.E.D.D. “Radiant Energy Seriously Delivered” shipper box rendered on orange" width="2048" height="1509" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/redd-5.webp"/><img loading="lazy" decoding="async" src="/media/2021/05/redd-5.jpg" alt="R.E.D.D. “Radiant Energy Seriously Delivered” shipper box rendered on green" width="2048" height="1509" /></picture></p>
 

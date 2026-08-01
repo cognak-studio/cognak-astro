@@ -11,15 +11,15 @@ aboutTheClient: '<p><a href="https://www.gulfoilltd.com">Gulf</a> Oil LP launche
 theWork: '<p>COGNAK was tasked by <a href="http://www.accorin.com">Accorin</a>—a full-service e-commerce agency in Boston—with contriving various digital and OOH advertisements for Gulf Electricity. Of those campaigns, the &#8220;Are We Turning You On Yet?&#8221; billboard campaign went a bit <a href="http://boston.cbslocal.com/2015/03/16/state-rep-slams-billboard-as-offensive-to-women/">viral</a> and sparked a deeper dive into the campaign, resulting in a video created by COGNAK on a campaign-specific landing page.</p>
 
   '
-moreDetails: '<p class="p1">• 6-month project</p>
+moreDetails: '<p>• 6-month project</p>
 
-  <p class="p1">• COGNAK was creative lead</p>
+  <p>• COGNAK was creative lead</p>
 
-  <p class="p1">• <span class="s1"></p>
+  <p>• <span></p>
 
-  <p class="p1">• Project via Accorin</span></p>
+  <p>• Project via Accorin</span></p>
 
-  <p class="p1">• Boston-based</p>
+  <p>• Boston-based</p>
 
   <p>&nbsp;</p>
 
@@ -30,9 +30,10 @@ metaDescription: View COGNAK's work for Gulf Electricity, electricity service fr
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 6
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2015/12/gulf-leggy-header-landing-video.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-222 size-full" src="/media/2015/12/gulf-leggy-header-landing-video.png" alt="gulf-leggy-header-landing-video" width="1168" height="2048" /></picture><picture><source type="image/webp" srcset="/media/2015/12/Gulf-Rock-Flight-3x5-May-15.webp"/><img loading="lazy" decoding="async" class="alignnone wp-image-221 size-full" src="/media/2015/12/Gulf-Rock-Flight-3x5-May-15.png" alt="Gulf-Rock-Flight-3x5-(May-15)" width="4320" height="2592" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2015/12/gulf-leggy-header-landing-video.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/gulf-leggy-header-landing-video.png" alt="Gulf Electricity landing page with rate-plan options and a Red Sox promotional banner" width="1168" height="2048" /></picture><picture><source type="image/webp" srcset="/media/2015/12/Gulf-Rock-Flight-3x5-May-15.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/Gulf-Rock-Flight-3x5-May-15.png" alt="Gulf Electricity “Rock Flight” sweepstakes ad offering Live Nation tickets" width="4320" height="2592" /></picture></p>
 

@@ -26,9 +26,10 @@ metaDescription: View COGNAK's work for Ossio, an orthopedic fixation company co
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 3
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2019/07/ossio-package-2.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2320" src="/media/2019/07/ossio-package-2.jpg" alt="Ossio — package" width="1500" height="1105" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2019/07/ossio-package-2.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/ossio-package-2.jpg" alt="Ossio carton in a green gradient" width="1500" height="1105" /></picture></p>
 

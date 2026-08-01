@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for Hubspot, a global company providing inbo
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 0.5
 homepageFeature: true
 homepagePosition: 6
 ---

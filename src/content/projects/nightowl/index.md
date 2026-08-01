@@ -3,7 +3,6 @@ title: NightOwl
 slug: nightowl
 category: Branding, Web, Development, Packaging
 date: '2022-08-13T01:06:27+00:00'
-projectType: Branding, Packaging, Web Design, Development
 projectYear: 2022-2026
 thumbnail: ./thumb.jpg
 hero: ./hero.png
@@ -26,9 +25,11 @@ metaDescription: View COGNAK's work for NightOwl, the world's original tequila e
 clientLocation: NYC
 role: led
 activeClient: true
+engagementMonths: 6
+engagementStart: 2022
 homepageFeature: true
 homepagePosition: 10
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-3138" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.jpg" alt="NightOwl — nightowlcan 200ml matte tequila" width="2560" height="1280" /></picture><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-3139" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.png" alt="NightOwl — nightowlcan 200ml matte vodka" width="2560" height="1280" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.webp"/><img loading="lazy" decoding="async" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.jpg" alt="NightOwl — NightOwl 200 ml tequila can, matte finish" width="2560" height="1280" /></picture><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.webp"/><img loading="lazy" decoding="async" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.png" alt="NightOwl — NightOwl 200 ml vodka can, matte finish" width="2560" height="1280" /></picture></p>
 

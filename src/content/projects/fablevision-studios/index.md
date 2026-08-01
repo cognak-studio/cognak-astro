@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for FableVision Studios, a production studio
 clientLocation: Boston
 role: led
 activeClient: true
+engagementMonths: 24
 homepageFeature: false
 noindex: true
 ---

@@ -24,9 +24,10 @@ metaDescription: View COGNAK's work for Kenston Capital Partners, a new Boston-b
 clientLocation: Boston
 role: led
 activeClient: true
+engagementMonths: 5
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2021/04/Logo-Mockup-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2530" src="/media/2021/04/Logo-Mockup-scaled.jpg" alt="Kenston Capital Partners — logo" width="2048" height="1080" /></picture><picture><source type="image/webp" srcset="/media/2021/04/kenston-logo-hero-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2531" src="/media/2021/04/kenston-logo-hero-scaled.jpg" alt="Kenston Capital Partners — logo hero" width="2048" height="1366" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/04/Logo-Mockup-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/04/Logo-Mockup-scaled.jpg" alt="Kenston Capital Partners — logo" width="2048" height="1080" /></picture><picture><source type="image/webp" srcset="/media/2021/04/kenston-logo-hero-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/04/kenston-logo-hero-scaled.jpg" alt="Kenston Capital Partners — logo hero" width="2048" height="1366" /></picture></p>
 

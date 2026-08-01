@@ -22,6 +22,7 @@ metaDescription: View COGNAK's work for Buildkite, a digital platform for runnin
 clientLocation: Australia
 role: led
 activeClient: false
+engagementMonths: 3
 homepageFeature: false
 ---
 

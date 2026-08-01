@@ -24,8 +24,9 @@ metaDescription: View COGNAK's work for Nor'Easter Digital, a digital agency spe
 clientLocation: Maryland
 role: led
 activeClient: true
+engagementMonths: 72
 homepageFeature: false
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2025/08/noreaster-riverview-desktop-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2929" src="/media/2025/08/noreaster-riverview-desktop-cognak-scaled.jpg" alt="Nor’Easter Digital — riverview desktop" width="2560" height="1920" /></picture> <picture><source type="image/webp" srcset="/media/2025/08/noreaster-riverview-mobile-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2930" src="/media/2025/08/noreaster-riverview-mobile-cognak-scaled.jpg" alt="Nor’Easter Digital — riverview mobile" width="2560" height="1920" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2025/08/noreaster-riverview-desktop-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2025/08/noreaster-riverview-desktop-cognak-scaled.jpg" alt="Nor’Easter Digital — riverview desktop" width="2560" height="1920" /></picture> <picture><source type="image/webp" srcset="/media/2025/08/noreaster-riverview-mobile-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2025/08/noreaster-riverview-mobile-cognak-scaled.jpg" alt="Nor’Easter Digital — riverview mobile" width="2560" height="1920" /></picture></p>
 

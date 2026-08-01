@@ -3,7 +3,6 @@ title: IQSIGHT
 slug: iqsight
 category: Design System
 date: '2026-05-24T03:38:55+00:00'
-projectType: Design System
 projectYear: '2026'
 thumbnail: ./thumb.jpg
 hero: ./hero.png
@@ -24,6 +23,8 @@ metaDescription: View COGNAK's work for IQSIGHT, a professional video security s
 clientLocation: Netherlands
 role: led
 activeClient: false
+engagementMonths: 2
+engagementStart: 2026
 homepageFeature: true
 homepagePosition: 7
 ---

@@ -3557,90 +3557,115 @@ html.pv-grid .projects-grade-note,
 /* ── "Start a project": THE CHAR ─────────────────────────────────────────────
    Cooperage. A cognac barrel is toasted and charred on the inside, and that
    char is where the colour and half the flavour come from — so the CTA on a
-   page built entirely on the cask metaphor gets branded rather than merely
-   recoloured. A hot iron sweeps left to right: ember at the leading edge,
-   finished purple settling in behind it.
+   page built entirely on the cask metaphor gets branded rather than recoloured.
+
+   It is a HEAT WAVE PASSING THROUGH THE WORD, not a colour swap. A hot iron
+   crosses left to right; the letters ignite at its edge, glow deep red in its
+   wake, and cool back to ink behind it. Nothing is a different colour at the
+   end than it was at the start — which is the point. The word was branded and
+   the brand cooled.
 
    This REPLACES the inherited gradient text-fill hover on this page only.
-   /projects and /studio keep theirs — the char needs the grade above it to
-   read as anything other than an effect, and that only exists here.
+   /projects and /studio keep theirs — the char needs the cask grade above it
+   to read as anything but an effect, and that only exists here.
 
-   Built from two pseudo-elements over the real text, so the anchor keeps one
-   accessible text node:
-     ::before  the purple fill, a hard clip-path edge sweeping 0 → 100%
-     ::after   the ember, a fixed-width mask riding ON that edge
+   ── How it works, and why it is one mechanism and not two ──
+   Both layers are the SAME 300%-wide background-image, background-clip:text,
+   sliding through the same background-position transition. That is deliberate:
+   an earlier build synced a clip-path edge against a masked ember by solving
+   for the offset, and any future change to one would have silently desynced
+   the other. Here they cannot drift — they are the same slide.
 
-   THE TWO ARE ARITHMETICALLY SYNCED, not eyeballed. The fill edge travels
-   0→100% of the width. The ember mask is 26% wide, and mask-position p places
-   its LEFT edge at p·(100−26)% — so its centre sits at 0.74p + 13. Solving
-   0.74p + 13 = x for x = 0 and x = 100 gives p = −17.6% → 117.6%. Those are
-   the two odd numbers below; they are why the ember lands exactly on the edge
-   instead of drifting ahead of or behind it. Change the mask WIDTH and both
-   endpoints have to be re-solved.
+     the <a>    the full cooling ramp: ink → deep red → red → orange → EMBER
+     ::after    transparent except a narrow band at the ember, so its glow
+                and crackle land only on the hot edge and never on cool letters
 
-   The transitions are declared on :hover ONLY, which is deliberate: on leave
-   the ember has no transition to reverse, so it snaps away instead of sweeping
-   backwards (a cold iron un-branding the word — wrong, and it looked it). The
-   fill keeps a transition on the base rule so the purple recedes gently. */
+   ── Why the colour stops live between 34% and 63% ──
+   The image is 3× the box. At background-position 100% the box shows the
+   gradient's right third; at 0% it shows the left third. So for the word to be
+   plain ink BEFORE the sweep, every coloured stop must sit above 33.33%; for
+   it to be plain ink AFTER, every coloured stop must sit below 66.67%. The
+   entire fire therefore has to fit inside the middle third — one box width.
+   Move a stop outside that window and the word starts or ends mid-burn.
+
+   ── Why the ember is the HIGH stop and the tail the LOW one ──
+   Position runs 100% → 0%, so the image slides RIGHT and higher stops exit the
+   box first. Higher = ahead. Flipping the ramp runs the fire backwards: the
+   letters would cool before they ignite. */
 @media (hover: hover) {
-    .template-single-project .info-invite .projects-start-link {
-        /* Kill the inherited gradient text-fill. Without this the parent's
-           `-webkit-text-fill-color: transparent` on hover empties the real
-           text and only the pseudo-layers remain. */
-        background: none !important;
-        -webkit-text-fill-color: #3A313B !important;
-        color: #3A313B;
+    .template-single-project .info-invite .projects-start-link,
+    .template-single-project .info-invite .projects-start-link::after {
+        background-repeat: no-repeat;
+        background-size: 300% 100%;
+        background-position: 100% 0;
+        -webkit-background-clip: text;
+                background-clip: text;
+        -webkit-text-fill-color: transparent;
+        /* Declared on :hover ONLY. On leave there is no transition to reverse,
+           so the fire snaps away rather than sweeping backwards — a cold iron
+           un-branding the word, which looked exactly as wrong as it sounds.
+           The reset is invisible because both ends of the ramp are the ink. */
         transition: none;
-        overflow: visible;
     }
-    .template-single-project .info-invite .projects-start-link::before,
+    .template-single-project .info-invite .projects-start-link {
+        overflow: visible;
+        background-image: linear-gradient(90deg,
+            #3A313B 34%,     /* cooled — back to the page ink */
+            #3A313B 38%,
+            #55070B 42%,     /* the wake, still dark */
+            #A81107 48%,     /* deep red under the ember */
+            #E23A00 54%,
+            #FF6A00 59%,     /* ember */
+            #FFC061 61%,     /* hot core, leading the edge */
+            #3A313B 62.5%,   /* the iron's edge — sharp, unburned beyond it */
+            #3A313B 100%) !important;
+    }
     .template-single-project .info-invite .projects-start-link::after {
         content: attr(data-text);
         position: absolute;
         inset: 0;
         white-space: nowrap;
         pointer-events: none;
-        -webkit-text-fill-color: currentColor;
+        /* Same stops as the ember above, so the glow sits ON the hot edge. */
+        background-image: linear-gradient(90deg,
+            transparent 56.5%,
+            rgba(255, 150, 40, 0.95) 59%,
+            rgba(255, 208, 130, 1)   61%,
+            transparent 63%);
     }
-    /* The finished spirit, filling in behind the iron. */
-    .template-single-project .info-invite .projects-start-link::before {
-        color: var(--cognak-purple-text);
-        clip-path: inset(0 100% 0 0);
-        transition: clip-path 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    /* The iron itself. */
-    .template-single-project .info-invite .projects-start-link::after {
-        color: #FF6A00;
-        filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.55));
-        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
-                mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
-        -webkit-mask-size: 26% 100%;
-                mask-size: 26% 100%;
-        -webkit-mask-repeat: no-repeat;
-                mask-repeat: no-repeat;
-        -webkit-mask-position: -17.6% 50%;
-                mask-position: -17.6% 50%;
-    }
-    .template-single-project .info-invite .projects-start-link:hover::before {
-        clip-path: inset(0 0% 0 0);
-        transition: clip-path 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    /* 1.7s, and close to linear — a hot iron is dragged at a steady rate. The
+       slight ease-out is the hand slowing at the end of the stroke. */
+    .template-single-project .info-invite .projects-start-link:hover,
     .template-single-project .info-invite .projects-start-link:hover::after {
-        -webkit-mask-position: 117.6% 50%;
-                mask-position: 117.6% 50%;
-        -webkit-transition: -webkit-mask-position 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-                transition: mask-position 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        background-position: 0 0;
+        transition: background-position 1.7s cubic-bezier(0.32, 0.06, 0.38, 1);
+    }
+    /* The crackle. Only ever visible where ::after paints, i.e. on the ember
+       itself — so it stops on its own once the iron leaves the word, with no
+       cleanup. Irregular stops on purpose: evenly spaced keyframes read as a
+       pulse, and fire does not pulse. */
+    .template-single-project .info-invite .projects-start-link:hover::after {
+        animation: char-crackle 0.43s linear infinite;
     }
 }
-/* No iron, no sweep — just the finished colour. */
+@keyframes char-crackle {
+    0%   { opacity: 1;    filter: drop-shadow(0 0 7px  rgba(255, 106, 0, 0.55)) drop-shadow(0 0 15px rgba(168, 17, 7, 0.34)); }
+    17%  { opacity: 0.74; filter: drop-shadow(0 0 4px  rgba(255, 106, 0, 0.40)) drop-shadow(0 0 10px rgba(168, 17, 7, 0.22)); }
+    29%  { opacity: 1;    filter: drop-shadow(0 0 11px rgba(255, 150, 40, 0.62)) drop-shadow(0 0 19px rgba(168, 17, 7, 0.38)); }
+    44%  { opacity: 0.88; filter: drop-shadow(0 0 6px  rgba(255, 106, 0, 0.46)) drop-shadow(0 0 13px rgba(168, 17, 7, 0.26)); }
+    61%  { opacity: 1;    filter: drop-shadow(0 0 13px rgba(255, 176, 60, 0.66)) drop-shadow(0 0 22px rgba(168, 17, 7, 0.40)); }
+    76%  { opacity: 0.70; filter: drop-shadow(0 0 5px  rgba(255, 106, 0, 0.38)) drop-shadow(0 0 11px rgba(168, 17, 7, 0.20)); }
+    100% { opacity: 1;    filter: drop-shadow(0 0 8px  rgba(255, 106, 0, 0.55)) drop-shadow(0 0 16px rgba(168, 17, 7, 0.34)); }
+}
+/* No iron, no crackle — the CTA simply stays ink. There is nothing to fall
+   back TO here, because the char never leaves a lasting colour behind. */
 @media (prefers-reduced-motion: reduce) {
     .template-single-project .info-invite .projects-start-link::after { display: none; }
-    .template-single-project .info-invite .projects-start-link::before,
-    .template-single-project .info-invite .projects-start-link:hover::before {
+    .template-single-project .info-invite .projects-start-link,
+    .template-single-project .info-invite .projects-start-link:hover {
+        background-image: none !important;
+        -webkit-text-fill-color: #3A313B;
         transition: none;
-    }
-    .template-single-project .info-invite .projects-start-link:hover::before {
-        clip-path: inset(0 0% 0 0);
     }
 }
 

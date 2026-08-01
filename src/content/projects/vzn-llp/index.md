@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for VZN LLP, a law firm dedicated to providi
 clientLocation: Los Angeles
 role: led-build
 activeClient: false
+engagementMonths: 12
 homepageFeature: false
 ---
 

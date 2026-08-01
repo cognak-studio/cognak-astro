@@ -291,22 +291,21 @@
         var rand  = seededRand(fnv1a(title || card.dataset.projectType || 'cognak'));
         var type  = card.dataset.projectType  || '';
         var year  = card.dataset.projectYear  || '';
-        var dateS = parseInt(card.dataset.projectDate || '0', 10);
+        var vint  = card.dataset.projectVintage || '';
+        var mons  = parseInt(card.dataset.projectMonths || '0', 10);
         var fields = [];
         if (title) fields.push('  "project": "' + title.toLowerCase() + '"');
         if (type)  fields.push('  "type": "' + type + '"');
         if (year)  fields.push('  "year": ' + year);
-        /* Real values, unlike the set-dressing below: vintage + cask grade from
-           the project date. VS < 4y, VSOP 4-10y, XO 10y+ (BNIC, roughly). */
-        if (dateS > 0 && dateS < Date.now() / 1000) {
-            var yrs   = (Date.now() / 1000 - dateS) / 31557600;
-            var grade = yrs >= 10 ? 'xo' : yrs >= 4 ? 'vsop' : 'vs';
-            var w     = Math.floor(yrs);
-            var m     = Math.floor((yrs - w) * 12);
-            fields.push('  "vintage": ' + new Date(dateS * 1000).getFullYear());
+        /* Real values, unlike the set-dressing below. Both arrive already
+           computed on the card — see src/lib/vintage.ts. This used to re-derive
+           the grade here from a raw publish timestamp, which was both the wrong
+           input and a third copy of arithmetic that already existed twice. */
+        if (mons > 0) {
+            var w = Math.floor(mons / 12), m = mons % 12;
             fields.push('  "aged": "' + (w > 0 ? w + 'y ' : '') + m + 'm"');
-            fields.push('  "cask": "' + grade + '"');
         }
+        if (vint) fields.push('  "cask": "' + vint.toLowerCase() + '"');
         fields.push('  "render_id": "' + seededHex(rand, 6) + '"');
         fields.push('  "revisions": ' + (Math.floor(rand() * 8) + 1));
         fields.push('  "nda": ' + (rand() > 0.5 ? 'true' : 'false'));

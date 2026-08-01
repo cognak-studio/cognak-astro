@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for AssetAware, an IT management webapp help
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 12
 homepageFeature: false
 noindex: true
 ---

@@ -25,6 +25,7 @@ metaDescription: View COGNAK's work for Bose, a company best known for its criti
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 1
 homepageFeature: true
 homepagePosition: 5
 ---

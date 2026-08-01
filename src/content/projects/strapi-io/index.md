@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for Strapi.io, the leading open-source headl
 clientLocation: Los Angeles
 role: led-build
 activeClient: false
+engagementMonths: 5
 homepageFeature: false
 ---
 

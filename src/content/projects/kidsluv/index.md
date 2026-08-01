@@ -22,9 +22,10 @@ metaDescription: View COGNAK's work for KidsLuv, who provides better products fo
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 2
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2021/05/cognak-kidsluv-3.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2440" src="/media/2021/05/cognak-kidsluv-3.png" alt="KidsLuv project image" width="2000" height="2267" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/cognak-kidsluv-2.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2439" src="/media/2021/05/cognak-kidsluv-2.png" alt="KidsLuv project image" width="2000" height="2267" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/cognak-kidsluv-1.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2438" src="/media/2021/05/cognak-kidsluv-1.png" alt="KidsLuv project image" width="2000" height="2267" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/05/cognak-kidsluv-3.webp"/><img loading="lazy" decoding="async" src="/media/2021/05/cognak-kidsluv-3.png" alt="KidsLuv carton photographed on yellow" width="2000" height="2267" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/cognak-kidsluv-2.webp"/><img loading="lazy" decoding="async" src="/media/2021/05/cognak-kidsluv-2.png" alt="KidsLuv carton photographed on terracotta" width="2000" height="2267" /></picture> <picture><source type="image/webp" srcset="/media/2021/05/cognak-kidsluv-1.webp"/><img loading="lazy" decoding="async" src="/media/2021/05/cognak-kidsluv-1.png" alt="KidsLuv carton photographed on lime" width="2000" height="2267" /></picture></p>
 

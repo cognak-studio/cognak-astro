@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for Formulate Bioscience, an industry-leadin
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 3
 homepageFeature: false
 noindex: true
 ---

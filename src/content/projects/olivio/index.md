@@ -26,6 +26,7 @@ metaDescription: View COGNAK's work for Olivio, an oil-based spread with refined
 clientLocation: Boston
 role: led
 activeClient: false
+engagementMonths: 1
 homepageFeature: false
 noindex: true
 ---

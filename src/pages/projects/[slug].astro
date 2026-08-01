@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection, render } from 'astro:content';
 import { getImage } from 'astro:assets';
 import fs from 'node:fs';
+import { vintageOf, gradeLegend } from '../../lib/vintage';
 
 export async function getStaticPaths() {
   const all = (await getCollection('projects', (p) => !p.data.draft));
@@ -35,22 +36,11 @@ const slug = d.slug ?? entry.id;
 // The project's gallery lives in the markdown body.
 const { Content } = await render(entry);
 
-/* Cask grade for the chip beside the category. Identical BNIC thresholds and
-   identical output format to vintageOf() on /projects ("XO · 12y") — the grade
-   already appears in the archive list and the homepage hover-meta, so a project
-   must not read as XO in one place and VSOP in another.
-   projectYear is NOT a reliable fallback here: several projects carry a RANGE
-   ("2016-2026"), and Number() on that is NaN, which would date them to 1970 and
-   grade everything XO. Only a real `date` counts; anything else gets no chip. */
-const NOW_UNIX = Math.floor(Date.now() / 1000);
-const YEAR_SECONDS = 31557600;
-const projectUnix = d.date ? Math.floor(d.date.getTime() / 1000) : 0;
-let vintage = '';
-if (projectUnix > 0 && projectUnix < NOW_UNIX) {
-  const years = (NOW_UNIX - projectUnix) / YEAR_SECONDS;
-  const grade = years >= 10 ? 'XO' : years >= 4 ? 'VSOP' : 'VS';
-  vintage = grade + ' · ' + (years < 1 ? '<1y' : Math.floor(years) + 'y');
-}
+/* Cask grade for the chip beside the category. ONE implementation, shared with
+   the /projects list and the homepage hover-meta — a project must not read XO
+   in the archive and VSOP on its own page. See src/lib/vintage.ts for what it
+   measures and why it stopped being the WordPress publish date. */
+const vintage = vintageOf(d);
 
 /* Strip the authored "• " from each More-details line. 184 of the 188 items
    across the archive are written as `<p>• fact</p>`, some with a non-breaking
@@ -294,7 +284,7 @@ const jsonLd = {
               <span class="project-vintage">
                 {vintage}
                 {vintage && (
-                  <span class="pv-note" aria-hidden="true">Cask grade &mdash; VS under 4 years &middot; VSOP 4&ndash;10 &middot; XO 10+</span>
+                  <span class="pv-note" aria-hidden="true">Cask grade &mdash; {gradeLegend()}</span>
                 )}
                 {vintage && clientStatus && ' · '}
                 {clientStatus && (

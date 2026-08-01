@@ -22,6 +22,7 @@ metaDescription: View COGNAK's work for Whole Cluster, a beverage and hospitalit
 clientLocation: Los Angeles
 role: led-build
 activeClient: true
+engagementMonths: 24
 homepageFeature: false
 noindex: true
 ---

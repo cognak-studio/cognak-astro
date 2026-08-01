@@ -24,6 +24,7 @@ metaDescription: View COGNAK's work for Scleraworx.io, a technology solutions an
 clientLocation: San Diego
 role: led
 activeClient: false
+engagementMonths: 3
 homepageFeature: false
 noindex: true
 ---

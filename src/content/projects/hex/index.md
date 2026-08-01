@@ -3,7 +3,6 @@ title: Hex
 slug: hex
 category: Web
 date: '2025-08-14T20:35:57+00:00'
-projectType: Web Design
 projectYear: 2025-2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
@@ -27,10 +26,12 @@ metaDescription: View COGNAK's work for Hex, a collaborative workspace to write 
 clientLocation: NYC and CA
 role: embedded
 activeClient: true
+engagementMonths: 12
+engagementStart: 2025
 homepageFeature: true
 homepagePosition: 2
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2922" src="/media/2025/08/hex-homepage-cognak-scaled.jpg" alt="Hex — homepage" width="2560" height="1920" /></picture></p>
-<p><picture><source type="image/webp" srcset="/media/2026/06/hex-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full" src="/media/2026/06/hex-hero-cognak-scaled.jpg" alt="Hex — hero" width="2560" height="1920" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2025/08/hex-homepage-cognak-scaled.jpg" alt="Hex — homepage" width="2560" height="1920" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2026/06/hex-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/hex-hero-cognak-scaled.jpg" alt="Hex — hero" width="2560" height="1920" /></picture></p>
 

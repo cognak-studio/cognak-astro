@@ -3,13 +3,13 @@ title: Wellness Pet Co
 slug: wellness-pet-co
 category: Branding, Packaging, Ads, Video
 date: 2026-06-22
-projectType: Packaging, Display Ads, Video Production, Brand Presentations
 projectYear: 2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
 clientLocation: Tewksbury
 role: led
 activeClient: true
+engagementStart: 2026
 homepageFeature: true
 homepagePosition: 1
 hoverVideo: /media/2026/06/wellness-preview.mp4

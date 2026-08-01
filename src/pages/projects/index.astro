@@ -2,39 +2,26 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
+import { vintageOf, gradeLegend } from '../../lib/vintage';
 
 // All projects, A→Z (matches page-projects.php orderby title ASC).
 const all = (await getCollection('projects', (p) => !p.data.draft)).sort((a, b) =>
   a.data.title.localeCompare(b.data.title)
 );
 
-// Cognac age grades, computed at build time from the project date. Real BNIC
-// thresholds: VS is at least 2 years in oak, VSOP at least 4, XO at least 10.
-// We grade the whole cellar: under 4y pours as VS.
-const NOW_UNIX = Math.floor(Date.now() / 1000);
-const YEAR_SECONDS = 31557600;
-function vintageOf(dateUnix) {
-  if (!dateUnix || dateUnix > NOW_UNIX) return '';
-  const years = (NOW_UNIX - dateUnix) / YEAR_SECONDS;
-  const grade = years >= 10 ? 'XO' : years >= 4 ? 'VSOP' : 'VS';
-  const aged = years < 1 ? '<1y' : Math.floor(years) + 'y';
-  return grade + ' · ' + aged;
-}
 
 const unsorted = await Promise.all(
   all.map(async (p) => {
     const thumb = await getImage({ src: p.data.thumbnail, format: 'webp', width: 800 });
     const hoverSrc = p.data.hover ?? p.data.hero;
     const cursorHero = await getImage({ src: hoverSrc, format: 'webp', width: 600 });
-    const dateUnix = p.data.date
-      ? Math.floor(p.data.date.getTime() / 1000)
-      : p.data.projectYear
-        ? Math.floor(new Date(Number(p.data.projectYear), 0, 1).getTime() / 1000)
-        : 0;
+    /* Still needed for SORTING — newest case study first is the right order for
+       an archive, and that genuinely is the publish date. It is no longer what
+       the GRADE is computed from; see src/lib/vintage.ts. */
+    const dateUnix = p.data.date ? Math.floor(p.data.date.getTime() / 1000) : 0;
     return {
       slug: p.data.slug ?? p.id,
       title: p.data.title,
-      type: p.data.projectType ?? '',
       year: p.data.projectYear ?? '',
       category: p.data.category ?? '',
       thumb: thumb.src,
@@ -42,7 +29,7 @@ const unsorted = await Promise.all(
       thumbH: thumb.attributes.height,
       cursorHero: cursorHero.src,
       dateUnix,
-      vintage: vintageOf(dateUnix),
+      vintage: vintageOf(p.data),
     };
   })
 );
@@ -152,7 +139,7 @@ const LAZY_AFTER = 8;
         in the view that renders grades.
         aria-hidden: it explains a decorative suffix, and the rows already read
         out their own title and category. */}
-    <p class="projects-grade-note" aria-hidden="true">VS under 4 years &middot; VSOP 4&ndash;10 &middot; XO 10+</p>
+    <p class="projects-grade-note" aria-hidden="true">{gradeLegend()}</p>
 
     <div class="projects-below">
       <div class="projects-below-right">

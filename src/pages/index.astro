@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
+import { vintageOf, monthsOf } from '../lib/vintage';
 
 // Featured homepage projects, ordered by homepagePosition.
 const featured = (await getCollection('projects', (p) => p.data.homepageFeature && !p.data.draft))
@@ -26,7 +27,18 @@ const cards = await Promise.all(
     return {
       slug: p.data.slug ?? p.id,
       title: p.data.title,
-      type: p.data.projectType ?? '',
+      /* Was projectType, a SECOND category field with its own drift
+         ("Web Design", "Packaging Design", "Video Production"). It only
+         existed on 11 of 54 projects, so the homepage hover-meta printed a
+         type for a fifth of the grid and nothing for the rest — and where it
+         did print, it could disagree with the project's own page. One
+         vocabulary now, the unified `category`. */
+      type: p.data.category ?? '',
+      /* The grade arrives PRE-COMPUTED. cognak-home.js used to re-derive it
+         from a raw timestamp, which made three separate implementations of the
+         same arithmetic across the site and three chances to disagree. */
+      vintage: vintageOf(p.data),
+      months: monthsOf(p.data) ?? 0,
       year: p.data.projectYear ?? '',
       dateUnix: p.data.date ? Math.floor(p.data.date.getTime() / 1000) : 0,
       thumb: thumb.src,
@@ -99,7 +111,8 @@ const cards = await Promise.all(
             data-project-title={c.title}
             data-project-type={c.type}
             data-project-year={c.year}
-            data-project-date={c.dateUnix}>
+            data-project-vintage={c.vintage}
+            data-project-months={c.months}>
             <figure style={`view-transition-name: project-thumb-${c.slug}`}>
               <a href={`/projects/${c.slug}`}>
                 <img src={c.thumb} class="cover hp-lazy" loading="lazy" alt={c.title} width={c.thumbW} height={c.thumbH} />

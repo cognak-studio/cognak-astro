@@ -3,7 +3,6 @@ title: Alchemy Peppers
 slug: alchemy-peppers
 category: Packaging, Collateral, 3D Renderings
 date: '2021-07-13T21:09:27+00:00'
-projectType: Packaging, Development
 projectYear: 2021-2024
 thumbnail: ./thumb.jpg
 hero: ./hero.png
@@ -26,14 +25,16 @@ metaDescription: View COGNAK's work for Alchemy Peppers, who is evangelizing the
 clientLocation: Los Angeles
 role: led
 activeClient: false
+engagementMonths: 6
+engagementStart: 2021
 homepageFeature: true
 homepagePosition: 8
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2021/07/alchemy-posters.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2490" src="/media/2021/07/alchemy-posters.png" alt="Alchemy Peppers — posters" width="2400" height="1190" /></picture></p>
-<p><picture><source type="image/webp" srcset="/media/2021/07/alchemy-shipper-mockup.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2486" src="/media/2021/07/alchemy-shipper-mockup.png" alt="Alchemy Peppers — shipper" width="2500" height="1718" /></picture></p>
-<p><picture><source type="image/webp" srcset="/media/2021/07/hopp-suace-banners-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2485" src="/media/2021/07/hopp-suace-banners-scaled.jpg" alt="Alchemy Peppers — hopp suace banners" width="2560" height="2133" /></picture></p>
-<p><picture><source type="image/webp" srcset="/media/2021/07/Alchemy_Business-Cards_v1-1.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2478" src="/media/2021/07/Alchemy_Business-Cards_v1-1.jpg" alt="Alchemy Peppers — business cards" width="2000" height="1502" /></picture></p>
-<p><picture><source type="image/webp" srcset="/media/2021/07/alchemy-jalapeno-front-GOLD.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2481" src="/media/2021/07/alchemy-jalapeno-front-GOLD.png" alt="Alchemy Peppers — jalapeno gold" width="2000" height="1250" /></picture> <picture><source type="image/webp" srcset="/media/2021/07/alchemy-fresno-front-GOLD.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2480" src="/media/2021/07/alchemy-fresno-front-GOLD.png" alt="Alchemy Peppers — fresno gold" width="2000" height="1250" /></picture> <picture><source type="image/webp" srcset="/media/2021/07/alchemy-scotch-front-GOLD.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2479" src="/media/2021/07/alchemy-scotch-front-GOLD.png" alt="Alchemy Peppers — scotch gold" width="2000" height="1250" /></picture><picture><source type="image/webp" srcset="/media/2021/07/Alchemy-Packets-Mockup-Smaller-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2540" src="/media/2021/07/Alchemy-Packets-Mockup-Smaller-scaled.jpg" alt="Alchemy Peppers — packets smaller" width="2048" height="1366" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/07/alchemy-posters.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/alchemy-posters.png" alt="Alchemy Peppers — posters" width="2400" height="1190" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/07/alchemy-shipper-mockup.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/alchemy-shipper-mockup.png" alt="Alchemy Peppers — shipper" width="2500" height="1718" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/07/hopp-suace-banners-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/hopp-suace-banners-scaled.jpg" alt="Alchemy Peppers Hopp sauce banners" width="2560" height="2133" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/07/Alchemy_Business-Cards_v1-1.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/Alchemy_Business-Cards_v1-1.jpg" alt="Alchemy Peppers — business cards" width="2000" height="1502" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/07/alchemy-jalapeno-front-GOLD.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/alchemy-jalapeno-front-GOLD.png" alt="Alchemy Peppers — jalapeno gold" width="2000" height="1250" /></picture> <picture><source type="image/webp" srcset="/media/2021/07/alchemy-fresno-front-GOLD.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/alchemy-fresno-front-GOLD.png" alt="Alchemy Peppers — fresno gold" width="2000" height="1250" /></picture> <picture><source type="image/webp" srcset="/media/2021/07/alchemy-scotch-front-GOLD.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/alchemy-scotch-front-GOLD.png" alt="Alchemy Peppers — scotch gold" width="2000" height="1250" /></picture><picture><source type="image/webp" srcset="/media/2021/07/Alchemy-Packets-Mockup-Smaller-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/07/Alchemy-Packets-Mockup-Smaller-scaled.jpg" alt="Alchemy Peppers — packets smaller" width="2048" height="1366" /></picture></p>
 

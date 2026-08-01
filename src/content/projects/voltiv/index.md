@@ -24,9 +24,10 @@ metaDescription: View COGNAK's work for Voltiv, a spacious recording studio in L
 clientLocation: Los Angeles
 role: led
 activeClient: false
+engagementMonths: 2
 homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2019/07/voltiv-image-1.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2322" src="/media/2019/07/voltiv-image-1.png" alt="Voltiv project image" width="1500" height="1105" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2019/07/voltiv-image-1.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/voltiv-image-1.png" alt="Voltiv branded matchbox with a struck match" width="1500" height="1105" /></picture></p>
 

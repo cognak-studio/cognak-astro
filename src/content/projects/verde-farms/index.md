@@ -26,10 +26,11 @@ metaDescription: View COGNAK's work for Verde Farms, a leading importer and mark
 clientLocation: Boston
 role: led
 activeClient: true
+engagementMonths: 48
 homepageFeature: true
 homepagePosition: 4
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2026/06/verde-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" class="alignnone size-full" src="/media/2026/06/verde-hero-cognak-scaled.jpg" alt="Verde Farms — hero" width="2560" height="1708" /></picture></p>
-<p><picture><source type="image/webp" srcset="/media/2015/12/verde-team.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2006" src="/media/2015/12/verde-team.jpg" alt="Verde Farms — team" width="2048" height="1389" /></picture><picture><source type="image/webp" srcset="/media/2015/12/verde-sell-sheets.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2007" src="/media/2015/12/verde-sell-sheets.jpg" alt="Verde Farms — sell sheets" width="2048" height="1367" /></picture><picture><source type="image/webp" srcset="/media/2015/12/hot-dog-packaging.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-2282" src="/media/2015/12/hot-dog-packaging.jpg" alt="Verde Farms — hot dog packaging" width="1400" height="933" /></picture><picture><source type="image/webp" srcset="/media/2015/12/verde-site2.webp"/><img loading="lazy" decoding="async" class="alignnone size-full wp-image-723" src="/media/2015/12/verde-site2.jpg" alt="Verde Farms — site2" width="2048" height="3466" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2026/06/verde-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/verde-hero-cognak-scaled.jpg" alt="Verde Farms — hero" width="2560" height="1708" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2015/12/verde-team.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/verde-team.jpg" alt="Verde Farms — team" width="2048" height="1389" /></picture><picture><source type="image/webp" srcset="/media/2015/12/verde-sell-sheets.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/verde-sell-sheets.jpg" alt="Verde Farms — sell sheets" width="2048" height="1367" /></picture><picture><source type="image/webp" srcset="/media/2015/12/hot-dog-packaging.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/hot-dog-packaging.jpg" alt="Verde Farms — hot dog packaging" width="1400" height="933" /></picture><picture><source type="image/webp" srcset="/media/2015/12/verde-site2.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/verde-site2.jpg" alt="Verde Farms website" width="2048" height="3466" /></picture></p>
 

@@ -20,7 +20,6 @@ const projects = defineCollection({
       slug: z.string().optional(),
       category: z.string().optional(),
       date: z.coerce.date().optional(),
-      projectType: z.string().optional(),
       projectYear: z.union([z.string(), z.number()]).optional(),
       aboutTheClient: z.string().optional(),
       theWork: z.string().optional(),
@@ -50,6 +49,21 @@ const projects = defineCollection({
       clientLocation: z.string().optional(),
       role: z.enum(['led', 'led-build', 'build', 'embedded']).default('led'),
       activeClient: z.boolean().optional(),
+      /* ENGAGEMENT LENGTH IN MONTHS — what the cask grade is computed from.
+         Lifted verbatim from each project's own authored duration line ("5+
+         year relationship" → 60, "6-month project" → 6), so these are the
+         studio's own statements, not anything derived. 52 of 53 published
+         projects had one.
+         The grade used to come from `date`, the WordPress PUBLISH timestamp —
+         when the case study was posted, not how long the work ran. Accorin
+         graded XO · 10y while its own copy read "5+ year relationship". */
+      engagementMonths: z.number().optional(),
+      /* Start year, and ONLY where genuinely known (from `projectYear`) — ten
+         projects. On an ACTIVE client this switches the grade to live, so it
+         accrues on its own instead of freezing at the authored duration. Never
+         guess this: a wrong start year is a wrong public claim, and the
+         authored-duration fallback is already correct. */
+      engagementStart: z.number().optional(),
       homepageFeature: z.boolean().default(false),
       homepagePosition: z.number().optional(),
       metaDescription: z.string().optional(),
