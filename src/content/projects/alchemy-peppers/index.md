@@ -3,7 +3,7 @@ title: Alchemy Peppers
 slug: alchemy-peppers
 category: Packaging, Collateral, 3D Renderings
 date: '2021-07-13T21:09:27+00:00'
-projectYear: 2021-2024
+projectYear: 2021–2024
 thumbnail: ./thumb.jpg
 hero: ./hero.png
 aboutTheClient: '<p><a href="https://alchemypeppers.com">Alchemy Peppers</a> is a Boston-based specialty food brand dedicated to raising the bar for spicy snacks and hot sauces. Their Pepper Alchemists craft bold, natural, pepper-forward products for flavor-driven communities that take heat seriously.</p>

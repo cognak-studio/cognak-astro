@@ -3740,12 +3740,17 @@ html.pv-grid .projects-grade-note,
     .template-single-project .info-invite .projects-start-link {
         overflow: visible;
         background-image: linear-gradient(90deg,
-            #3A313B 34%,     /* cooled — back to the page ink */
-            #3A313B 38%,
-            #55070B 42%,     /* the wake, still dark */
-            #A81107 48%,     /* deep red under the ember */
-            #E23A00 54%,
-            #FF6A00 59%,     /* ember */
+            #3A313B 33.5%,   /* cooled — back to the page ink. Sits just inside
+                                the 33.33% floor so the tail gets every pixel of
+                                the safe window; below it the word starts burnt. */
+            #2A0A0E 36%,     /* last embers dying out of the red */
+            #55070B 40%,     /* the wake, still dark */
+            #7A0C08 44.5%,   /* holds the deep red across the tail rather than
+                                ramping straight from wake to ink */
+            #A81107 49%,     /* deep red under the ember */
+            #E23A00 55%,
+            #FF6A00 59%,     /* ember — UNCHANGED, ::after's glow band is
+                                registered to these three stops */
             #FFC061 61%,     /* hot core, leading the edge */
             #3A313B 62.5%,   /* the iron's edge — sharp, unburned beyond it */
             #3A313B 100%) !important;
@@ -3763,12 +3768,16 @@ html.pv-grid .projects-grade-note,
             rgba(255, 208, 130, 1)   61%,
             transparent 63%);
     }
-    /* 1.7s, and close to linear — a hot iron is dragged at a steady rate. The
-       slight ease-out is the hand slowing at the end of the stroke. */
+    /* Close to linear — a hot iron is dragged at a steady rate. The slight
+       ease-out is the hand slowing at the end of the stroke.
+       6.8s: slowed 400% from 1.7s (Pierce, 2026-08-01) so the burn can be
+       watched rather than glimpsed. The crackle rate is deliberately NOT scaled
+       with it — fire flickers at its own rate regardless of how slowly the iron
+       moves, and stretching it read as a slow throb rather than flame. */
     .template-single-project .info-invite .projects-start-link:hover,
     .template-single-project .info-invite .projects-start-link:hover::after {
         background-position: 0 0;
-        transition: background-position 1.7s var(--ease-drag);
+        transition: background-position 6.8s var(--ease-drag);
     }
     /* The crackle. Only ever visible where ::after paints, i.e. on the ember
        itself — so it stops on its own once the iron leaves the word, with no
@@ -4771,8 +4780,21 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
    is the only reliable place to put the rhythm — a rule on the p would space
    the groups, not the pictures.
 
-   16px matches the .projects-grid gap exactly, so the number is already in the
-   system rather than newly invented.
+   THE GALLERY IS INSET TO THE CONTENT COLUMN (Pierce, 2026-08-01). It used to
+   run full-bleed at viewport width while every other element on the page —
+   title, category, grade, both details columns — sat inside
+   .container--work-single at 70px margins. The images now take the SAME 70px
+   margins, so nothing on the page bleeds and the work aligns with the writing
+   about it. The mobile step to 24px mirrors .container--work-single's own
+   720px breakpoint; the two must be edited together or the gallery will
+   detach from the text at small sizes.
+
+   VERTICAL GAP EQUALS THE SIDE GUTTER, on purpose: 70px between stacked images
+   against 70px either side, so the white space reads evenly on all four edges
+   rather than as a tight column with wide shoulders. This replaces the old
+   16px, which matched the .projects-grid gap — a sensible number when the
+   images were full-bleed and had no side margin to relate to, and the wrong
+   one now.
 
    ZEROING THE TRAILING GAP IS NOT A CSS SELECTOR PROBLEM YOU CAN WIN. The
    obvious `.project-gallery > *:last-child img:last-child` is WRONG: every img
@@ -4788,11 +4810,29 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
    and not on the figure, an empty gallery collapses to nothing by itself — no
    :empty guard needed (and :empty would be unreliable anyway, since a
    whitespace text node defeats it). */
+.project-gallery {
+    margin-left: 70px;
+    margin-right: 70px;
+}
 .project-gallery img {
-    margin-bottom: 16px;
+    margin-bottom: 70px;
 }
 .project-gallery img.is-last {
     margin-bottom: 0;
+}
+/* Mirrors .container--work-single's own 720px step (24px), so the gallery stays
+   locked to the content column at every width. MUST live AFTER the base
+   .project-gallery rule above: a media query adds no specificity, so the same
+   override placed earlier in the file loses to the desktop rule and silently
+   does nothing — which is exactly what happened on the first attempt. */
+@media screen and (max-width: 720px) {
+    .project-gallery {
+        margin-left: 24px;
+        margin-right: 24px;
+    }
+    .project-gallery img {
+        margin-bottom: 24px;
+    }
 }
 /* WordPress body paragraphs carry their own margins, which would make the gap
    between two images in DIFFERENT paragraphs bigger than between two in the

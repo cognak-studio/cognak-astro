@@ -3,7 +3,7 @@ title: Sweetgains
 slug: sweetgains
 category: Branding, Web, Development, Packaging
 date: '2024-01-31T23:07:04+00:00'
-projectYear: 2024-2026
+projectYear: 2024–2026
 thumbnail: ./thumb.jpg
 hero: ./hero.png
 aboutTheClient: '<p><a href="https://www.eatsweetgains.com">Sweetgains</a> makes high-protein, low-calorie ice cream with no artificial ingredients — a real treat built for consumers who don’t want to compromise. The brand lives at the intersection of gym culture and genuine indulgence.</p>

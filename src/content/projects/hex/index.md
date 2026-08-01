@@ -3,7 +3,7 @@ title: Hex
 slug: hex
 category: Web
 date: '2025-08-14T20:35:57+00:00'
-projectYear: 2025-2026
+projectYear: 2025–2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
 heroVideo: /media/2026/06/hex-hero.mp4

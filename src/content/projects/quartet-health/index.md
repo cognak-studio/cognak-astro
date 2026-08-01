@@ -3,7 +3,7 @@ title: Quartet Health
 slug: quartet-health
 category: Web, Development
 date: '2019-07-17T00:29:09+00:00'
-projectYear: 2019-2021
+projectYear: 2019–2021
 thumbnail: ./thumb.png
 hero: ./hero.jpg
 heroVideo: /media/2026/06/quartet-hero.mp4

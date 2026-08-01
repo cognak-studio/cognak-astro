@@ -3,7 +3,7 @@ title: DuVine Cycling + Adventure Co
 slug: duvine
 category: Branding, Web, Print, Video
 date: '2013-12-05T17:27:58+00:00'
-projectYear: 2016-2026
+projectYear: 2016–2026
 thumbnail: ./thumb.jpg
 hero: ./hover.jpg
 aboutTheClient: '<div class="pageintro l-container l-container--small">

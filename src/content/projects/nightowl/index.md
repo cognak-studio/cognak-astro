@@ -3,7 +3,7 @@ title: NightOwl
 slug: nightowl
 category: Branding, Web, Development, Packaging
 date: '2022-08-13T01:06:27+00:00'
-projectYear: 2022-2026
+projectYear: 2022–2026
 thumbnail: ./thumb.jpg
 hero: ./hero.png
 aboutTheClient: '<p><a href="https://www.drinknightowl.com">NightOwl</a> is the maker of the original tequila espresso martini — a premium RTD cocktail crafted with tequila, vodka, and organic coffee beans. Built for a new generation of cocktail culture, NightOwl brings a bar-quality experience to the can.</p>
