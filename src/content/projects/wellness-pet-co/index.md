@@ -1,7 +1,7 @@
 ---
 title: Wellness Pet Co
 slug: wellness-pet-co
-category: Packaging, Advertising, Video, Branding
+category: Branding, Packaging, Ads, Video
 date: 2026-06-22
 projectType: Packaging, Display Ads, Video Production, Brand Presentations
 projectYear: 2026

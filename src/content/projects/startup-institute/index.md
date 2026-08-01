@@ -1,7 +1,7 @@
 ---
 title: Startup Institute
 slug: startup-institute
-category: Web, Print, Ads, Newsletters, Decks
+category: Web, Email, Print, Decks, Ads
 date: '2015-12-02T23:45:36+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.jpg

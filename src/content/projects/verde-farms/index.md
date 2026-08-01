@@ -1,7 +1,7 @@
 ---
 title: Verde Farms
 slug: verde-farms
-category: Web, Print, Branding, Packaging, Photography, Video, Ads, 3D Renderings
+category: Branding, Web, Packaging, Print, Ads, Video, Photography, 3D Renderings
 date: '2015-12-04T22:05:57+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

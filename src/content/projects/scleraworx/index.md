@@ -1,7 +1,7 @@
 ---
 title: Scleraworx.io
 slug: scleraworx
-category: Print, Branding
+category: Branding, Print
 date: '2024-02-01T22:57:39+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.png

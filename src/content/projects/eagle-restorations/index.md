@@ -1,7 +1,7 @@
 ---
 title: Eagle Restorations
 slug: eagle-restorations
-category: Logo, Branding
+category: Branding, Logo, Web, Development
 date: '2014-12-05T19:13:53+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

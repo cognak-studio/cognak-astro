@@ -1,7 +1,7 @@
 ---
 title: Harvard Business Review
 slug: harvard-business-review
-category: Emails, Newsletters
+category: Email
 date: '2019-07-24T02:27:18+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

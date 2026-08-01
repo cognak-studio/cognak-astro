@@ -7,7 +7,7 @@
 
 title: Project Name            # shown everywhere (grid, page title, OG card)
 slug: project-name             # the URL → /projects/project-name  (lowercase, hyphens)
-category: Web, Branding, Logo  # the tag in the projects list view
+category: Branding, Logo, Web
 date: 2026-06-21               # publish date — drives the "newest" sort
 projectType: Web Design        # shown in the home grid hover metadata
 projectYear: 2026

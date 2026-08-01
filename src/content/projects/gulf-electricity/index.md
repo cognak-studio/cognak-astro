@@ -1,7 +1,7 @@
 ---
 title: Gulf Electricity
 slug: gulf-electricity
-category: Web, Billboards, Ads
+category: Web, Ads, Out of Home
 date: '2015-12-08T19:34:50+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.png

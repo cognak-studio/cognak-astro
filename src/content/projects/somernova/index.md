@@ -1,7 +1,7 @@
 ---
 title: Somernova
 slug: somernova
-category: Logo, Branding, Website
+category: Branding, Logo, Web
 date: '2019-10-08T20:26:35+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.png

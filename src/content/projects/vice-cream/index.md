@@ -1,7 +1,7 @@
 ---
 title: Vice Cream
 slug: vice-cream
-category: Logo, Branding, OOH Collateral
+category: Branding, Logo, Out of Home
 date: '2015-12-04T22:08:11+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.png

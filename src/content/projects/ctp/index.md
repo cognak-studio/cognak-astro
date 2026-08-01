@@ -1,7 +1,7 @@
 ---
 title: CTP
 slug: ctp
-category: Websites, Branding, Animation, Decks
+category: Branding, Web, Decks, Video
 date: '2015-12-08T22:27:50+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

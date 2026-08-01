@@ -1,7 +1,7 @@
 ---
 title: HYPR
 slug: hypr
-category: Branding, Logo, Print, Web Design, Ads, Development
+category: Branding, Logo, Web, Development, Print, Ads
 date: '2024-02-02T20:38:00+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

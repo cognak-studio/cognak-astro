@@ -3554,6 +3554,96 @@ html.pv-grid .projects-grade-note,
     color: #4F7A00;
 }
 
+/* ── "Start a project": THE CHAR ─────────────────────────────────────────────
+   Cooperage. A cognac barrel is toasted and charred on the inside, and that
+   char is where the colour and half the flavour come from — so the CTA on a
+   page built entirely on the cask metaphor gets branded rather than merely
+   recoloured. A hot iron sweeps left to right: ember at the leading edge,
+   finished purple settling in behind it.
+
+   This REPLACES the inherited gradient text-fill hover on this page only.
+   /projects and /studio keep theirs — the char needs the grade above it to
+   read as anything other than an effect, and that only exists here.
+
+   Built from two pseudo-elements over the real text, so the anchor keeps one
+   accessible text node:
+     ::before  the purple fill, a hard clip-path edge sweeping 0 → 100%
+     ::after   the ember, a fixed-width mask riding ON that edge
+
+   THE TWO ARE ARITHMETICALLY SYNCED, not eyeballed. The fill edge travels
+   0→100% of the width. The ember mask is 26% wide, and mask-position p places
+   its LEFT edge at p·(100−26)% — so its centre sits at 0.74p + 13. Solving
+   0.74p + 13 = x for x = 0 and x = 100 gives p = −17.6% → 117.6%. Those are
+   the two odd numbers below; they are why the ember lands exactly on the edge
+   instead of drifting ahead of or behind it. Change the mask WIDTH and both
+   endpoints have to be re-solved.
+
+   The transitions are declared on :hover ONLY, which is deliberate: on leave
+   the ember has no transition to reverse, so it snaps away instead of sweeping
+   backwards (a cold iron un-branding the word — wrong, and it looked it). The
+   fill keeps a transition on the base rule so the purple recedes gently. */
+@media (hover: hover) {
+    .template-single-project .info-invite .projects-start-link {
+        /* Kill the inherited gradient text-fill. Without this the parent's
+           `-webkit-text-fill-color: transparent` on hover empties the real
+           text and only the pseudo-layers remain. */
+        background: none !important;
+        -webkit-text-fill-color: #3A313B !important;
+        color: #3A313B;
+        transition: none;
+        overflow: visible;
+    }
+    .template-single-project .info-invite .projects-start-link::before,
+    .template-single-project .info-invite .projects-start-link::after {
+        content: attr(data-text);
+        position: absolute;
+        inset: 0;
+        white-space: nowrap;
+        pointer-events: none;
+        -webkit-text-fill-color: currentColor;
+    }
+    /* The finished spirit, filling in behind the iron. */
+    .template-single-project .info-invite .projects-start-link::before {
+        color: var(--cognak-purple-text);
+        clip-path: inset(0 100% 0 0);
+        transition: clip-path 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    /* The iron itself. */
+    .template-single-project .info-invite .projects-start-link::after {
+        color: #FF6A00;
+        filter: drop-shadow(0 0 10px rgba(255, 106, 0, 0.55));
+        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
+                mask-image: linear-gradient(90deg, transparent 0%, #000 42%, #000 58%, transparent 100%);
+        -webkit-mask-size: 26% 100%;
+                mask-size: 26% 100%;
+        -webkit-mask-repeat: no-repeat;
+                mask-repeat: no-repeat;
+        -webkit-mask-position: -17.6% 50%;
+                mask-position: -17.6% 50%;
+    }
+    .template-single-project .info-invite .projects-start-link:hover::before {
+        clip-path: inset(0 0% 0 0);
+        transition: clip-path 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .template-single-project .info-invite .projects-start-link:hover::after {
+        -webkit-mask-position: 117.6% 50%;
+                mask-position: 117.6% 50%;
+        -webkit-transition: -webkit-mask-position 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+                transition: mask-position 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+}
+/* No iron, no sweep — just the finished colour. */
+@media (prefers-reduced-motion: reduce) {
+    .template-single-project .info-invite .projects-start-link::after { display: none; }
+    .template-single-project .info-invite .projects-start-link::before,
+    .template-single-project .info-invite .projects-start-link:hover::before {
+        transition: none;
+    }
+    .template-single-project .info-invite .projects-start-link:hover::before {
+        clip-path: inset(0 0% 0 0);
+    }
+}
+
 /* ── Project detail entrance ─────────────────────────────────────────────────
    This page had NO motion of any kind until the gallery reveal; everything
    around it appeared statically, which made the gallery look like the only

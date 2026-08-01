@@ -1,7 +1,7 @@
 ---
 title: SipMargs
 slug: sipmargs
-category: Packaging, 3D Renders
+category: Packaging, 3D Renderings
 date: 2026-07-27
 projectType: Packaging Design
 projectYear: 2026

@@ -1,7 +1,7 @@
 ---
 title: Sidekick
 slug: sidekick-security
-category: Website, Development
+category: Web, Development
 date: '2026-04-08T19:49:19+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

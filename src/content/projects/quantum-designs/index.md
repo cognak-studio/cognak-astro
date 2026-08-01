@@ -1,7 +1,7 @@
 ---
 title: Quantum Designs
 slug: quantum-designs
-category: Web, Branding, Logo
+category: Branding, Logo, Web
 date: '2016-08-11T04:49:28+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.png

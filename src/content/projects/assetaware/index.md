@@ -1,7 +1,7 @@
 ---
 title: AssetAware
 slug: assetaware
-category: Web, Branding, Iconography
+category: Branding, Iconography, Web
 date: '2018-12-06T05:25:24+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.png

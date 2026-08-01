@@ -1,7 +1,7 @@
 ---
 title: Whole Cluster
 slug: whole-cluster
-category: Web Design, Web Development
+category: Web, Development
 date: '2024-02-01T19:20:25+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

@@ -1,7 +1,7 @@
 ---
 title: Nor’Easter Digital
 slug: noreaster-digital
-category: Websites, Branding, Strategy
+category: Strategy, Branding, Web
 date: '2025-08-14T22:29:38+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

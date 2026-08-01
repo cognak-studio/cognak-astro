@@ -1,7 +1,7 @@
 ---
 title: Ciao Bella Gelato
 slug: ciao-bella-gelato
-category: Web, Packaging, Iconography
+category: Iconography, Web, Packaging
 date: '2015-12-08T22:26:34+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

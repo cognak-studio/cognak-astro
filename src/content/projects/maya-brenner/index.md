@@ -1,7 +1,7 @@
 ---
 title: Maya Brenner
 slug: maya-brenner
-category: Web Development
+category: Development
 date: '2021-10-05T20:48:40+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.png

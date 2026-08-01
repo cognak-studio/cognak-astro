@@ -1,7 +1,7 @@
 ---
 title: DuVine Cycling + Adventure Co
 slug: duvine
-category: Video, Print, Web, Branding
+category: Branding, Web, Print, Video
 date: '2013-12-05T17:27:58+00:00'
 projectType: 'Branding, Video Production, Web Design, Development, '
 projectYear: 2016-2026

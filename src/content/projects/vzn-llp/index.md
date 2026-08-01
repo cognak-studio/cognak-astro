@@ -1,7 +1,7 @@
 ---
 title: VZN LLP
 slug: vzn-llp
-category: Web, Branding, Logo
+category: Branding, Logo, Web
 date: '2025-08-14T23:48:12+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

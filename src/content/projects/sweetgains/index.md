@@ -1,7 +1,7 @@
 ---
 title: Sweetgains
 slug: sweetgains
-category: Branding, Packaging, Web Design, Development
+category: Branding, Web, Development, Packaging
 date: '2024-01-31T23:07:04+00:00'
 projectType: Branding, Packaging, Web Design, Development
 projectYear: 2024-2026

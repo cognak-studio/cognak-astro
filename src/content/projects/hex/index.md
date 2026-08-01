@@ -1,7 +1,7 @@
 ---
 title: Hex
 slug: hex
-category: Web Design, Digital Design
+category: Web
 date: '2025-08-14T20:35:57+00:00'
 projectType: Web Design
 projectYear: 2025-2026

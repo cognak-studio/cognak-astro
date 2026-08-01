@@ -1,7 +1,7 @@
 ---
 title: Voltiv
 slug: voltiv
-category: Logo, Branding
+category: Branding, Logo
 date: '2019-07-23T22:21:29+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

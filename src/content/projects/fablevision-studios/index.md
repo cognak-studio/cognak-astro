@@ -1,7 +1,7 @@
 ---
 title: FableVision Studios
 slug: fablevision-studios
-category: Websites, UI/UX Design
+category: Web
 date: '2024-02-22T07:13:04+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

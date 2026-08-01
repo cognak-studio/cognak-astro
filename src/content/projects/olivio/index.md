@@ -1,7 +1,7 @@
 ---
 title: Olivio
 slug: olivio
-category: Animated Ads
+category: Ads
 date: '2017-01-11T16:52:48+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.png

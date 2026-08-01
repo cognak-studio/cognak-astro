@@ -1,7 +1,7 @@
 ---
 title: Incredible Foods
 slug: incredible-foods
-category: Logos, Web, Print, Packaging, Ads, Collateral, Social Media
+category: Logo, Web, Packaging, Print, Collateral, Ads, Social Media
 date: '2015-12-04T22:06:26+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.png

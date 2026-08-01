@@ -1,7 +1,7 @@
 ---
 title: Xtract Group
 slug: xtract-group
-category: Logo, Branding, Print, Web, 3D Renderings
+category: Branding, Logo, Web, Print, 3D Renderings
 date: '2019-10-08T15:50:32+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

@@ -1,7 +1,7 @@
 ---
 title: Bose
 slug: bose
-category: Animated Ads, HTML5
+category: Development, Ads
 date: '2012-12-07T22:35:38+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

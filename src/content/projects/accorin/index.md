@@ -1,7 +1,7 @@
 ---
 title: Accorin
 slug: accorin
-category: Web, Print, Branding
+category: Branding, Web, Print
 date: '2015-12-04T22:07:38+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

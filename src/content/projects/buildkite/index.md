@@ -1,7 +1,7 @@
 ---
 title: Buildkite
 slug: buildkite
-category: Digital Ads
+category: Ads
 date: '2024-02-01T20:51:28+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.png

@@ -1,7 +1,7 @@
 ---
 title: Buckaroos Cycling Club
 slug: buckaroos-cycling-club
-category: Branding, Logo Design, Web Design, Social Media
+category: Branding, Logo, Web, Social Media
 date: '2022-08-17T20:25:05+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

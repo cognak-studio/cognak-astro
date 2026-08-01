@@ -1,7 +1,7 @@
 ---
 title: AeroDesigns
 slug: aerodesigns
-category: Logos, Web, Print, Packaging, Ads, Collateral, Social Media
+category: Logo, Web, Packaging, Print, Collateral, Ads, Social Media
 date: '2016-07-26T03:08:17+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.jpg

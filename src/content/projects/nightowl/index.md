@@ -1,7 +1,7 @@
 ---
 title: NightOwl
 slug: nightowl
-category: Branding, Packaging, Web Design, Development
+category: Branding, Web, Development, Packaging
 date: '2022-08-13T01:06:27+00:00'
 projectType: Branding, Packaging, Web Design, Development
 projectYear: 2022-2026

@@ -1,7 +1,7 @@
 ---
 title: IQSIGHT
 slug: iqsight
-category: Figma Design System
+category: Design System
 date: '2026-05-24T03:38:55+00:00'
 projectType: Design System
 projectYear: '2026'

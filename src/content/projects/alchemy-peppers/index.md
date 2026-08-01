@@ -1,7 +1,7 @@
 ---
 title: Alchemy Peppers
 slug: alchemy-peppers
-category: Packaging, Business Cards, Collateral, 3D Renders
+category: Packaging, Collateral, 3D Renderings
 date: '2021-07-13T21:09:27+00:00'
 projectType: Packaging, Development
 projectYear: 2021-2024

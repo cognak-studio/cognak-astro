@@ -1,7 +1,7 @@
 ---
 title: Hubspot
 slug: hubspot
-category: Deck, Iconography
+category: Iconography, Decks
 date: '2015-12-04T22:07:22+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg

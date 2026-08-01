@@ -1,7 +1,7 @@
 ---
 title: Norbella
 slug: norbella
-category: Web Design, Development
+category: Web, Development
 date: '2022-08-09T22:55:41+00:00'
 projectType: Web Design, Development
 projectYear: '2024'

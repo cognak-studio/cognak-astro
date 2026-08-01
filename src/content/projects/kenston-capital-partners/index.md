@@ -1,7 +1,7 @@
 ---
 title: Kenston Capital Partners
 slug: kenston-capital-partners
-category: Web, Branding, Logo
+category: Branding, Logo, Web
 date: '2022-05-17T21:22:49+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.jpg
