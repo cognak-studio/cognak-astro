@@ -23,7 +23,7 @@ moreDetails: '<p>• 2+ year relationship</p>
 metaDescription: View COGNAK's work for Startup Institute, a program providing people with the skills, mindset, and network to find a job they love, doing work that matters.
 clientLocation: Boston
 role: led
-activeClient: true
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

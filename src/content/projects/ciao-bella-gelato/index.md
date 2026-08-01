@@ -21,7 +21,7 @@ moreDetails: '<p>• 1+ year relationship</p>
 metaDescription: View COGNAK's work for Ciao Bella Gelato, a producer of an indulgent collection of gelatos and sorbettos offering an unparalleled dessert experience.
 clientLocation: Boston
 role: led
-activeClient: true
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

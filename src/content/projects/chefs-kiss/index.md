@@ -20,7 +20,7 @@ moreDetails: '<p>• 2+ year relationship</p>
   '
 metaDescription: View COGNAK's work for Chef's Kiss, an Idaho-based brand crafting high protein, low carb, fiber-rich pastas from legendary lupin superfoods.
 clientLocation: Idaho
-role: embedded
+role: led
 activeClient: true
 homepageFeature: false
 homepagePosition: 5

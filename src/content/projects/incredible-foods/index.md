@@ -19,15 +19,13 @@ moreDetails: '<p>• 4+ year relationship</p>
 
   <p>• Boston-based</p>
 
-  <p>• <a href="http://www.perfectlyfree.com">www.perfectlyfree.com</a></p>
-
   <p>• <a href="https://foodberry.co">foodberry.co</a></p>
 
   '
 metaDescription: View COGNAK's work for Incredible Foods, who develops materials and processing technologies with the potential to change how we eat and package food.
 clientLocation: Boston
 role: led
-activeClient: true
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

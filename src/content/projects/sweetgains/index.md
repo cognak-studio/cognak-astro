@@ -24,7 +24,7 @@ moreDetails: '<p>• 2+ year relationship</p>
   '
 metaDescription: View COGNAK's work for Sweetgains, indulgent light ice cream with high protein, low calories, and nothing artificial.
 clientLocation: Philadelphia
-role: build
+role: led
 activeClient: true
 homepageFeature: false
 ---

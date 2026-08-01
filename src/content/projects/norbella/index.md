@@ -23,8 +23,8 @@ moreDetails: '<p>• 4+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Norbella, a media agency partnering with brands to grow businesses by combining insights with media intelligence and expertly crafting custom media campaigns.
-clientLocation: Los Angeles
-role: build
+clientLocation: Boston
+role: led
 activeClient: false
 homepageFeature: true
 homepagePosition: 9

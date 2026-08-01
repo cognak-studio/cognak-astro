@@ -60,34 +60,84 @@ if (projectUnix > 0 && projectUnix < NOW_UNIX) {
    that reads as a leftover. Items authored WITHOUT a bullet are untouched. */
 let moreDetailsHtml = (d.moreDetails ?? '').replace(/(<p[^>]*>)\s*•[\s\u00A0]*/g, '$1');
 
-/* Drop the FIRST detail row when it merely restates engagement length —
+/* Drop any detail row that merely restates engagement length —
    "5+ year relationship", "1-month project", "Ongoing project". The cask grade
    directly above already carries duration ("XO · 12Y") and now carries live
    status too, so the row was saying the same thing a third way, in a third
-   format. 42 of the 49 projects with details match; the other 7 open with a URL
-   or a location and are left alone.
+   format. Global rather than first-only: maya-brenner puts the role row first,
+   and six mangled records opened with a blank that absorbed the old single
+   match. No non-duration row anywhere in the archive starts with a duration.
 
    KNOWN TRADE-OFF: the grade is year-granular, so "6+ month project" collapses
    to "VS · <1Y" and month-level precision is lost. Accepted for consistency —
    delete this one replace() to bring the rows back. */
+/* One row matcher and one text extractor for every pass below, so they can't
+   drift apart. textOf() also flattens &nbsp; and the literal bullet, both of
+   which the WordPress export left scattered through the markup. */
+const ROW = /<p[^>]*>([\s\S]*?)<\/p>\s*/g;
+const textOf = (html) => html
+  .replace(/<[^>]+>/g, '')
+  .replace(/&nbsp;|&#160;/g, ' ')
+  .replace(/[\u00A0\u2022]/g, ' ')
+  .trim();
+
+/* Drop rows carrying no text. The export mangled six records into
+   `<p class="p1">• <span class="s1"></p>` — an unclosed span that leaves a row
+   with a bullet and nothing else — and gulf-electricity holds a bare `&nbsp;`.
+   They rendered as blank spec lines complete with a CSS bullet. Runs BEFORE the
+   duration pass, which used to be positional and was being spent on a blank. */
+moreDetailsHtml = moreDetailsHtml.replace(ROW, (whole, inner) =>
+  textOf(inner) ? whole : ''
+);
+
 const RESTATES_DURATION = /^(\d+\s*\+?\s*[-–]?\s*(year|month|week)s?\b|ongoing\b)/i;
-moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/, (whole, inner) =>
-  RESTATES_DURATION.test(inner.replace(/<[^>]+>/g, '').trim()) ? '' : whole
+moreDetailsHtml = moreDetailsHtml.replace(ROW, (whole, inner) =>
+  RESTATES_DURATION.test(textOf(inner)) ? '' : whole
 );
 
 /* Drop the hand-written location row — the generated one replaces it. Matches
    "<anything>-based"; the value itself now lives in clientLocation. */
-moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/g, (whole, inner) =>
-  /-based\s*$/i.test(inner.replace(/<[^>]+>/g, '').trim()) ? '' : whole
+moreDetailsHtml = moreDetailsHtml.replace(ROW, (whole, inner) =>
+  /-based\s*$/i.test(textOf(inner)) ? '' : whole
 );
 
 /* Drop every hand-written role row — the generated one replaces it. Matches any
    row mentioning COGNAK, which across all 54 projects is only ever the role
    line ("COGNAK was creative lead", "Website development via COGNAK", …).
    Global, not first-only: a couple of projects carry two such rows. */
-moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/g, (whole, inner) =>
-  /\bCOGNAK\b/i.test(inner.replace(/<[^>]+>/g, '')) ? '' : whole
+moreDetailsHtml = moreDetailsHtml.replace(ROW, (whole, inner) =>
+  /\bCOGNAK\b/i.test(textOf(inner)) ? '' : whole
 );
+
+/* Collapse duplicate link rows. Nine projects list the same destination twice
+   — usually `www.example.com` beside `example.com`, sometimes the identical
+   string — because a later editor added a working https link without removing
+   the dead http one. Keyed on host+path with protocol, `www.` and any trailing
+   slash normalised away, so genuinely different destinations survive
+   (perfectlyfree + foodberry, annualreport.swissnex.org + swissnex.org/boston).
+   Where a pair has one anchored row and one bare one the anchored row wins
+   regardless of order — ossio authored its plain-text copy first. */
+const linkKey = (text) => {
+  const m = text.match(/^(?:https?:\/\/)?(?:www\.)?([\w-]+(?:\.[\w-]+)+(?:\/\S*)?)$/i);
+  return m ? m[1].toLowerCase().replace(/\/+$/, '') : null;
+};
+{
+  const rows = moreDetailsHtml.match(ROW) ?? [];
+  const keep = new Map();
+  rows.forEach((row, i) => {
+    const key = linkKey(textOf(row));
+    if (!key) return;
+    const prev = keep.get(key);
+    if (prev === undefined) keep.set(key, i);
+    else if (!/<a\b/i.test(rows[prev]) && /<a\b/i.test(row)) keep.set(key, i);
+  });
+  let i = -1;
+  moreDetailsHtml = moreDetailsHtml.replace(ROW, (whole) => {
+    i += 1;
+    const key = linkKey(textOf(whole));
+    return key === null || keep.get(key) === i ? whole : '';
+  });
+}
 
 /* The role row — always present, first in the record. Every project gets one:
    38 of the 54 had a hand-written "COGNAK was creative lead"-style line in ten

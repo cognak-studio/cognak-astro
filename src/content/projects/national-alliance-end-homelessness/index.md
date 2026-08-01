@@ -21,8 +21,7 @@ moreDetails: '<p class="p1">• <span class="s1"></p>
 
   <p class="p1">• Washington, DC-based</p>
 
-  <p class="p1">• <a href="http://www.naeh.org">www.naeh.org</a></p>
-
+  
   <p>• <a href="https://endhomelessness.org">endhomelessness.org</a></p>
 
   '

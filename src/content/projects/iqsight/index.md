@@ -21,7 +21,7 @@ moreDetails: '<p>• 2+ month project</p>
 
   '
 metaDescription: View COGNAK's work for IQSIGHT, a professional video security solution developed by Bosch for enterprise markets.
-clientLocation: NYC
+clientLocation: Netherlands
 role: led
 activeClient: false
 homepageFeature: true

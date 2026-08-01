@@ -19,13 +19,11 @@ moreDetails: '<p>• 2+ month relationship</p>
 
   <p>• <a href="http://www.eatvicecream.com">www.eatvicecream.com</a></p>
 
-  <p>• <a href="https://vicecream.com">vicecream.com</a></p>
-
   '
 metaDescription: View COGNAK's work for Vice Cream, maker of unapologetically indulgent premium ice cream using decadent mix-ins to create its uniquely rich, creamy product.
 clientLocation: Boston
 role: led
-activeClient: true
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

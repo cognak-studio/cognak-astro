@@ -3428,26 +3428,30 @@ body.pagers-idle a[rel="next"] {
    indicator nobody can see is not a status indicator.)
    This is the light-surface rule working as intended: the acid green is for
    dark grounds, and a light page uses a value that survives it. */
+/* NOT inline-flex. An inline-level flex container takes its baseline from its
+   FIRST FLEX ITEM — here the dot, a div with no text — so the whole "ACTIVE"
+   label was pushed 3.25px below the "VS · 12Y ·" it sits beside. Measured, not
+   guessed. Plain inline flow puts the label back on the surrounding baseline. */
 .template-single-project .pv-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    white-space: nowrap;
 }
 .template-single-project .pv-status--active { color: #4F7A00; }
 .template-single-project .pv-status--past   { color: #9A6414; }
 .template-single-project .pv-dot {
+    display: inline-block;
     width: 4.5px;
     height: 4.5px;
     border-radius: 50%;
     background: currentColor;
-    flex-shrink: 0;
-    /* `align-items: center` centres the dot in the LINE BOX, which includes the
-       descender space that uppercase text never uses — so beside "ACTIVE" the
-       dot rode high. Measured on the live page: dot centre 1.7px above the cap
-       centre at 12px. Nudged down by that, expressed in em so it survives a
-       font-size change. Do not "simplify" this away; flex centring is the thing
-       that's wrong, and it looks correct in code. */
-    transform: translateY(0.142em);
+    margin-right: 5px;
+    /* Sits on the text's own baseline and is lifted to the CAP CENTRE.
+       Measured at 12px: cap ascent 8.59px, so the cap centre is 4.30px up; the
+       dot's own centre is 2.25px above wherever its bottom edge lands, giving
+       4.30 − 2.25 = 2.05px = 0.17em.
+       vertical-align (not transform, not flex centring) because it is the only
+       one of the three that positions the dot relative to the TEXT rather than
+       to a line box full of descender space the uppercase label never uses. */
+    vertical-align: 0.17em;
 }
 
 /* Hidden explainer on the grade. VS/VSOP/XO is a cognac conceit — obvious once

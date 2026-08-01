@@ -21,8 +21,6 @@ moreDetails: '<p class="p1">• 6-month project</p>
 
   <p class="p1">• Boston-based</p>
 
-  <p>• <a href="http://www.prnewswire.com/news-releases/gulf-electricity-launches-second-leg-of-successful-are-we-turning-you-on-yet-advertising-campaign-300072872.html">www.gulfelectricity.com</a></p>
-
   <p>&nbsp;</p>
 
   <p>• <a href="https://www.gulfoilltd.com">www.gulfoilltd.com</a></p>
