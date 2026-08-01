@@ -3634,29 +3634,44 @@ html.js .template-single-project .details-extra .col p.pd-in {
 @media (max-width: 900px) {
     .template-single-project .info-split {
         grid-template-columns: 1fr;
-        /* Narrative first, then the four facts, then the invitation. Source
-           order puts "extra" second; only the grid can express this. */
+        /* Same order as desktop's left column: identity, then the record that
+           belongs to it, then the narrative, then the invitation. It used to
+           put the narrative second, which split the grade from the four facts
+           it summarises — on one column they read as one block or not at all.
+           (Pierce, 2026-08-01.) Source order puts "extra" second; only the grid
+           can express this, which is why "extra" is its own row and not nested
+           inside .info-lead. */
         grid-template-areas:
             "lead"
-            "details"
             "extra"
+            "details"
             "invite";
         grid-template-rows: auto auto auto auto;
     }
+    /* Deliberately NOT a uniform row-gap. The grade and the four facts are one
+       record — 20px, same pairing as desktop — and the real section breaks sit
+       either side of it at 48px. A single gap value would space all three the
+       same and flatten that grouping. */
     .template-single-project .information .details-extra {
-        margin-top: 28px;
+        margin-top: 20px;
         max-width: none;
     }
-    /* Columns stack below 900px, so the optical alignment has nothing to align
-       to — it would just be a stray gap above "About the client". */
+    /* Was 0: the optical 17px cap-height alignment has nothing to align to once
+       the columns stack, so it was zeroed — but that left the narrative butted
+       straight against the block above with no separation at all. It needs a
+       section gap here, just not an alignment one. */
     .template-single-project .information .details-main {
-        margin-top: 0;
+        margin-top: 48px;
     }
     .template-single-project .info-invite {
         align-self: start;
         margin-top: 48px;
     }
-    .template-single-project .information .details .col { margin-bottom: 34px; }
+    /* Scoped to .details-main. On a bare `.details` this also hung 34px off the
+       four facts, which stacked with the 48px below into an 82px trough. */
+    .template-single-project .information .details-main .col { margin-bottom: 34px; }
+    .template-single-project .information .details-main .col:last-child { margin-bottom: 0; }
+    .template-single-project .information .details-extra .col { margin-bottom: 0; }
 }
 /* ── CookieYes banner overrides ── */
 .cky-consent-bar {
