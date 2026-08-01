@@ -8,9 +8,11 @@
    work.
 
    Measured against every page background:
-     /send #090C0B 15.9:1   /brief #140E07 15.5:1   /tools #16151A 14.7:1
-     home #17151a  14.7:1   /studio #18151A 14.7:1  colophon #0E06D2 8.6:1
-     404 #6F6F6F    4.1:1
+     home + /tools + /studio  #17151A (--ink-deep)  14.7:1
+     /send + /receive         #090C0B (--ink-black) 15.9:1
+     /brief                   #140E07               15.5:1
+     colophon                 #0E06D2                8.6:1
+     404                      #6F6F6F                4.1:1
      /projects #EAE5F2 1.0:1   /privacy #F1D6EA 1.1:1   <- see the rule below
 
    THE LIGHT-SURFACE RULE: this green is for dark grounds only. It cannot carry
@@ -41,18 +43,146 @@
 }
 
 /* ── Motion tokens ──
-   The site has ~37 distinct durations and 5 cubic-beziers, and ~95% of
-   transitions are a plain `ease`. This is the start of one vocabulary. Sweep
-   the rest onto these rather than adding a sixth curve.
+   ONE vocabulary for easing and duration. Established 2026-08-01 by sweeping
+   every authored declaration onto these; see the DURATION SCALE note below for
+   what deliberately stayed literal.
+
+   THE CURVES.
+   --ease-standard is the new default and replaces bare `ease` (the browser
+   default, i.e. the absence of a decision — 183 declarations in authored files
+   were using it). It is the Material standard curve: a touch more decisive out
+   of the gate and a softer landing than `ease`, which is lopsided toward its
+   own middle. Use it for anything that does not have a reason to use another.
 
    --ease-out-expo is the curve the site's best moments already use (the founder
    portrait, the studio reel). It leaves fast and lands slow, which is what makes
    a large element settle rather than arrive. Use it for anything that MOVES a
-   meaningful distance. Keep plain `ease` for small color/opacity fades — an
-   expo curve on a 0.15s color swap is imperceptible and just noise in the code. */
+   meaningful distance. It is WRONG for a sweep you are meant to watch cross a
+   word — it front-loads ~90% of travel into the first ~20%. Fine for arrivals.
+
+   --ease-drag is near-linear and physical: a hot iron dragged at a steady rate.
+   It exists for the project-detail "char" background-position sweep, which has
+   to read as a constant-speed pass across the text.
+
+   --ease-overshoot is the one springy curve on the site. It overshoots past its
+   target and settles back. Use sparingly — currently one element.
+
+   --ease-press is the shared control curve for /brief, /send and /tools: the
+   quick transform on a pill, chip or slot as it is pressed, and the rise of the
+   two dialogs. Snappier out and shorter than --ease-standard.
+
+   Retired: cubic-bezier(0.23, 1, 0.32, 1), a single use that was visually
+   indistinguishable from --ease-out-expo.
+
+   THE DURATION SCALE.
+   Seven values, anchored on what the site already used rather than an invented
+   ramp. 200ms is the true base (110 of ~430 authored time values). Every
+   authored duration within 15% of a scale value was snapped onto it; anything
+   further away kept its literal value, because at that distance the difference
+   is a choice somebody made rather than drift.
+
+   NOT tokenized, on purpose:
+     - Sub-150ms micro-timings (90ms, 100ms) — below the scale, and used for
+       things too fast to belong to a shared rhythm.
+     - Ambient loops (0.9s, 1.6s, 2s, 2.5s, 3s, 5s, 9s and up). These are
+       bespoke rhythms — a breathing glow, a marquee, a WebGL cycle — not steps
+       on a UI scale. Forcing them onto one would be a category error.
+     - Everything in screen.css. That is inherited WordPress theme boilerplate
+       (vendor-prefixed `transition: all 0.7s ease` repeated ~60 times) that
+       four pages already carry explicit overrides against. It is scheduled for
+       extraction; tokenizing it would be work thrown away. */
 :root {
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out-expo:  cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-drag:      cubic-bezier(0.32, 0.06, 0.38, 1);
+    --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-press:     cubic-bezier(0.2, 0.7, 0.3, 1);
+
+    --dur-xs:  150ms;
+    --dur-s:   200ms;   /* the base */
+    --dur-sm:  250ms;
+    --dur-m:   300ms;
+    --dur-l:   400ms;
+    --dur-xl:  500ms;
+    --dur-2xl: 600ms;
 }
+
+/* ── Colour tokens ──
+   Named for what they ARE, not where they are used, so a token never lies when
+   a page changes its mind.
+
+   THE PER-PAGE NEAR-BLACKS. The site deliberately gives several pages their own
+   near-black ground; that system stays. What did NOT survive audit was the
+   difference between three of them — #17151A (/tools), #17151A (home) and
+   #17151A (/studio) differ by a single unit of red, are imperceptible, and live
+   on pages you can never see side by side. All three are now --ink-deep.
+   #090C0B (/send, /receive) is genuinely darker and cooler and remains its own
+   token, --ink-black.
+
+   --ink-deep-rgb exists because CSS cannot pull a channel out of a hex: the ~26
+   rgba(23,21,26,·) scrims across the site need the triple. Same convention as
+   the existing --orange-rgb. */
+:root {
+    --ink:            #3A313B;   /* the body ink — 39 uses, the site's workhorse */
+    --ink-deep:       #17151A;   /* the shared near-black ground */
+    --ink-deep-rgb:   23, 21, 26;
+    --ink-deep-alt:   #1C1A21;   /* one lifted panel against --ink-deep */
+    --ink-black:      #090C0B;   /* /send + /receive — darker, cooler */
+
+    --purple-vivid:   #8B1FFF;
+    --purple-muted:   #4A3F6B;   /* /projects headline lavender */
+    --plum:           #4A2840;
+    --mauve:          #815275;
+    --lilac-pale:     #EAE5F2;   /* /projects ground */
+
+    --pink:           #FFB2E4;   /* /studio's voice — 22 uses */
+    --pink-pale:      #F1D6EA;   /* /privacy ground */
+    --magenta:        #DB27C7;
+
+    --green-live:     #4F7A00;
+    --grey-mid:       #6D6D6D;
+    --signal-green-rgb: 170, 255, 0;
+    --link-ink-rgb:   58, 49, 59;
+}
+
+/* ── Body-link system ──
+   Consolidated 2026-08-01. Six rules across four files had independently
+   converged on the same treatment: `text-decoration: underline` at a 3px
+   offset, drawn in the page's ink at low alpha, resolving to the page's own
+   accent on hover. That convergence IS the system — this block gives it one
+   set of knobs without changing a single rendered pixel.
+
+   THE INVARIANT, and it is the only one: underline at --link-offset. Every
+   member honours it. Change the offset here and the whole site moves.
+
+   THE DELIBERATE VARIANCE. Each page draws the underline in ITS OWN accent —
+   colophon green, privacy + project-detail mauve/purple, /tools ink-soft. That
+   is the same rule the availability dot follows (see the signal-green block at
+   the top of this file): one behaviour, each page's voice. Do not unify the
+   colours.
+
+   THE UNDECIDED VARIANCE, recorded rather than fixed, because the 2026-08-01
+   brief was "consolidate but do not change anything visually":
+     - Resting alpha is 0.25 / 0.28 / 0.30 / 0.45 across four rules. There is
+       no evident reason for the first three to differ; 0.45 on colophon is
+       arguably justified since acid green on deep blue needs more weight.
+     - Three rules set no thickness at all, so they compute to `auto`
+       (font-derived), while colophon and /tools pin 1px. A shared base rule
+       declaring 1px would silently change those three — this is why there is
+       no shared base rule.
+     - `.privacy-body a` transitions `color` only, so its underline colour
+       SNAPS on hover while every sibling fades it. Almost certainly an
+       oversight, but visible, so it stands until someone decides.
+     - `/brief .sent-mail` has no hover and no transition at all.
+   Resolving these is a one-line change each now that they are named. */
+:root {
+    --link-offset:          3px;
+    --link-offset-hover:    2px;   /* colophon's tighten-on-hover */
+    --link-thickness-hover: 2px;   /* colophon's thicken-on-hover */
+    --link-dur:             var(--dur-s);
+    --link-ease:            var(--ease-standard);
+}
+
 
 /* ── Scrollbar ──
    The native scrollbar is HIDDEN and replaced by a custom overlay bar
@@ -93,7 +223,7 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     z-index: 9999998;
     pointer-events: none;     /* only the thumb is interactive */
     opacity: 0;
-    transition: opacity 0.35s ease;
+    transition: opacity var(--dur-m) var(--ease-standard);
 }
 #cognak-scrollbar.is-visible { opacity: 1; }
 /* Nothing to scroll — stay out of the way entirely. */
@@ -115,7 +245,7 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
        was that it snapped. Easing it turns a jarring jump into a settle.
        Suppressed while dragging, where the size is fixed and any transition
        would just feel like lag. */
-    transition: height 0.3s var(--ease-out-expo);
+    transition: height var(--dur-m) var(--ease-out-expo);
 }
 #cognak-scrollbar.is-dragging i { transition: none; }
 @media (prefers-reduced-motion: reduce) {
@@ -130,7 +260,7 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     width: 6px;
     border-radius: 3px;
     background: var(--sb-thumb, rgba(255,255,255,0.35));
-    transition: width 0.18s ease, right 0.18s ease;
+    transition: width var(--dur-s) var(--ease-standard), right var(--dur-s) var(--ease-standard);
 }
 /* Thicken slightly while grabbed or hovered, so it acknowledges the pointer.
    Hover-capable pointers only — there is no hover on touch, and touch devices
@@ -210,8 +340,8 @@ body[data-page="project"]  ::selection      { background: #9647F0; color: #fff; 
 body[data-page="projects"] ::-moz-selection,
 body[data-page="project"]  ::-moz-selection { background: #9647F0; color: #fff; }
 
-body[data-page="studio"] ::selection      { background: #FFB2E4; color: #18151A; }
-body[data-page="studio"] ::-moz-selection { background: #FFB2E4; color: #18151A; }
+body[data-page="studio"] ::selection      { background: #FFB2E4; color: #17151A; }
+body[data-page="studio"] ::-moz-selection { background: #FFB2E4; color: #17151A; }
 
 /* Hardcoded, NOT var(--orange)/var(--cream): those tokens are scoped to the
    .brief element, so they don't resolve at body level. Keep in sync by hand. */
@@ -223,8 +353,8 @@ body[data-page="receive"] ::selection      { background: #8FC2F2; color: #090C0B
 body[data-page="send"]    ::-moz-selection,
 body[data-page="receive"] ::-moz-selection { background: #8FC2F2; color: #090C0B; }
 
-body[data-page="tools"] ::selection      { background: #B47CFF; color: #16151A; }
-body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; }
+body[data-page="tools"] ::selection      { background: #B47CFF; color: #17151A; }
+body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #17151A; }
 
 /* ── Custom Cursor ── */
 * { cursor: none !important; }
@@ -244,7 +374,7 @@ body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; 
     pointer-events: none;
     z-index: 9999999;
     transform: translate(-50%, -50%);
-    transition: width 0.25s ease, height 0.25s ease, background 0.25s ease, border 0.25s ease, opacity 0.2s ease;
+    transition: width var(--dur-sm) var(--ease-standard), height var(--dur-sm) var(--ease-standard), background var(--dur-sm) var(--ease-standard), border var(--dur-sm) var(--ease-standard), opacity var(--dur-s) var(--ease-standard);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -279,7 +409,7 @@ body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; 
     color: #fff;
     opacity: 0;
     letter-spacing: 0.08em;
-    transition: opacity 0.15s ease;
+    transition: opacity var(--dur-xs) var(--ease-standard);
     white-space: nowrap;
     position: relative;
     z-index: 2;
@@ -294,7 +424,7 @@ body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; 
     object-fit: cover;
     border-radius: 50%;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--dur-s) var(--ease-standard);
     display: block;
     z-index: 1;
 }
@@ -308,7 +438,7 @@ body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; 
     object-fit: cover;
     border-radius: 50%;
     opacity: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--dur-s) var(--ease-standard);
     display: block;
     z-index: 1;
     pointer-events: none;
@@ -330,7 +460,7 @@ body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; 
     height: 100%;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--dur-s) var(--ease-standard);
     transform-origin: center;
 }
 #cognak-cursor.is-next #cognak-cursor-ring {
@@ -346,7 +476,7 @@ body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; 
     background: transparent;
     border: none;
     mix-blend-mode: normal;
-    animation: cursor-crosshair-in 0.25s ease forwards;
+    animation: cursor-crosshair-in var(--dur-sm) var(--ease-standard) forwards;
 }
 #cognak-cursor.is-phrase::before,
 #cognak-cursor.is-phrase::after {
@@ -381,7 +511,7 @@ body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #16151A; 
     box-shadow: none !important;
     width: 36px !important;
     height: 36px !important;
-    transition: all 0.4s ease !important;
+    transition: all var(--dur-l) var(--ease-standard) !important;
 }
 #cognak-cursor.is-idle::before {
     content: '🐃';
@@ -558,7 +688,7 @@ padding-right: 30px;
     height: 100% !important;
     z-index: 1;
     opacity: 0;
-    transition: opacity 2.5s ease;
+    transition: opacity 2.5s var(--ease-standard);
 }
 .main-intro .hero-webgl.webgl-ready {
     opacity: 1;
@@ -595,7 +725,7 @@ padding-right: 30px;
     text-decoration: none !important;
     text-transform: none !important;
     padding: 20px 40px !important;
-    transition: all 0.7s ease !important;
+    transition: all var(--dur-2xl) var(--ease-standard) !important;
     box-shadow: 0px 3px 3px 0 rgba(0, 0, 0, 0.3) !important;
     cursor: pointer;
 }@media (hover: hover) {
@@ -603,7 +733,7 @@ padding-right: 30px;
 
 .contact-template button:hover,
 .contact-template button:active {
-    transition: all 0.7s ease !important;
+    transition: all var(--dur-2xl) var(--ease-standard) !important;
     box-shadow: 0px 12px 12px 0 rgba(0, 0, 0, 0.5) !important;
 }
 }
@@ -632,7 +762,7 @@ padding-right: 30px;
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 60%);
     mask-image: linear-gradient(to bottom, transparent 0%, black 60%);
     opacity: 0;
-    transition: opacity 1.2s ease;
+    transition: opacity 1.2s var(--ease-standard);
 }
 .about-template .about-webgl.webgl-ready {
     opacity: 1;
@@ -746,7 +876,7 @@ body.non-fixed-nav {
     }
 }
 #awwwards a .js-color-bg {
-    transition: fill 0.25s ease;
+    transition: fill var(--dur-sm) var(--ease-standard);
 }@media (hover: hover) {
 
 #awwwards a:hover .js-color-bg,
@@ -794,7 +924,7 @@ body.non-fixed-nav::after {
     color: rgba(255,255,255,0.6);
     text-decoration: none;
     letter-spacing: 0.04em;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
     /* Wider tap target without shifting the tight vertical nav */
     padding: 4px 12px;
     margin: -4px -12px;
@@ -809,7 +939,7 @@ body.non-fixed-nav::after {
    (see cognak-home.js .home-nav-links-mobile). These have an inline
    color style with no hover state, so this needs !important to win. */
 .home-nav-links-mobile a {
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }
 @media (max-width: 720px) {
     /* Match location/time readout size (15px) for uniformity across all
@@ -843,7 +973,7 @@ body.non-fixed-nav::after {
     justify-content: space-between;
     padding: 24px 40px;
     pointer-events: none;
-    transition: background 0.3s ease;
+    transition: background var(--dur-m) var(--ease-standard);
     overflow: hidden; /* clips the ::before halos on email/location so they don't bleed below the bar */
 }
 .home-bottom-bar > * {
@@ -883,7 +1013,7 @@ body.non-fixed-nav::after {
     height: 48px;
     width: auto;
     opacity: 0.7;
-    transition: opacity 0.4s ease-in;
+    transition: opacity var(--dur-l) ease-in;
 }@media (hover: hover) {
 
 .home-bottom-logo:hover img {
@@ -902,7 +1032,7 @@ body.non-fixed-nav::after {
     color: rgba(255,255,255,0.6);
     text-decoration: none;
     letter-spacing: 0.04em;
-    transition: color 0.2s ease, transform 0.3s ease, left 0.3s ease;
+    transition: color var(--dur-s) var(--ease-standard), transform var(--dur-m) var(--ease-standard), left var(--dur-m) var(--ease-standard);
 }
 /* Bg-color halo behind hello@cognak.com — centered oval (wider than tall). */
 body.non-fixed-nav .home-bottom-email::before {
@@ -937,7 +1067,7 @@ body.non-fixed-nav .home-bottom-email::before {
     left: calc(100% - 40px);
     top: 50%;
     transform: translate(-100%, -50%);
-    transition: left 0.3s ease, transform 0.3s ease;
+    transition: left var(--dur-m) var(--ease-standard), transform var(--dur-m) var(--ease-standard);
     font-family: 'Diatype Variable', sans-serif;
     font-size: 14px;
     font-weight: 400;
@@ -968,7 +1098,7 @@ body.non-fixed-nav .home-bottom-location::before {
 .home-bottom-location::before,
 .home-bottom-email::before {
     opacity: 1;
-    transition: opacity 0.3s ease;
+    transition: opacity var(--dur-m) var(--ease-standard);
 }
 /* The two top halos (Projects/Studio nav + cookie banner) fade early, driven by
    scroll progress (--hero-halo-opacity, set in cognak-home.js). This clears their
@@ -1034,7 +1164,7 @@ html.home-scrolled #cognak-cookie {
            live WebGL hero every frame as the bar rode up made the hero "catch"
            mid-viewport. So the tint alone carries the nav — fade just the
            background on a timer. */
-        transition: background 0.35s ease;
+        transition: background var(--dur-m) var(--ease-standard);
     }
     /* A hair more opaque than desktop's 0.75 to compensate for the missing frost. */
     .home-bottom-bar.nav-mode {
@@ -1246,7 +1376,7 @@ html.home-scrolled #cognak-cookie {
     color: #3A313B;
     text-decoration: none;
     line-height: 1.2;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .footer-email-link:hover {
@@ -1265,7 +1395,7 @@ html.home-scrolled #cognak-cookie {
     color: #3A313B;
     text-decoration: none;
     line-height: 1.2;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .footer-social a:hover {
@@ -1283,7 +1413,7 @@ html.home-scrolled #cognak-cookie {
     color: #3A313B;
     letter-spacing: normal;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .footer-backtotop:hover {
@@ -1328,7 +1458,7 @@ html.home-scrolled #cognak-cookie {
     font-size: 15px;
     color: #3A313B;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .footer-links a:hover {
@@ -1410,14 +1540,14 @@ html.home-scrolled #cognak-cookie {
     max-width: none;
     white-space: nowrap;
     text-align: right;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
     display: block;
     margin-bottom: 37px;
 }
 .hp-projects-link {
     color: rgba(255,255,255,0.8);
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
     white-space: nowrap;
 }@media (hover: hover) {
 
@@ -1432,7 +1562,7 @@ html.home-scrolled #cognak-cookie {
     display: inline-block;
     vertical-align: middle;
     margin-left: -0.12em;
-    transition: transform 0.3s ease;
+    transition: transform var(--dur-m) var(--ease-standard);
 }@media (hover: hover) {
 
 .hp-projects-link:hover .hp-projects-arrow {
@@ -1466,7 +1596,7 @@ html.home-scrolled #cognak-cookie {
 .hp-grid .project-excerpt figure img.hp-lazy {
     opacity: 0;
     transform: translateY(12px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: opacity var(--dur-xl) var(--ease-standard), transform var(--dur-xl) var(--ease-standard);
 }
 /* Hover swap: tile reveals the hero image/video on hover (homepage only). */
 .hp-grid .project-excerpt .hp-hover-media {
@@ -1477,7 +1607,7 @@ html.home-scrolled #cognak-cookie {
     object-fit: cover;
     object-position: top center;
     opacity: 0;
-    transition: opacity 0.35s ease;
+    transition: opacity var(--dur-m) var(--ease-standard);
     z-index: 1;
     pointer-events: none;
 }
@@ -1495,7 +1625,7 @@ html.home-scrolled #cognak-cookie {
 .hp-reveal {
     opacity: 0;
     transform: translateY(20px);
-    transition: opacity 0.45s ease, transform 0.45s ease;
+    transition: opacity var(--dur-l) var(--ease-standard), transform var(--dur-l) var(--ease-standard);
 }
 .hp-reveal.hp-visible {
     opacity: 1;
@@ -1520,7 +1650,7 @@ html.home-scrolled #cognak-cookie {
     padding: 0;
     letter-spacing: -0.02em;
     line-height: 1;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .hp-more-btn:hover {
@@ -1529,7 +1659,7 @@ html.home-scrolled #cognak-cookie {
 }
 .hp-more-plus {
     display: inline-block;
-    transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: transform var(--dur-sm) var(--ease-out-expo);
 }@media (hover: hover) {
 
 .hp-more-btn:hover .hp-more-plus {
@@ -1576,22 +1706,22 @@ html.home-scrolled #cognak-cookie {
     transform: rotate(45deg) scale(0.7);
 }
 .hp-more-plus {
-    transition: opacity 0.22s ease,
-                transform 0.45s var(--ease-out-expo);
+    transition: opacity var(--dur-s) var(--ease-standard),
+                transform var(--dur-l) var(--ease-out-expo);
 }
 
 .hp-more-label {
     position: relative;
     display: inline-block;
     width: var(--w-more, auto);
-    transition: width 0.5s var(--ease-out-expo);
+    transition: width var(--dur-xl) var(--ease-out-expo);
     text-align: left;
     white-space: nowrap;
     vertical-align: baseline;
 }
 .hp-more-word {
     display: inline-block;
-    transition: opacity 0.26s ease, transform 0.45s var(--ease-out-expo);
+    transition: opacity var(--dur-sm) var(--ease-standard), transform var(--dur-l) var(--ease-out-expo);
 }
 /* The inactive word is taken out of flow so it can't widen the label. The
    ACTIVE one stays in flow so the label keeps a real line box (and therefore a
@@ -1687,7 +1817,7 @@ html.home-scrolled #cognak-cookie {
     user-select: none;
     font-size: 6.5px;
     line-height: 1;
-    animation: sparkle-pop 0.9s ease forwards;
+    animation: sparkle-pop 0.9s var(--ease-standard) forwards;
     z-index: 10;
 }
 .hp-start {
@@ -1699,7 +1829,7 @@ html.home-scrolled #cognak-cookie {
     text-decoration: none;
     letter-spacing: -0.02em;
     line-height: 1;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .hp-start:hover {
@@ -1837,7 +1967,7 @@ html.home-scrolled #cognak-cookie {
 }
 .projects-display-headline .headline-dark-lavender {
     color: #4A3F6B;
-    animation: headline-accent-fade 0.6s ease 0.15s both;
+    animation: headline-accent-fade var(--dur-2xl) var(--ease-standard) var(--dur-xs) both;
 }
 .projects-count-sup {
     font-size: 0.18em;
@@ -1877,7 +2007,7 @@ html.home-scrolled #cognak-cookie {
     line-height: 1.75;
     max-width: 600px;
     margin: 0 0 16px;
-    animation: projects-subhead-fade 0.6s ease 0.25s both;
+    animation: projects-subhead-fade var(--dur-2xl) var(--ease-standard) var(--dur-sm) both;
 }
 @keyframes projects-subhead-fade {
     from { opacity: 0; }
@@ -1917,7 +2047,7 @@ html.home-scrolled #cognak-cookie {
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.4s ease;
+    transition: transform var(--dur-l) var(--ease-standard);
 }@media (hover: hover) {
 
 .projects-grid-link:hover .projects-grid-img {
@@ -1974,7 +2104,7 @@ html.home-scrolled #cognak-cookie {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: rgba(58,49,59,1);
-    transition: -webkit-text-fill-color 0.4s ease;
+    transition: -webkit-text-fill-color var(--dur-l) var(--ease-standard);
 }@media (hover: hover) {
 
 .projects-start-link:hover {
@@ -1989,7 +2119,7 @@ html.home-scrolled #cognak-cookie {
    transition is what makes the colour glide with the cursor and ease back out
    on leave rather than snapping. Keep it long enough to feel smooth, short
    enough that the pink still tracks the mouse. */
-.rl { display: inline; transition: color 0.28s ease-out; }
+.rl { display: inline; transition: color var(--dur-m) ease-out; }
 
 /* ── Homepage card tilt ── */
 #hp-grid .project-excerpt {
@@ -2060,7 +2190,7 @@ html.home-scrolled #cognak-cookie {
     font-weight: 700;
     letter-spacing: normal;
     color: #3A313B;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .projects-sort-btn:hover .sort-label {
@@ -2076,7 +2206,7 @@ html.home-scrolled #cognak-cookie {
     display: flex;
     align-items: center;
     color: #3A313B;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }
 .sort-icon-alpha { display: none; }
 .projects-sort-btn[data-mode="alpha"] .sort-icon-newest { display: none; }
@@ -2105,7 +2235,7 @@ html.home-scrolled #cognak-cookie {
     border: none;
     cursor: pointer;
     color: rgba(58, 49, 59, 0.6);
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
     border-radius: 4px;
 }@media (hover: hover) {
 
@@ -2144,7 +2274,7 @@ html.pv-grid .projects-list,
     border-bottom: 1px solid rgba(58, 49, 59, 0.15);
     text-decoration: none;
     color: inherit;
-    transition: color 0.15s ease;
+    transition: color var(--dur-xs) var(--ease-standard);
     gap: 24px;
 }
 .list-item-title {
@@ -2153,7 +2283,7 @@ html.pv-grid .projects-list,
     font-weight: 400;
     color: #3A313B;
     line-height: 1.1;
-    transition: color 0.15s ease;
+    transition: color var(--dur-xs) var(--ease-standard);
 }@media (hover: hover) {
 
 .projects-list-item:hover .list-item-title {
@@ -2169,7 +2299,7 @@ html.pv-grid .projects-list,
     text-transform: uppercase;
     white-space: nowrap;
     flex-shrink: 0;
-    transition: color 0.15s ease;
+    transition: color var(--dur-xs) var(--ease-standard);
 }@media (hover: hover) {
 
 .projects-list-item:hover .list-item-tag {
@@ -2179,7 +2309,7 @@ html.pv-grid .projects-list,
 /* Cognac age grade appended to the tag — one shade quieter than the tag itself. */
 .list-item-vintage {
     color: rgba(58, 49, 59, 0.34);
-    transition: color 0.15s ease;
+    transition: color var(--dur-xs) var(--ease-standard);
 }
 @media (hover: hover) {
 .projects-list-item:hover .list-item-vintage {
@@ -2226,7 +2356,7 @@ html.pv-grid .projects-list,
 }
 .studio-display-headline .headline-pink {
     color: #FFB2E4;
-    animation: headline-accent-fade 0.6s ease 0.15s both;
+    animation: headline-accent-fade var(--dur-2xl) var(--ease-standard) var(--dur-xs) both;
 }
 @keyframes headline-accent-fade {
     from { opacity: 0; }
@@ -2237,7 +2367,7 @@ html.pv-grid .projects-list,
 .colophon-headline em,
 .privacy-headline .pp-accent,
 .fourofour-accent,
-#step-pick .headline em { animation: headline-accent-fade 0.6s ease 0.15s both; }
+#step-pick .headline em { animation: headline-accent-fade var(--dur-2xl) var(--ease-standard) var(--dur-xs) both; }
 @media (prefers-reduced-motion: reduce) {
     .studio-display-headline .headline-pink,
     .projects-display-headline .headline-dark-lavender,
@@ -2294,7 +2424,7 @@ html.pv-grid .projects-list,
     overflow: visible;
     z-index: 3;
     opacity: 0;
-    transition: transform 0.55s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease;
+    transition: transform var(--dur-xl) var(--ease-out-expo), opacity var(--dur-l) var(--ease-standard);
     pointer-events: none;
 }
 .founder-portrait-wrap.is-active {
@@ -2332,7 +2462,7 @@ html.pv-grid .projects-list,
     z-index: 3;
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.55s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease;
+    transition: transform var(--dur-xl) var(--ease-out-expo), opacity var(--dur-l) var(--ease-standard);
 }
 .award-badges-wrap.is-active {
     opacity: 1;
@@ -2352,8 +2482,8 @@ html.pv-grid .projects-list,
        element made Chrome briefly rasterize the shadow as a hard rectangle
        instead of following the circular clip during the pop-in transition. */
     box-shadow: 0 9px 20px rgba(0,0,0,0.45);
-    transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease,
-                box-shadow 0.25s ease;
+    transition: transform var(--dur-xl) var(--ease-overshoot), opacity var(--dur-m) var(--ease-standard),
+                box-shadow var(--dur-sm) var(--ease-standard);
     /* Inert by DEFAULT, and permanently so on touch: tapping one of these on iOS
        caused a scroll-jump, and the badges are shown by a 3s timer there rather
        than by a pointer that can dwell on them. Desktop re-enables it below, but
@@ -2391,7 +2521,7 @@ html.pv-grid .projects-list,
 }
 .award-badges-wrap .award-badge-pop-link:nth-child(1) { transition-delay: 0.04s; }
 .award-badges-wrap .award-badge-pop-link:nth-child(2) { transition-delay: 0.10s; }
-.award-badges-wrap .award-badge-pop-link:nth-child(3) { transition-delay: 0.16s; }
+.award-badges-wrap .award-badge-pop-link:nth-child(3) { transition-delay: var(--dur-xs); }
 
 
 
@@ -2550,9 +2680,9 @@ html.pv-grid .projects-list,
     top: var(--m-top, 0px);
     bottom: var(--m-bot, 100%);
     opacity: 0;
-    transition: top var(--t-top, .34s) var(--ease-out-expo),
-                bottom var(--t-bot, .34s) var(--ease-out-expo),
-                opacity .3s ease;
+    transition: top var(--t-top, var(--dur-m)) var(--ease-out-expo),
+                bottom var(--t-bot, var(--dur-m)) var(--ease-out-expo),
+                opacity var(--dur-m) var(--ease-standard);
 }
 /* Only shown once JS has measured a real position, so it can't flash at 0,0. */
 .studio-tabs.has-marker::before { opacity: 1; }
@@ -2570,7 +2700,7 @@ html.pv-grid .projects-list,
     padding: 0;
     cursor: pointer;
     text-align: left;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
     letter-spacing: -0.01em;
     outline: none;
 }
@@ -2602,7 +2732,7 @@ html.pv-grid .projects-list,
        the outgoing fades with no reflow. 7px on the expo curve — enough to read
        as arriving, not enough to look like a slide-in. */
     transform: translateY(7px);
-    transition: opacity .42s ease, transform .42s var(--ease-out-expo);
+    transition: opacity var(--dur-l) var(--ease-standard), transform var(--dur-l) var(--ease-out-expo);
 }
 .studio-tab-panel--active {
     visibility: visible;
@@ -2619,7 +2749,7 @@ html.pv-grid .projects-list,
     border-radius: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
-    .studio-tab-panel { transform: none; transition: opacity .2s ease; }
+    .studio-tab-panel { transform: none; transition: opacity var(--dur-s) var(--ease-standard); }
 }
 /* Tab panel words: skip word-by-word stagger, let the whole panel fade as one block */
 .studio-tab-panel .stagger-word {
@@ -2629,7 +2759,7 @@ html.pv-grid .projects-list,
 }
 /* Page-load entrance fade for the initial active panel (class never re-added on tab switch) */
 .studio-tab-panel--entrance {
-    animation: panel-entrance-fade 0.55s ease 200ms both;
+    animation: panel-entrance-fade var(--dur-xl) var(--ease-standard) var(--dur-s) both;
 }
 @keyframes panel-entrance-fade {
     from { opacity: 0; }
@@ -2674,7 +2804,7 @@ html.pv-grid .projects-list,
     width: 1ch;
     color: rgba(255,255,255,0.45);
     opacity: 1;
-    transition: opacity .5s ease;
+    transition: opacity var(--dur-xl) var(--ease-standard);
 }
 .sfv-caret::after { content: "\258C"; }
 .sfv-meta:not(.is-typing) .sfv-caret { animation: sfvCaretBlink 1.05s steps(1, end) infinite; }
@@ -2887,14 +3017,14 @@ html.pv-grid .projects-list,
     .founder-portrait-wrap {
         width: 200px !important;
         transform: translate(-50%, calc(-50% + 16px)) !important;
-        transition: transform 0.55s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease !important;
+        transition: transform var(--dur-xl) var(--ease-out-expo), opacity var(--dur-l) var(--ease-standard) !important;
     }
     .award-badges-wrap {
         flex-direction: column !important;
         align-items: center !important;
         gap: 12px !important;
         transform: translate(-50%, -50%) !important;
-        transition: opacity 0.4s ease !important;
+        transition: opacity var(--dur-l) var(--ease-standard) !important;
     }
     .founder-portrait-wrap.is-active {
         opacity: 1 !important;
@@ -3020,7 +3150,7 @@ html.pv-grid .projects-list,
     color: #3A313B;
     text-decoration: none;
     letter-spacing: 0.04em;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
     /* Larger tap target (a11y 2.5.8) without shifting layout — gap is 24px so no overlap */
     padding: 12px 10px;
     margin: -12px -10px;
@@ -3075,7 +3205,7 @@ html.pv-grid .projects-list,
     justify-content: center;
     background: #fff;
     opacity: 1;
-    transition: opacity 0.6s ease;
+    transition: opacity var(--dur-2xl) var(--ease-standard);
     pointer-events: none;
     z-index: 2;
 }
@@ -3106,7 +3236,7 @@ html.pv-grid .projects-list,
     padding: 8px;
     cursor: pointer;
     opacity: 0.75;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--dur-s) var(--ease-standard);
     line-height: 0;
 }
 .hero-mute-btn svg {
@@ -3149,12 +3279,12 @@ html.pv-grid .projects-list,
 a[rel="prev"] {
     margin-left: 0 !important;
     transform: translateX(calc(-100% + 64px)) !important;
-    transition: transform 0.4s ease, opacity 0.6s ease !important;
+    transition: transform var(--dur-l) var(--ease-standard), opacity var(--dur-2xl) var(--ease-standard) !important;
 }
 a[rel="next"] {
     margin-right: 0 !important;
     transform: translateX(calc(100% - 64px)) !important;
-    transition: transform 0.4s ease, opacity 0.6s ease !important;
+    transition: transform var(--dur-l) var(--ease-standard), opacity var(--dur-2xl) var(--ease-standard) !important;
 }@media (hover: hover) {
 
 a[rel="prev"]:hover {
@@ -3372,9 +3502,9 @@ body.pagers-idle a[rel="next"] {
     font-weight: 400 !important;
     color: inherit;
     text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: rgba(58, 49, 59, 0.28);
-    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    text-underline-offset: var(--link-offset);
+    text-decoration-color: rgba(var(--link-ink-rgb), 0.28);
+    transition: color var(--link-dur) var(--link-ease), text-decoration-color var(--link-dur) var(--link-ease);
 }
 @media (hover: hover) {
     .template-single-project .information .details-extra .col a:hover {
@@ -3491,7 +3621,7 @@ body.pagers-idle a[rel="next"] {
        restated in both states — an inline transform replaces, not merges. */
     transform: translate(-6px, -50%);
     pointer-events: none;
-    transition: opacity 0.28s ease, transform 0.38s var(--ease-out-expo);
+    transition: opacity var(--dur-m) var(--ease-standard), transform var(--dur-l) var(--ease-out-expo);
 }
 @media (hover: hover) {
     .template-single-project .project-vintage:hover .pv-note {
@@ -3638,14 +3768,14 @@ html.pv-grid .projects-grade-note,
     .template-single-project .info-invite .projects-start-link:hover,
     .template-single-project .info-invite .projects-start-link:hover::after {
         background-position: 0 0;
-        transition: background-position 1.7s cubic-bezier(0.32, 0.06, 0.38, 1);
+        transition: background-position 1.7s var(--ease-drag);
     }
     /* The crackle. Only ever visible where ::after paints, i.e. on the ember
        itself — so it stops on its own once the iron leaves the word, with no
        cleanup. Irregular stops on purpose: evenly spaced keyframes read as a
        pulse, and fire does not pulse. */
     .template-single-project .info-invite .projects-start-link:hover::after {
-        animation: char-crackle 0.43s linear infinite;
+        animation: char-crackle var(--dur-l) linear infinite;
     }
 }
 @keyframes char-crackle {
@@ -3698,7 +3828,7 @@ html.js .template-single-project .details-main .col,
 html.js .template-single-project .info-invite {
     opacity: 0;
     transform: translateY(8px);
-    transition: opacity 0.55s ease, transform 0.55s var(--ease-out-expo);
+    transition: opacity var(--dur-xl) var(--ease-standard), transform var(--dur-xl) var(--ease-out-expo);
 }
 html.js .template-single-project .information .category.pd-in,
 html.js .template-single-project .project-vintage.pd-in,
@@ -3716,7 +3846,7 @@ html.js .template-single-project .info-invite.pd-in {
    row instead of sitting there waiting. */
 html.js .template-single-project .details-extra .col p {
     clip-path: inset(0 100% 0 0);
-    transition: clip-path 0.42s var(--ease-out-expo);
+    transition: clip-path var(--dur-l) var(--ease-out-expo);
     transition-delay: var(--pd-d, 0ms);
 }
 html.js .template-single-project .details-extra .col p.pd-in {
@@ -3822,7 +3952,7 @@ html.js .template-single-project .details-extra .col p.pd-in {
     letter-spacing: 0.04em !important;
     border-radius: 4px !important;
     padding: 8px 18px !important;
-    transition: opacity 0.2s ease !important;
+    transition: opacity var(--dur-s) var(--ease-standard) !important;
     white-space: nowrap !important;
 }
 .cky-btn-accept {
@@ -3900,7 +4030,7 @@ a[href*="cookieyes.com"],
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    transition: opacity 0.4s ease;
+    transition: opacity var(--dur-l) var(--ease-standard);
 }
 /* Soft bg-color halo behind the cookie banner — radiates out from the top-left
    corner (same fade-out look as the hero, not a centered circle).
@@ -3944,7 +4074,7 @@ a[href*="cookieyes.com"],
     border: none;
     padding: 0;
     cursor: pointer;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .cognak-cookie-opt:hover {
@@ -3971,7 +4101,7 @@ a[href*="cookieyes.com"],
     border: 1.5px solid rgba(255,255,255,0.25);
     display: inline-block;
     flex-shrink: 0;
-    transition: border-color 0.2s ease;
+    transition: border-color var(--dur-s) var(--ease-standard);
 }
 .cognak-cookie-radio--on {
     border-color: var(--cognak-purple-text);
@@ -4008,7 +4138,7 @@ a[href*="cookieyes.com"],
     color: inherit;
     text-decoration: none;
     font-weight: 400;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .cognak-cookie-link:hover {
@@ -4036,7 +4166,7 @@ a[href*="cookieyes.com"],
     will-change: transform;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.5s ease;
+    transition: opacity var(--dur-xl) var(--ease-standard);
 }
 #cognak-cookie.cognak-cookie--corner::before {
     /* The glass card supplies its own depth — no homepage hero halo here. */
@@ -4108,7 +4238,7 @@ a[href*="cookieyes.com"],
     color: #3A313B;
     line-height: 1.6;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: color var(--dur-s) var(--ease-standard);
 }@media (hover: hover) {
 
 .footer-privacy:hover {
@@ -4221,9 +4351,11 @@ html body.page-template-page-privacy-policy,
 .privacy-body a {
     color: #3A313B;
     text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: rgba(58,49,59,0.25);
-    transition: color 0.2s ease;
+    text-underline-offset: var(--link-offset);
+    text-decoration-color: rgba(var(--link-ink-rgb), 0.25);
+    /* transitions `color` ONLY — the underline colour snaps. See the
+       body-link block: recorded, not fixed. */
+    transition: color var(--link-dur) var(--link-ease);
 }@media (hover: hover) {
 
 .privacy-body a:hover {
@@ -4285,7 +4417,7 @@ html body.page-template-page-privacy-policy,
         line-height: 1;
         letter-spacing: 0.04em;
         color: rgba(255, 255, 255, 0.6);
-        transition: opacity 0.4s ease;
+        transition: opacity var(--dur-l) var(--ease-standard);
     }
     /* Location — top left */
     .home-hero-loc {
@@ -4451,7 +4583,7 @@ html body.page-template-page-privacy-policy,
 /* ── Projects page lazy load ── */
 .projects-grid-item.proj-lazy {
     opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity var(--dur-xl) var(--ease-standard);
 }
 .projects-grid-item.proj-lazy.proj-visible {
     opacity: 1;
@@ -4473,7 +4605,7 @@ html body.page-template-page-privacy-policy,
     padding: 10px 20px;
     border-radius: 4px;
     text-decoration: none;
-    transition: top 0.2s ease;
+    transition: top var(--dur-s) var(--ease-standard);
 }
 .skip-to-main:focus {
     top: 20px;
@@ -4544,7 +4676,7 @@ html.js .studio-manifesto {
     display: inline-block;
     opacity: 0;
     transform: translateY(10px);
-    transition: opacity 0.45s ease, transform 0.45s ease;
+    transition: opacity var(--dur-l) var(--ease-standard), transform var(--dur-l) var(--ease-standard);
 }
 .stagger-word.stagger-in {
     opacity: 1;
@@ -4560,12 +4692,12 @@ html.js .studio-manifesto {
 .privacy-body .stagger-word,
 #step-pick .lede .stagger-word {
     transform: none;
-    transition: opacity 0.55s ease;
+    transition: opacity var(--dur-xl) var(--ease-standard);
 }
 /* Studio tabs nav — fades in just before the body text */
 .studio-tabs {
     opacity: 0;
-    animation: studio-tabs-fade 0.45s ease 80ms forwards;
+    animation: studio-tabs-fade var(--dur-l) var(--ease-standard) 80ms forwards;
 }
 @keyframes studio-tabs-fade {
     to { opacity: 1; }
@@ -4586,7 +4718,7 @@ html.js .studio-manifesto {
     opacity: 0;
 }
 ::view-transition-new(root) {
-    animation: 280ms ease vt-fade-in;
+    animation: var(--dur-m) var(--ease-standard) vt-fade-in;
     animation-delay: 80ms;
     animation-fill-mode: both;
 }
@@ -4602,11 +4734,11 @@ html.js .studio-manifesto {
    morph isn't possible. Override the morph-tuned root rules above with a clean two-way
    cross-fade (set via the 'proj-switch' transition type in BaseLayout's pagereveal/pageswap). */
 html:active-view-transition-type(proj-switch)::view-transition-old(root) {
-    animation: 220ms ease both vt-fade-out;
+    animation: var(--dur-s) var(--ease-standard) both vt-fade-out;
     opacity: 1;
 }
 html:active-view-transition-type(proj-switch)::view-transition-new(root) {
-    animation: 220ms ease both vt-fade-in;
+    animation: var(--dur-s) var(--ease-standard) both vt-fade-in;
     animation-delay: 0ms;
 }
 /* Shared element morph — project thumbnail expands into hero.
@@ -4681,7 +4813,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 html.js .project-gallery img {
     opacity: 0;
     transform: translateY(12px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: opacity var(--dur-xl) var(--ease-standard), transform var(--dur-xl) var(--ease-standard);
     transition-delay: var(--gd, 0ms);
 }
 html.js .project-gallery img.is-in {
@@ -4706,13 +4838,13 @@ html.js .project-gallery img.is-in {
    wants it. The 'list-morph' type is set in BaseLayout's pagereveal, gated on
    the saved view preference, so this can never touch the grid path. */
 html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
-    animation: 90ms ease both vt-fade-out;
+    animation: 90ms var(--ease-standard) both vt-fade-out;
 }
 
 /* Nav cross-fades independently so its backdrop-filter doesn't corrupt the root snapshot */
 ::view-transition-old(cognak-nav),
 ::view-transition-new(cognak-nav) {
-    animation: 200ms ease vt-fade-in;
+    animation: var(--dur-s) var(--ease-standard) vt-fade-in;
     animation-fill-mode: both;
 }
 
@@ -4776,7 +4908,7 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
     color: #fff; /* default; overridden per-tile by luminance JS */
     text-shadow: none;
     opacity: 0;
-    transition: opacity 0.18s ease;
+    transition: opacity var(--dur-s) var(--ease-standard);
     will-change: opacity;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -4827,7 +4959,7 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
         pointer-events: auto;
         /* width transitions from arrow-only to arrow + title */
         width: 52px;
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width var(--dur-m) var(--ease-standard);
     }
 
     .mobile-pager--prev { left: 0; flex-direction: row; }
@@ -4852,17 +4984,17 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
         white-space: nowrap;
         padding: 0 14px;
         opacity: 0;
-        transition: opacity 0.15s ease 0.15s;
+        transition: opacity var(--dur-xs) var(--ease-standard) var(--dur-xs);
     }
 
     /* Idle fade — JS adds .mobile-pagers-idle to body 1.5s after load, resets on scroll */
     body.mobile-pagers-idle .mobile-pager {
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.6s ease;
+        transition: opacity var(--dur-2xl) var(--ease-standard);
     }
     .mobile-pager {
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+        transition: width var(--dur-m) var(--ease-standard), opacity var(--dur-2xl) var(--ease-standard);
     }
 
     /* Open state — tapped */
@@ -4930,12 +5062,12 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
    than one simultaneous morph. */
 .fourofour-frown {
     display: inline-block;
-    transition: transform 1.6s ease;
+    transition: transform 1.6s var(--ease-standard);
     transform-origin: center;
 }
 .fourofour-frown .ff-mouth {
     display: inline-block;
-    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+    transition: transform 0.9s var(--ease-out-expo) var(--dur-xl);
     transform-origin: center;
 }
 @media (hover: hover) {
@@ -4971,7 +5103,7 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
     line-height: 1.15;
     color: #D4D4D4;
     text-decoration: none;
-    transition: color 0.2s ease, opacity 0.5s ease, transform 0.5s ease;
+    transition: color var(--dur-s) var(--ease-standard), opacity var(--dur-xl) var(--ease-standard), transform var(--dur-xl) var(--ease-standard);
     display: block;
 }
 .fourofour-btn:hover { color: var(--signal-green); }
@@ -5018,8 +5150,8 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
     .fourofour-arrow {
         opacity: 0;
         transform: translateX(-0.6em) rotate(-90deg);
-        transition: opacity 0.28s ease,
-                    transform 0.5s var(--ease-out-expo);
+        transition: opacity var(--dur-m) var(--ease-standard),
+                    transform var(--dur-xl) var(--ease-out-expo);
     }
     .fourofour-btn:hover .fourofour-arrow {
         opacity: 1;
@@ -5041,7 +5173,7 @@ html.js .fourofour-btn.is-in {
     html.js .fourofour-btn {
         opacity: 1;
         transform: none;
-        transition: color 0.2s ease;
+        transition: color var(--dur-s) var(--ease-standard);
     }
     /* No transition, but the reveal itself is kept — without this the arrow
        would simply be missing for reduced-motion visitors on a hover device. */

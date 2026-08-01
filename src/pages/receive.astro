@@ -50,7 +50,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        /brief and /studio; skipped entirely on reduced-motion. Replaced the
        hand-drawn "transit" canvas (src/lib/send-background.js) on 2026-07-28. */
     .send-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
-      pointer-events:none; opacity:0; transition:opacity 1.6s ease; }
+      pointer-events:none; opacity:0; transition:opacity 1.6s var(--ease-standard); }
     .send-webgl.webgl-ready{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ .send-webgl{ display:none; } }
 
@@ -97,7 +97,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (prefers-reduced-motion:reduce){
       html.js .receive-headline, html.js .receive-lede{ opacity:1; }
     }
-    .receive-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
+    .receive-lede .stagger-word{ transform:none; transition:opacity var(--dur-xl) var(--ease-standard); }
 
     .receive .dcard{ border-radius:10px; padding:34px 34px 30px;
       box-shadow:0 2px 18px rgba(0,0,0,.26); margin-bottom:1.4rem;
@@ -122,7 +122,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       width:100%; box-sizing:border-box; margin:0;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1.1rem; letter-spacing:.08em; line-height:1.5; padding:14px 16px;
-      transition:border-color .2s ease, background .2s ease; outline:none; }
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none; }
 
     /* Typed text was going illegible: WebKit paints autofilled fields with its
        own dark-on-pale treatment, and on a dark field that lands as near-black
@@ -158,14 +158,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
       border-radius:999px; padding:14px 26px; background:none; color:var(--ink);
       border:1px solid var(--line-strong);
-      transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
+      transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
     /* Primary CTA carries the headline's blue, and glows on hover the way
        /brief's does — same 0 0 24px shadow, same .45 alpha, just this page's
        accent instead of /brief's orange. --deep on #8FC2F2 is 9.28:1, so the
        label clears AA comfortably; the hover tint lightens rather than
        darkens so contrast only ever improves. */
     .receive .btn.btn-primary{ background:var(--cta); border-color:var(--cta); color:var(--deep);
-      transition:box-shadow .25s ease, background .2s ease, border-color .2s ease; }
+      transition:box-shadow var(--dur-sm) var(--ease-standard), background var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard); }
     .receive .btn.btn-primary:hover:not(:disabled){ background:var(--cta-hi); border-color:var(--cta-hi);
       box-shadow:0 0 24px rgba(143,194,242,.45); }
     /* Base hover — the stroke strengthens, matching `.send .btn:hover` exactly
@@ -193,7 +193,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        height, so the old vertical padding made every row read as oversized. */
     .receive .frow{ display:flex; align-items:center; gap:14px; background:var(--field);
       border:1px solid var(--line); border-radius:8px; padding:11px 16px;
-      transition:border-color .2s ease; }
+      transition:border-color var(--dur-s) var(--ease-standard); }
     /* The row a preview is currently showing for. Both the row edge and the
        thumbnail take the accent so there's no doubt which file the floating
        card belongs to — it sits away from the list, next to the cursor. */
@@ -208,7 +208,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .frow-thumb{ flex:0 0 auto; width:46px; height:46px; border-radius:6px; overflow:hidden;
       background:var(--deep); border:1px solid var(--line); padding:0; margin:0;
       display:flex; align-items:center; justify-content:center; position:relative;
-      transition:border-color .2s ease; }
+      transition:border-color var(--dur-s) var(--ease-standard); }
     .receive button.frow-thumb{ cursor:zoom-in; }
     .receive .frow.is-hot .frow-thumb{ border-color:var(--accent); }
     .receive .frow-thumb img,
@@ -249,7 +249,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .expiry-note .exp-warn{ color:var(--warn); }
     .receive .expiry-note[hidden]{ display:none; }
 
-    .receive .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+    .receive .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard); }
     .receive .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .receive .rise{ opacity:1; transform:none; transition:none; } }
 
@@ -259,7 +259,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        like the same site: the outgoing panel fades up and out over 260ms,
        then the incoming panel's blocks rise in staggered 60ms apart. Both
        collapse to an instant swap under prefers-reduced-motion. */
-    .step-fade{ transition:opacity .26s ease, transform .26s ease; }
+    .step-fade{ transition:opacity var(--dur-sm) var(--ease-standard), transform var(--dur-sm) var(--ease-standard); }
     .step-fade.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
     @media (prefers-reduced-motion:reduce){
       .step-fade{ transition:none; }
@@ -284,7 +284,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       background:#0E1413; border:1px solid rgba(213,230,228,0.52); border-radius:10px;
       padding:9px; box-shadow:0 22px 50px rgba(0,0,0,.6);
       opacity:0; transform:translateY(8px) scale(.98); transform-origin:left center;
-      transition:opacity .18s ease, transform .18s ease;
+      transition:opacity var(--dur-s) var(--ease-standard), transform var(--dur-s) var(--ease-standard);
       /* Never eats the pointer: the row underneath keeps its hover, and the
          card can pass under the cursor without flickering itself away. */
       pointer-events:none; }
@@ -322,7 +322,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send-nav .inner-nav-links a,
     .send-nav .pulse-dot{ color:#BED0CD !important; }
     .send-nav .home-bottom-email,
-    .send-nav .inner-nav-links a{ transition:color .2s ease; }
+    .send-nav .inner-nav-links a{ transition:color var(--dur-s) var(--ease-standard); }
     /* Hover DARKENS rather than brightens — the nav text already sits near the
        top of the ramp, so there was nowhere brighter to go that read as a
        change. #93A29F is 7.01:1 on the #0E1413 bar: still WCAG AAA for body
@@ -366,7 +366,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           el.style.opacity = '0';
           el.style.transform = 'translateY(10px)';
           const dl = (i * 0.06).toFixed(2) + 's';
-          el.style.transition = 'opacity .5s ease ' + dl + ', transform .5s ease ' + dl;
+          el.style.transition = 'opacity var(--dur-xl) var(--ease-standard) ' + dl + ', transform var(--dur-xl) var(--ease-standard) ' + dl;
           requestAnimationFrame(() => requestAnimationFrame(() => {
             el.style.opacity = '1';
             el.style.transform = 'none';

@@ -257,7 +257,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        /brief and /studio; skipped entirely on reduced-motion. Replaced the
        hand-drawn "transit" canvas (src/lib/send-background.js) on 2026-07-28. */
     .send-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
-      pointer-events:none; opacity:0; transition:opacity 1.6s ease; }
+      pointer-events:none; opacity:0; transition:opacity 1.6s var(--ease-standard); }
     .send-webgl.webgl-ready{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ .send-webgl{ display:none; } }
 
@@ -342,7 +342,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     @media (prefers-reduced-motion:reduce){
       html.js .send-headline, html.js .send-lede{ opacity:1; }
     }
-    .send-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
+    .send-lede .stagger-word{ transform:none; transition:opacity var(--dur-xl) var(--ease-standard); }
 
     .send .acard{ border-radius:10px; padding:34px 34px 30px;
       box-shadow:0 2px 18px rgba(0,0,0,.26); margin-bottom:1.6rem;
@@ -371,7 +371,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .collapse-toggle{ flex:0 0 auto; width:28px; height:28px; border-radius:999px;
       display:inline-flex; align-items:center; justify-content:center; padding:0;
       background:none; color:var(--ink-soft); border:1px solid var(--line-strong);
-      cursor:pointer; transition:border-color .2s ease, color .2s ease; }
+      cursor:pointer; transition:border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
     .send .collapse-toggle:hover{ border-color:var(--accent); color:var(--ink); }
     .send .collapse-toggle .toggle-glyph{ font-family:'Diatype Mono', monospace; font-size:1rem;
       line-height:1; transform:translateY(-.5px); }
@@ -459,7 +459,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       width:100%; box-sizing:border-box; margin:0;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
-      transition:border-color .2s ease, background .2s ease; outline:none; }
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none; }
     .send .txt::placeholder{ color:var(--placeholder); }
 
     /* Typed text was going illegible: WebKit paints autofilled fields with its
@@ -515,7 +515,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* -------------------------------------------------------- drop zone --- */
     .send .drop{ border:1.5px dashed var(--line-strong); border-radius:10px; padding:28px 16px;
       text-align:center; color:var(--ink-soft); font-size:.94rem; cursor:pointer;
-      transition:border-color .2s ease, background .2s ease, color .2s ease; }
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
     .send .drop:hover, .send .drop:focus-visible{ border-color:var(--accent); color:var(--ink); }
     .send .drop.is-over{ border-color:var(--accent); background:rgba(213,230,228,.07); color:var(--ink); }
 
@@ -526,7 +526,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .pills{ display:flex; flex-wrap:wrap; gap:10px; margin-top:.85rem; }
     .send .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
       border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
-      transition:transform .14s cubic-bezier(.2,.7,.3,1),border-color .2s ease,color .2s ease,background .2s ease; }
+      transition:transform var(--dur-xs) var(--ease-press),border-color var(--dur-s) var(--ease-standard),color var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .send .pill:hover{ border-color:var(--ink); }
     .send .pill:active{ transform:scale(.96); }
     .send .pill input{ position:absolute; opacity:0; pointer-events:none; }
@@ -544,7 +544,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        accent instead of /brief's orange. Row content sits above it. */
     .send .frow > *{ position:relative; z-index:1; }
     .send .frow-fill{ position:absolute; left:0; top:0; bottom:0; width:0; z-index:0;
-      background:var(--cta); transition:width .35s ease; }
+      background:var(--cta); transition:width var(--dur-m) var(--ease-standard); }
     .send .frow.is-done .frow-fill{ width:100%; }
     @media (prefers-reduced-motion:reduce){ .send .frow-fill{ transition:none; } }
     /* line-height matters here: reset.css sets `font:inherit` on these
@@ -646,7 +646,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
       border-radius:999px; padding:12px 22px; background:none; color:var(--ink);
       border:1px solid var(--line-strong);
-      transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
+      transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
     .send .btn:hover:not(:disabled){ border-color:var(--ink); }
     /* Primary CTA carries the headline's blue, and glows on hover the way
        /brief's does — same 0 0 24px shadow, same .45 alpha, just this page's
@@ -654,7 +654,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        label clears AA comfortably; the hover tint lightens rather than
        darkens so contrast only ever improves. */
     .send .btn.btn-primary{ background:var(--cta); border-color:var(--cta); color:var(--deep);
-      transition:box-shadow .25s ease, background .2s ease, border-color .2s ease; }
+      transition:box-shadow var(--dur-sm) var(--ease-standard), background var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard); }
     .send .btn.btn-primary:hover:not(:disabled){ background:var(--cta-hi); border-color:var(--cta-hi);
       box-shadow:0 0 24px rgba(143,194,242,.45); }
     .send .btn.btn-ghost{ padding:12px 18px; font-size:.86rem; }
@@ -669,7 +669,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        .55 keeps it legible while still reading as disabled. */
     .send .btn:disabled{ opacity:.55; cursor:not-allowed; }
 
-    .send .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+    .send .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard); }
     .send .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .send .rise{ opacity:1; transform:none; transition:none; } }
 
@@ -679,7 +679,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        like the same site: the outgoing panel fades up and out over 260ms,
        then the incoming panel's blocks rise in staggered 60ms apart. Both
        collapse to an instant swap under prefers-reduced-motion. */
-    .step-fade{ transition:opacity .26s ease, transform .26s ease; }
+    .step-fade{ transition:opacity var(--dur-sm) var(--ease-standard), transform var(--dur-sm) var(--ease-standard); }
     .step-fade.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
     @media (prefers-reduced-motion:reduce){
       .step-fade{ transition:none; }
@@ -703,7 +703,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send-nav .inner-nav-links a,
     .send-nav .pulse-dot{ color:#BED0CD !important; }
     .send-nav .home-bottom-email,
-    .send-nav .inner-nav-links a{ transition:color .2s ease; }
+    .send-nav .inner-nav-links a{ transition:color var(--dur-s) var(--ease-standard); }
     /* Hover DARKENS rather than brightens — the nav text already sits near the
        top of the ramp, so there was nowhere brighter to go that read as a
        change. #93A29F is 7.01:1 on the #0E1413 bar: still WCAG AAA for body
@@ -910,7 +910,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           el.style.opacity = '0';
           el.style.transform = 'translateY(10px)';
           const dl = (i * 0.06).toFixed(2) + 's';
-          el.style.transition = 'opacity .5s ease ' + dl + ', transform .5s ease ' + dl;
+          el.style.transition = 'opacity var(--dur-xl) var(--ease-standard) ' + dl + ', transform var(--dur-xl) var(--ease-standard) ' + dl;
           requestAnimationFrame(() => requestAnimationFrame(() => {
             el.style.opacity = '1';
             el.style.transform = 'none';

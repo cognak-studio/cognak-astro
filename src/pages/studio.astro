@@ -6,10 +6,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   title="Studio – COGNAK | Design & Development"
   description="Learn about the studio behind COGNAK, a creative studio that blends design, code, and strategy to build premium digital and print experiences."
   ogUrl="https://cognak.com/studio/"
-  pageBg="#18151A"
+  pageBg="#17151A"
 >
 <style is:inline>
-html, body { background-color: #18151A !important; }
+html, body { background-color: #17151A !important; }
 body { overflow-x: clip; }
 .studio-archive.about-template { overflow-x: hidden !important; min-height: 0 !important; }
 .studio-archive.projects-archive { padding-bottom: 0 !important; }
@@ -141,7 +141,7 @@ body { overflow-x: clip; }
     }
     .logo-ring-item:hover {
         opacity: 0.55;
-        transition: opacity 0.25s ease;
+        transition: opacity var(--dur-sm) var(--ease-standard);
     }
     /* Tablet: smaller logos so the tightened ring reads cleanly and fits */
     @media (max-width: 1024px) and (min-width: 721px) {
@@ -1072,17 +1072,17 @@ body { overflow-x: clip; }
         requestAnimationFrame(function() {
             requestAnimationFrame(function() {
                 // Stage height slides to new value in sync with the image swap
-                stage.style.transition = 'height 0.5s cubic-bezier(0.16,1,0.3,1)';
+                stage.style.transition = 'height var(--dur-xl) var(--ease-out-expo)';
                 stage.style.height     = newH + 'px';
 
                 // Old: drift up and fade out
-                outgoing.style.transition = 'opacity 0.38s ease, transform 0.38s ease';
+                outgoing.style.transition = 'opacity var(--dur-l) var(--ease-standard), transform var(--dur-l) var(--ease-standard)';
                 outgoing.style.opacity    = '0';
                 outgoing.style.transform  = 'translateY(-22px) scale(0.97)';
 
                 // New: rise in slightly after old begins leaving
                 setTimeout(function() {
-                    incoming.style.transition = 'opacity 0.45s ease, transform 0.45s cubic-bezier(0.16,1,0.3,1)';
+                    incoming.style.transition = 'opacity var(--dur-l) var(--ease-standard), transform var(--dur-l) var(--ease-out-expo)';
                     incoming.style.opacity    = '1';
                     incoming.style.transform  = 'translateY(0)';
                 }, 60);

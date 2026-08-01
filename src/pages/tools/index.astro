@@ -10,7 +10,7 @@
  * vector emitters live in src/lib/barcode/ and are bundled into the page, so
  * nothing typed here is ever sent anywhere.
  *
- * Palette: violet ink on near-black — the site's own #16151A used as the
+ * Palette: violet ink on near-black — the site's own #17151A used as the
  * ground. Verified WCAG AA (see :root comment).
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -20,7 +20,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   title="Tools – COGNAK"
   description="A UPC-A and QR generator built for print — real vector out (SVG, PDF, EPS), GS1-legal magnification, nothing you type ever leaves the browser."
   ogUrl="https://cognak.com/tools/"
-  pageBg="#16151A"
+  pageBg="#17151A"
 >
   <canvas id="tools-lattice" aria-hidden="true"></canvas>
 
@@ -174,25 +174,25 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#16151A !important; }
+    html, body { background-color:#17151A !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
     /* Module-lattice background — fixed behind the content, fades in once the
        canvas has painted. Skipped entirely under reduced motion (the script
        never starts, so the canvas just stays empty and invisible). */
     #tools-lattice{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
-      pointer-events:none; opacity:0; transition:opacity 1.4s ease; }
+      pointer-events:none; opacity:0; transition:opacity 1.4s var(--ease-standard); }
     #tools-lattice.is-in{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ #tools-lattice{ display:none; } }
 
     /* ============================================================
-       COGNAK barcode tools — violet ink on the site's own #16151A.
+       COGNAK barcode tools — violet ink on the site's own #17151A.
        Contrast against the ground, all AA or better:
        ink 15.3:1, ink-soft 7.5:1, accent 6.3:1, placeholder 5.1:1,
        ok 11.5:1, err 9.1:1, dark-ink on the accent button 6.2:1.
        ============================================================ */
     .tools {
-      --bg:#16151A;
+      --bg:#17151A;
       --card:rgba(33,31,40,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
       --ink:#EDEAF3; --ink-soft:#A9A3B8; --accent:#B47CFF; --accent-hi:#C79BFF;
       /* Headline accent only — the brand violet at full chroma shouts at 62px,
@@ -233,7 +233,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       html.js .tools-headline, html.js .tools-lede{ opacity:1; }
     }
     /* Lede fades without the slide, matching the other inner pages' body copy. */
-    .tools-lede .stagger-word{ transform:none; transition:opacity .55s ease; }
+    .tools-lede .stagger-word{ transform:none; transition:opacity var(--dur-xl) var(--ease-standard); }
 
     /* ------------------------------------------------------------ card --- */
     /* No backdrop-filter anywhere on this page. The lattice behind it repaints
@@ -257,8 +257,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .tools .q{ display:block; margin-bottom:.85rem; padding:0; }
     .tools .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
     .tools .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:54ch; }
-    .tools .q-sub a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:3px;
-      text-decoration-thickness:1px; transition:color .2s ease; }
+    .tools .q-sub a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset);
+      text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
     @media (hover:hover){ .tools .q-sub a:hover{ color:var(--accent); } }
 
     .tools .pair{ display:flex; gap:20px; }
@@ -270,7 +270,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       width:100%; box-sizing:border-box; margin:0;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
-      transition:border-color .2s ease, background .2s ease; outline:none;
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none;
       -moz-appearance:textfield; }
     .tools .txt::-webkit-outer-spin-button,
     .tools .txt::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
@@ -287,7 +287,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 46px 14px 16px;
-      transition:border-color .2s ease, background .2s ease; outline:none; cursor:pointer; }
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none; cursor:pointer; }
     .tools .sel:focus{ border-color:var(--accent); background:var(--field-focus); }
     /* Native option lists render in the OS palette; force dark so the menu
        doesn't flash white against the page. */
@@ -309,12 +309,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .tools .pills{ display:flex; flex-wrap:wrap; gap:10px; }
     .tools .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
       border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
-      transition:transform .14s cubic-bezier(.2,.7,.3,1), border-color .2s ease, color .2s ease, background .2s ease; }
+      transition:transform var(--dur-xs) var(--ease-press), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
     .tools .pill:hover{ border-color:var(--ink); }
     .tools .pill:active{ transform:scale(.96); }
     .tools .pill input{ position:absolute; opacity:0; pointer-events:none; }
     .tools .pill .pct{ font-family:'Diatype Mono', monospace; font-size:.72rem; color:var(--ink-soft);
-      margin-left:.5rem; transition:color .2s ease; }
+      margin-left:.5rem; transition:color var(--dur-s) var(--ease-standard); }
     .tools .pill.on{ border-color:var(--accent); color:var(--deep); background:var(--accent); font-weight:500; }
     .tools .pill.on .pct{ color:rgba(27,20,36,.65); }
 
@@ -340,7 +340,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
       border-radius:999px; padding:14px 28px; background:none; color:var(--ink);
       border:1px solid var(--line-strong);
-      transition:background .2s ease, color .2s ease, border-color .2s ease, box-shadow .25s ease; }
+      transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
     /* Icon strokes are currentColor, so they invert with the label on hover
        and dim with the button when it's disabled. */
     .tools .btn-ico{ display:block; flex:0 0 auto; }
@@ -359,14 +359,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     /* ------------------------------------------------------------ foot --- */
     .tools .tfoot{ margin:2.6rem 0 0; max-width:70ch; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
-    .tools .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:3px;
-      text-decoration-thickness:1px; transition:color .2s ease; }
+    .tools .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset);
+      text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
     @media (hover:hover){ .tools .tfoot a:hover{ color:var(--accent); } }
 
     /* ---------------------------------------------------------- motion --- */
-    .tools .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease, transform .6s ease; }
+    .tools .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard); }
     .tools .rise.in{ opacity:1; transform:none; }
-    .tools .panel{ transition:opacity .24s ease; }
+    .tools .panel{ transition:opacity var(--dur-sm) var(--ease-standard); }
     .tools .panel.swapping{ opacity:0; }
     @media (prefers-reduced-motion:reduce){
       .tools .rise{ opacity:1; transform:none; transition:none; }
@@ -383,7 +383,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     .tools-nav .inner-nav-links a,
     .tools-nav .pulse-dot{ color:#A9A3B8 !important; }
     .tools-nav .home-bottom-email,
-    .tools-nav .inner-nav-links a{ transition:color .2s ease; }
+    .tools-nav .inner-nav-links a{ transition:color var(--dur-s) var(--ease-standard); }
     @media (hover:hover){
       .tools-nav .home-bottom-email:hover,
       .tools-nav .inner-nav-links a:hover{ color:#C79BFF !important; }

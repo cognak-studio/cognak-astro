@@ -139,7 +139,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
        a color transition here for both. */
     .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
     .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a {
-      transition: color 0.2s ease;
+      transition: color var(--dur-s) var(--ease-standard);
     }
     @media (hover: hover) {
       .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email:hover,
@@ -177,7 +177,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     .colophon-sign {
       opacity: 0;
       transform: translateY(6px);
-      transition: opacity 0.6s ease, transform 0.6s ease;
+      transition: opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard);
     }
     .colophon-eyebrow.is-in,
     .colophon-spec.is-in,
@@ -249,18 +249,20 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     .colophon-body a {
       color: var(--signal-green);
       text-decoration: underline;
-      text-decoration-color: rgba(170,255,0,0.45);
-      text-underline-offset: 3px;
+      text-decoration-color: rgba(var(--signal-green-rgb), 0.45);
+      text-underline-offset: var(--link-offset);
       text-decoration-thickness: 1px;
-      transition: text-decoration-color 0.25s cubic-bezier(0.16,1,0.3,1),
-                  text-decoration-thickness 0.25s cubic-bezier(0.16,1,0.3,1),
-                  text-underline-offset 0.25s cubic-bezier(0.16,1,0.3,1);
+      /* colophon runs the fullest version of the body-link system: it also
+         animates thickness and offset, on expo rather than the standard curve. */
+      transition: text-decoration-color var(--dur-sm) var(--ease-out-expo),
+                  text-decoration-thickness var(--dur-sm) var(--ease-out-expo),
+                  text-underline-offset var(--dur-sm) var(--ease-out-expo);
     }
     .colophon-body a:hover,
     .colophon-body a:focus-visible {
       text-decoration-color: var(--signal-green);
-      text-decoration-thickness: 2px;
-      text-underline-offset: 2px;
+      text-decoration-thickness: var(--link-thickness-hover);
+      text-underline-offset: var(--link-offset-hover);
     }
 
     /* Off-site credits announce themselves with a mono arrow — the site's
@@ -290,8 +292,8 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
       opacity: 0.6;
       display: inline-block;
       text-decoration: none;
-      transition: opacity 0.25s cubic-bezier(0.16,1,0.3,1),
-                  transform 0.25s cubic-bezier(0.16,1,0.3,1);
+      transition: opacity var(--dur-sm) var(--ease-out-expo),
+                  transform var(--dur-sm) var(--ease-out-expo);
     }
     .colophon-body p:not(.colophon-spec) a[target="_blank"]:hover::after,
     .colophon-body p:not(.colophon-spec) a[target="_blank"]:focus-visible::after {
@@ -327,7 +329,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     .colophon-spec a {
       color: inherit;
       text-decoration: none;
-      transition: color 0.25s ease;
+      transition: color var(--dur-sm) var(--ease-standard);
     }
     .colophon-spec a:hover { color: var(--signal-green); }
     .colophon-spec span:nth-child(odd) {

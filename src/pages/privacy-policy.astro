@@ -106,7 +106,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       pointer-events: none;
       opacity: 0;
       transform: translateY(6px);
-      transition: opacity 0.9s ease, transform 0.9s ease;
+      transition: opacity 0.9s var(--ease-standard), transform 0.9s var(--ease-standard);
     }
     #privacy-grid.is-in {
       opacity: 1;
@@ -223,16 +223,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       color: #3A313B;
       cursor: pointer;
       text-decoration: underline;
-      text-underline-offset: 3px;
-      text-decoration-color: rgba(58,49,59,0.3);
-      transition: color 0.2s ease, text-decoration-color 0.2s ease;
+      text-underline-offset: var(--link-offset);
+      text-decoration-color: rgba(var(--link-ink-rgb), 0.3);
+      transition: color var(--link-dur) var(--link-ease), text-decoration-color var(--link-dur) var(--link-ease);
     }
     @media (hover: hover) {
       .pp-consent-actions button:hover { color: #815275; text-decoration-color: #815275; }
     }
     /* Confirmation beat after a change — the state word pulses once so the
        click has a visible consequence beyond the word swapping. */
-    .pp-consent-state.is-changed { animation: pp-consent-pulse 0.9s ease; }
+    .pp-consent-state.is-changed { animation: pp-consent-pulse 0.9s var(--ease-standard); }
     @keyframes pp-consent-pulse {
       0%   { background: rgba(129,82,117,0.28); }
       100% { background: rgba(129,82,117,0); }

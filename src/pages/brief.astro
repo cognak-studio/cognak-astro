@@ -67,7 +67,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* WebGL background (UnicornStudio) — fixed behind the content, fades in when
        the canvas mounts. Mirrors the home/studio setup; skipped on reduced-motion. */
     .brief-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0; pointer-events:none;
-      opacity:0; transition:opacity 1.6s ease; }
+      opacity:0; transition:opacity 1.6s var(--ease-standard); }
     .brief-webgl.webgl-ready{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ .brief-webgl{ display:none; } }
 
@@ -138,7 +138,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief-nav .inner-nav-links a,
     .brief-nav .pulse-dot{ color:#A89372 !important; }
     .brief-nav .home-bottom-email,
-    .brief-nav .inner-nav-links a{ transition:color .2s ease; }
+    .brief-nav .inner-nav-links a{ transition:color var(--dur-s) var(--ease-standard); }
     @media (hover:hover){
       .brief-nav .home-bottom-email:hover,
       .brief-nav .inner-nav-links a:hover{ color:#DECBAF !important; }
@@ -153,7 +153,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
     /* Nudge the intro copy above the picker slightly right of the headline. */
     #step-pick .lede{ margin-left:40px; }
-    .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:3px; }
+    .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:var(--link-offset); }
     /* Match the projects/studio headline scale on mobile — they drop to
        clamp(24px,7vw,42px) at ≤720px; brief had no override so it read smaller. */
     @media (max-width:720px){
@@ -178,7 +178,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .prograil i{ position:absolute; left:0; right:0; top:0; height:0; border-radius:2px;
       background:linear-gradient(180deg, var(--rail-cream) 0%, var(--orange) 100%);
       box-shadow:0 0 8px 1px rgba(var(--orange-rgb),.5);
-      transition:height .5s ease, background .5s ease, box-shadow .5s ease; }
+      transition:height var(--dur-xl) var(--ease-standard), background var(--dur-xl) var(--ease-standard), box-shadow var(--dur-xl) var(--ease-standard); }
     /* Tiny mono end-caps: 0% at the top, 100% at the bottom of the rail. */
     .brief .prograil-cap{ position:absolute; left:50%; transform:translateX(-50%);
       font-family:'Diatype Mono', monospace; font-size:.52rem; letter-spacing:.06em;
@@ -217,7 +217,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .brief .progbar-m i{ position:absolute; left:0; top:0; bottom:0; width:0; border-radius:2px;
         background:linear-gradient(90deg, var(--rail-cream) 0%, var(--orange) 100%);
         box-shadow:0 0 8px 1px rgba(var(--orange-rgb),.5);
-        transition:width .5s ease, background .5s ease, box-shadow .5s ease; }
+        transition:width var(--dur-xl) var(--ease-standard), background var(--dur-xl) var(--ease-standard), box-shadow var(--dur-xl) var(--ease-standard); }
     }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
@@ -227,15 +227,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       border:none; border-radius:6px; padding:22px 22px 20px; color:var(--ink);
       -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
       box-shadow:0 2px 10px rgba(0,0,0,.18);
-      transition:background .25s ease;
+      transition:background var(--dur-sm) var(--ease-standard);
       font-family:inherit; }
     .brief .pcard:hover{ background:var(--field-focus); }
     .brief .pcard:hover .idx, .brief .pcard:hover h3, .brief .pcard:hover p, .brief .pcard:hover .arrow{ color:var(--orange); }
     .brief .pcard:active{ transform:scale(.995); }
-    .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; transition:color .2s ease; }
-    .brief .pcard h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; margin:.7rem 0 .35rem; transition:color .2s ease; }
-    .brief .pcard p{ font-size:.9rem; line-height:1.45; color:var(--ink-soft); transition:color .2s ease; }
-    .brief .pcard .arrow{ position:absolute; bottom:20px; right:22px; color:var(--ink-soft); transition:transform .25s ease,color .25s ease; }
+    .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; transition:color var(--dur-s) var(--ease-standard); }
+    .brief .pcard h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; margin:.7rem 0 .35rem; transition:color var(--dur-s) var(--ease-standard); }
+    .brief .pcard p{ font-size:.9rem; line-height:1.45; color:var(--ink-soft); transition:color var(--dur-s) var(--ease-standard); }
+    .brief .pcard .arrow{ position:absolute; bottom:20px; right:22px; color:var(--ink-soft); transition:transform var(--dur-sm) var(--ease-standard),color var(--dur-sm) var(--ease-standard); }
     .brief .pcard:hover .arrow{ transform:translateX(4px); }
 
     #formwrap{ display:none; }
@@ -243,7 +243,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        nudges it below the shared header position, still shrink-wrapped. */
     .brief .backlink{ position:relative; display:flex; width:fit-content; align-items:center; gap:.5rem; background:none; border:none;
       color:var(--orange); font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3; letter-spacing:.16em;
-      text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 2.2rem; transition:color .2s ease; }
+      text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 2.2rem; transition:color var(--dur-s) var(--ease-standard); }
     .brief .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
     .brief .backlink:hover{ color:#F5A65E; }
     /* Mobile only: 15px of extra breathing room above the backlink on the
@@ -278,7 +278,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       width:100%; background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
       color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
       -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
-      transition:border-color .2s ease,background .2s ease,box-shadow .2s ease; outline:none; }
+      transition:border-color var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard),box-shadow var(--dur-s) var(--ease-standard); outline:none; }
     .brief input::placeholder, .brief textarea::placeholder{ color:var(--placeholder); }
     .brief input:focus, .brief textarea:focus{ border-color:var(--orange); background:var(--field-focus); }
     /* Recolor the site's global :focus-visible outline (custom.css sets it to
@@ -292,7 +292,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .pills{ display:flex; flex-wrap:wrap; gap:10px; }
     .brief .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
       border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
-      transition:transform .14s cubic-bezier(.2,.7,.3,1),border-color .2s ease,color .2s ease,background .2s ease; }
+      transition:transform var(--dur-xs) var(--ease-press),border-color var(--dur-s) var(--ease-standard),color var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .pill:hover{ border-color:var(--ink); }
     .brief .pill:active{ transform:scale(.96); }
     .brief .pill input{ position:absolute; opacity:0; pointer-events:none; }
@@ -301,12 +301,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .chips{ display:flex; flex-wrap:wrap; gap:10px; }
     .brief .chip{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
       border-radius:999px; padding:9px 15px 9px 34px; font-size:.9rem; color:var(--ink); background:var(--field);
-      transition:transform .14s cubic-bezier(.2,.7,.3,1),border-color .2s ease,background .2s ease; }
+      transition:transform var(--dur-xs) var(--ease-press),border-color var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .chip:hover{ border-color:var(--ink); }
     .brief .chip:active{ transform:scale(.96); }
     .brief .chip input{ position:absolute; opacity:0; pointer-events:none; }
     .brief .chip::before{ content:""; position:absolute; left:13px; top:50%; transform:translateY(-50%);
-      width:12px; height:12px; border-radius:4px; border:1px solid var(--ink-soft); transition:all .18s ease; }
+      width:12px; height:12px; border-radius:4px; border:1px solid var(--ink-soft); transition:all var(--dur-s) var(--ease-standard); }
     .brief .chip.on{ border-color:var(--ink); background:var(--field-focus); }
     .brief .chip.on::before{ background:var(--sel); border-color:var(--sel); }
     .brief .chip.on::after{ content:""; position:absolute; left:16px; top:calc(50% - 4px); width:6px; height:3px;
@@ -318,22 +318,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .color3{ display:contents; }
     .brief .cslot{ width:96px; height:78px; border-radius:12px; border:1px solid transparent;
       position:relative; overflow:hidden; cursor:pointer; display:flex; align-items:flex-end; padding:10px 12px;
-      transition:transform .16s cubic-bezier(.2,.7,.3,1),border-color .2s ease,box-shadow .2s ease; }
+      transition:transform var(--dur-xs) var(--ease-press),border-color var(--dur-s) var(--ease-standard),box-shadow var(--dur-s) var(--ease-standard); }
     .brief .cslot:hover{ box-shadow:0 0 0 2px var(--accent); }
     .brief .cslot:active{ transform:scale(.98); }
     .brief .cslot.editing{ box-shadow:0 0 0 2px var(--accent); }
-    .brief .cslot-face{ position:absolute; inset:0; z-index:0; background:transparent; transition:background .2s ease; }
+    .brief .cslot-face{ position:absolute; inset:0; z-index:0; background:transparent; transition:background var(--dur-s) var(--ease-standard); }
     .brief .cslot-hex{ position:relative; z-index:1; pointer-events:none; font-size:.72rem; letter-spacing:.04em;
       color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.55); }
     .brief .cslot-clear{ position:absolute; top:5px; right:8px; z-index:2; background:none; border:none;
       color:#fff; font-size:1.05rem; line-height:1; cursor:pointer; opacity:.92; text-shadow:0 1px 2px rgba(0,0,0,.5);
-      transition:opacity .2s ease,transform .2s ease; }
+      transition:opacity var(--dur-s) var(--ease-standard),transform var(--dur-s) var(--ease-standard); }
     .brief .cslot-clear:hover{ transform:scale(1.15); }
 
     .brief .coloradd{ width:96px; height:78px; background:none; border:1px dashed var(--line-strong); color:var(--ink-soft);
       border-radius:12px; padding:8px; display:flex; align-items:center; justify-content:center; text-align:center;
       font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.06em; line-height:1.35;
-      cursor:pointer; transition:border-color .2s ease,color .2s ease; }
+      cursor:pointer; transition:border-color var(--dur-s) var(--ease-standard),color var(--dur-s) var(--ease-standard); }
     .brief .coloradd:hover{ border-color:var(--ink); color:var(--ink); }
     .brief .coloradd[hidden]{ display:none; }
     /* ---- color editor: a single frosted card that opens under the slots.
@@ -344,7 +344,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       border-radius:12px; padding:18px 20px; -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
       box-shadow:0 10px 34px rgba(0,0,0,.30); }
     .brief .ce-inner{ display:flex; align-items:center; gap:24px; flex-wrap:wrap;
-      animation:ceIn .26s cubic-bezier(.2,.7,.3,1) both; }
+      animation:ceIn var(--dur-sm) var(--ease-press) both; }
     @keyframes ceIn{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
     @media (prefers-reduced-motion:reduce){ .brief .ce-inner{ animation:none; } }
     .brief .ce-label{ flex:1 1 100%; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.18em;
@@ -352,7 +352,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* swatch = one filled circle; the color input is a transparent overlay that
        opens the OS picker. Pencil badge + hint show it is clickable. */
     .brief .ce-swatch{ position:relative; width:52px; height:52px; border-radius:50%; cursor:pointer; flex:0 0 auto;
-      box-shadow:0 0 0 1px var(--line-strong); transition:transform .16s ease, box-shadow .2s ease; }
+      box-shadow:0 0 0 1px var(--line-strong); transition:transform var(--dur-xs) var(--ease-standard), box-shadow var(--dur-s) var(--ease-standard); }
     .brief .ce-swatch:hover{ transform:scale(1.06); box-shadow:0 0 0 2px var(--accent); }
     .brief .ce-fill{ position:absolute; inset:0; border-radius:50%; }
     .brief .ce-native{ position:absolute; inset:0; width:100%; height:100%; opacity:0; border:none; padding:0; margin:0; cursor:pointer; }
@@ -364,24 +364,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        so there's no container-within-a-container around it. */
     .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; color:var(--ink);
       font-family:'Diatype Mono', monospace; border-bottom:1px solid var(--line-strong);
-      padding:6px 2px; transition:border-color .2s ease; }
+      padding:6px 2px; transition:border-color var(--dur-s) var(--ease-standard); }
     .brief .ce-hashwrap:focus-within{ border-color:var(--orange); }
     .brief .ce-hashwrap .ce-hex{ width:7ch; background:none; border:none; outline:none; box-shadow:none; color:var(--ink);
       font-family:inherit; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
     .brief .ce-hashwrap .ce-hex:focus{ background:none; border:none; box-shadow:none; }
     .brief .ce-done{ margin-left:auto; background:var(--btn); color:var(--cream); border:1px solid var(--ink);
       border-radius:999px; padding:9px 20px; font-size:.85rem; cursor:pointer; font-family:inherit;
-      transition:box-shadow .2s ease,background .2s ease; }
+      transition:box-shadow var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .ce-done:hover{ background:var(--accent); }
     .brief .ce-done:active{ transform:scale(.97); }
 
     /* color editor presented as a centered modal */
     .brief .ce-modal[hidden]{ display:none; }
     .brief .ce-modal{ position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:24px; }
-    .brief .ce-backdrop{ position:absolute; inset:0; background:rgba(8,5,2,0.62); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); animation:ceFade .2s ease both; }
+    .brief .ce-backdrop{ position:absolute; inset:0; background:rgba(8,5,2,0.62); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); animation:ceFade var(--dur-s) var(--ease-standard) both; }
     .brief .ce-dialog{ position:relative; width:100%; max-width:440px; background:rgba(20,14,7,0.92); border:1px solid var(--line-strong);
       border-radius:16px; padding:26px 26px 24px; box-shadow:0 30px 80px rgba(0,0,0,.55); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
-      animation:ceRise .26s cubic-bezier(.2,.7,.3,1) both; }
+      animation:ceRise var(--dur-sm) var(--ease-press) both; }
     @keyframes ceFade{ from{opacity:0} to{opacity:1} }
     @keyframes ceRise{ from{opacity:0; transform:translateY(10px) scale(.98)} to{opacity:1; transform:none} }
     @media (prefers-reduced-motion:reduce){ .brief .ce-backdrop, .brief .ce-dialog{ animation:none; } }
@@ -391,26 +391,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
     .brief .btn{ font-family:inherit; font-size:1rem; cursor:pointer; border-radius:999px; padding:15px 30px;
       border:1px solid var(--orange); background:var(--orange); color:var(--cream); font-weight:500;
-      transition:box-shadow .25s ease,background .2s ease; }
+      transition:box-shadow var(--dur-sm) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .btn:hover{ background:var(--orange-hi); box-shadow:0 0 24px rgba(var(--orange-rgb),.45); }
     .brief .btn:active{ transform:scale(.98); }
     .brief .btn-ghost{ background:none; color:var(--ink); border:1px solid var(--ink); }
     .brief .btn-ghost:hover{ background:rgba(222,203,175,.10); box-shadow:none; }
     .brief .formerr{ color:var(--err); font-size:.88rem; margin-top:1rem; display:none; }
     .brief .copied{ color:var(--accent); font-size:.82rem; font-family:'Diatype Mono', monospace;
-      letter-spacing:.08em; opacity:0; transition:opacity .3s ease; font-weight:500; }
+      letter-spacing:.08em; opacity:0; transition:opacity var(--dur-m) var(--ease-standard); font-weight:500; }
     .brief .copied.show{ opacity:1; }
 
     #sent{ display:none; text-align:left; }
     #sent .headline{ margin-bottom:1.2rem; }
     #sent .lede{ margin-bottom:2rem; }
 
-    .brief .rise{ opacity:0; transform:translateY(8px); transition:opacity .6s ease,transform .6s ease; }
+    .brief .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl) var(--ease-standard),transform var(--dur-2xl) var(--ease-standard); }
     .brief .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .brief .rise{ opacity:1; transform:none; transition:none; } }
 
     /* ---- step crossfade: project picker <-> questionnaire ---- */
-    #step-pick, #formwrap, #sent{ transition:opacity .26s ease, transform .26s ease; }
+    #step-pick, #formwrap, #sent{ transition:opacity var(--dur-sm) var(--ease-standard), transform var(--dur-sm) var(--ease-standard); }
     #step-pick.step-hide, #formwrap.step-hide, #sent.step-hide{ opacity:0; transform:translateY(-8px); pointer-events:none; }
     @media (prefers-reduced-motion:reduce){
       #step-pick, #formwrap, #sent{ transition:none; }
@@ -424,7 +424,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     /* picker cards: time-to-complete, mono, lighter orange (top-right) */
     .brief .pcard .ptime{ position:absolute; top:22px; right:22px; font-family:'Diatype Mono', monospace;
-      font-size:.62rem; letter-spacing:.14em; color:rgba(var(--orange-rgb),.55); transition:color .2s ease; }
+      font-size:.62rem; letter-spacing:.14em; color:rgba(var(--orange-rgb),.55); transition:color var(--dur-s) var(--ease-standard); }
     .brief .pcard:hover .ptime{ color:var(--orange); }
 
     /* fieldset/legend semantics for choice groups (radios/checkboxes/colors) —
@@ -448,7 +448,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .updrop{ display:block; width:100%; text-align:center; background:none;
       border:1px dashed var(--line-strong); color:var(--ink-soft); border-radius:8px; padding:20px 14px;
       font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.1em; cursor:pointer;
-      transition:border-color .2s ease,color .2s ease; }
+      transition:border-color var(--dur-s) var(--ease-standard),color var(--dur-s) var(--ease-standard); }
     .brief .updrop:hover, .brief .updrop.drag{ border-color:var(--ink); color:var(--ink); }
     .brief .upfiles{ list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
     .brief .upfile{ position:relative; overflow:hidden; display:flex; align-items:center; gap:12px; background:var(--field);
@@ -457,7 +457,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        solid when the upload completes. Row content sits above it (z-index). */
     .brief .upfile > *{ position:relative; z-index:1; }
     .brief .upfile .uf-fill{ position:absolute; left:0; top:0; bottom:0; width:0; z-index:0;
-      background:var(--orange); transition:width .35s ease; }
+      background:var(--orange); transition:width var(--dur-m) var(--ease-standard); }
     .brief .upfile.done .uf-fill{ width:100%; }
     /* dark ink on the orange fill clears WCAG AA (#2A2010 on var(--orange)). Each
        element flips as the fill reaches its side: name (left) early, size /
@@ -471,20 +471,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .upfile.err{ border-color:var(--err); }
     .brief .upfile.err .ufmeta{ color:var(--err); }
     .brief .upfile .ufx{ background:none; border:none; color:var(--ink-soft); cursor:pointer;
-      font-size:1.05rem; line-height:1; padding:0 2px; transition:color .2s ease; }
+      font-size:1.05rem; line-height:1; padding:0 2px; transition:color var(--dur-s) var(--ease-standard); }
     .brief .upfile .ufx:hover{ color:var(--ink); }
     .brief .uplink{ margin-top:10px; }
     /* "+ Add another link" — quiet mono text button in the coloradd dialect */
     .brief .uplink-add{ margin-top:10px; background:none; border:none; padding:0;
       color:var(--ink-soft); cursor:pointer; font-family:'Diatype Mono', monospace;
-      font-size:.68rem; letter-spacing:.1em; transition:color .2s ease; }
+      font-size:.68rem; letter-spacing:.1em; transition:color var(--dur-s) var(--ease-standard); }
     .brief .uplink-add:hover{ color:var(--ink); }
     .brief .uplink-add[hidden]{ display:none; }
 
     /* rail receipt: section names materialize beside the rail as they complete */
     .brief .prograil .rail-note{ position:absolute; left:12px; transform:translateY(-50%);
       font-family:'Diatype Mono', monospace; font-size:.56rem; letter-spacing:.12em;
-      color:var(--ink-soft); white-space:nowrap; opacity:0; transition:opacity .6s ease; }
+      color:var(--ink-soft); white-space:nowrap; opacity:0; transition:opacity var(--dur-2xl) var(--ease-standard); }
     .brief .prograil .rail-note.on{ opacity:.75; }
     @media (max-width:1279px){ .brief .prograil .rail-note{ display:none; } }
     @media (prefers-reduced-motion:reduce){ .brief .prograil .rail-note{ transition:none; } }
@@ -506,11 +506,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .spark.s2{ top:-3px;   left:44%;    width:3px; animation-delay:.8s;  animation-duration:1.8s; background:#F7D9A8; }
     .brief .spark.s3{ top:3px;    right:-6px;  width:5px; animation-delay:1.3s; animation-duration:2.4s; background:#F3B072; }
     .brief .spark.s4{ bottom:-5px; left:32%;    width:4px; animation-delay:1.7s; animation-duration:2.0s; background:#DECBAF; }
-    .brief .spark.s5{ bottom:-2px; right:-2px;  width:3px; animation-delay:.5s;  animation-duration:1.7s; background:var(--orange); }
+    .brief .spark.s5{ bottom:-2px; right:-2px;  width:3px; animation-delay:var(--dur-xl);  animation-duration:1.7s; background:var(--orange); }
     .brief .spark.s6{ top:34%;    right:-10px; width:4px; animation-delay:2.1s; animation-duration:2.3s; background:#F3B072; }
     .brief .spark.s7{ top:-7px;   left:70%;    width:3px; animation-delay:1.0s; animation-duration:1.9s; background:#F7D9A8; }
     .brief .spark.s8{ top:44%;    left:-4px;   width:3px; animation-delay:2.4s; animation-duration:2.2s; background:var(--orange); }
-    .brief .spark.s9{ bottom:-6px; left:62%;    width:5px; animation-delay:.3s;  animation-duration:2.6s; background:#DECBAF; }
+    .brief .spark.s9{ bottom:-6px; left:62%;    width:5px; animation-delay:var(--dur-m);  animation-duration:2.6s; background:#DECBAF; }
     @keyframes sentSpark{ 0%,100%{ opacity:0; transform:scale(.2) rotate(0deg); }
       50%{ opacity:1; transform:scale(1) rotate(45deg); } }
     @media (prefers-reduced-motion:reduce){
@@ -532,7 +532,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .btn{ position:relative; overflow:hidden; }
     .brief .btn .btn-label, .brief .btn .btn-arrow{ position:relative; z-index:1; }
     .brief .btn .btn-arrow{ display:inline-block; margin-left:.5em;
-      transition:transform .34s var(--ease-out-expo), opacity .22s ease; }
+      transition:transform var(--dur-m) var(--ease-out-expo), opacity var(--dur-s) var(--ease-standard); }
     .brief .btn.is-sending .btn-arrow, .brief .btn.is-sent .btn-arrow{
       transform:translateX(14px); opacity:0; }
     .brief .btn:disabled{ cursor:default; }
@@ -544,7 +544,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transform:translateX(-100%); animation:btnShimmer 1.15s linear infinite; }
     @keyframes btnShimmer{ to{ transform:translateX(100%); } }
     .brief .btn.is-sent{ background:var(--orange); border-color:var(--orange); box-shadow:0 0 26px rgba(var(--orange-rgb),.5); }
-    .brief .btn.is-failed{ animation:btnShake .42s ease both; background:var(--err); border-color:var(--err); }
+    .brief .btn.is-failed{ animation:btnShake var(--dur-l) var(--ease-standard) both; background:var(--err); border-color:var(--err); }
     @keyframes btnShake{ 0%,100%{transform:translateX(0)} 15%{transform:translateX(-6px)}
       35%{transform:translateX(5px)} 55%{transform:translateX(-3px)} 78%{transform:translateX(2px)} }
     @media (prefers-reduced-motion:reduce){
@@ -556,7 +556,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* ---- invalid fields: a restrained shake instead of an instant red border ----
        ±3px, once. The border color and the " — required" suffix still carry the
        message; this only draws the eye to where it is. */
-    .brief .field.invalid{ animation:fieldShake .38s ease both; }
+    .brief .field.invalid{ animation:fieldShake var(--dur-l) var(--ease-standard) both; }
     @keyframes fieldShake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-3px)}
       45%{transform:translateX(3px)} 70%{transform:translateX(-2px)} }
     @media (prefers-reduced-motion:reduce){ .brief .field.invalid{ animation:none; } }
@@ -564,14 +564,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* ---- chip checkmark draws in ---- */
     /* The base transform is rotate(-45deg); every keyframe must restate it or
        the tick snaps upright mid-animation. */
-    .brief .chip.on::after{ animation:chipCheck .26s var(--ease-out-expo) both; transform-origin:20% 80%; }
+    .brief .chip.on::after{ animation:chipCheck var(--dur-sm) var(--ease-out-expo) both; transform-origin:20% 80%; }
     @keyframes chipCheck{
       from{ opacity:0; transform:rotate(-45deg) scale(.2); }
       60% { opacity:1; transform:rotate(-45deg) scale(1.18); }
       to  { opacity:1; transform:rotate(-45deg) scale(1); }
     }
     /* ---- pill selection gets a micro spring ---- */
-    .brief .pill.on{ animation:pillPop .3s var(--ease-out-expo) both; }
+    .brief .pill.on{ animation:pillPop var(--dur-m) var(--ease-out-expo) both; }
     @keyframes pillPop{ 0%{transform:scale(.94)} 55%{transform:scale(1.04)} 100%{transform:scale(1)} }
     @media (prefers-reduced-motion:reduce){
       .brief .chip.on::after, .brief .pill.on{ animation:none; }
@@ -582,7 +582,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        the animation replays on each reveal without any JS. (Safe here because
        .bplus is a div — note the site-wide `.btn{display:inline-flex}` rule
        defeats `hidden` on buttons.) */
-    .brief .bplus:not([hidden]){ animation:bplusRise .42s var(--ease-out-expo) both; }
+    .brief .bplus:not([hidden]){ animation:bplusRise var(--dur-l) var(--ease-out-expo) both; }
     @keyframes bplusRise{ from{ opacity:0; transform:translateY(-8px); } to{ opacity:1; transform:none; } }
     @media (prefers-reduced-motion:reduce){ .brief .bplus:not([hidden]){ animation:none; } }
 
@@ -590,7 +590,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        One swell along the completed rail, and the bottom end-cap tints orange
        and stops being a label for a number you haven't reached yet. */
     .brief .prograil.is-complete .prograil-cap--bot,
-    .brief .progbar-m.is-complete .progbar-m-cap:last-child{ color:var(--orange); transition:color .5s ease; }
+    .brief .progbar-m.is-complete .progbar-m-cap:last-child{ color:var(--orange); transition:color var(--dur-xl) var(--ease-standard); }
     .brief .prograil.just-complete i,
     .brief .progbar-m.just-complete i{ animation:railSwell .9s var(--ease-out-expo) both; }
     @keyframes railSwell{
@@ -614,7 +614,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       opacity:0; transform:translateY(9px); }
     #sent.sent-in .sent-eyebrow, #sent.sent-in .lede, #sent.sent-in .btn-ghost, #sent.sent-in .sw{
       opacity:1; transform:none;
-      transition:opacity .52s ease var(--d,0s), transform .52s var(--ease-out-expo) var(--d,0s); }
+      transition:opacity var(--dur-xl) var(--ease-standard) var(--d,0s), transform var(--dur-xl) var(--ease-out-expo) var(--d,0s); }
     #sent .sw{ display:inline-block; will-change:transform; }
     /* sparks are inert until armed */
     #sent .spark{ animation-play-state:paused; opacity:0; }
@@ -631,7 +631,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* soft veil that dims the WebGL texture behind the reading column only
        while the questionnaire is open (legibility without losing the vibe) */
     .brief-veil{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0;
-      transition:opacity .8s ease;
+      transition:opacity .8s var(--ease-standard);
       background:linear-gradient(90deg, rgba(20,14,7,.5) 0%, rgba(20,14,7,.28) 44%, rgba(20,14,7,0) 70%); }
     body.brief-form-open .brief-veil{ opacity:1; }
     @media (prefers-reduced-motion:reduce){ .brief-veil{ transition:none; } }
@@ -945,7 +945,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         items.forEach(function(el,i){
           el.style.opacity='0'; el.style.transform='translateY(10px)';
           var dl=(i*0.06).toFixed(2)+'s';
-          el.style.transition='opacity .5s ease '+dl+', transform .5s ease '+dl;
+          el.style.transition='opacity var(--dur-xl) var(--ease-standard) '+dl+', transform var(--dur-xl) var(--ease-standard) '+dl;
         });
         afterFormShown();
         requestAnimationFrame(function(){ requestAnimationFrame(function(){
@@ -1674,7 +1674,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         pick.style.display='block'; pick.style.opacity='0'; pick.style.transform='translateY(8px)';
         window.scrollTo(0,0); refreshScroll();
         requestAnimationFrame(function(){ requestAnimationFrame(function(){
-          pick.style.transition='opacity .4s ease, transform .4s ease';
+          pick.style.transition='opacity var(--dur-l) var(--ease-standard), transform var(--dur-l) var(--ease-standard)';
           pick.style.opacity='1'; pick.style.transform='none';
         }); });
         setTimeout(function(){ pick.style.transition=''; pick.style.transform=''; pick.style.opacity=''; }, 700);
