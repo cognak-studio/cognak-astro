@@ -21,6 +21,7 @@ moreDetails: '<p>• 2-week project</p>
 
   '
 metaDescription: View COGNAK's work for Hubspot, a global company providing inbound marketing and sales software to helps companies attract visitors and convert leads.
+clientLocation: Boston
 role: led
 activeClient: false
 homepageFeature: true

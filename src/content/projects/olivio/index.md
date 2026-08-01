@@ -23,6 +23,7 @@ moreDetails: '<p>• 1-month project</p>
 
   '
 metaDescription: View COGNAK's work for Olivio, an oil-based spread with refined, intricate flavors made from hand picked, fresh-from-the-grove olives.
+clientLocation: Boston
 role: led
 activeClient: false
 homepageFeature: false

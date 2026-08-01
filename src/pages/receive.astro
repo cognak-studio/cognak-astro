@@ -168,6 +168,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:box-shadow .25s ease, background .2s ease, border-color .2s ease; }
     .receive .btn.btn-primary:hover:not(:disabled){ background:var(--cta-hi); border-color:var(--cta-hi);
       box-shadow:0 0 24px rgba(143,194,242,.45); }
+    /* Base hover — the stroke strengthens, matching `.send .btn:hover` exactly
+       (`border-color:var(--ink)`, same 0.2s ease already in the transition list
+       above). /receive had ONLY .btn-primary:hover, so "Download all" and every
+       per-file "Download" were inert on hover while their counterparts on /send
+       all responded. Same component, same two-page feature — it was a gap, not
+       a decision.
+
+       Both existing hovers still win, but for DIFFERENT reasons — worth knowing
+       before anyone reorders this file:
+         .btn-primary:hover  wins on SPECIFICITY (5 vs 4), so its blue glow is
+                             safe wherever it sits.
+         .frow-dl.is-done:hover  TIES at 4 and wins only on SOURCE ORDER — it is
+                             declared further down the sheet. Move this rule
+                             below it and already-downloaded rows would start
+                             lighting up like unread ones, which is the opposite
+                             of what that rule is for. Keep this one above. */
+    .receive .btn:hover:not(:disabled){ border-color:var(--ink); }
     .receive .btn:active:not(:disabled){ transform:scale(.98); }
     .receive .btn:disabled{ opacity:.55; cursor:not-allowed; }
 

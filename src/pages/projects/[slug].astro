@@ -75,6 +75,12 @@ moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/, (whole, 
   RESTATES_DURATION.test(inner.replace(/<[^>]+>/g, '').trim()) ? '' : whole
 );
 
+/* Drop the hand-written location row — the generated one replaces it. Matches
+   "<anything>-based"; the value itself now lives in clientLocation. */
+moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/g, (whole, inner) =>
+  /-based\s*$/i.test(inner.replace(/<[^>]+>/g, '').trim()) ? '' : whole
+);
+
 /* Drop every hand-written role row — the generated one replaces it. Matches any
    row mentioning COGNAK, which across all 54 projects is only ever the role
    line ("COGNAK was creative lead", "Website development via COGNAK", …).
@@ -104,6 +110,13 @@ const ROLE_COPY = {
 // Unset activeClient falls to PAST: claiming an engagement is live is the
 // riskier of the two guesses.
 const roleLine = (ROLE_COPY[d.role] ?? ROLE_COPY['led'])[d.activeClient === true ? 0 : 1];
+
+/* Location row, generated from clientLocation so every project carries one and
+   the spelling can't drift again (the archive had both "LA-based" and
+   "Los Angeles-based" before this). Absent for a handful of clients whose
+   location isn't confirmed — those simply render no location row rather than a
+   guess. */
+const locationLine = d.clientLocation ? d.clientLocation + '-based' : null;
 
 /* Client status. Folded into the grade rather than given its own row: the
    grade already answers "how long", and "is it still live" is the one thing it
@@ -255,6 +268,7 @@ const jsonLd = {
           <aside class="details details-extra">
             <div class="col">
               <p>{roleLine}</p>
+              {locationLine && <p>{locationLine}</p>}
               <Fragment set:html={moreDetailsHtml} />
             </div>
           </aside>

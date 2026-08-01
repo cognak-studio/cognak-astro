@@ -23,6 +23,7 @@ moreDetails: '<p>• 2+ month relationship</p>
 
   '
 metaDescription: View COGNAK's work for Vice Cream, maker of unapologetically indulgent premium ice cream using decadent mix-ins to create its uniquely rich, creamy product.
+clientLocation: Boston
 role: led
 activeClient: true
 homepageFeature: false

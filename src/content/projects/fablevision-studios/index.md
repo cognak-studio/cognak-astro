@@ -21,6 +21,7 @@ moreDetails: '<p>• 2+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for FableVision Studios, a production studio that designs and develops engaging media that inspires, teaches, and moves people to action.
+clientLocation: Boston
 role: led
 activeClient: true
 homepageFeature: false

@@ -21,6 +21,7 @@ moreDetails: '<p>• COGNAK was developer lead</p>
 
   '
 metaDescription: View COGNAK's work for Maya Brenner, a world-renowned jeweler crafting cult and classic designs for the world's most stylish celebrities.
+clientLocation: Los Angeles
 role: led-build
 activeClient: false
 homepageFeature: false

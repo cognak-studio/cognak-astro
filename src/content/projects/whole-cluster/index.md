@@ -19,6 +19,7 @@ moreDetails: '<p>• 2+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for Whole Cluster, a beverage and hospitality consulting company backing some of LA's finest dining experiences.
+clientLocation: Los Angeles
 role: led-build
 activeClient: true
 homepageFeature: false

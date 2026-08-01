@@ -3441,6 +3441,13 @@ body.pagers-idle a[rel="next"] {
     border-radius: 50%;
     background: currentColor;
     flex-shrink: 0;
+    /* `align-items: center` centres the dot in the LINE BOX, which includes the
+       descender space that uppercase text never uses — so beside "ACTIVE" the
+       dot rode high. Measured on the live page: dot centre 1.7px above the cap
+       centre at 12px. Nudged down by that, expressed in em so it survives a
+       font-size change. Do not "simplify" this away; flex centring is the thing
+       that's wrong, and it looks correct in code. */
+    transform: translateY(0.142em);
 }
 
 /* Hidden explainer on the grade. VS/VSOP/XO is a cognac conceit — obvious once

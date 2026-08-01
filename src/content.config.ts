@@ -43,6 +43,11 @@ const projects = defineCollection({
          not strings: `led` reads "Leading the work" on a live client and "Led
          the work" on a past one. Defaults to `led` because that is the studio's
          normal engagement; the exceptions are the ones worth authoring. */
+      /* Where the client is. Stored as the PLACE ONLY ("Boston"); the page
+         renders "Boston-based". Structured rather than free text in
+         moreDetails because the archive had already drifted — "LA-based" and
+         "Los Angeles-based" both existed, normalised to "Los Angeles" here. */
+      clientLocation: z.string().optional(),
       role: z.enum(['led', 'led-build', 'build', 'embedded']).default('led'),
       activeClient: z.boolean().optional(),
       homepageFeature: z.boolean().default(false),

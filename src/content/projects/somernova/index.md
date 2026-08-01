@@ -23,6 +23,7 @@ moreDetails: '<p>• 6-month project</p>
 
   '
 metaDescription: View COGNAK's work for Somernova, a 300,000ft² Boston-based creative campus that thrives on generating new ideas, innovations, and ways of collaborating.
+clientLocation: Boston
 role: led
 activeClient: false
 homepageFeature: false

@@ -19,6 +19,7 @@ moreDetails: '<p>• 3+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Palisades Neuropsychology, pediatric neuropsychologists specializing in youths with neurocognitive differences.
+clientLocation: Los Angeles
 role: led
 activeClient: false
 homepageFeature: false

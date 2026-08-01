@@ -21,6 +21,7 @@ moreDetails: '<p>• 5+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Strapi.io, the leading open-source headless CMS with fully customizable, 100% JavaScript / TypeScript.
+clientLocation: Los Angeles
 role: led-build
 activeClient: false
 homepageFeature: false

@@ -23,6 +23,7 @@ moreDetails: '<p>• 2+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for HYPR, a cybersecurity company based in New York City that provides passwordless authentication for users.
+clientLocation: NYC
 role: led-build
 activeClient: true
 homepageFeature: false

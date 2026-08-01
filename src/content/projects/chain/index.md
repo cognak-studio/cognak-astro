@@ -19,6 +19,7 @@ moreDetails: '<p>• 3+ month project</p>
 
   '
 metaDescription: View COGNAK's work for CHAIN, bottled reinventions of iconic sauces everyone loves—all under the culinary direction of a world class chef.
+clientLocation: Los Angeles
 role: led
 activeClient: false
 homepageFeature: false

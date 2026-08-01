@@ -29,6 +29,7 @@ moreDetails: '<p class="p1">• 6-month project</p>
 
   '
 metaDescription: View COGNAK's work for Gulf Electricity, electricity service from Gulf for small businesses and households at rates below the major utility company's.
+clientLocation: Boston
 role: led
 activeClient: false
 homepageFeature: false

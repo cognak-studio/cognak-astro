@@ -31,6 +31,7 @@ moreDetails: '<p class="p1">• <span class="s1"></p>
 
   '
 metaDescription: View COGNAK's work for Stonyfield Farm, maker of the second-leading highly nutritious organic yogurt in the United States.
+clientLocation: Londonderry
 role: led
 activeClient: false
 homepageFeature: false

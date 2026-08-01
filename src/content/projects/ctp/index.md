@@ -31,6 +31,7 @@ moreDetails: '<p class="p1">• <span class="s1"></p>
 
   '
 metaDescription: View COGNAK's work for CTP, a digital, advertising and PR agency that turns data-driven insights into award-winning work and measurable results for clients.
+clientLocation: Boston
 role: led
 activeClient: true
 homepageFeature: false

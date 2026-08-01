@@ -7,6 +7,7 @@ projectType: Packaging, Display Ads, Video Production, Brand Presentations
 projectYear: 2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
+clientLocation: Tewksbury
 role: led
 activeClient: true
 homepageFeature: true

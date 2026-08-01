@@ -23,6 +23,7 @@ moreDetails: '<p>• 3+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for Snow Monkey, a low-calorie, dairy-free ice cream maker using healthy ingredients in their exotic ice cream flavors.
+clientLocation: Los Angeles
 role: led
 activeClient: true
 homepageFeature: false

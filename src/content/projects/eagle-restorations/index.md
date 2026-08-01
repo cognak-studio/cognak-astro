@@ -21,6 +21,7 @@ moreDetails: '<p class="p1">• 7+ year client</span></p>
 
   '
 metaDescription: View COGNAK's work for Eagle Restorations, a Los Angeles-based contractor specializing in the restoration and seismic repair of historic buildings.
+clientLocation: Los Angeles
 role: led
 activeClient: true
 homepageFeature: false

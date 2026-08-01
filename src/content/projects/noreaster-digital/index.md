@@ -21,6 +21,7 @@ moreDetails: '<p>• 6+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for Nor'Easter Digital, a digital agency specializing in design, development, user experience, and project management.
+clientLocation: Maryland
 role: led
 activeClient: true
 homepageFeature: false

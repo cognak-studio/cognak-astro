@@ -7,6 +7,7 @@ projectType: Packaging Design
 projectYear: 2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
+clientLocation: NYC
 role: led
 activeClient: true
 homepageFeature: false

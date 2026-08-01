@@ -23,6 +23,7 @@ moreDetails: '<p>• 3-month project</p>
 
   '
 metaDescription: View COGNAK's work for Harvard Business Review, a magazine with advice on strategy, innovation and leadership from the world's best business experts.
+clientLocation: Boston
 role: led
 activeClient: false
 homepageFeature: false
