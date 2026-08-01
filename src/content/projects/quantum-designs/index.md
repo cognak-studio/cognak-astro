@@ -29,6 +29,8 @@ moreDetails: '<p class="p1">• <span class="s1"></p>
 
   '
 metaDescription: View COGNAK's work for Quantum Designs, who developed automated temperature and magnetic field testing platforms for materials characterization.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

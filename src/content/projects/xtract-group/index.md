@@ -23,6 +23,8 @@ moreDetails: '<p>• 3-month project</p>
 
   '
 metaDescription: View COGNAK's work for Xtract Group, a CBD distillate company based in Cleveland, Ohio creating products for manufacturers of health and wellness products.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

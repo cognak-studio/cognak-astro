@@ -21,6 +21,8 @@ moreDetails: '<p>• 3+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Formulate Bioscience, an industry-leading company serving global brands scaling products in OTC and wellness markets.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

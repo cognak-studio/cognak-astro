@@ -21,6 +21,8 @@ moreDetails: '<p>• 3+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Seafood Nutrition Partnership, a nonprofit raising awareness about the essential nutritional benefits of seafood.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

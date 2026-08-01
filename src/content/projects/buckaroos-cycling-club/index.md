@@ -17,6 +17,8 @@ moreDetails: '<p>• LA-based</p>
 
   '
 metaDescription: View COGNAK's work for Buckaroos, a Los Angeles-based cycling club and company specializing in limited gear.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

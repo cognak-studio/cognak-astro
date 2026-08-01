@@ -21,6 +21,8 @@ moreDetails: '<p>• 2+ month project</p>
 
   '
 metaDescription: View COGNAK's work for REDD, a new generation of protein bars delivering low sugar, high fiber energy from hand-crafted recipes that are truly delicious.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

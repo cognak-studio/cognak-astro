@@ -23,6 +23,8 @@ moreDetails: '<p>• 3-month project</p>
 
   '
 metaDescription: View COGNAK's work for Ossio, an orthopedic fixation company committed to transforming the orthopedic experience for patients, physicians, and payors.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

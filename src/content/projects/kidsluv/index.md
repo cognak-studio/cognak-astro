@@ -19,6 +19,8 @@ moreDetails: '<p>• 2+ month project</p>
 
   '
 metaDescription: View COGNAK's work for KidsLuv, who provides better products for the whole family, while also maintaining a green carbon footprint.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

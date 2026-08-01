@@ -17,14 +17,14 @@ moreDetails: '<p>• 4+ year relationship</p>
 
   <p>• COGNAK is creative lead</p>
 
-  <p>• Website development</p>
-
   <p>• Boston-based</p>
 
   <p>• <a href="https://www.verdefarms.com">www.verdefarms.com</a></p>
 
   '
 metaDescription: View COGNAK's work for Verde Farms, a leading importer and marketer of sustainable, organic, pasture-raised meats sold throughout the U.S.
+role: led
+activeClient: true
 homepageFeature: true
 homepagePosition: 4
 ---

@@ -3530,12 +3530,17 @@ html.pv-grid .projects-grade-note,
    availability beacon) so nothing bespoke is introduced — including the
    gradient text-fill hover .projects-start-link already carries.
 
-   THE BEACON IS PURPLE, NOT THE SIGNAL GREEN. Project detail resolves to a
-   WHITE page (see the scrollbar's PAGE_BG_FALLBACK) and #AAFF00 measures
-   ~1.00:1 on white — identical luminance, invisible. Same call /projects made
-   for the same reason: on a light ground the page uses its own accent. */
+   THE BEACON IS GREEN — but NOT the signal green, which cannot survive here.
+   Project detail resolves to a WHITE page (see the scrollbar's
+   PAGE_BG_FALLBACK) and #AAFF00 measures 1.23:1 on white: identical luminance,
+   invisible. #4F7A00 is 5.10:1 and is the SAME value the ACTIVE client status
+   uses a few lines above, so the page now has one green meaning "live" —
+   the client is active, the studio is available — rather than two unrelated
+   accents. Was purple until 2026-07-31 (Pierce). The light-surface rule still
+   holds: never the acid green on a light ground, but a light ground can have a
+   green of its own. */
 .template-single-project .info-invite .avail-dot {
-    color: var(--cognak-purple-text);
+    color: #4F7A00;
 }
 
 /* ── Project detail entrance ─────────────────────────────────────────────────

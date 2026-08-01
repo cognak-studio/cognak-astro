@@ -36,6 +36,14 @@ const projects = defineCollection({
          neither. That means the 53 existing projects need no bulk authoring:
          flag the live ones as you go and the rest simply show the grade, as
          they do today. Don't give this a .default(). */
+      /* How COGNAK worked on it, NOT what disciplines were involved — the
+         category line already carries discipline in mono above the grade, and
+         a role of "creative + development lead" just restated it.
+         The rendered TENSE is derived from activeClient, so these are modes,
+         not strings: `led` reads "Leading the work" on a live client and "Led
+         the work" on a past one. Defaults to `led` because that is the studio's
+         normal engagement; the exceptions are the ones worth authoring. */
+      role: z.enum(['led', 'led-build', 'build', 'embedded']).default('led'),
       activeClient: z.boolean().optional(),
       homepageFeature: z.boolean().default(false),
       homepagePosition: z.number().optional(),

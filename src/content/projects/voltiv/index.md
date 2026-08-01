@@ -21,6 +21,8 @@ moreDetails: '<p>• 2-month project</p>
 
   '
 metaDescription: View COGNAK's work for Voltiv, a spacious recording studio in Los Angeles, inspired by the vibe of Electric Lady Studios and the space of Abbey Road.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

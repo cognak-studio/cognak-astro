@@ -21,6 +21,8 @@ moreDetails: '<p>• 5+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Kenston Capital Partners, a new Boston-based investment firm backing innovative early stage technology and healthcare companies.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

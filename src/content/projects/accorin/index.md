@@ -21,6 +21,8 @@ moreDetails: '<p>• 5+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for Accorin, a leading e-commerce agency providing Magento strategy, design, and development support services to e-commerce merchants.
+role: led
+activeClient: true
 homepageFeature: false
 noindex: true
 ---

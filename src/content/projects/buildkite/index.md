@@ -19,6 +19,8 @@ moreDetails: '<p>• 3+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Buildkite, a digital platform for running fast, secure, and scalable continuous integration pipelines on your own infrastructure.
+role: led
+activeClient: false
 homepageFeature: false
 ---
 

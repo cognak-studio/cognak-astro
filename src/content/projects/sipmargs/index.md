@@ -7,6 +7,7 @@ projectType: Packaging Design
 projectYear: 2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
+role: led
 activeClient: true
 homepageFeature: false
 metaDescription: Packaging design and 3D renderings for sparkling margarita brand SipMARGS — by COGNAK.

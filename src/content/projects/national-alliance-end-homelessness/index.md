@@ -27,6 +27,8 @@ moreDetails: '<p class="p1">• <span class="s1"></p>
 
   '
 metaDescription: View COGNAK's work for the National Alliance to End Homelessness, a leading voice on the issue of homelessness in America.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

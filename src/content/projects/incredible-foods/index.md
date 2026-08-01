@@ -25,6 +25,8 @@ moreDetails: '<p>• 4+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for Incredible Foods, who develops materials and processing technologies with the potential to change how we eat and package food.
+role: led
+activeClient: true
 homepageFeature: false
 noindex: true
 ---

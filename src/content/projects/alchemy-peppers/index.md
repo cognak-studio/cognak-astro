@@ -23,6 +23,8 @@ moreDetails: '<p>• 6+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Alchemy Peppers, who is evangelizing the possibilities of pepper ecstasy with deliciously inventive pepper products.
+role: led
+activeClient: false
 homepageFeature: true
 homepagePosition: 8
 noindex: true

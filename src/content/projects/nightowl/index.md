@@ -23,6 +23,8 @@ moreDetails: '<p>• 6+ month project</p>
 
   '
 metaDescription: View COGNAK's work for NightOwl, the world's original tequila espresso martinis, made with the finest coffee beans and premium spirits.
+role: build
+activeClient: false
 homepageFeature: true
 homepagePosition: 10
 ---

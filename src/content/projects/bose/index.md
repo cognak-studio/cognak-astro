@@ -22,6 +22,8 @@ moreDetails: '<p>• 1-month project</p>
 
   '
 metaDescription: View COGNAK's work for Bose, a company best known for its critically-acclaimed personal and professional audio equipment sold around the world.
+role: build
+activeClient: false
 homepageFeature: true
 homepagePosition: 5
 ---

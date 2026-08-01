@@ -21,6 +21,8 @@ moreDetails: '<p>• 2+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for Startup Institute, a program providing people with the skills, mindset, and network to find a job they love, doing work that matters.
+role: led
+activeClient: true
 homepageFeature: false
 noindex: true
 ---

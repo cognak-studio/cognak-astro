@@ -19,6 +19,8 @@ moreDetails: '<p>• 1+ year project</p>
 
   '
 metaDescription: View COGNAK's work for Sidekick, an AI-native cybersecurity solution designed to modernize digital defense for the AI era.
+role: led-build
+activeClient: false
 homepageFeature: false
 ---
 

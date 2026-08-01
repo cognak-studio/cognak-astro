@@ -25,6 +25,8 @@ moreDetails: '<p>• 4-month project</p>
 
   '
 metaDescription: View COGNAK's work for Swissnex, a consulate bridging knowledge, energy, and expertise in science, higher ed, and innovation between Switzerland and the US.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

@@ -29,6 +29,8 @@ moreDetails: '<p class="p1">• <span class="s1"></p>
 
   '
 metaDescription: View COGNAK's work for AeroDesigns, a company that pioneered air-based delivery systems to reimagine the consumption of food, nutrients and medications.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

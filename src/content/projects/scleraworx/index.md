@@ -21,6 +21,8 @@ moreDetails: '<p>• 3+ month project</p>
 
   '
 metaDescription: View COGNAK's work for Scleraworx.io, a technology solutions and services provider enabling implementation of maintenance tools and processes.
+role: led
+activeClient: false
 homepageFeature: false
 noindex: true
 ---

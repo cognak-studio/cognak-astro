@@ -166,7 +166,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Left-edge completion rail — fixed so it stays visible while scrolling.
        Fills bottom-to-top and shifts from tan toward orange as the brief
        nears complete (height + color set in JS). */
-    .brief .prograil{ position:fixed; left:24px; top:50%; transform:translateY(-50%); width:2px; height:44vh; max-height:380px;
+    /* Height raised 44vh/380px -> 66vh/620px (Pierce 2026-07-31). At the old
+       size the rail read as a short tick rather than a measure of the whole
+       form, and the 0%/100% caps sat close enough together to look like a
+       label pair instead of a scale. Still vh-based so it never outgrows a
+       short window, and the caps are absolutely positioned so they follow. */
+    .brief .prograil{ position:fixed; left:24px; top:50%; transform:translateY(-50%); width:2px; height:66vh; max-height:620px;
       background:rgba(207,187,155,0.16); z-index:6; }
     /* Filled line from the top: cream at the top, orange at the growing end,
        glowing along the completed segment (color + glow set in JS). */

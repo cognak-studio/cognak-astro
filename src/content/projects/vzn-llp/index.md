@@ -21,6 +21,8 @@ moreDetails: '<p>• 1+ year project</p>
 
   '
 metaDescription: View COGNAK's work for VZN LLP, a law firm dedicated to providing strategic solutions for founders, startups, and mature businesses.
+role: led-build
+activeClient: false
 homepageFeature: false
 ---
 

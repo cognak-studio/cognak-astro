@@ -75,6 +75,36 @@ moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/, (whole, 
   RESTATES_DURATION.test(inner.replace(/<[^>]+>/g, '').trim()) ? '' : whole
 );
 
+/* Drop every hand-written role row — the generated one replaces it. Matches any
+   row mentioning COGNAK, which across all 54 projects is only ever the role
+   line ("COGNAK was creative lead", "Website development via COGNAK", …).
+   Global, not first-only: a couple of projects carry two such rows. */
+moreDetailsHtml = moreDetailsHtml.replace(/<p[^>]*>([\s\S]*?)<\/p>\s*/g, (whole, inner) =>
+  /\bCOGNAK\b/i.test(inner.replace(/<[^>]+>/g, '')) ? '' : whole
+);
+
+/* The role row — always present, first in the record. Every project gets one:
+   38 of the 54 had a hand-written "COGNAK was creative lead"-style line in ten
+   different phrasings, 16 had nothing at all.
+
+   TENSE IS DERIVED FROM activeClient, which is the whole point: a live client
+   reads "Leading the work", a finished one "Led the work". Two facts, one row,
+   and they can never contradict each other the way hand-authored tense did
+   (the old copy had "was", "is" and "as" scattered across the archive).
+
+   The vocabulary is about HOW COGNAK worked, never about which disciplines —
+   the category line directly above already says "VIDEO, PRINT, WEB, BRANDING",
+   and a role of "creative + development lead" merely restated it. */
+const ROLE_COPY = {
+  'led':       ['Leading the work',                 'Led the work'],
+  'led-build': ['Leading design and build',         'Led design and build'],
+  'build':     ['Building alongside their team',    'Built alongside their team'],
+  'embedded':  ['Working within their team',        'Worked within their team'],
+};
+// Unset activeClient falls to PAST: claiming an engagement is live is the
+// riskier of the two guesses.
+const roleLine = (ROLE_COPY[d.role] ?? ROLE_COPY['led'])[d.activeClient === true ? 0 : 1];
+
 /* Client status. Folded into the grade rather than given its own row: the
    grade already answers "how long", and "is it still live" is the one thing it
    couldn't say — which is exactly what the old "ongoing relationship" copy was
@@ -224,6 +254,7 @@ const jsonLd = {
               The grade directly above already anchors the block. */}
           <aside class="details details-extra">
             <div class="col">
+              <p>{roleLine}</p>
               <Fragment set:html={moreDetailsHtml} />
             </div>
           </aside>

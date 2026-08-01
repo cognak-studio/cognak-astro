@@ -21,6 +21,8 @@ moreDetails: '<p>• 1+ year relationship</p>
 
   '
 metaDescription: View COGNAK's work for AssetAware, an IT management webapp helping small to mid-market companies gain control of their IT assets in the cloud.
+role: led
+activeClient: true
 homepageFeature: false
 noindex: true
 ---

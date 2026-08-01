@@ -24,6 +24,8 @@ moreDetails: '<p>• 1+ year ongoing relationship</p>
 
   '
 metaDescription: View COGNAK's work for Hex, a collaborative workspace to write code, explore data, and build interactive dashboards with a single platform.
+role: embedded
+activeClient: true
 homepageFeature: true
 homepagePosition: 2
 ---
