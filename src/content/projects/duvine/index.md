@@ -1,7 +1,7 @@
 ---
 title: DuVine Cycling + Adventure Co
 slug: duvine
-category: Branding, Web, Print, Video
+category: Branding, Web, Development, Print, Video
 date: '2013-12-05T17:27:58+00:00'
 projectYear: 2016–2026
 thumbnail: ./thumb.jpg
@@ -13,11 +13,7 @@ aboutTheClient: '<div class="pageintro l-container l-container--small">
   </div>
 
   '
-theWork: '<p>COGNAK is DuVine''s web agency. We design, build, and maintain duvine.com — the tour templates that carry every trip in the collection, the booking paths guests move through, the seasonal launches, and the day-to-day development that keeps a catalogue of this size fast, current, and beautiful. It is the storefront for a company whose product is a place, and we treat it that way.</p>
-
-  <p>We are also DuVine''s video production studio. Every year we shoot, cut, and colour an enormous volume of work: long-form films that give a region its due, destination and tour features, reels and vertical social cuts by the hundred, and paid ads built to earn attention in a feed and hold it. A single trip can yield a season''s worth of storytelling, and our job is to find the ride inside the footage — the light on a Tuscan hillside, a table filling up, the long descent — and give it a shape people feel.</p>
-
-  <p>A decade in, what began as a single 100+ page coffee-table book has become an always-on partnership across web and film.</p>
+theWork: '<p>COGNAK has been DuVine''s development agency for ten years — we design, build, and maintain duvine.com, and have carried it through every redesign, tour launch, and season since. We also produce their video: long-form films, tour and destination features, social, and ads. A single trip''s footage can yield a season''s worth of storytelling, and our job is to find the ride inside it.</p>
 
   '
 moreDetails: '<p>• 10+ year relationship</p>

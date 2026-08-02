@@ -65,15 +65,41 @@
         if (!nav || !hero) return;
         hero.style.marginTop = '';
         void hero.offsetHeight;
+        /* THE NAV IS `position: fixed` AND THE HERO IS NOT. Their rects are both
+           viewport-relative, so navBottom is a constant (~84) while heroTop moves
+           with the scroll — subtracting one from the other without correcting for
+           scroll makes `gap` a function of scroll position.
+
+           That is the white block above the hero. Scrolled down by S when this
+           runs (back/forward navigation restores scroll BEFORE the 100ms pass
+           below; a resize while scrolled does it too; on mobile the URL bar
+           collapsing fires resize on its own), heroTop comes back S px too small,
+           so marginTop is set S px too LARGE and the hero is pushed down by
+           exactly the amount the page was scrolled. At scroll 0 it is invisible,
+           which is why this survived so long.
+
+           Measuring the hero in DOCUMENT coordinates removes the dependency:
+           at scroll 0 the result is identical to before, and at any other scroll
+           position it is now the same number. */
+        var scrollY    = window.pageYOffset || document.documentElement.scrollTop || 0;
         var navBottom  = nav.getBoundingClientRect().bottom;
-        var heroTop    = hero.getBoundingClientRect().top;
-        var gap = heroTop - navBottom;
+        var heroTopDoc = hero.getBoundingClientRect().top + scrollY;
+        var gap = heroTopDoc - navBottom;
+        /* Belt and braces. The legitimate gap is the hero figure's own margin —
+           tens of pixels. Anything wilder than this means a measurement was taken
+           mid-layout, and leaving the margin alone is always better than shoving
+           the hero off screen. */
+        if (Math.abs(gap) > 200) return;
         hero.style.marginTop = (-gap) + 'px';
     }
     document.addEventListener('DOMContentLoaded', function() {
         alignHeroToNav();
         setTimeout(alignHeroToNav, 100);
     });
+    /* bfcache restores fire no DOMContentLoaded, so a page returned to via the
+       back button never re-aligned. It also restores scroll — which is precisely
+       the case the scroll correction above exists for. */
+    window.addEventListener('pageshow', function(e) { if (e.persisted) alignHeroToNav(); });
     window.addEventListener('resize', alignHeroToNav);
 })();
 
