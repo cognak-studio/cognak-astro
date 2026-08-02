@@ -230,6 +230,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:background var(--dur-sm) var(--ease-standard);
       font-family:inherit; }
     .brief .pcard:hover{ background:var(--field-focus); }
+    /* ---- the ember stroke (2026-08-02) ----
+       A 1px ring that runs orange at the top-left corner, cools to almost-ink
+       across the middle of each edge, and comes back to orange at the
+       bottom-right. 135deg, not 90: a left-to-right ramp on a card this wide
+       reads as an unfinished gradient FILL, while a diagonal reads as a light
+       source sitting off the top-left corner.
+
+       Painted as a MASKED PSEUDO-ELEMENT, not as a border. The two obvious
+       alternatives both fail here:
+         • `border-image` ignores border-radius, so the corners would square off.
+         • The padding-box/border-box double-background trick bleeds — `--card`
+           is rgba(12,8,3,0.4), so the border-box gradient underneath would tint
+           the whole card face with a diagonal wash instead of edging it.
+       inset:0 with mask-composite costs no layout: the card does not grow by
+       2px the way a real border would, so nothing below it moves.
+
+       Authored at 1px, not 0.5px. Half a pixel is a coin flip below 2x — some
+       browsers snap it to 1, others drop it — so the thinness lives in the
+       ALPHA instead, which renders the same everywhere. */
+    .brief .pcard::before{
+      content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:linear-gradient(135deg,
+        rgba(239,145,70,0.55) 0%,
+        rgba(239,145,70,0.16) 26%,
+        rgba(12,8,3,0.50)     50%,
+        rgba(239,145,70,0.16) 74%,
+        rgba(239,145,70,0.55) 100%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+              mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude;
+      pointer-events:none;
+      opacity:.85;
+      transition:opacity var(--dur-sm) var(--ease-standard), filter var(--dur-sm) var(--ease-standard);
+    }
+    /* Hover already turns every word in the card orange; the ring just steps up
+       with them rather than doing anything of its own. */
+    .brief .pcard:hover::before{ opacity:1; filter:brightness(1.25) saturate(1.15); }
     .brief .pcard:hover .idx, .brief .pcard:hover h3, .brief .pcard:hover p, .brief .pcard:hover .arrow{ color:var(--orange); }
     .brief .pcard:active{ transform:scale(.995); }
     .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; transition:color var(--dur-s) var(--ease-standard); }
