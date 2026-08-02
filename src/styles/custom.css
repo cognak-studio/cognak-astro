@@ -4811,12 +4811,17 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
    :empty guard needed (and :empty would be unreliable anyway, since a
    whitespace text node defeats it). */
 .project-gallery {
-    margin-left: 70px;
-    margin-right: 70px;
+    margin: 70px;
 }
 .project-gallery img {
     margin-bottom: 70px;
 }
+/* Still zeroed — but the space below the last image did NOT go away, it MOVED:
+   the figure's own 70px bottom margin now provides it. Without this the last
+   image would carry 70px of its own on top of the figure's 70px and the gallery
+   would sit 140px off the footer. Same reasoning above: .information's 55px
+   bottom margin collapses against the figure's 70px top margin, so the space
+   over the first image resolves to 70px, not 125px. */
 .project-gallery img.is-last {
     margin-bottom: 0;
 }
@@ -4827,8 +4832,7 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
    does nothing — which is exactly what happened on the first attempt. */
 @media screen and (max-width: 720px) {
     .project-gallery {
-        margin-left: 24px;
-        margin-right: 24px;
+        margin: 24px;
     }
     .project-gallery img {
         margin-bottom: 24px;
