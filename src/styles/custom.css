@@ -3773,11 +3773,19 @@ html.pv-grid .projects-grade-note,
         background-image: linear-gradient(90deg,
             #3A313B 33.4%,   /* fully cooled. Hard against the 33.33% floor —
                                 below it the word would start already burnt. */
-            #2A0A0E 37.5%,   /* last embers dying out of the red */
-            #55070B 43%,     /* the wake */
-            #7A0C08 49%,
-            #A81107 55%,     /* deep red */
-            #E23A00 60%,
+            #2A0A0E 35.6%,   /* last embers dying out of the red. The cool-off
+                                is deliberately COMPRESSED against the floor so
+                                the red above it can run long — see below. */
+            #55070B 38.5%,   /* the wake */
+            #7A0C08 42%,
+            #A81107 47%,     /* deep red — held from 47% all the way to the
+                                ember instead of starting at 55%. The tail can
+                                only take room the fire gives up (the window is
+                                one box wide), so lingering red is bought by
+                                cooling to ink faster at the very end, not by
+                                widening the burn. Pierce, 2026-08-02. */
+            #C41E08 55%,
+            #E23A00 60.5%,
             #FF6A00 63.5%,   /* ember */
             #FFC061 65%,     /* hot core, leading the edge */
             #3A313B 66%,     /* the iron's edge — sharp, unburned beyond it.
