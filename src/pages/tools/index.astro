@@ -10,6 +10,14 @@
  * vector emitters live in src/lib/barcode/ and are bundled into the page, so
  * nothing typed here is ever sent anywhere.
  *
+ * ⚑ THE PAGE CLAIMS "nothing you type here leaves the browser" IN ITS OWN COPY,
+ * and GA4 runs on it. Never add an analytics event that carries a field value —
+ * a UPC number, a QR URL, a filename. Event NAMES and counts are fine; payloads
+ * are not. The moment one is instrumented that sentence becomes a false
+ * statement about data handling, which is a different and worse problem than
+ * any barcode being off-spec. Same reason the privacy policy's /tools clause
+ * says what it says.
+ *
  * Palette: violet ink on near-black — the site's own #17151A used as the
  * ground. Verified WCAG AA (see :root comment).
  */
@@ -51,11 +59,11 @@ const toolsJsonLd = {
         'Free UPC-A barcode generator with automatic check digit',
         'QR code generator for any URL',
         'Vector downloads — SVG, PDF and EPS, not PNG screenshots',
-        'GS1-legal magnification from 80% to 200%',
+        'GS1-compliant magnification from 80% to 200%',
         'Print-ready quiet zones and bar width reduction',
-        'Runs entirely in the browser — nothing you type is uploaded',
+        'Runs entirely in the browser, so nothing you type is uploaded',
       ],
-      description: 'A free UPC-A barcode and QR code generator that outputs real vector files (SVG, PDF, EPS) at GS1-legal sizes, built for print production. Nothing you type leaves your browser.',
+      description: 'A free UPC-A barcode and QR code generator that outputs real vector files (SVG, PDF, EPS) at GS1-compliant sizes, built for print production. Nothing you type leaves your browser.',
       publisher: { '@type': 'Organization', name: 'COGNAK', url: 'https://cognak.com/' },
     },
     {
@@ -70,8 +78,8 @@ const toolsJsonLd = {
 ---
 <BaseLayout
   page="tools"
-  title="Free UPC Barcode Generator — SVG, PDF, EPS | COGNAK"
-  description="Free UPC-A barcode and QR code generator. Download real vector files — SVG, PDF, EPS — at GS1-legal sizes from 80% to 200%. No signup, no watermark, and nothing you type ever leaves your browser."
+  title="Free UPC Barcode Generator (SVG, PDF, EPS) | COGNAK"
+  description="Free UPC-A barcode and QR code generator. Download real vector files (SVG, PDF, EPS) at GS1-compliant sizes from 80% to 200%. No signup, no watermark, and nothing you type ever leaves your browser."
   ogUrl="https://cognak.com/tools/"
   jsonLd={toolsJsonLd}
   pageBg="#17151A"
@@ -90,9 +98,9 @@ const toolsJsonLd = {
     <p class="lede tools-lede">
       Like you, we were tired of trying to consistently produce perfect
       barcodes and QR codes for print. So we built our own system. Enter
-      your specs right here and download as EPS, SVG, or PDF. UPCs are
-      GS1-approved and stay legal anywhere from 80% to 200%. And, nothing
-      you type here leaves the browser.
+      your specs right here and download as EPS, SVG, or PDF. UPCs are built
+      to the GS1 spec and stay compliant anywhere from 80% to 200%. And,
+      nothing you type here leaves the browser.
     </p>
 
     <div class="tcard rise" id="tcard">
@@ -223,6 +231,8 @@ const toolsJsonLd = {
       7-module cell — exported as outlines, so there's no font to embed,
       install or substitute. COGNAK doesn't issue UPC numbers — those come
       from <a href="https://www.gs1us.org/upcs-barcodes-prefixes/how-to-get-a-upc-barcode" target="_blank" rel="noopener noreferrer">GS1</a>.
+      This tool is provided as-is, with no warranty. Always scan a printed
+      proof before committing to a production run.
     </p>
 
   </section></main>

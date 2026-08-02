@@ -71,6 +71,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <span class="pp-consent-actions" id="pp-consent-actions"></span>
       </div>
 
+      <h2>Tools</h2>
+      <div class="pp-gloss">Nothing you type into the generator leaves your browser.</div>
+      <p>The barcode and QR generator at <a href="/tools/">cognak.com/tools</a> runs entirely in your browser. The numbers, URLs, and settings you enter are never sent to us or to anyone else, and the files you download are produced on your own machine. We never see them and we don't keep a copy. Our analytics record that the page was visited, never what was typed into it.</p>
+      <p>The generator is free and provided as-is, with no warranty of any kind. COGNAK doesn't issue UPC numbers; those come from <a href="https://www.gs1us.org/upcs-barcodes-prefixes/how-to-get-a-upc-barcode" target="_blank" rel="noopener">GS1</a>. How a file reproduces depends on your press, substrate, and scanner, which are outside our control. Always scan a printed proof before committing to a production run.</p>
+
+      <h2>File Delivery</h2>
+      <div class="pp-gloss">If we send you files, they expire and then they're gone.</div>
+      <p>Sometimes we deliver work through a private link on this site, at cognak.com/files. If you've received one of those links, here's how it works. The files are uploaded by COGNAK, never by you, and the link is a long random address that isn't listed, indexed, or guessable. Every link carries an expiry date, chosen when we send it: 7, 30, or 90 days. On that date the link stops working and the files are permanently deleted from our storage provider, Vercel. They aren't archived, moved, or hidden from view, they're gone. If you'd like a delivery removed before its expiry date, email <a href="mailto:hello@cognak.com">hello@cognak.com</a> and we'll delete it on request.</p>
+      <p>The page records one thing: whether at least one file in a delivery has been downloaded, so we know the work arrived. It doesn't record who downloaded it, when, or from where, and no name, email, or address is attached to a delivery link.</p>
+
       <h2>Contact</h2>
       <div class="pp-gloss">Your email is used to reply, and nothing else.</div>
       <p>If you reach out via hello@cognak.com, your email and message are used solely to respond to your inquiry. No information is stored beyond standard email retention.</p>
@@ -85,6 +95,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       <h2>Questions</h2>
       <p><a href="mailto:hello@cognak.com">hello@cognak.com</a></p>
+
+      {/* A <div>, not a <p>, for the same reason .pp-gloss is one: every
+          `.privacy-body p` is held at opacity:0 for the word-stagger and only
+          comes back if the global splitter reveals it. A date is not prose and
+          shouldn't animate in a word at a time anyway.
+
+          HARDCODED ON PURPOSE. The obvious "clever" version — stamping the
+          build date — would re-date this document on every unrelated deploy,
+          which is worse than no date at all: it claims a review that didn't
+          happen. Change this line by hand when the policy actually changes. */}
+      <div class="pp-updated">Last updated: August 2, 2026</div>
     </div>
 
   </section></main>
@@ -179,6 +200,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
     .pp-ck-name { color: #815275; }
     .pp-cookies-note { font-size: 14px !important; color: #6b5f6b !important; }
+    /* Sits in the h2's mono voice rather than the prose voice — it's metadata
+       about the document, not part of it. Nothing follows it, so its non-grid
+       line box can't push anything out of the 28.8px rhythm. */
+    .pp-updated {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(129,82,117,0.75);
+      margin-top: 57.6px; /* 2x the baseline grid */
+    }
 
     /* Stacked on narrow screens: each cell reintroduces its column header from
        the data-label, and the header row itself is dropped. */
