@@ -58,18 +58,63 @@
       "permanent": true
     },
     {
-      "source": "/project/:slug*",
-      "destination": "/projects/:slug*",
+      "source": "/project/:slug",
+      "destination": "/projects/:slug/",
+      "permanent": true
+    },
+    {
+      "source": "/project/:slug/",
+      "destination": "/projects/:slug/",
+      "permanent": true
+    },
+    {
+      "source": "/work",
+      "destination": "/projects/",
+      "permanent": true
+    },
+    {
+      "source": "/work/",
+      "destination": "/projects/",
+      "permanent": true
+    },
+    {
+      "source": "/work/:slug",
+      "destination": "/projects/:slug/",
+      "permanent": true
+    },
+    {
+      "source": "/work/:slug/",
+      "destination": "/projects/:slug/",
       "permanent": true
     },
     {
       "source": "/about",
-      "destination": "/studio",
+      "destination": "/studio/",
+      "permanent": true
+    },
+    {
+      "source": "/about/",
+      "destination": "/studio/",
       "permanent": true
     },
     {
       "source": "/services",
-      "destination": "/studio",
+      "destination": "/studio/",
+      "permanent": true
+    },
+    {
+      "source": "/services/",
+      "destination": "/studio/",
+      "permanent": true
+    },
+    {
+      "source": "/contact",
+      "destination": "/brief/",
+      "permanent": true
+    },
+    {
+      "source": "/contact/",
+      "destination": "/brief/",
       "permanent": true
     },
     {
