@@ -246,17 +246,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        inset:0 with mask-composite costs no layout: the card does not grow by
        2px the way a real border would, so nothing below it moves.
 
+       The stroke is a LIGHT BROWN (#B0906A), not the brief's orange (Pierce,
+       2026-08-02): a lighter shade of the card's own brown rather than a second
+       accent. The orange version read as a highlight competing with the CTA;
+       this one reads as the card catching a little light.
+
        Authored at 1px, not 0.5px. Half a pixel is a coin flip below 2x — some
        browsers snap it to 1, others drop it — so the thinness lives in the
        ALPHA instead, which renders the same everywhere. */
     .brief .pcard::before{
       content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
       background:linear-gradient(135deg,
-        rgba(239,145,70,0.55) 0%,
-        rgba(239,145,70,0.16) 26%,
-        rgba(12,8,3,0.50)     50%,
-        rgba(239,145,70,0.16) 74%,
-        rgba(239,145,70,0.55) 100%);
+        rgba(176,144,106,0.34) 0%,
+        rgba(176,144,106,0.10) 26%,
+        rgba(12,8,3,0.42)      50%,
+        rgba(176,144,106,0.10) 74%,
+        rgba(176,144,106,0.34) 100%);
       -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
               mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
       -webkit-mask-composite:xor; mask-composite:exclude;
@@ -264,9 +269,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       opacity:.85;
       transition:opacity var(--dur-sm) var(--ease-standard), filter var(--dur-sm) var(--ease-standard);
     }
-    /* Hover already turns every word in the card orange; the ring just steps up
-       with them rather than doing anything of its own. */
-    .brief .pcard:hover::before{ opacity:1; filter:brightness(1.25) saturate(1.15); }
+    /* Hover already turns every word in the card orange; the ring only brightens
+       slightly rather than joining in — it is the card's edge, not an accent. */
+    .brief .pcard:hover::before{ opacity:1; filter:brightness(1.15); }
     .brief .pcard:hover .idx, .brief .pcard:hover h3, .brief .pcard:hover p, .brief .pcard:hover .arrow{ color:var(--orange); }
     .brief .pcard:active{ transform:scale(.995); }
     .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; transition:color var(--dur-s) var(--ease-standard); }
