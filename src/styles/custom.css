@@ -1414,12 +1414,11 @@ html.home-scrolled #cognak-cookie {
     letter-spacing: normal;
     text-decoration: none;
     transition: color var(--dur-s) var(--ease-standard);
-}@media (hover: hover) {
-
-.footer-backtotop:hover {
-    color: #3A313B;
 }
-}
+/* NOTE: there was a `.footer-backtotop:hover { color:#3A313B }` here — the same
+   value as the resting state, so it was a no-op hover. Removed 2026-08-01.
+   "Back to top" consequently has NO hover feedback; that was already true, the
+   rule just made it look intentional. Worth giving it a real hover colour. */
 .footer-bottom {
     display: flex;
     justify-content: space-between;

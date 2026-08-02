@@ -172,35 +172,24 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     /* Headline + prose paragraphs reveal via the site-wide word-stagger
        (cognak-global.js), same as projects/studio. The eyebrow + the mono
        credits block + the sign-off keep this local whole-element rise. */
-    .colophon-eyebrow,
     .colophon-spec,
     .colophon-sign {
       opacity: 0;
       transform: translateY(6px);
       transition: opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard);
     }
-    .colophon-eyebrow.is-in,
     .colophon-spec.is-in,
     .colophon-sign.is-in {
       opacity: 1;
       transform: translateY(0);
     }
     @media (prefers-reduced-motion: reduce) {
-      .colophon-eyebrow,
       .colophon-spec,
       .colophon-sign {
         opacity: 1;
         transform: none;
         transition: none;
       }
-    }
-    .colophon-eyebrow {
-      font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: #c7c9d8;
-      margin: 0 0 2.4rem;
     }
     .colophon-headline {
       font-size: clamp(20px, 5.5vw, 62px);
@@ -474,7 +463,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
     if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
     window.scrollTo(0, 0);
     (function () {
-      var els = document.querySelectorAll('.colophon-eyebrow, .colophon-spec, .colophon-sign');
+      var els = document.querySelectorAll('.colophon-spec, .colophon-sign');
       if (!els.length || !('IntersectionObserver' in window)) {
         els.forEach(function (el) { el.classList.add('is-in'); });
         return;
