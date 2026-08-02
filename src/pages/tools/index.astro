@@ -14,12 +14,66 @@
  * ground. Verified WCAG AA (see :root comment).
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/* SEO (2026-08-02). The page ranked for nothing because its title was the word
+   "Tools" — nobody searches that. Everything below leads with the query people
+   actually type ("free upc barcode generator") and with the two facts that
+   decide the click: it is FREE, and it hands back real VECTOR files.
+
+   The JSON-LD is a WebApplication with an explicit `price: "0"` Offer, which is
+   what lets a result be understood as a free tool rather than a studio page.
+   `browserRequirements` + `permissions` state the privacy claim in a machine-
+   readable way. No FAQPage block: Google only shows FAQ rich results for
+   government and health sites now, and marking up questions that aren't
+   visible on the page is a guideline violation for no upside. */
+const toolsJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      '@id': 'https://cognak.com/tools/#app',
+      name: 'Free UPC Barcode & QR Code Generator',
+      alternateName: ['UPC-A barcode generator', 'QR code generator for print'],
+      url: 'https://cognak.com/tools/',
+      applicationCategory: 'DesignApplication',
+      applicationSubCategory: 'Barcode Generator',
+      operatingSystem: 'Any (runs in the browser)',
+      browserRequirements: 'Requires JavaScript. No account, no upload, no server round-trip.',
+      permissions: 'none',
+      isAccessibleForFree: true,
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+      },
+      featureList: [
+        'Free UPC-A barcode generator with automatic check digit',
+        'QR code generator for any URL',
+        'Vector downloads — SVG, PDF and EPS, not PNG screenshots',
+        'GS1-legal magnification from 80% to 200%',
+        'Print-ready quiet zones and bar width reduction',
+        'Runs entirely in the browser — nothing you type is uploaded',
+      ],
+      description: 'A free UPC-A barcode and QR code generator that outputs real vector files (SVG, PDF, EPS) at GS1-legal sizes, built for print production. Nothing you type leaves your browser.',
+      publisher: { '@type': 'Organization', name: 'COGNAK', url: 'https://cognak.com/' },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'COGNAK', item: 'https://cognak.com/' },
+        { '@type': 'ListItem', position: 2, name: 'Free UPC & QR Code Generator', item: 'https://cognak.com/tools/' },
+      ],
+    },
+  ],
+};
 ---
 <BaseLayout
   page="tools"
-  title="Tools – COGNAK"
-  description="A UPC-A and QR generator built for print — real vector out (SVG, PDF, EPS), GS1-legal magnification, nothing you type ever leaves the browser."
+  title="Free UPC Barcode Generator — SVG, PDF, EPS | COGNAK"
+  description="Free UPC-A barcode and QR code generator. Download real vector files — SVG, PDF, EPS — at GS1-legal sizes from 80% to 200%. No signup, no watermark, and nothing you type ever leaves your browser."
   ogUrl="https://cognak.com/tools/"
+  jsonLd={toolsJsonLd}
   pageBg="#17151A"
 >
   <canvas id="tools-lattice" aria-hidden="true"></canvas>

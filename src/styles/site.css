@@ -1,4 +1,4 @@
-/* Single CSS entry, bundled by Astro. Order matters: reset -> screen -> custom. */
+/* Single CSS entry, bundled by Astro. Order matters: reset -> custom.
+   (screen.css was folded into the top of custom.css on 2026-08-02.) */
 @import './reset.css';
-@import './screen.css';
 @import './custom.css';

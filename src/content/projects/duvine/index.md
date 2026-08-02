@@ -13,7 +13,7 @@ aboutTheClient: '<div class="pageintro l-container l-container--small">
   </div>
 
   '
-theWork: '<p>COGNAK has been DuVine''s development agency for ten years — we design, build, and maintain duvine.com, and have carried it through every redesign, tour launch, and season since. We also produce their video: long-form films, tour and destination features, social, and ads. A single trip''s footage can yield a season''s worth of storytelling, and our job is to find the ride inside it.</p>
+theWork: '<p>COGNAK has been DuVine''s development agency for ten years on. We help design, build, and maintain duvine.com, and have carried it through redesigns, tour launches, and all types of seasons. We''re also fortunate to produce their video: long-form films, tour and destination features, social, and ads. A single trip''s footage can yield a season''s worth of storytelling, and our job is to help find the beautiful humanity inside it.</p>
 
   '
 moreDetails: '<p>• 10+ year relationship</p>

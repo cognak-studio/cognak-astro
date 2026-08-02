@@ -1,3 +1,450 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   FOLDED IN FROM screen.css, 2026-08-02.
+
+   screen.css was the WordPress theme's stylesheet. After the dead-code sweep
+   what remained was ~430 lines of base styles that nothing distinguished from
+   the rest of this file, plus one more cascade layer to reason about. It is
+   prepended here VERBATIM AND IN ORDER — site.css loaded reset → screen →
+   custom, so screen's rules must stay above custom's to keep losing the same
+   ties they lost before. Do not sort or merge these into the sections below;
+   the whole safety of the move is that nothing changed position.
+   Verified by byte-comparing the bundled CSS before and after: identical.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── screen.css — what SURVIVED the inherited WordPress theme ──
+   Cut from 1524 lines to this on 2026-08-01. The original was the theme
+   stylesheet that came with the WordPress build: a full CSS reset, a socicon
+   icon font, Ninja Forms rules, a hamburger nav, `.order-*` utilities and ~60
+   vendor-prefixed `transition: all 0.7s ease` declarations. 293 of its 423
+   selectors matched nothing on any page.
+
+   HOW THE CUT WAS MADE — by evidence, not by reading. Every selector was
+   comma-split so each is judged on its own, then run through
+   `document.querySelectorAll` against the real DOM of 11 page templates in a
+   production build. A second net kept any selector whose class token is
+   added or queried by JS at runtime (`classList.add/remove/toggle`,
+   `querySelector`, `closest`), so runtime-only classes were not mistaken for
+   dead. Verified afterwards by diffing a 30-property computed-style
+   fingerprint of every element on every page, before against after.
+
+   WHY COMMA-SPLITTING MATTERED: `.v-center, .page, a[rel="prev"], a[rel="next"]`
+   is ONE rule whose first two selectors are dead while the last two carry the
+   project pagers' fixed positioning. Deleting the rule — or the file — would
+   have unstyled the pagers.
+
+   Before deleting anything else here by eye: it may be matched by markdown body
+   content or a runtime class. Re-run the audit instead. */
+
+html,
+body,
+div,
+span,
+h1,
+h2,
+h3,
+p,
+a,
+code,
+em,
+img,
+strong,
+sup,
+b,
+i,
+ul,
+fieldset,
+form,
+label,
+legend,
+article,
+aside,
+canvas,
+figure,
+figcaption,
+footer,
+nav,
+section,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+html {
+  line-height: 1;
+}
+ul {
+  list-style: none;
+}
+a img {
+  border: none;
+}
+article,
+aside,
+figcaption,
+figure,
+footer,
+main,
+nav,
+section {
+  display: block;
+}
+* {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+a {
+  text-decoration: none;
+  color: inherit;
+}
+html {
+  background-color: #fff;
+}
+i {
+  font-family: 'Material Icons';
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  direction: ltr;
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+body,
+html,
+.main-intro {
+  height: 100%;
+}
+body.fixed-nav {
+  padding: 84px 0 0 0;
+}
+@media screen and (max-width: 1025px) {
+body.fixed-nav {
+    padding: 54px 0 0 0;
+  }
+}
+a[rel="prev"],
+a[rel="next"] {
+  position: relative;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+@media screen and (max-width: 720px) {
+a[rel="prev"],
+a[rel="next"] {
+    position: absolute;
+    left: 0;
+    width: 100%;
+  }
+}
+.main-intro {
+  /* The WordPress homepage photo lived here. `custom.css` has killed it with
+     `background-image: none !important` since the WebGL hero landed, so the
+     shorthand only ever served to reset the colour above it to transparent.
+     Both are gone; the colour stays. (2026-08-02) */
+  background-color: #3A313B;
+  margin: 0 auto;
+  position: relative;
+  max-width: 1800px;
+}
+@media screen and (max-width: 1025px) {
+.main-intro {
+    background-attachment: scroll;
+  }
+}
+.main-footer {
+  padding: 52px 0;
+  background: #f4f3f3;
+}
+@media screen and (min-width: 719px) {
+.main-footer {
+    padding: 73.5px 0;
+  }
+}
+article img {
+  -webkit-transition: -webkit-transform .7s;
+  transition: -webkit-transform .7s;
+  transition: transform .7s;
+  transition: transform .7s, -webkit-transform .7s;
+}
+@media screen and (max-width: 720px) {
+}
+@media screen and (max-width: 720px) {
+}
+@media (hover: hover) {
+}
+.project-excerpt {
+  margin: 20px 0;
+}
+.img-wide img,
+.img-wide video {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+.container--work-single {
+  margin: 0 auto;
+  max-width: 1100px;
+  width: 80%;
+}
+@media screen and (max-width: 720px) {
+.container--work-single {
+    width: 90%;
+  }
+}
+.template-single-project {
+  margin-top: -1px;
+}
+.template-single-project .information {
+  margin: 55px 0;
+}
+.template-single-project .information .title {
+  color: #3A313B;
+  font-family: 'Diatype Mono', monospace;
+  font-weight: 400;
+  font-size: 70px;
+  margin: 0 0 15px 0;
+}
+@media screen and (max-width: 720px) {
+.template-single-project .information .title {
+    font-size: 40px;
+  }
+}
+.template-single-project .information .category {
+  color: #898193;
+  font-family: 'Diatype Variable',sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0 0 55px 0;
+  text-transform: uppercase;
+}
+@media screen and (max-width: 720px) {
+.template-single-project .information .category {
+    font-size: 16px;
+  }
+}
+.template-single-project .information .details {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+}
+@media screen and (max-width: 720px) {
+.template-single-project .information .details {
+    -webkit-flex-direction: column;
+    flex-direction: column;
+  }
+}
+.template-single-project .information .details .col {
+  width: 30%;
+}
+@media screen and (max-width: 720px) {
+.template-single-project .information .details .col {
+    width: 100%;
+    margin-bottom: 40px;
+  }
+.template-single-project .information .details .col:last-child {
+    margin-bottom: 0px;
+  }
+}
+.template-single-project .information .details h3 {
+  color: #3A313B;
+  font-family: 'Diatype Variable',sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+}
+.template-single-project .information .details p,
+.template-single-project .information .details ul {
+  color: #6b7177;
+  font-family: 'Diatype Variable',sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.template-single-project .information .details li {
+  list-style: disc outside;
+  margin: 0 0 5px 0;
+}
+.template-single-project .information .details a {
+  font-weight: 500;
+}
+@media screen and (max-width: 720px) {
+.pagers {
+    text-align: center;
+  }
+}
+a[rel="prev"],
+a[rel="next"] {
+  background: rgba(255, 255, 255, 0.75);
+  display: block;
+  padding: 25px;
+  position: fixed;
+  text-decoration: none;
+  z-index: 500;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+}
+@media (hover: hover) {
+a[rel="prev"]:hover,
+a[rel="next"]:hover {
+  -moz-transition: all 0.7s ease;
+  -o-transition: all 0.7s ease;
+  -webkit-transition: all 0.7s ease;
+  transition: all 0.7s ease;
+  background: rgba(255, 255, 255, 0.9);
+}
+}
+.page .title,
+a[rel="prev"] .title,
+a[rel="next"] .title {
+  color: #fff;
+}
+@media (hover: hover) {
+a[rel="prev"]:hover,
+a[rel="next"]:hover,
+a[rel="prev"]:active,
+a[rel="next"]:active {
+  margin-right: 0px;
+}
+}
+@media (hover: hover) {
+.page:hover .title,
+a[rel="prev"]:hover .title,
+a[rel="next"]:hover .title,
+.page:active .title,
+a[rel="prev"]:active .title,
+a[rel="next"]:active .title {
+  -moz-transition: all 0.7s ease;
+  -o-transition: all 0.7s ease;
+  -webkit-transition: all 0.7s ease;
+  transition: all 0.7s ease;
+  color: #898193;
+}
+}
+@media screen and (max-width: 720px) {
+a[rel="prev"],
+a[rel="next"] {
+    position: static;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    background: white;
+    text-align: center;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+  }
+@media (hover: hover) {
+a[rel="prev"]:hover,
+a[rel="next"]:hover {
+    -moz-transition: all 0.7s ease;
+    -o-transition: all 0.7s ease;
+    -webkit-transition: all 0.7s ease;
+    transition: all 0.7s ease;
+    background: white;
+  }
+}
+}
+a[rel="prev"] {
+  left: 0;
+  margin-left: -500px;
+  -moz-transition: all 0.7s ease;
+  -o-transition: all 0.7s ease;
+  -webkit-transition: all 0.7s ease;
+  transition: all 0.7s ease;
+}
+a[rel="next"] {
+  right: 0;
+  margin-right: -500px;
+  -moz-transition: all 0.7s ease;
+  -o-transition: all 0.7s ease;
+  -webkit-transition: all 0.7s ease;
+  transition: all 0.7s ease;
+}
+.template-single-project a .title {
+  color: #898193;
+  font-family: 'Diatype Variable',sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+}
+@media screen and (max-width: 720px) {
+.template-single-project a .title {
+    font-size: 20px;
+  }
+}
+.template-single-project a[rel="next"] .title {
+  padding-left: 30px;
+}
+.template-single-project a[rel="prev"] .title {
+  padding-right: 30px;
+}
+.template-single-project i {
+  color: #898193;
+  font-size: 14px;
+}
+@media screen and (max-width: 720px) {
+.template-single-project i {
+    font-size: 20px;
+  }
+}
+@media screen and (max-width: 720px) {
+.group::after,
+.group::before {
+    display: none;
+  }
+}
+input[type="text"] {
+  color: #6d6d6d;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px;
+  border-radius: 2px;
+  border-color: #b9b9b9;
+  border-style: solid;
+  border-width: 2px;
+  box-shadow: none;
+  -moz-transition: all 0.7s ease;
+  -o-transition: all 0.7s ease;
+  -webkit-transition: all 0.7s ease;
+  transition: all 0.7s ease;
+  margin-bottom: -8px;
+}
+@media (hover: hover) {
+input[type="text"]:active,
+input[type="text"]:focus,
+input[type="text"]:hover {
+  outline-width: 0;
+}
+}
+input[type="text"]:focus {
+  border-color: #bbafbc;
+  color: #3A313B;
+}
+label {
+  display: none !important;
+}
+/* ═══════════ end of the folded screen.css ═══════════════════════════════════ */
+
 /* ── Signal green ──
    ONE acid green for the whole site. Replaces four near-identical values that
    had drifted apart: #AAFF00 (home + studio dots — studio has since gone pink,
@@ -598,33 +1045,10 @@ html, body {
   margin: 0;
 }
 @media only screen and (min-width: 641px) and (max-width: 1025px) {
-  .modular-section .container--about {
-      width: 100%;
-  }
-.modular-section .container--about {
-    width: 100%;
-}
-.origin-column {
-    margin-left: 15%;
-}
 }
 @media only screen and (max-width: 640px) {
-  .pic-column {
-    margin-right: -20px;
-  }
-  .social {
-    margin: 30px auto 0;
-}
 .main-footer .container {
     flex-direction: column !important;
-}
-.footer-mark {
-  order: 1;
-  margin-bottom: 0;
-  margin-top: 0;
-}
-.social {
-  order: 2;
 }
 .copyright {
   order: 3;
@@ -655,17 +1079,7 @@ padding-left: 0;
 padding-right: 30px;
 }
 }
-.nominee-footer {
-  top: inherit !important;
-  transform: translate(0,-190px);
-}
 @media only screen and (max-width: 720px) {
-.footer-mark {
-    margin-top: 25px;
-}
-.nominee-footer {
-    transform: translate(-10px,-215px) scale(.8);
-}
 }
 @media only screen and (max-width: 720px) {
     .main-intro {
@@ -696,10 +1110,6 @@ padding-right: 30px;
 .main-intro .hero-webgl.webgl-ready {
     opacity: 1;
 }
-/* === Nav stays on top (don't touch its position) === */
-.main-intro #primary-navigation {
-    z-index: 4;
-}
 /* WebGL state background — fills the gaps when the WebGL is scaled on mobile */
 .main-intro {
     background-color: #17151a;
@@ -709,36 +1119,12 @@ padding-right: 30px;
     body.non-fixed-nav .main-intro {
         height: 100dvh;
     }
-    body.non-fixed-nav .main-intro .primary-navigation .links {
-        bottom: 100%;
-        top: auto;
-    }
 }
 
 /* Match Google Calendar "Schedule a call" button to the Submit button */
-.contact-template button {
-    border-radius: 2px !important;
-    background-color: #3A313B !important;
-    border: 0 !important;
-    color: #fff !important;
-    font-size: 14px !important;
-    line-height: 1.2 !important;
-    letter-spacing: normal !important;
-    text-align: center !important;
-    text-decoration: none !important;
-    text-transform: none !important;
-    padding: 20px 40px !important;
-    transition: all var(--dur-2xl) var(--ease-standard) !important;
-    box-shadow: 0px 3px 3px 0 rgba(0, 0, 0, 0.3) !important;
-    cursor: pointer;
-}@media (hover: hover) {
+@media (hover: hover) {
 
 
-.contact-template button:hover,
-.contact-template button:active {
-    transition: all var(--dur-2xl) var(--ease-standard) !important;
-    box-shadow: 0px 12px 12px 0 rgba(0, 0, 0, 0.5) !important;
-}
 }
 
 /* About page WebGL hero */
@@ -777,10 +1163,6 @@ padding-right: 30px;
     }
 }
 
-.about-template .container--about {
-    position: relative;
-    z-index: 1;
-}
 
 body.non-fixed-nav {
     background-color: #17151a;
@@ -1259,10 +1641,6 @@ html.home-scrolled #cognak-cookie {
         gap: 8px !important;
         margin-top: 0 !important;
     }
-    .hp-services-label {
-        white-space: nowrap;
-        order: 2 !important;
-    }
     .hp-heading-break {
         display: block !important;
     }
@@ -1281,9 +1659,7 @@ html.home-scrolled #cognak-cookie {
         padding-right: 24px !important;
     }
     /* 24px margins across all pages */
-    .container,
-    .container--contact,
-    .container--about {
+    .container {
         width: auto !important;
         max-width: none !important;
         margin-left: 24px !important;
@@ -1368,9 +1744,6 @@ html.home-scrolled #cognak-cookie {
     letter-spacing: normal;
     margin-bottom: 24px;
 }
-.footer-honeypot {
-    display: none !important;
-}
 .footer-email-link {
     display: block;
     font-family: 'Diatype Variable', sans-serif;
@@ -1405,9 +1778,17 @@ html.home-scrolled #cognak-cookie {
     color: var(--cognak-purple-text);
 }
 }
+/* align-items: flex-start is LOAD-BEARING, not cosmetic. `.footer-top` is
+   `grid-template-columns: 1fr 1fr 1fr`, so this cell stretches to the height of
+   the tallest column — and a flex container's default `align-items: stretch`
+   handed that full height to the anchor inside it. "Back to top" was therefore
+   hoverable across the entire right third of the footer, hundreds of px of dead
+   space below the words (Pierce, 2026-08-02). The anchor is now its own text
+   height, so the hover target is the text. */
 .footer-top-right {
     display: flex;
     justify-content: flex-end;
+    align-items: flex-start;
 }
 .footer-backtotop {
     font-family: 'Diatype Variable', sans-serif;
@@ -1483,11 +1864,6 @@ html.home-scrolled #cognak-cookie {
     z-index: 99999;
 }
 
-.home-bottom-nav-links {
-    display: none;
-    gap: 24px;
-    align-items: center;
-}
 
 /* ── New Homepage Main Section ── */
 .homepage-main {
@@ -1902,8 +2278,15 @@ html.home-scrolled #cognak-cookie {
    means it follows the nav state: #9647F0 here under body.fixed-nav, 3.81:1.
    Purely decorative either way: the span is aria-hidden and the sentence beside
    it carries the status, so no contrast rule applies. This is legibility as a
-   design choice, not compliance. */
-.projects-below .avail-dot         { color: var(--cognak-purple-text); }
+   design choice, not compliance.
+
+   ⚑ OVERRIDDEN 2026-08-02 — PIERCE'S CALL, DO NOT "FIX" THIS BACK. The dot is
+   the signal green here too, matching the homepage: "i still think the projects
+   30-60 days out pulse dot should be the same as the homepage one, i know it's
+   light but idc." The contrast reasoning above is left standing because it is
+   still true (#AAFF00 on this background is ~1.00:1) — it simply lost to
+   wanting one availability mark across the site instead of a per-page one. */
+.projects-below .avail-dot         { color: var(--signal-green); }
 
 /* ── Homepage particle canvas ── */
 .hp-bottom {
@@ -4295,7 +4678,8 @@ a[href*="cookieyes.com"],
 }
 
 /* ── Privacy Policy page ── */
-html body.page-template-page-privacy-policy,
+/* was also `html body.page-template-page-privacy-policy` — the WordPress body
+   class, gone with the theme. */
 .privacy-template {
     background-color: #F1D6EA !important;
 }
@@ -4612,7 +4996,8 @@ html body.page-template-page-privacy-policy,
     }
 
     /* Availability sub — mobile fixes */
-    .projects-below .avail-dot { color: var(--cognak-purple-text) !important; }
+    /* Signal green, same as the homepage — see the ⚑ override note above. */
+    .projects-below .avail-dot { color: var(--signal-green) !important; }
     .hp-bottom .avail-dot      { color: var(--signal-green) !important; }
     .availability-sub {
         font-family: 'Diatype Variable', sans-serif !important;
