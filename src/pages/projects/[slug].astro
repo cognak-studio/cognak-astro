@@ -218,16 +218,30 @@ const jsonLd = {
     <figure class="img-wide img-wide--hero" style={`view-transition-name: project-thumb-${slug}`}>
       {d.heroVideo ? (
         <>
-          {/* POSTER IS LOAD-BEARING, not a nicety. Chrome pauses off-screen
-              muted autoplay video to save power and can release its decoded
-              frames; with no poster the element then paints NOTHING, so
-              scrolling past the hero and back left a blank white block exactly
-              the height of the video. Reproduced 2026-07-31: geometry stayed
-              correct (figure 793px, video 793px, zero offset) while the pixels
-              were simply gone. The poster is the project's own hero image, so
-              it costs no new asset and also covers first paint and slow
-              connections. Paired with the resume observer in cognak-single.js. */}
-          <video class="hero-video" src={d.heroVideo} poster={heroImg.src} autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="auto"></video>
+          {/* THE POSTER IS NOT ENOUGH — the BACKGROUND-IMAGE is what actually
+              holds the frame. Chrome pauses off-screen muted autoplay video and
+              can release its decoded frames; scrolling past the hero and back
+              then left a blank white block exactly the height of the video.
+              That was diagnosed 2026-07-31 and "fixed" with the poster alone.
+              IT CAME BACK, and 2026-08-01 in Pierce's own Chrome showed why:
+
+                A POSTER ONLY PAINTS BEFORE PLAYBACK IS ATTEMPTED. Once autoplay
+                calls play(), Chrome never shows the poster again. With no
+                decoded frames the element falls through to its own background —
+                and `.hero-video` set `background: #fff`. Hence a white block.
+
+              Measured live while broken: readyState 0, videoWidth/Height 0,
+              networkState 2, geometry perfectly correct (heroAbs 99, height
+              1069). Setting the poster as the video's background-image made the
+              hero render correctly with the video still at readyState 0 —
+              proving the frame, not the layout, was the problem.
+
+              The background is set INLINE because the poster is per-project;
+              the sizing/position rules live in .hero-video and must keep
+              matching its object-fit/object-position or the still will not line
+              up with the first video frame. Costs no new asset. Paired with the
+              resume observer in cognak-single.js. */}
+          <video class="hero-video" src={d.heroVideo} poster={heroImg.src} style={`background-image:url('${heroImg.src}')`} autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="auto"></video>
           <div class="hero-video-loader" aria-hidden="true"><span class="hero-video-spinner"></span></div>
           <button class="hero-mute-btn" aria-label="Toggle sound">
             <svg class="hero-mute-icon hero-mute-icon--muted" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">

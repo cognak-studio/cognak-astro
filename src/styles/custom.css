@@ -3192,7 +3192,14 @@ html.pv-grid .projects-list,
     object-fit: cover;
     object-position: top center;
     display: block;
-    background: #fff;
+    /* background-image is set INLINE per project (the poster). These MUST mirror
+       object-fit/object-position above, or the still sits differently from the
+       first video frame and you get a jump when playback starts. #fff stays as
+       the colour under a poster that has not decoded yet. */
+    background-color: #fff;
+    background-size: cover;
+    background-position: top center;
+    background-repeat: no-repeat;
 }
 .hero-video-loader {
     position: absolute;
@@ -3203,7 +3210,15 @@ html.pv-grid .projects-list,
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
+    /* TRANSPARENT, not #fff. This was the SECOND white block, and independent of
+       the video's own background: an opaque white overlay at z-index 2 that
+       clears only when JS adds .is-hidden. If the video never reaches a ready
+       state — slow connection, a 404, or frames released off-screen — the JS
+       never fires and this sheet stays over the hero indefinitely.
+       Now that the poster is painted as the video's background-image, covering
+       it with white threw away the one thing worth showing. The spinner still
+       reads fine over the still. */
+    background: transparent;
     opacity: 1;
     transition: opacity var(--dur-2xl) var(--ease-standard);
     pointer-events: none;
