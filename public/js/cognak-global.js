@@ -605,6 +605,14 @@
         '.privacy-headline',
         '.privacy-body p',
         '.privacy-body h2',
+        /* The bold section glosses. They were the only prose on the page that
+           never tracked in: a <div>, so the `.privacy-body p` rules never
+           reached them, and absent from this list they simply sat there fully
+           formed while the paragraph under them assembled itself word by word
+           (Pierce, 2026-08-03). Added here AND to both CSS lists in custom.css
+           — the hide and the reduced-motion escape — which must be edited
+           together or the gloss disappears for good. */
+        '.pp-gloss',
         '.colophon-headline',
         '.colophon-body > p:not(.colophon-spec):not(.colophon-sign)',
         '#step-pick .headline',

@@ -5079,6 +5079,7 @@ html.js .colophon-body > p:not(.colophon-spec):not(.colophon-sign),
 html.js #step-pick .lede,
 html.js .privacy-body p,
 html.js .privacy-body h2,
+html.js .pp-gloss,
 /* NOTE: .studio-manifesto is NOT driven by cognak-global.js — it has its own
    entrance in studio.astro (the accents have to land last, which the global
    text-node-only splitter can't express). It still needs the same pre-JS hide
@@ -5103,6 +5104,7 @@ html.js .studio-manifesto {
     html.js #step-pick .lede,
     html.js .privacy-body p,
     html.js .privacy-body h2,
+    html.js .pp-gloss,
     html.js .studio-manifesto { opacity: 1; }
 }
 .stagger-word {
@@ -5344,7 +5346,8 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
     }
     /* Show stagger-animated items instantly */
     .privacy-body h2,
-    .privacy-body p {
+    .privacy-body p,
+    .pp-gloss {
         opacity: 1 !important;
         transform: none !important;
     }
