@@ -700,7 +700,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return {title:'Timeline & budget',fields:[
         {id:'timeline',type:'single',t:'Timeline',q:'When do you want this done?',options:['ASAP / urgent','1–3 months','3–6 months','Flexible / exploratory']},
         {id:'budget',type:'range',t:'Budget',q:'Drag to set your rough budget.',min:b.min,max:b.max,step:b.step,def:b.def,prefix:'$'},
-        {id:'materials',type:'files',t:'Existing materials',q:'Current logo, guidelines, decks, dielines — anything useful.',opt:true},
+        {id:'materials',type:'files',t:'Existing materials',q:'Current logo, guidelines, decks, dielines, anything useful.',opt:true},
         {id:'anything',type:'textarea',t:'Anything else',q:anythingQ}
       ]};
     }
@@ -1476,7 +1476,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(type==='colors'){var v=state.colors.filter(Boolean);return v.length?v.join(', '):'';}
       if(type==='files'){
         var parts=state.files.filter(function(f){return f.status==='done'&&f.url;})
-          .map(function(f){return f.name+' — '+f.url;});
+          .map(function(f){return f.name+': '+f.url;});
         fld.querySelectorAll('[data-role="link"]').forEach(function(link){
           if(link.value.trim())parts.push('Link: '+link.value.trim());
         });
@@ -1533,7 +1533,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     document.getElementById('sendBtn').addEventListener('click',function(){
       var errEl=document.getElementById('formErr');
       if(state.files.some(function(f){return f.status==='uploading';})){
-        errEl.textContent='Your files are still uploading — one moment.';errEl.style.display='block';return;
+        errEl.textContent='Your files are still uploading. One moment.';errEl.style.display='block';return;
       }
       if(!validate()){errEl.textContent='Please fill in the required fields.';errEl.style.display='block';return;}
       errEl.style.display='none';

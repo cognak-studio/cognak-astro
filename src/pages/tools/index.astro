@@ -58,7 +58,7 @@ const toolsJsonLd = {
       featureList: [
         'Free UPC-A barcode generator with automatic check digit',
         'QR code generator for any URL',
-        'Vector downloads — SVG, PDF and EPS, not PNG screenshots',
+        'Vector downloads: SVG, PDF and EPS, not PNG screenshots',
         'GS1-compliant magnification from 80% to 200%',
         'Print-ready quiet zones and bar width reduction',
         'Runs entirely in the browser, so nothing you type is uploaded',
@@ -227,9 +227,9 @@ const toolsJsonLd = {
       UPC-A follows the GS1 nominal symbol — 0.33&nbsp;mm module,
       37.29&nbsp;&times;&nbsp;25.91&nbsp;mm at 100%, nine-module quiet zones,
       guard bars run to the baseline. The human-readable line is OCR-B at 9pt
-      with no tracking — the size where each digit's advance matches one
-      7-module cell — exported as outlines, so there's no font to embed,
-      install or substitute. COGNAK doesn't issue UPC numbers — those come
+      with no tracking, the size where each digit's advance matches one
+      7-module cell. It's exported as outlines, so there's no font to embed,
+      install or substitute. COGNAK doesn't issue UPC numbers; those come
       from <a href="https://www.gs1us.org/upcs-barcodes-prefixes/how-to-get-a-upc-barcode" target="_blank" rel="noopener noreferrer">GS1</a>.
       This tool is provided as-is, with no warranty. Always scan a printed
       proof before committing to a production run.
@@ -526,7 +526,7 @@ const toolsJsonLd = {
 
       input.classList.remove('is-error');
       note.textContent = result.computed
-        ? `Check digit ${result.check} added — the full code is ${result.digits}.`
+        ? `Check digit ${result.check} added; the full code is ${result.digits}.`
         : `Valid. Check digit ${result.check} confirmed.`;
       note.className = 'note is-ok';
 
@@ -575,7 +575,7 @@ const toolsJsonLd = {
         doc = buildQr(text, { sizeMm: clamp($('qr-size').value, 10, 300, 30), ecLevel: currentEc() });
       } catch (err) {
         input.classList.add('is-error');
-        note.textContent = 'Too long to encode — shorten the link, or drop the damage tolerance a step.';
+        note.textContent = 'Too long to encode. Shorten the link, or drop the damage tolerance a step.';
         note.className = 'note is-error';
         clear('Too much data');
         return;
@@ -585,7 +585,7 @@ const toolsJsonLd = {
       const isLink = /^(https?:\/\/|mailto:|tel:)/i.test(text);
       note.textContent = isLink
         ? 'Encoded as a link.'
-        : 'No scheme on the front — most phone cameras will read this as plain text, not a link.';
+        : 'No scheme on the front, so most phone cameras will read this as plain text, not a link.';
       note.className = isLink ? 'note is-ok' : 'note';
 
       show(doc, `qr-${slug(text)}`, 'qr');
