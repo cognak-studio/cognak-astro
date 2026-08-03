@@ -422,7 +422,13 @@ const toolsJsonLd = {
     }
 
     /* ------------------------------------------------------------ foot --- */
-    .tools .tfoot{ margin:2.6rem 0 0; max-width:70ch; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
+    /* No max-width: the spec note is the card's footnote, so it wraps on the card's
+   own measure. It used to be capped at 70ch, which stopped short of the card's
+   right edge and read as a stray paragraph rather than a caption belonging to
+   the thing above it. The .tcard has no max-width of its own — it fills the
+   1040px .tools column — so matching it means removing the cap, not setting a
+   number that would have to be kept in sync. (Pierce, 2026-08-02) */
+    .tools .tfoot{ margin:2.6rem 0 0; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
     .tools .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset);
       text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
     @media (hover:hover){ .tools .tfoot a:hover{ color:var(--accent); } }
