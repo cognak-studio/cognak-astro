@@ -593,6 +593,37 @@
             el.getBoundingClientRect();
             setTimeout(function() {
                 el.classList.add('hp-visible');
+                /* THEN TAKE THE REVEAL CLASSES BACK OFF once the tile has landed.
+                   `.hp-reveal` carries `transition: transform var(--dur-l)`, and
+                   the card-tilt handler writes a new `perspective(...) rotateX/Y`
+                   to style.transform on every RAF frame. A 60fps stream of writes
+                   against a 400ms transition means the card EASES toward each
+                   frame's angle instead of holding it — the revealed tiles
+                   floated and lagged behind the pointer while the original six
+                   tracked it exactly (Pierce, 2026-08-02: "do not have the
+                   geometry that all the other panels have").
+
+                   Removing both classes is what makes them identical to the
+                   untouched tiles rather than merely similar: `.hp-reveal
+                   .hp-visible` resolves to `opacity: 1; transform: translateY(0)`,
+                   which are already the initial values, so dropping them changes
+                   nothing visually and leaves the element with no class transform
+                   and no transform transition at all.
+
+                   Keyed to transitionend on opacity, with a timeout backstop —
+                   transitionend never fires if the tile is scrolled out of view
+                   in some engines, or under prefers-reduced-motion where the
+                   transition may be zeroed out. */
+                var settle = function() {
+                    clearTimeout(fallback);
+                    el.removeEventListener('transitionend', onEnd);
+                    el.classList.remove('hp-reveal', 'hp-visible');
+                };
+                var onEnd = function(ev) {
+                    if (ev.target === el && ev.propertyName === 'opacity') settle();
+                };
+                el.addEventListener('transitionend', onEnd);
+                var fallback = setTimeout(settle, 900);
             }, i * 90);
         });
 

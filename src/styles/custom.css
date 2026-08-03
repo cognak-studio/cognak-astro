@@ -2004,8 +2004,9 @@ html.home-scrolled #cognak-cookie {
        the video branch renders a <video> with the same class, so the element
        type separates them with no extra flag to author or keep in sync.
 
-       12s and 1.06 is deliberately below the threshold where you see it move:
-       ~0.5% growth per second reads as the image breathing, not panning. The
+       5s to 1.08 — about 1.6% growth per second. The first pass ran 12s to 1.06
+       (~0.5%/s) and Pierce read it as not moving at all, so this is roughly
+       three times the rate while still landing well short of a zoom. The
        linear curve is the point — every eased curve has a fast part, and a fast
        part is what turns a drift into a zoom.
 
@@ -2021,9 +2022,9 @@ html.home-scrolled #cognak-cookie {
                     transform var(--dur-l) var(--ease-standard);
     }
     .hp-grid .project-excerpt:hover img.hp-hover-media {
-        transform: scale(1.06);
+        transform: scale(1.08);
         transition: opacity var(--dur-m) var(--ease-standard),
-                    transform 12s linear;
+                    transform 5s linear;
     }
 }
 @media (prefers-reduced-motion: reduce) {
