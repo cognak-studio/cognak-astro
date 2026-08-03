@@ -381,6 +381,9 @@ import '../styles/site.css';
      ::selection colours in custom.css. window.COGNAK_PAGE is the JS equivalent. -->
 <body id="cognak" class={bodyClass} data-page={page}>
   <a href="#cognak-main" class="skip-to-main">Skip to main content</a>
+  {/* Announces clipboard copies. polite, not assertive: it's a confirmation of
+      something the visitor just did, not an alert. */}
+  <span id="cognak-live" class="sr-only" aria-live="polite" role="status"></span>
   <div id="cognak-cursor"><span id="cognak-cursor-label"></span><img id="cognak-cursor-img" src="" alt="" /><video id="cognak-cursor-video" src="" muted loop playsinline webkit-playsinline preload="auto" aria-hidden="true"></video></div>
 
   <!-- Custom overlay scrollbar. The native one is hidden (see custom.css) so it
@@ -536,20 +539,68 @@ import '../styles/site.css';
       }
       return false;
     }
+    /* Confirmation is a CSS badge on the link (see .is-copied in custom.css) plus
+       a live-region announcement — NEVER a text swap. On /privacy-policy these
+       links sit inside .stagger-word spans written by the word-splitter, and
+       rewriting textContent would delete them and leave the line unrevealed. */
+    function copyEmail(link, addr) {
+      var done = function () {
+        link.classList.add('is-copied');
+        var live = document.getElementById('cognak-live');
+        if (live) live.textContent = 'Email address copied: ' + addr;
+        clearTimeout(link._copyT);
+        link._copyT = setTimeout(function () {
+          link.classList.remove('is-copied');
+          if (live) live.textContent = '';
+        }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(addr).then(done, function () { legacyCopy(addr, done); });
+      } else {
+        legacyCopy(addr, done);
+      }
+    }
+    /* Pre-Clipboard-API browsers, and the non-secure-context case. The textarea
+       is positioned off-screen rather than display:none — a hidden element
+       cannot be selected, so execCommand would silently copy nothing. */
+    function legacyCopy(addr, done) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = addr;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:-9999px;opacity:0;';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        done();
+      } catch (err) { /* copy is best-effort; the address is on screen either way */ }
+    }
     document.addEventListener('click', function (e) {
       var link = e.target.closest('a');
       if (!link) return;
       var href = link.getAttribute('href') || '';
       if (href.indexOf('mailto:hello@cognak.com') !== -1) {
-        // The mailto link's own default action opens the mail client exactly once.
-        // Do NOT call gtag_report_conversion here: its event_callback does
-        // window.location = url, which re-opens the mail dialog — and gtag can
-        // invoke that callback more than once, stacking up several dialogs.
-        // Fire the GA4 event + Ads conversion without re-navigating.
+        // Analytics first, and WITHOUT gtag_report_conversion: its event_callback
+        // does window.location = url, and gtag can invoke that callback more than
+        // once. That used to stack up several mail dialogs.
         if (typeof gtag === 'function') {
           gtag('event', 'click_email', { 'event_category': 'Contact', 'event_label': 'mailto:hello@cognak.com' });
           gtag('event', 'conversion', { 'send_to': 'AW-876403750/KaY9CKLGmLwcEKa486ED' });
         }
+        /* COPY, DON'T LAUNCH (Pierce, 2026-08-02: "that's awful").
+           A plain click now copies the address instead of handing the visitor to
+           whatever their OS thinks a mail client is. macOS throws up an "open
+           Mail?" permission sheet; Windows is worse, because with no registered
+           handler it offers to go shopping in the Microsoft Store.
+
+           Modifier and non-primary clicks fall through UNTOUCHED — cmd/ctrl/shift/
+           alt-click and middle-click still get the real mailto, and right-click
+           still offers the browser's native "Copy email address". Anyone who
+           actually wants their mail client keeps a path to it. */
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        e.preventDefault();
+        copyEmail(link, href.replace(/^mailto:/, '').split('?')[0]);
         return;
       }
       if (href.indexOf('calendar.app.google') !== -1) {

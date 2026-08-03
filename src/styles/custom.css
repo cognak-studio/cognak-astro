@@ -1997,6 +1997,41 @@ html.home-scrolled #cognak-cookie {
 .hp-grid .project-excerpt .project-title-hover { z-index: 2; }
 @media (hover: hover) and (pointer: fine) {
     .hp-grid .project-excerpt:hover .hp-hover-media { opacity: 1; }
+
+    /* ── Slow zoom on the STILLS only (Pierce, 2026-08-02) ───────────────────
+       A tile with a hoverVideo already has motion; a tile with only a jpg/png/
+       webp sat there dead next to it. `img.hp-hover-media` is the whole test —
+       the video branch renders a <video> with the same class, so the element
+       type separates them with no extra flag to author or keep in sync.
+
+       12s and 1.06 is deliberately below the threshold where you see it move:
+       ~0.5% growth per second reads as the image breathing, not panning. The
+       linear curve is the point — every eased curve has a fast part, and a fast
+       part is what turns a drift into a zoom.
+
+       Scaling UP from 1 with object-fit:cover on an inset:0 element can never
+       expose an edge, so no overscan compensation is needed. transform-origin
+       matches object-position: top center, or the image would creep downward
+       while it grows and undo the framing choice above. */
+    .hp-grid .project-excerpt img.hp-hover-media {
+        transform-origin: top center;
+        /* The RETURN is fast: 600ms, so the tile is reset before the eye gets
+           back to it. Only the hover state stretches to 12s. */
+        transition: opacity var(--dur-m) var(--ease-standard),
+                    transform var(--dur-l) var(--ease-standard);
+    }
+    .hp-grid .project-excerpt:hover img.hp-hover-media {
+        transform: scale(1.06);
+        transition: opacity var(--dur-m) var(--ease-standard),
+                    transform 12s linear;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hp-grid .project-excerpt img.hp-hover-media,
+    .hp-grid .project-excerpt:hover img.hp-hover-media {
+        transform: none;
+        transition: opacity var(--dur-m) var(--ease-standard);
+    }
 }
 .hp-grid .project-excerpt figure img.hp-lazy.hp-lazy-loaded {
     opacity: 1;
@@ -5025,6 +5060,61 @@ a[href*="cookieyes.com"],
 /* ── Accessibility ── */
 
 /* Skip to main content link — visible only on keyboard focus */
+/* ── Screen-reader-only live region ──────────────────────────────────────────
+   Used by the clipboard confirmation in BaseLayout. NOT display:none and NOT
+   visibility:hidden — both remove the node from the accessibility tree, which
+   is exactly the thing a live region must stay in. 1px + clip is the standard
+   way to keep it announced but unseen. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* ── "copied" confirmation on the email links ────────────────────────────────
+   A ::after badge, not a text swap: these anchors can sit inside .stagger-word
+   spans (/privacy-policy), and rewriting their text would delete the split and
+   leave the line stuck invisible.
+
+   position:relative on the anchor would break nothing here, but the badge is
+   laid out INLINE instead of absolutely so it can never cover the address it is
+   confirming — it simply follows it, and the line reflows by a few characters
+   for 1.8s. `content` is unquoted-safe ASCII so no font fallback surprises. */
+a.is-copied::after {
+    content: 'copied';
+    display: inline-block;
+    margin-left: 0.5em;
+    padding: 0.1em 0.45em;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    font-family: 'Diatype Mono', monospace;
+    font-size: 0.6em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    vertical-align: middle;
+    text-decoration: none;
+    /* Outline + label both in currentColor, so the badge takes each page's own
+       link colour with no per-page rules. An earlier version filled the pill and
+       knocked the word out with -webkit-text-fill-color: transparent — clever,
+       and invisible in any engine that ignores it. Not worth it for one word. */
+    opacity: 0.75;
+    animation: copied-in var(--dur-s) var(--ease-standard) both;
+}
+@keyframes copied-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    a.is-copied::after { animation: none; }
+}
+
 .skip-to-main {
     position: absolute;
     top: -100px;
