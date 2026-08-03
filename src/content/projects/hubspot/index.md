@@ -8,7 +8,7 @@ hero: ./hero.jpg
 aboutTheClient: '<p><a href="https://www.hubspot.com">HubSpot</a> is a global company providing inbound marketing and sales software that helps companies attract visitors, convert leads, and close customers. Its products and services aim to provide tools for social media marketing, content management, web analytics and search engine optimization.</p>
 
   '
-theWork: '<p>Hubspot asked COGNAK for marketing support, producing animated, illustrated presentation decks. COGNAK made use of Hubspot&#8217;s extensive and solid branding—while developing new iconography—to create clean, effective Keynote presentations for use across their many touchpoints.</p>
+theWork: '<p>Hubspot asked COGNAK for marketing support, producing animated, illustrated presentation decks. COGNAK made use of Hubspot&#8217;s extensive and solid branding, while developing new iconography, to create clean, effective Keynote presentations for use across their many touchpoints.</p>
 
   '
 moreDetails: '<p>• 2-week project</p>

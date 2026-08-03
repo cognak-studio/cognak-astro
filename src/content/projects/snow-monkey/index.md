@@ -5,10 +5,10 @@ category: Packaging, 3D Renderings
 date: '2019-07-02T01:31:18+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.png
-aboutTheClient: '<p><a href="https://snow-monkey.com">Snow Monkey</a> makes better-for-you frozen treats built to reimagine staple favorites as nutritious, accessible fuel. Their mission: food that&#8217;s genuinely good for people and good for the planet — without asking consumers to compromise on taste.</p>
+aboutTheClient: '<p><a href="https://snow-monkey.com">Snow Monkey</a> makes better-for-you frozen treats built to reimagine staple favorites as nutritious, accessible fuel. Their mission: food that&#8217;s genuinely good for people and good for the planet, without asking consumers to compromise on taste.</p>
 
   '
-theWork: '<p>Snow Monkey asked COGNAK to reimagine their entire product lineup — designing custom fruit and flora illustrations for every flavor across the range. The result was a distinctive, shelf-standout packaging system that expressed &#8220;natural&#8221; and &#8220;healthy&#8221; without resorting to the category&#8217;s tired visual conventions.</p>
+theWork: '<p>Snow Monkey asked COGNAK to reimagine their entire product lineup, designing custom fruit and flora illustrations for every flavor across the range. The result was a distinctive, shelf-standout packaging system that expressed &#8220;natural&#8221; and &#8220;healthy&#8221; without resorting to the category&#8217;s tired visual conventions.</p>
 
   '
 moreDetails: '<p>• 3+ year relationship</p>
@@ -31,5 +31,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2019/07/acai.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/acai.png" alt="Snow Monkey — acai" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/chocolate.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/chocolate.png" alt="Snow Monkey — chocolate" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/vanilla.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/vanilla.png" alt="Snow Monkey — vanilla" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/maple.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/maple.png" alt="Snow Monkey — maple" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/strawberry.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/strawberry.png" alt="Snow Monkey — strawberry" width="2048" height="1076" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2019/07/acai.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/acai.png" alt="Snow Monkey, acai" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/chocolate.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/chocolate.png" alt="Snow Monkey, chocolate" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/vanilla.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/vanilla.png" alt="Snow Monkey, vanilla" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/maple.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/maple.png" alt="Snow Monkey, maple" width="2048" height="1076" /></picture> <picture><source type="image/webp" srcset="/media/2019/07/strawberry.webp"/><img loading="lazy" decoding="async" src="/media/2019/07/strawberry.png" alt="Snow Monkey, strawberry" width="2048" height="1076" /></picture></p>
 

@@ -8,7 +8,7 @@ hero: ./hero.jpg
 aboutTheClient: '<p><a href="https://hbr.org">Harvard Business Review</a> is the world&#8217;s leading management publication, published by Harvard Business Publishing. For over a century, HBR has shaped how leaders think about strategy, innovation, and organizational performance.</p>
 
   '
-theWork: '<p>Via Boston-based agency 8 Beacon, COGNAK developed a new email template system for HBR — alongside select print collateral — bringing updated brand standards into consistent, production-ready formats across their communications.</p>
+theWork: '<p>Via Boston-based agency 8 Beacon, COGNAK developed a new email template system for HBR, alongside select print collateral, bringing updated brand standards into consistent, production-ready formats across their communications.</p>
 
   '
 moreDetails: '<p>• 3-month project</p>

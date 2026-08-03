@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2015/12/cb-twitter-icon.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/cb-twitter-icon.jpg" alt="Ciao Bella social avatar — the Twitter bird set inside a gelato cup, embossed on concrete" width="2000" height="1500" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2015/12/cb-twitter-icon.webp"/><img loading="lazy" decoding="async" src="/media/2015/12/cb-twitter-icon.jpg" alt="Ciao Bella social avatar, the Twitter bird set inside a gelato cup, embossed on concrete" width="2000" height="1500" /></picture></p>
 

@@ -8,7 +8,7 @@ hero: ./hero.png
 aboutTheClient: '<p><a href="https://www.palisadesneuro.com">Palisades Neuropsychology</a> is a Los Angeles practice staffed by UCLA-trained pediatric neuropsychologists specializing in the assessment and treatment of toddlers through young adults with neurocognitive, academic, and social-emotional differences.</p>
 
   '
-theWork: '<p>COGNAK led a rebrand for Palisades Neuropsychology in late 2023, drawing on regional motifs and the visual language of adolescent development to craft a fresh logo and brand identity — warm and approachable without sacrificing the clinical credibility the practice demands.</p>
+theWork: '<p>COGNAK led a rebrand for Palisades Neuropsychology in late 2023, drawing on regional motifs and the visual language of adolescent development to craft a fresh logo and brand identity, warm and approachable without sacrificing the clinical credibility the practice demands.</p>
 
   '
 moreDetails: '<p>• 3+ month project</p>
@@ -27,5 +27,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2024/02/letterhead-cover-palisades.webp"/><img loading="lazy" decoding="async" src="/media/2024/02/letterhead-cover-palisades.png" alt="Palisades Neuropsychology — letterhead cover" width="4000" height="3000" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2024/02/letterhead-cover-palisades.webp"/><img loading="lazy" decoding="async" src="/media/2024/02/letterhead-cover-palisades.png" alt="Palisades Neuropsychology, letterhead cover" width="4000" height="3000" /></picture></p>
 

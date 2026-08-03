@@ -8,7 +8,7 @@ hero: ./hero.jpg
 aboutTheClient: '<p><a href="https://www.xtractgroup.com">Xtract Group</a> produces premium CBD distillates and isolates derived from hemp for manufacturers in the health and wellness space. Positioned at the intersection of extraction science and product innovation, they support brands in developing and scaling better formulations.</p>
 
   '
-theWork: '<p>COGNAK was approached in 2019 to build a brand identity for Xtract from the ground up — balancing the clean, natural language of plant-based wellness with a technological edge that reflected their extraction expertise.</p>
+theWork: '<p>COGNAK was approached in 2019 to build a brand identity for Xtract from the ground up, balancing the clean, natural language of plant-based wellness with a technological edge that reflected their extraction expertise.</p>
 
   '
 moreDetails: '<p>• 3-month project</p>
@@ -31,5 +31,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-rendering.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-rendering.jpg" alt="Xtract Group canister and tincture bottle rendering" width="2000" height="1474" /></picture><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-business-cards.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-business-cards.jpg" alt="Xtract Group — business cards" width="2000" height="1335" /></picture><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-brand-guide-2.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-brand-guide-2.jpg" alt="Xtract Group — brand guide" width="2000" height="1474" /></picture><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-banner.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-banner.jpg" alt="Xtract Group — banner" width="2000" height="1389" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-rendering.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-rendering.jpg" alt="Xtract Group canister and tincture bottle rendering" width="2000" height="1474" /></picture><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-business-cards.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-business-cards.jpg" alt="Xtract Group, business cards" width="2000" height="1335" /></picture><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-brand-guide-2.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-brand-guide-2.jpg" alt="Xtract Group, brand guide" width="2000" height="1474" /></picture><picture><source type="image/webp" srcset="/media/2019/10/xtract-group-banner.webp"/><img loading="lazy" decoding="async" src="/media/2019/10/xtract-group-banner.jpg" alt="Xtract Group, banner" width="2000" height="1389" /></picture></p>
 

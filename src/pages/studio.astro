@@ -105,7 +105,13 @@ body { overflow-x: clip; }
     .logo-ring-section {
         display: block;
         height: 360px;
-        margin: -2px 0 40px;
+        /* 8px / 30px, not -2px / 40px: 10px moved from below the ring to above
+           it (Pierce, 2026-08-02). The ring sat tight under the headline and
+           loose above the tabs, so the block read as belonging to the copy
+           below rather than sitting on its own. DESKTOP ONLY — the max-width
+           block in custom.css sets its own margin with !important and is
+           unaffected. */
+        margin: 8px 0 30px;
         overflow: visible;
     }
     .logo-ring-track {

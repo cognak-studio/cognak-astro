@@ -5,10 +5,10 @@ category: Packaging
 date: '2019-07-23T22:55:35+00:00'
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
-aboutTheClient: '<p><a href="https://ossio.io">OSSIO</a> is an orthopedic fixation company on a mission to replace metal implants with biologically intelligent alternatives. Their OSSIOfiber platform gives orthopedic and podiatric surgeons a material-science breakthrough — restoring patient stability and mobility with nothing permanent left behind.</p>
+aboutTheClient: '<p><a href="https://ossio.io">OSSIO</a> is an orthopedic fixation company on a mission to replace metal implants with biologically intelligent alternatives. Their OSSIOfiber platform gives orthopedic and podiatric surgeons a material-science breakthrough, restoring patient stability and mobility with nothing permanent left behind.</p>
 
   '
-theWork: '<p>OSSIO brought COGNAK in to design packaging for OSSIOfiber — translating the precision and credibility of a medical-grade product into packaging that communicated innovation and clinical confidence on the shelf and in the OR.</p>
+theWork: '<p>OSSIO brought COGNAK in to design packaging for OSSIOfiber, translating the precision and credibility of a medical-grade product into packaging that communicated innovation and clinical confidence on the shelf and in the OR.</p>
 
   '
 moreDetails: '<p>• 3-month project</p>

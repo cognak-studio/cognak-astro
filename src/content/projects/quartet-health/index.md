@@ -10,7 +10,7 @@ heroVideo: /media/2026/06/quartet-hero.mp4
 aboutTheClient: '<p><a href="https://www.quartethealth.com">Quartet Health</a> is a technology-enabled mental health care company connecting people to the right treatment at the right time. Working with health plans and health systems, Quartet facilitates access to personalized care and enables virtual collaboration between providers to improve patient outcomes at scale.</p>
 
   '
-theWork: '<p>COGNAK began supporting Quartet Health in mid-2019 with WordPress development — debugging infrastructure and expanding their web properties. In early 2020, the engagement expanded into a full site rebuild for quartethealth.com, built alongside a new brand identity in collaboration with designer Eric Hurtgen.</p>
+theWork: '<p>COGNAK began supporting Quartet Health in mid-2019 with WordPress development, debugging infrastructure and expanding their web properties. In early 2020, the engagement expanded into a full site rebuild for quartethealth.com, built alongside a new brand identity in collaboration with designer Eric Hurtgen.</p>
 
   '
 moreDetails: '<p>• 2+ year relationship</p>
@@ -32,4 +32,4 @@ homepageFeature: false
 homepagePosition: 1
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2026/06/quartet-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/quartet-hero-cognak-scaled.jpg" alt="Quartet Health — hero" width="2560" height="1886" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2026/06/quartet-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/quartet-hero-cognak-scaled.jpg" alt="Quartet Health, hero" width="2560" height="1886" /></picture></p>

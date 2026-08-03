@@ -5,7 +5,7 @@ category: Packaging, 3D Renderings
 date: '2021-05-27T21:41:32+00:00'
 thumbnail: ./thumb.png
 hero: ./hero.png
-aboutTheClient: '<p><a href="https://kidsluv.com">KidsLuv</a>, from The Luving Company, makes better-for-you beverages for the whole family — sourced from clean ingredients with the health of kids and the planet equally in mind. The brand was built around the belief that children deserve products as nourishing as they are lovable.</p>
+aboutTheClient: '<p><a href="https://kidsluv.com">KidsLuv</a>, from The Luving Company, makes better-for-you beverages for the whole family, sourced from clean ingredients with the health of kids and the planet equally in mind. The brand was built around the belief that children deserve products as nourishing as they are lovable.</p>
 
   '
 theWork: '<p>KidsLuv brought COGNAK in to complete their packaging suite after the initial concept was developed in-house and the format changed. We refined and extended the existing direction into a cohesive, production-ready set of packaging artwork across the full product line.</p>

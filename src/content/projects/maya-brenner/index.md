@@ -8,7 +8,7 @@ hero: ./hero.png
 aboutTheClient: '<p><a href="https://mayabrenner.com">Maya Brenner</a> is a Los Angeles-based fine jewelry designer known for her bestselling asymmetric number necklaces and delicate, personalized pieces. Her work is beloved by Hollywood&#8217;s elite and worn by women worldwide.</p>
 
   '
-theWork: '<p>Maya Brenner engaged COGNAK for ongoing website refinements and technical upkeep across her US and UK e-commerce sites — keeping both storefronts performing reliably and current across platforms.</p>
+theWork: '<p>Maya Brenner engaged COGNAK for ongoing website refinements and technical upkeep across her US and UK e-commerce sites, keeping both storefronts performing reliably and current across platforms.</p>
 
   '
 moreDetails: '<p>• COGNAK was developer lead</p>

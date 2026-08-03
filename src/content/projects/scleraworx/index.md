@@ -8,7 +8,7 @@ hero: ./hero.png
 aboutTheClient: '<p>Scleraworx is a San Diego-based technology solutions provider helping organizations adopt, implement, and maintain modern tools and infrastructure. They specialize in simplifying complex technology transitions with a focus on reliability and long-term operational value.</p>
 
   '
-theWork: '<p>Scleraworx brought COGNAK in to refresh their internal and external print collateral and explore new brand directions — working through identity concepts and visual positioning to lay the groundwork for future rebranding efforts.</p>
+theWork: '<p>Scleraworx brought COGNAK in to refresh their internal and external print collateral and explore new brand directions, working through identity concepts and visual positioning to lay the groundwork for future rebranding efforts.</p>
 
   '
 moreDetails: '<p>• 3+ month project</p>

@@ -8,7 +8,7 @@ hero: ./hero.jpg
 aboutTheClient: '<p><a href="https://www.kenstoncapital.com">Kenston Capital Partners</a> is a Boston-based early-stage investment firm backing innovative companies in technology and healthcare.</p>
 
   '
-theWork: '<p>COGNAK developed new branding for Kenston Capital Partners — refining their visual identity and creating internal and external collateral to establish a confident, institutional foundation for the firm&#8217;s next phase of growth.</p>
+theWork: '<p>COGNAK developed new branding for Kenston Capital Partners, refining their visual identity and creating internal and external collateral to establish a confident, institutional foundation for the firm&#8217;s next phase of growth.</p>
 
   '
 moreDetails: '<p>• 5+ month project</p>
@@ -29,5 +29,5 @@ homepageFeature: false
 noindex: true
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2021/04/Logo-Mockup-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/04/Logo-Mockup-scaled.jpg" alt="Kenston Capital Partners — logo" width="2048" height="1080" /></picture><picture><source type="image/webp" srcset="/media/2021/04/kenston-logo-hero-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/04/kenston-logo-hero-scaled.jpg" alt="Kenston Capital Partners — logo hero" width="2048" height="1366" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2021/04/Logo-Mockup-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/04/Logo-Mockup-scaled.jpg" alt="Kenston Capital Partners, logo" width="2048" height="1080" /></picture><picture><source type="image/webp" srcset="/media/2021/04/kenston-logo-hero-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2021/04/kenston-logo-hero-scaled.jpg" alt="Kenston Capital Partners, logo hero" width="2048" height="1366" /></picture></p>
 

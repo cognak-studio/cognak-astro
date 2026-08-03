@@ -7,10 +7,10 @@ projectYear: 2025–2026
 thumbnail: ./thumb.jpg
 hero: ./hero.jpg
 heroVideo: /media/2026/06/hex-hero.mp4
-aboutTheClient: '<p><a href="http://www.hex.tech">Hex</a> is a collaborative data workspace that lets teams write SQL and Python, build interactive apps, and share insights — all in one unified environment. Built for modern data teams, the platform is trusted by hundreds of companies to move from raw data to shareable decisions, fast.</p>
+aboutTheClient: '<p><a href="http://www.hex.tech">Hex</a> is a collaborative data workspace that lets teams write SQL and Python, build interactive apps, and share insights, all in one unified environment. Built for modern data teams, the platform is trusted by hundreds of companies to move from raw data to shareable decisions, fast.</p>
 
   '
-theWork: '<p>COGNAK joined the Hex design team in late 2024 as an embedded creative partner to rethink and redesign hex.tech and its surrounding properties. The engagement spanned strategic planning, design system definition, and information architecture work — elevating the overall visual language to match where Hex is headed.</p>
+theWork: '<p>COGNAK joined the Hex design team in late 2024 as an embedded creative partner to rethink and redesign hex.tech and its surrounding properties. The engagement spanned strategic planning, design system definition, and information architecture work, elevating the overall visual language to match where Hex is headed.</p>
 
   '
 moreDetails: '<p>• 1+ year ongoing relationship</p>
@@ -32,6 +32,6 @@ homepageFeature: true
 homepagePosition: 2
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2025/08/hex-homepage-cognak-scaled.jpg" alt="Hex — homepage" width="2560" height="1920" /></picture></p>
-<p><picture><source type="image/webp" srcset="/media/2026/06/hex-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/hex-hero-cognak-scaled.jpg" alt="Hex — hero" width="2560" height="1920" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2025/08/hex-homepage-cognak-scaled.jpg" alt="Hex, homepage" width="2560" height="1920" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2026/06/hex-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/hex-hero-cognak-scaled.jpg" alt="Hex, hero" width="2560" height="1920" /></picture></p>
 

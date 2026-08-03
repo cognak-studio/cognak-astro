@@ -6,10 +6,10 @@ date: '2022-08-13T01:06:27+00:00'
 projectYear: 2022–2026
 thumbnail: ./thumb.jpg
 hero: ./hero.png
-aboutTheClient: '<p><a href="https://www.drinknightowl.com">NightOwl</a> is the maker of the original tequila espresso martini — a premium RTD cocktail crafted with tequila, vodka, and organic coffee beans. Built for a new generation of cocktail culture, NightOwl brings a bar-quality experience to the can.</p>
+aboutTheClient: '<p><a href="https://www.drinknightowl.com">NightOwl</a> is the maker of the original tequila espresso martini, a premium RTD cocktail crafted with tequila, vodka, and organic coffee beans. Built for a new generation of cocktail culture, NightOwl brings a bar-quality experience to the can.</p>
 
   '
-theWork: '<p>COGNAK built the NightOwl brand from scratch — logo and identity system, packaging for cans and boxes, print materials, video content, social media presence, and more. Once sampling launched and demand grew, we designed and built a Shopify storefront to take the brand to market.</p>
+theWork: '<p>COGNAK built the NightOwl brand from scratch: logo and identity system, packaging for cans and boxes, print materials, video content, social media presence, and more. Once sampling launched and demand grew, we designed and built a Shopify storefront to take the brand to market.</p>
 
   '
 moreDetails: '<p>• 6+ month project</p>
@@ -31,5 +31,5 @@ homepageFeature: true
 homepagePosition: 10
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.webp"/><img loading="lazy" decoding="async" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.jpg" alt="NightOwl — NightOwl 200 ml tequila can, matte finish" width="2560" height="1280" /></picture><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.webp"/><img loading="lazy" decoding="async" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.png" alt="NightOwl — NightOwl 200 ml vodka can, matte finish" width="2560" height="1280" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.webp"/><img loading="lazy" decoding="async" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-TEQUILA.jpg" alt="NightOwl, NightOwl 200 ml tequila can, matte finish" width="2560" height="1280" /></picture><picture><source type="image/webp" srcset="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.webp"/><img loading="lazy" decoding="async" src="/media/2022/08/COGNAK_NightOwlCan_200ml_Matte_Front_v1-4-VODKA.png" alt="NightOwl, NightOwl 200 ml vodka can, matte finish" width="2560" height="1280" /></picture></p>
 

@@ -1,5 +1,5 @@
 ---
-title: VZN (seed — superseded by vzn-llp)
+title: VZN (seed, superseded by vzn-llp)
 slug: vzn-seed
 thumbnail: ./hero.jpg
 hero: ./hero.jpg

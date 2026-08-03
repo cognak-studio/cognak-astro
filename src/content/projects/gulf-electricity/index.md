@@ -8,7 +8,7 @@ hero: ./hero.png
 aboutTheClient: '<p><a href="https://www.gulfoilltd.com">Gulf</a> Oil LP launched an electricity service in Massachusetts in 2014, buying power wholesale and selling it to small businesses and households at rates below those available through major utilities. Gulf’s expansion into the electricity supply market is part of the company’s larger strategy to diversify beyond the petroleum products it has long supplied, including gasoline, ­diesel, jet fuel, heating oil, and kerosene.</p>
 
   '
-theWork: '<p>COGNAK was tasked by <a href="http://www.accorin.com">Accorin</a>—a full-service e-commerce agency in Boston—with contriving various digital and OOH advertisements for Gulf Electricity. Of those campaigns, the &#8220;Are We Turning You On Yet?&#8221; billboard campaign went a bit <a href="http://boston.cbslocal.com/2015/03/16/state-rep-slams-billboard-as-offensive-to-women/">viral</a> and sparked a deeper dive into the campaign, resulting in a video created by COGNAK on a campaign-specific landing page.</p>
+theWork: '<p>COGNAK was tasked by <a href="http://www.accorin.com">Accorin</a>, a full-service e-commerce agency in Boston, with contriving various digital and OOH advertisements for Gulf Electricity. Of those campaigns, the &#8220;Are We Turning You On Yet?&#8221; billboard campaign went a bit <a href="http://boston.cbslocal.com/2015/03/16/state-rep-slams-billboard-as-offensive-to-women/">viral</a> and sparked a deeper dive into the campaign, resulting in a video created by COGNAK on a campaign-specific landing page.</p>
 
   '
 moreDetails: '<p>• 6-month project</p>

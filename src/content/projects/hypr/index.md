@@ -30,5 +30,5 @@ engagementMonths: 24
 homepageFeature: false
 ---
 
-<p><picture><source type="image/webp" srcset="/media/2024/02/hypr-brand-guide-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2024/02/hypr-brand-guide-cognak-scaled.jpg" alt="HYPR — brand guide" width="2560" height="1920" /></picture><picture><source type="image/webp" srcset="/media/2024/02/hypr-nyse-cognak.webp"/><img loading="lazy" decoding="async" src="/media/2024/02/hypr-nyse-cognak.png" alt="HYPR — nyse" width="3000" height="2000" /></picture></p>
+<p><picture><source type="image/webp" srcset="/media/2024/02/hypr-brand-guide-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2024/02/hypr-brand-guide-cognak-scaled.jpg" alt="HYPR, brand guide" width="2560" height="1920" /></picture><picture><source type="image/webp" srcset="/media/2024/02/hypr-nyse-cognak.webp"/><img loading="lazy" decoding="async" src="/media/2024/02/hypr-nyse-cognak.png" alt="HYPR, nyse" width="3000" height="2000" /></picture></p>
 

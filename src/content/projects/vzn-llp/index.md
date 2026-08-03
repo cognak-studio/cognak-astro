@@ -8,7 +8,7 @@ hero: ./hero.jpg
 aboutTheClient: '<p><a href="https://www.vznlaw.com">VZN LLP</a> is a Los Angeles-based law firm built by entrepreneurs, for entrepreneurs. The firm specializes in strategic, technology-forward legal counsel for founders, startups, and growing businesses navigating complex deals and corporate structures.</p>
 
   '
-theWork: '<p>VZN tasked COGNAK with a full rebrand alongside the design and development of a new website. The result was a distinctive serif-forward wordmark and typographically-driven brand identity — a rare visual risk in a field that rarely takes them.</p>
+theWork: '<p>VZN tasked COGNAK with a full rebrand alongside the design and development of a new website. The result was a distinctive serif-forward wordmark and typographically-driven brand identity, a rare visual risk in a field that rarely takes them.</p>
 
   '
 moreDetails: '<p>• 1+ year project</p>

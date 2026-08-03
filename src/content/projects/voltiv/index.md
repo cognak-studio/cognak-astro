@@ -8,7 +8,7 @@ hero: ./hero.jpg
 aboutTheClient: '<p>Voltiv Studio is a downtown Los Angeles recording studio known for its spacious, warm industrial environment. Inspired by the legacy of Electric Lady Studios and Abbey Road, Voltiv blends hi-fi infrastructure with a lo-fi creative sensibility.</p>
 
   '
-theWork: '<p>Voltiv approached COGNAK to lead a rebrand anchored by a new logo — balancing retro-inspired warmth with modern sophistication, mirroring the studio&#8217;s own approach to sound.</p>
+theWork: '<p>Voltiv approached COGNAK to lead a rebrand anchored by a new logo, balancing retro-inspired warmth with modern sophistication, mirroring the studio&#8217;s own approach to sound.</p>
 
   '
 moreDetails: '<p>• 2-month project</p>

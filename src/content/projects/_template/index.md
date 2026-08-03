@@ -39,4 +39,4 @@ moreDetails: <p>• Bullet one</p><p>• Bullet two</p>
 ![Project Name — describe this image](./02.jpg)
 
 <!-- ...or raw HTML for full-width images already in /public/media/: -->
-<p><img src="/media/2026/06/project-wide.jpg" alt="Project Name            # shown everywhere (grid, page title, OG card) — wide" width="2048" height="1200" /></p>
+<p><img src="/media/2026/06/project-wide.jpg" alt="Project Name            # shown everywhere (grid, page title, OG card), wide" width="2048" height="1200" /></p>
