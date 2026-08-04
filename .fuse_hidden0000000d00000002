@@ -153,9 +153,8 @@ vercel.json         301 redirects (/uploads/* + /wp-content/* → /media/*, /pro
 astro.config.mjs    site config + sitemap
 ```
 
-Retired docs (editor setup, the WCAG 2.1 AA review record, the font-swap log,
-the stepup audit, the Vercel and Cloudflare migration runbooks) live OUTSIDE this
-repo, in `Local Sites/cognak/_archive/`. Reference only; nothing there is current.
+Retired docs live in `_archive/` — editor setup, the WCAG 2.1 AA review record,
+the font-swap log, and the stepup audit. Reference only; nothing there is current.
 
 ---
 

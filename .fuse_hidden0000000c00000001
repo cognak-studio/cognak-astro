@@ -6,7 +6,7 @@ hosting panel. You edit files, push to GitHub, and Vercel rebuilds and publishes
 in ~30 seconds.
 
 - **Live site:** https://cognak.com
-- **Local folder:** `/Users/pierceliefeld/Local Sites/cognak/cognak-astro`
+- **Local folder:** `/Users/pierceliefeld/Local Sites/clients/cognak-astro`
 - **Deploys:** auto-builds on every push to `main`; pull requests get preview URLs.
 
 ---
@@ -153,9 +153,8 @@ vercel.json         301 redirects (/uploads/* + /wp-content/* → /media/*, /pro
 astro.config.mjs    site config + sitemap
 ```
 
-Retired docs (editor setup, the WCAG 2.1 AA review record, the font-swap log,
-the stepup audit, the Vercel and Cloudflare migration runbooks) live OUTSIDE this
-repo, in `Local Sites/cognak/_archive/`. Reference only; nothing there is current.
+Other docs: **`SUBLIME-SETUP.md`** (editor setup) · **`ACCESSIBILITY-AUDIT.md`**
+(WCAG 2.1 AA review record).
 
 ---
 
