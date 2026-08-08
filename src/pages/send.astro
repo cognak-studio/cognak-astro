@@ -1617,7 +1617,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const typed = clientInput.value.trim();
       const filter = typed.toLowerCase();
       const matches = savedClients.filter((c) => String(c.name).toLowerCase().includes(filter));
-      const exact = findClientByName(typed);
+      /* resolvedClient(), not findClientByName(): the current selection
+         counts as saved even if the fetched list doesn't contain it yet.
+         Belt-and-braces against a stale address-book read — without it the
+         menu offered to "save as new" a client whose photo was sitting in
+         the chip right next to it (Pierce, 2026-08-08; root cause was CDN
+         caching on clients/index.json, fixed in api/clients.js). */
+      const exact = resolvedClient();
+      if (exact && !matches.some((c) => c.id === exact.id)) matches.unshift(exact);
       clientMenu.innerHTML = '';
 
       matches.forEach((c) => {

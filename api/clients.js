@@ -40,7 +40,18 @@ async function readIndex() {
   const { blobs } = await list({ prefix: INDEX_PATH, limit: 1 });
   if (!blobs.length) return [];
   try {
-    const data = await fetch(blobs[0].url).then((r) => r.json());
+    /* The cache-buster query is LOAD-BEARING. This blob is overwritten in
+       place at a fixed pathname, and Blob's public URLs are CDN-cached — a
+       bare fetch here can return a copy from before the last write, which
+       (a) makes /send's picker offer to "save as new" a client that already
+       exists (Pierce hit exactly this, 2026-08-08), and (b) far worse, makes
+       the read-modify-write in the save handler rebuild the index from a
+       stale base and silently DROP recently added clients. A unique query
+       string is a distinct cache key, so every read comes from the store.
+       (The avatar files never needed this — they get a new timestamped path
+       per upload for the same underlying reason.) */
+    const data = await fetch(blobs[0].url + '?_=' + Date.now(), { cache: 'no-store' })
+      .then((r) => r.json());
     return Array.isArray(data.clients) ? data.clients : [];
   } catch (e) {
     return [];
@@ -53,6 +64,9 @@ async function writeIndex(clients) {
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: 'application/json',
+    // Floor the CDN cache too (60s is Blob's minimum), so even a cached read
+    // without the buster can only ever be a minute behind, not a month.
+    cacheControlMaxAge: 60,
   });
 }
 
