@@ -280,6 +280,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <span class="avatar avatar-xl" id="cmodal-avatar"></span>
             <span class="cmodal-pic-hint" id="cmodal-pic-hint">Add photo</span>
           </button>
+          {/* Crop controls, shown once a photo is in: the circle above becomes
+              a live crop stage (drag to reposition) and this slider zooms.
+              What the circle shows is exactly what gets saved. */}
+          <div class="cmodal-crop" id="cmodal-crop" hidden>
+            <span class="cmodal-zoom-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/><path d="M8.5 11h5"/></svg>
+            </span>
+            <input type="range" class="cmodal-zoom" id="cmodal-zoom" min="1" max="3" step="0.01" value="1" aria-label="Zoom photo" />
+            <span class="cmodal-zoom-glyph" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.2-4.2"/><path d="M8.5 11h5"/><path d="M11 8.5v5"/></svg>
+            </span>
+          </div>
           <input type="file" id="cmodal-file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif" hidden />
           <div class="field">
             <label class="q" for="cmodal-name">
@@ -289,6 +301,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           </div>
           <p class="note" id="cmodal-note" role="status" aria-live="polite"></p>
           <div class="actions cmodal-actions">
+            {/* Only when editing a saved client. Removes them from the address
+                book; shares already sent stay exactly as they are. */}
+            <button type="button" class="btn btn-ghost btn-danger" id="cmodal-delete" hidden>Delete</button>
             <button type="button" class="btn btn-primary" id="cmodal-save">Save client</button>
             <button type="button" class="btn btn-ghost" id="cmodal-cancel">Cancel</button>
           </div>
@@ -609,6 +624,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       text-overflow:ellipsis; white-space:nowrap; line-height:1.5; }
     /* Quiet "already saved" tick on the row that exactly matches the field. */
     .send .client-opt .co-check{ flex:0 0 auto; color:var(--ok); display:inline-flex; }
+    /* Edit affordance per saved row — hidden until the pointer has RESTED on
+       the row for 3s (Pierce, 2026-08-08), so scanning the list stays clean
+       but lingering on a client surfaces the way to change them. Sits where
+       the checkmark does, next to it when both show. */
+    .send .client-opt .co-edit{ flex:0 0 auto; opacity:0; pointer-events:none;
+      background:none; border:1px solid var(--line-strong); border-radius:999px;
+      color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.62rem;
+      letter-spacing:.1em; text-transform:uppercase; padding:4px 11px; cursor:pointer;
+      transition:opacity var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard),
+        border-color var(--dur-s) var(--ease-standard); }
+    .send .client-opt.show-edit .co-edit{ opacity:1; pointer-events:auto; }
+    .send .client-opt .co-edit:hover{ color:var(--ink); border-color:var(--ink); }
+    @media (prefers-reduced-motion:reduce){ .send .client-opt .co-edit{ transition:none; } }
     /* The "add new" row sits under a hairline when saved clients are above it;
        its circle is dashed — a photo slot not yet filled. */
     .send .client-opt.co-add{ color:var(--accent-soft); }
@@ -646,7 +674,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .cmodal-pic-hint{ font-family:'Diatype Mono', monospace; font-size:.7rem;
       letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
     .send .cmodal-pic:hover .cmodal-pic-hint{ color:var(--ink); }
+    /* Crop mode: the circle is a drag surface, so the cursor says so and the
+       canvas fills it edge to edge. touch-action:none lets one-finger drags
+       reposition on touch instead of scrolling the page behind the modal. */
+    .send .cmodal-pic.is-cropping{ cursor:grab; touch-action:none; }
+    .send .cmodal-pic.is-cropping:active{ cursor:grabbing; }
+    .send .cmodal-pic canvas{ width:100%; height:100%; display:block; }
+    /* Zoom row under the circle — mono glyphs either side of a thin slider,
+       restyled to the page's tokens (the UA range control is grey-on-grey
+       here). Sized to the circle above it, not the card. */
+    .send .cmodal-crop{ align-self:center; display:flex; align-items:center; gap:10px;
+      width:200px; margin:-0.5rem 0 1.4rem; color:var(--ink-soft); }
+    .send .cmodal-zoom{ flex:1 1 auto; appearance:none; -webkit-appearance:none;
+      height:3px; border-radius:2px; background:var(--line-strong); outline:none; cursor:pointer; }
+    .send .cmodal-zoom::-webkit-slider-thumb{ appearance:none; -webkit-appearance:none;
+      width:16px; height:16px; border-radius:50%; background:var(--cta);
+      border:none; box-shadow:0 0 10px rgba(143,194,242,.35); cursor:grab; }
+    .send .cmodal-zoom::-webkit-slider-thumb:active{ cursor:grabbing; }
+    .send .cmodal-zoom::-moz-range-thumb{ width:16px; height:16px; border-radius:50%;
+      background:var(--cta); border:none; box-shadow:0 0 10px rgba(143,194,242,.35); cursor:grab; }
+    .send .cmodal-zoom:focus-visible{ outline:2px solid var(--accent); outline-offset:4px; }
     .send .cmodal-actions{ justify-content:flex-end; }
+    /* Delete stands apart on the left — it shouldn't read as a sibling of
+       Save/Cancel, and the gap makes a mis-tap that much harder. */
+    .send .cmodal-actions #cmodal-delete{ margin-right:auto; }
 
     /* -------------------------------------------------------- drop zone --- */
     .send .drop{ border:1.5px dashed var(--line-strong); border-radius:10px; padding:28px 16px;
@@ -710,7 +761,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     /* -------------------------------------------------------------- shares --- */
     .send .shares{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
-    .send .srow{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px;
+    /* position:relative so the downloaded badge can pin to the rectangle's
+       top-right corner (Pierce, 2026-08-08) instead of sitting in the name
+       row — beside the profile picture it read as two competing circles. */
+    .send .srow{ position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px;
       background:var(--field); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
     .send .srow-main{ flex:1 1 200px; min-width:0; }
     /* Three tiers, not two: the client/project name is the thing you scan for,
@@ -727,8 +781,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        (Pierce: "can get lighter and darker pulse too") rather than the
        expanding ring, applied to the whole badge so the circle and glyph
        fade together as one unit. */
-    .send .srow-dl-badge{ display:inline-flex; align-items:center; justify-content:center;
-      width:16px; height:16px; border-radius:50%; flex-shrink:0; color:var(--ok);
+    .send .srow-dl-badge{ position:absolute; top:10px; right:10px;
+      display:inline-flex; align-items:center; justify-content:center;
+      width:16px; height:16px; border-radius:50%; color:var(--ok);
       background:rgba(143,231,180,.16); border:1px solid rgba(143,231,180,.55);
       animation:srow-dl-pulse 2.2s ease-in-out infinite; }
     .send .srow-dl-badge svg{ display:block; }
@@ -1584,6 +1639,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             'stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
           li.appendChild(check);
         }
+        /* Edit button, revealed after the pointer rests on the row for 3s —
+           opens the same modal (name + photo, now with Delete). mousedown
+           with stopPropagation so it never also picks the row. */
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'co-edit';
+        edit.textContent = 'Edit';
+        edit.setAttribute('aria-label', 'Edit ' + c.name);
+        edit.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeMenu();
+          openClientModal({ client: c });
+        });
+        li.appendChild(edit);
+        let editTimer = 0;
+        li.addEventListener('mouseenter', () => {
+          editTimer = setTimeout(() => li.classList.add('show-edit'), 3000);
+        });
+        li.addEventListener('mouseleave', () => {
+          clearTimeout(editTimer);
+          li.classList.remove('show-edit');
+        });
         /* mousedown, not click: click fires after the input's blur has
            already closed the menu and the row is gone. */
         li.addEventListener('mousedown', (e) => { e.preventDefault(); pickClient(c); });
@@ -1664,43 +1742,90 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* ---------------------------------------------------- client modal --- */
     const cmodal = $('client-modal');
     let cmodalClient = null;   // editing this saved client, or null for new
-    let cmodalBlob = null;     // downscaled JPEG waiting to upload
-    let cmodalPreviewUrl = null;
 
-    /* Square cover-crop at 512px, JPEG — same canvas approach as the delivery
-       thumbnails above. A phone photo comes in at 4MB+; the avatar that gets
-       painted at 30px should be kilobytes. */
+    /* ---- crop state -----------------------------------------------------
+       The preview is a live <canvas>, never an object URL. The first version
+       previewed through URL.createObjectURL(), and the page's CSP (img-src
+       'self' data: https:) silently blocked the blob: URL — the circle showed
+       nothing until the photo came back from Blob storage as https after
+       saving. A canvas needs no URL at all, and it's what makes the crop
+       interactive: drag repositions, the slider zooms, and save bakes exactly
+       the framing on screen.
+
+       Geometry lives in output space (the AVATAR_EDGE square): `zoom` is a
+       multiplier on the cover scale (1 = smallest scale that still fills the
+       circle), offX/offY are the draw origin, clamped so the photo can never
+       be dragged off the circle's edge. */
     const AVATAR_EDGE = 512;
-    async function downscaleAvatar(file) {
-      const bmp = await createImageBitmap(file);
-      const side = Math.min(bmp.width, bmp.height);
-      const scale = Math.min(1, AVATAR_EDGE / side);
-      const edge = Math.max(1, Math.round(side * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = edge; canvas.height = edge;
+    let cmodalBmp = null;      // ImageBitmap of the chosen photo, full size
+    let cmodalZoom = 1;
+    let cmodalOffX = 0, cmodalOffY = 0;
+
+    function cropScale() {
+      return (AVATAR_EDGE / Math.min(cmodalBmp.width, cmodalBmp.height)) * cmodalZoom;
+    }
+    function clampOffsets() {
+      const s = cropScale();
+      cmodalOffX = Math.min(0, Math.max(AVATAR_EDGE - cmodalBmp.width * s, cmodalOffX));
+      cmodalOffY = Math.min(0, Math.max(AVATAR_EDGE - cmodalBmp.height * s, cmodalOffY));
+    }
+    function centerCrop() {
+      const s = cropScale();
+      cmodalOffX = (AVATAR_EDGE - cmodalBmp.width * s) / 2;
+      cmodalOffY = (AVATAR_EDGE - cmodalBmp.height * s) / 2;
+    }
+    /* One draw routine for both the 96px preview and the 512px save — the
+       factor k maps output space onto whatever canvas it's given, so the two
+       cannot disagree about the framing. */
+    function drawCrop(canvas) {
+      const k = canvas.width / AVATAR_EDGE;
+      const s = cropScale();
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, edge, edge);
-      ctx.drawImage(bmp,
-        (bmp.width - side) / 2, (bmp.height - side) / 2, side, side,
-        0, 0, edge, edge);
-      bmp.close();
-      return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(cmodalBmp, cmodalOffX * k, cmodalOffY * k,
+        cmodalBmp.width * s * k, cmodalBmp.height * s * k);
+    }
+
+    let cropCanvas = null;
+    function paintCropPreview() {
+      if (!cropCanvas || !cmodalBmp) return;
+      drawCrop(cropCanvas);
+    }
+    /* The saved avatar, baked from the crop state at full size. */
+    function bakeAvatar() {
+      const out = document.createElement('canvas');
+      out.width = AVATAR_EDGE; out.height = AVATAR_EDGE;
+      drawCrop(out);
+      return new Promise((resolve) => out.toBlob(resolve, 'image/jpeg', 0.82));
     }
 
     function cmodalPaintAvatar() {
       const holder = $('cmodal-avatar');
       holder.textContent = '';
       holder.classList.remove('has-img');
-      const url = cmodalPreviewUrl || (cmodalClient && cmodalClient.avatarUrl);
-      if (url) {
+      $('cmodal-pic').classList.toggle('is-cropping', !!cmodalBmp);
+      $('cmodal-crop').hidden = !cmodalBmp;
+      if (cmodalBmp) {
+        // Backing store at 2x the layout size so the round preview stays
+        // crisp on retina; drawCrop scales through canvas.width either way.
+        cropCanvas = document.createElement('canvas');
+        cropCanvas.width = 192; cropCanvas.height = 192;
+        holder.appendChild(cropCanvas);
+        holder.classList.add('has-img');
+        paintCropPreview();
+        $('cmodal-pic-hint').textContent = 'Drag to frame · click to replace';
+      } else if (cmodalClient && cmodalClient.avatarUrl) {
+        // Existing saved photo: an https URL from our Blob store — CSP-fine.
         const img = document.createElement('img');
         img.alt = '';
-        img.src = url;
+        img.src = cmodalClient.avatarUrl;
         holder.appendChild(img);
         holder.classList.add('has-img');
         $('cmodal-pic-hint').textContent = 'Change photo';
       } else {
+        cropCanvas = null;
         holder.textContent = initialsOf($('cmodal-name').value || (cmodalClient && cmodalClient.name));
         $('cmodal-pic-hint').textContent = 'Add photo';
       }
@@ -1709,8 +1834,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     let cmodalReturnFocus = null;
     function openClientModal(opts) {
       cmodalClient = (opts && opts.client) || null;
-      cmodalBlob = null;
-      if (cmodalPreviewUrl) { URL.revokeObjectURL(cmodalPreviewUrl); cmodalPreviewUrl = null; }
+      if (cmodalBmp) { cmodalBmp.close(); cmodalBmp = null; }
+      cmodalZoom = 1;
+      $('cmodal-zoom').value = '1';
       cmodalReturnFocus = document.activeElement;
       $('cmodal-title').textContent = cmodalClient ? 'Edit client' : 'New client';
       $('cmodal-save').textContent = 'Save client';
@@ -1719,6 +1845,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const note = $('cmodal-note');
       note.textContent = '';
       note.className = 'note';
+      $('cmodal-delete').hidden = !cmodalClient;
       cmodalPaintAvatar();
       cmodal.hidden = false;
       // New client with a name already typed: the photo is the missing piece,
@@ -1728,8 +1855,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function closeClientModal() {
       cmodal.hidden = true;
-      if (cmodalPreviewUrl) { URL.revokeObjectURL(cmodalPreviewUrl); cmodalPreviewUrl = null; }
-      cmodalBlob = null;
+      if (cmodalBmp) { cmodalBmp.close(); cmodalBmp = null; }
       if (cmodalReturnFocus && cmodalReturnFocus.isConnected) cmodalReturnFocus.focus();
     }
 
@@ -1739,9 +1865,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       note.textContent = '';
       note.className = 'note';
       try {
-        cmodalBlob = await downscaleAvatar(file);
-        if (cmodalPreviewUrl) URL.revokeObjectURL(cmodalPreviewUrl);
-        cmodalPreviewUrl = URL.createObjectURL(cmodalBlob);
+        /* from-image = respect EXIF rotation, so a phone photo doesn't come
+           in sideways. Older Safari rejects the options bag; fall back bare. */
+        let bmp;
+        try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+        catch (e) { bmp = await createImageBitmap(file); }
+        if (cmodalBmp) cmodalBmp.close();
+        cmodalBmp = bmp;
+        cmodalZoom = 1;
+        $('cmodal-zoom').value = '1';
+        centerCrop();
         cmodalPaintAvatar();
       } catch (e) {
         note.textContent = 'Could not read that image. Try a JPEG or PNG.';
@@ -1749,7 +1882,69 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
     }
 
-    $('cmodal-pic').addEventListener('click', () => $('cmodal-file').click());
+    /* ---- drag to reposition / slider to zoom ---------------------------
+       Pointer events on the circle. A press-and-move drags the photo; a
+       press that never travels past the threshold is a click, which opens
+       the file picker (both before a photo exists and after — "click to
+       replace"). The threshold is what lets one surface do both without a
+       separate replace button. */
+    const picBtn = $('cmodal-pic');
+    let dragId = null, dragMoved = false, dragTravel = 0, dragLastX = 0, dragLastY = 0;
+
+    picBtn.addEventListener('pointerdown', (e) => {
+      if (!cmodalBmp) return;
+      dragId = e.pointerId;
+      dragMoved = false;
+      dragTravel = 0;
+      dragLastX = e.clientX; dragLastY = e.clientY;
+      picBtn.setPointerCapture(dragId);
+    });
+    picBtn.addEventListener('pointermove', (e) => {
+      if (dragId === null || e.pointerId !== dragId || !cmodalBmp) return;
+      const dx = e.clientX - dragLastX, dy = e.clientY - dragLastY;
+      if (!dx && !dy) return;
+      dragLastX = e.clientX; dragLastY = e.clientY;
+      // A few pixels of travel is still a click; past that it's a drag.
+      dragTravel += Math.hypot(dx, dy);
+      if (dragTravel > 3) dragMoved = true;
+      if (!dragMoved) return;
+      // Screen pixels -> output space: the circle is 96 CSS px for a 512 square.
+      const k = AVATAR_EDGE / picBtn.querySelector('.avatar-xl').offsetWidth;
+      cmodalOffX += dx * k;
+      cmodalOffY += dy * k;
+      clampOffsets();
+      paintCropPreview();
+    });
+    function endDrag(e) {
+      if (dragId === null || e.pointerId !== dragId) return;
+      try { picBtn.releasePointerCapture(dragId); } catch (err) {}
+      dragId = null;
+      // Swallow the click this press would produce if it was really a drag.
+      if (dragMoved) {
+        const stop = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+        picBtn.addEventListener('click', stop, { capture: true, once: true });
+        // If no click follows (pointer released off-element), drop the trap.
+        setTimeout(() => picBtn.removeEventListener('click', stop, { capture: true }), 0);
+      }
+    }
+    picBtn.addEventListener('pointerup', endDrag);
+    picBtn.addEventListener('pointercancel', endDrag);
+
+    $('cmodal-zoom').addEventListener('input', () => {
+      if (!cmodalBmp) return;
+      const prev = cropScale();
+      cmodalZoom = Number($('cmodal-zoom').value) || 1;
+      const next = cropScale();
+      /* Zoom about the circle's centre, not the top-left corner — keep the
+         output-space point currently at centre where it is. */
+      const c = AVATAR_EDGE / 2;
+      cmodalOffX = c - ((c - cmodalOffX) / prev) * next;
+      cmodalOffY = c - ((c - cmodalOffY) / prev) * next;
+      clampOffsets();
+      paintCropPreview();
+    });
+
+    picBtn.addEventListener('click', () => $('cmodal-file').click());
     $('cmodal-file').addEventListener('change', () => {
       cmodalTakeFile($('cmodal-file').files[0]);
       $('cmodal-file').value = '';
@@ -1765,7 +1960,29 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     });
     // Typing a name updates the initials preview live (photo-less case only).
     $('cmodal-name').addEventListener('input', () => {
-      if (!cmodalPreviewUrl && !(cmodalClient && cmodalClient.avatarUrl)) cmodalPaintAvatar();
+      if (!cmodalBmp && !(cmodalClient && cmodalClient.avatarUrl)) cmodalPaintAvatar();
+    });
+
+    $('cmodal-delete').addEventListener('click', async () => {
+      if (!cmodalClient) return;
+      if (!confirm('Delete "' + cmodalClient.name + '" from saved clients? Shares already sent are untouched.')) return;
+      const note = $('cmodal-note');
+      const btn = $('cmodal-delete');
+      btn.disabled = true;
+      try {
+        const r = await api('/api/clients', { method: 'POST', body: { action: 'delete', id: cmodalClient.id } });
+        if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not delete this client.');
+        await loadClients();
+        if (selectedClient && selectedClient.id === cmodalClient.id) selectedClient = null;
+        syncChip();
+        closeClientModal();
+        refreshShares(); // their rows fall back to the manifest photo or initials
+      } catch (err) {
+        note.textContent = (err && err.message) || 'Could not delete. Please retry.';
+        note.className = 'note is-error';
+      } finally {
+        btn.disabled = false;
+      }
     });
 
     $('cmodal-cancel').addEventListener('click', closeClientModal);
@@ -1799,7 +2016,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this client.');
         let client = r.data.client;
 
-        if (cmodalBlob) {
+        if (cmodalBmp) {
+          // Bake the on-screen framing to a 512px JPEG — a phone photo comes
+          // in at 4MB+; the avatar painted at 30px should be kilobytes.
+          const baked = await bakeAvatar();
           const mod = await blobClient();
           /* Timestamped path rather than a fixed one: Blob serves public URLs
              with long cache headers, so overwriting <id>.jpg in place would
@@ -1808,7 +2028,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
              prefix, so old versions still get cleaned up with the client. */
           const up = await mod.upload(
             'clients/avatars/' + client.id + '-' + Date.now() + '.jpg',
-            cmodalBlob,
+            baked,
             { access: 'public', handleUploadUrl: '/api/deliver-upload-token', contentType: 'image/jpeg' }
           );
           r = await api('/api/clients', { method: 'POST', body: {
