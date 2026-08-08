@@ -624,17 +624,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       text-overflow:ellipsis; white-space:nowrap; line-height:1.5; }
     /* Quiet "already saved" tick on the row that exactly matches the field. */
     .send .client-opt .co-check{ flex:0 0 auto; color:var(--ok); display:inline-flex; }
-    /* Edit affordance per saved row — hidden until the pointer has RESTED on
-       the row for 3s (Pierce, 2026-08-08), so scanning the list stays clean
-       but lingering on a client surfaces the way to change them. Sits where
-       the checkmark does, next to it when both show. */
+    /* Edit affordance per saved row — appears the moment the row is hovered
+       (started as a 3s dwell; Pierce, 2026-08-08: "change the 3 second hover
+       to immediate"). Pure CSS, no timer. Sits where the checkmark does,
+       next to it when both show. */
     .send .client-opt .co-edit{ flex:0 0 auto; opacity:0; pointer-events:none;
       background:none; border:1px solid var(--line-strong); border-radius:999px;
       color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.62rem;
       letter-spacing:.1em; text-transform:uppercase; padding:4px 11px; cursor:pointer;
       transition:opacity var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard),
         border-color var(--dur-s) var(--ease-standard); }
-    .send .client-opt.show-edit .co-edit{ opacity:1; pointer-events:auto; }
+    .send .client-opt:hover .co-edit{ opacity:1; pointer-events:auto; }
     .send .client-opt .co-edit:hover{ color:var(--ink); border-color:var(--ink); }
     @media (prefers-reduced-motion:reduce){ .send .client-opt .co-edit{ transition:none; } }
     /* The "add new" row sits under a hairline when saved clients are above it;
@@ -1646,9 +1646,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             'stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
           li.appendChild(check);
         }
-        /* Edit button, revealed after the pointer rests on the row for 3s —
-           opens the same modal (name + photo, now with Delete). mousedown
-           with stopPropagation so it never also picks the row. */
+        /* Edit button, shown on row hover (CSS) — opens the same modal
+           (name + photo + Delete). mousedown with stopPropagation so it
+           never also picks the row. */
         const edit = document.createElement('button');
         edit.type = 'button';
         edit.className = 'co-edit';
@@ -1661,14 +1661,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           openClientModal({ client: c });
         });
         li.appendChild(edit);
-        let editTimer = 0;
-        li.addEventListener('mouseenter', () => {
-          editTimer = setTimeout(() => li.classList.add('show-edit'), 3000);
-        });
-        li.addEventListener('mouseleave', () => {
-          clearTimeout(editTimer);
-          li.classList.remove('show-edit');
-        });
         /* mousedown, not click: click fires after the input's blur has
            already closed the menu and the row is gone. */
         li.addEventListener('mousedown', (e) => { e.preventDefault(); pickClient(c); });
