@@ -1233,7 +1233,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        moved to a week (Pierce, 2026-07-29). */
     const IDLE_MS = 7 * 24 * 60 * 60 * 1000;
     let idleTimer = 0;
-    let uploading = false;
+    let uploading = 0; // count, not a flag — three workers upload at once
 
     function resetIdle() {
       clearTimeout(idleTimer);
@@ -1343,8 +1343,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       }
     }
 
+    /* Anything past this goes up in 8MB parts instead of one enormous PUT.
+       A single-request upload dies somewhere north of half a gigabyte — the
+       socket just stops, no error, and the row sits frozen at whatever percent
+       it reached. Multipart also means a dropped part retries on its own
+       instead of restarting the entire file from zero. */
+    const MULTIPART_THRESHOLD = 50 * 1024 * 1024;
+
     async function uploadOne(item, token, index) {
-      uploading = true;
+      uploading++;
       item.status = 'up';
       item.pct = 0;
       paintRow(item);
@@ -1352,6 +1359,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const result = await mod.upload('deliveries/' + token + '/' + item.file.name, item.file, {
         access: 'public',
         handleUploadUrl: '/api/deliver-upload-token',
+        multipart: item.file.size > MULTIPART_THRESHOLD,
         onUploadProgress: (p) => {
           item.pct = p && typeof p.percentage === 'number' ? p.percentage : item.pct;
           paintRow(item);
@@ -1371,7 +1379,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       } catch (e) {
         console.warn('Preview thumbnail skipped for ' + item.file.name, e);
       }
-      uploading = false;
+      uploading--;
       resetIdle();
       paintRow(item);
     }
@@ -1398,7 +1406,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             const item = queued[index];
             try { await uploadOne(item, token, index); } catch (e) {
               item.status = 'err';
-              uploading = false;
+              uploading = Math.max(0, uploading - 1);
               paintRow(item);
               throw e;
             }

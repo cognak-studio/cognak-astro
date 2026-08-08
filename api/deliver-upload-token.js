@@ -12,6 +12,7 @@ import { handleUpload } from '@vercel/blob/client';
 import { requireAdmin } from './_lib/adminAuth.mjs';
 
 const MAX_BYTES = 4 * 1024 * 1024 * 1024; // 4GB — deliverables can be big (video, source files)
+const TOKEN_TTL_MS = 12 * 60 * 60 * 1000; // 12h — long enough for a 4GB upload on a slow uplink
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -37,6 +38,10 @@ export default async function handler(req, res) {
           maximumSizeInBytes: MAX_BYTES,
           addRandomSuffix: false, // keeps filenames legible on the client download page
           allowOverwrite: true,
+          /* The SDK defaults this token to one hour, which is shorter than a
+             multi-gigabyte upload on a normal home connection — the transfer
+             would simply stop partway through with nothing to show for it. */
+          validUntil: Date.now() + TOKEN_TTL_MS,
         };
       },
       onUploadCompleted: async ({ blob }) => {
