@@ -38,12 +38,32 @@ export default async function handler(req, res) {
       return res.status(410).json({ error: 'This link has expired.', expired: true });
     }
 
+    /* Client profile picture: prefer the LIVE address book (clients/index.json,
+       matched by name) over the manifest's snapshot. This is what makes the
+       photo appear on shares CREATED BEFORE the client had one — e.g. a share
+       sent Aug 7, client photo added Aug 8: the manifest has no avatarUrl and
+       never will, but the address book does. It also means updating a client's
+       photo updates every live link. The snapshot stays as the fallback (and
+       for clients later deleted from the address book). Best-effort: any
+       failure here just means the snapshot behaviour, never a failed page.
+       The cache-buster query is load-bearing — index.json is overwritten in
+       place and its public URL is CDN-cached (see api/clients.js). */
+    let avatarUrl = manifest.avatarUrl || null;
+    try {
+      const idx = await list({ prefix: 'clients/index.json', limit: 1 });
+      if (idx.blobs.length) {
+        const data = await fetch(idx.blobs[0].url + '?_=' + Date.now(), { cache: 'no-store' })
+          .then((r) => r.json());
+        const name = String(manifest.client || '').toLowerCase();
+        const c = (data.clients || []).find((x) => String(x.name).toLowerCase() === name);
+        if (c && c.avatarUrl) avatarUrl = c.avatarUrl;
+      }
+    } catch (e) { /* snapshot fallback */ }
+
     return res.status(200).json({
       ok: true,
       client: manifest.client,
-      // Saved-client profile picture, snapshotted by deliver-create. Absent on
-      // every share made before the address book existed.
-      avatarUrl: manifest.avatarUrl || null,
+      avatarUrl,
       project: manifest.project || '',
       createdAt: manifest.createdAt,
       expiresAt: manifest.expiresAt || null,

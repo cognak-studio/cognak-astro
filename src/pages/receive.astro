@@ -99,8 +99,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        Initials stand in when a client has no photo; a share made before the
        address book existed just shows the COGNAK side. line-height 1.65 on
        the lede absorbs the 26px circle without opening the leading up. */
+    /* vertical-align:middle, NOT a length: a length positions the box by its
+       OWN baseline, and the two variants have different ones — an <img> flex
+       item's baseline is its bottom edge, while the initials text's baseline
+       sits up inside the circle, so the initials circle rendered ~9px lower
+       than the photo circle in the same sentence (Pierce, 2026-08-08).
+       `middle` aligns the box's geometric midpoint, which both variants
+       agree on; the translateY optically re-centres against the lede's
+       lowercase text without touching layout. */
     .receive .lavatar{ display:inline-flex; align-items:center; justify-content:center;
-      width:26px; height:26px; border-radius:50%; overflow:hidden; vertical-align:-7px;
+      width:26px; height:26px; border-radius:50%; overflow:hidden; vertical-align:middle;
+      transform:translateY(-1px);
       margin:0 .45rem 0 .12rem; background:rgba(143,194,242,.14); color:var(--accent-soft);
       border:1px solid var(--line-strong);
       font-family:'Diatype Mono', monospace; font-size:.56rem; letter-spacing:.04em; }
