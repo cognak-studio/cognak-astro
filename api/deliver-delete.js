@@ -7,7 +7,7 @@
 import { list, del } from '@vercel/blob';
 import { requireAdmin } from './_lib/adminAuth.mjs';
 
-const TOKEN_RE = /^[a-zA-Z0-9]{6,32}$/;
+const TOKEN_RE = /^[a-zA-Z0-9]{10,32}$/; // /send mints 10 chars (~49 bits); reject anything shorter
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

@@ -17,6 +17,7 @@
  */
 
 import { handleUpload } from '@vercel/blob/client';
+import { takeUploadSlot } from './_lib/uploadLimit.mjs';
 
 const MAX_BYTES = 25 * 1024 * 1024; // 25MB — mirrors the client-side cap
 
@@ -29,7 +30,6 @@ const ALLOWED = [
   'image/png',
   'image/jpeg',
   'image/gif',
-  'image/svg+xml',
   'application/postscript',
   'image/vnd.adobe.photoshop',
   'application/msword',
@@ -56,11 +56,21 @@ export default async function handler(req, res) {
     const jsonResponse = await handleUpload({
       body,
       request: req,
-      onBeforeGenerateToken: async (/* pathname, clientPayload */) => ({
-        allowedContentTypes: ALLOWED,
-        maximumSizeInBytes: MAX_BYTES,
-        addRandomSuffix: true,
-      }),
+      onBeforeGenerateToken: async (/* pathname, clientPayload */) => {
+        // Public, unauthenticated endpoint — throttle per IP (and globally) so
+        // it can't be used as free/abusive file hosting or to run up storage
+        // cost. Throwing here surfaces to the browser as a 400 on the handshake
+        // before any token is minted.
+        const slot = await takeUploadSlot(req);
+        if (!slot.ok) {
+          throw new Error('Too many uploads right now. Please try again in a little while.');
+        }
+        return {
+          allowedContentTypes: ALLOWED,
+          maximumSizeInBytes: MAX_BYTES,
+          addRandomSuffix: true,
+        };
+      },
       onUploadCompleted: async ({ blob }) => {
         // Fires server-side once the browser finishes the PUT. No-op beyond a
         // log line; the file URL reaches us via the /api/brief payload anyway.

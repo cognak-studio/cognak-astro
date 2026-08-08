@@ -1,17 +1,15 @@
 /**
  * POST /api/deliver-track-download — Vercel serverless function.
  *
- * Public, no admin session and no passcode re-check. Fired as a best-effort
+ * Public, no admin session. Fired as a best-effort
  * beacon from /receive when the client clicks a file's Download link, purely
  * so /send's dashboard can show a "this client has opened at least one file"
  * indicator (Pierce, 2026-07-29) without polling or a webhook.
  *
- * Deliberately not passcode-gated: by the time this fires the client has
- * already cleared deliver-get's passcode check once this page load, and
- * re-threading that passcode into every download click for a low-stakes
- * status dot isn't worth the complexity. Worst case if someone spams this
- * with a guessed token, they've flipped one boolean a little early — no
- * files, passcodes, or other share data are exposed here.
+ * Deliberately unauthenticated: the token in the link is the only credential
+ * this feature has, and this endpoint neither reads it back nor exposes any
+ * share data. Worst case if someone spams it with a guessed token, they've
+ * flipped one boolean a little early — nothing is disclosed.
  *
  * Idempotent: writes the manifest once, on the FIRST download only. Later
  * clicks (same file again, or other files in the same share) are silent
@@ -21,7 +19,7 @@
  */
 import { list, put } from '@vercel/blob';
 
-const TOKEN_RE = /^[a-zA-Z0-9]{6,32}$/;
+const TOKEN_RE = /^[a-zA-Z0-9]{10,32}$/; // /send mints 10 chars (~49 bits); reject anything shorter
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

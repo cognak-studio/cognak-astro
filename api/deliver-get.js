@@ -8,7 +8,7 @@
 import { list } from '@vercel/blob';
 import { readClientsIndex } from './_lib/clientsIndex.mjs';
 
-const TOKEN_RE = /^[a-zA-Z0-9]{6,32}$/;
+const TOKEN_RE = /^[a-zA-Z0-9]{10,32}$/; // /send mints 10 chars (~49 bits); reject anything shorter
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -32,9 +32,10 @@ export default async function handler(req, res) {
     }
     const manifest = await fetch(blobs[0].url).then((r) => r.json());
 
-    /* Expired links are refused BEFORE the passcode is checked, so an expired
-       share can't be probed for a valid passcode. A manifest with no expiresAt
-       (every share written before expiry existed) never expires. */
+    /* Expired links are refused up front. A manifest with no expiresAt
+       (every share written before expiry existed) never expires. The link
+       token is the sole credential — there is no passcode (removed 2026-07-29,
+       matching /send and /receive). */
     if (manifest.expiresAt && Date.parse(manifest.expiresAt) <= Date.now()) {
       return res.status(410).json({ error: 'This link has expired.', expired: true });
     }

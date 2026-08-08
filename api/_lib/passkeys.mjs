@@ -20,16 +20,31 @@ const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 
 /* ------------------------------------------------------------ relying party */
 
+/* Passkeys are registered against, and only ever used on, cognak.com. Pin the
+   RP ID and expected origin to that constant rather than deriving them from the
+   request Host header — a forwarded-host an attacker controls must not be able
+   to steer WebAuthn verification at its own domain. localhost is the one
+   exception, so `astro dev` still works. */
+const PROD_RP_ID = 'cognak.com';
+
+function hostOf(req) {
+  return String(req.headers['x-forwarded-host'] || req.headers.host || PROD_RP_ID).split(':')[0];
+}
+function isLocal(host) {
+  return host === 'localhost' || host === '127.0.0.1';
+}
+
 /** The RP ID must be the site's registered domain — NOT the full origin. */
 export function rpID(req) {
-  const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'cognak.com');
-  return host.split(':')[0];
+  const host = hostOf(req);
+  return isLocal(host) ? host : PROD_RP_ID;
 }
 
 export function origin(req) {
-  const host = String(req.headers['x-forwarded-host'] || req.headers.host || 'cognak.com');
-  const proto = host.startsWith('localhost') || host.startsWith('127.0.0.1') ? 'http' : 'https';
-  return proto + '://' + host;
+  const raw = String(req.headers['x-forwarded-host'] || req.headers.host || PROD_RP_ID);
+  const host = raw.split(':')[0];
+  if (isLocal(host)) return 'http://' + raw; // keep the dev port
+  return 'https://' + PROD_RP_ID;
 }
 
 /* ------------------------------------------------------------- credentials */

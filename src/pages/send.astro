@@ -156,7 +156,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
                   <path d="m6 9 6 6 6-6"/>
                 </svg>
               </button>
-              <ul class="client-menu" id="client-menu" role="listbox" aria-label="Saved clients" hidden></ul>
+              {/* data-lenis-prevent is what makes this scrollable AT ALL:
+                  Lenis captures wheel events site-wide and scrolls the page,
+                  so a nested overflow panel never sees them without this
+                  opt-out (Pierce, 2026-08-08: "the clients aren't
+                  scrollable"). */}
+              <ul class="client-menu" id="client-menu" role="listbox" aria-label="Saved clients"
+                  data-lenis-prevent hidden></ul>
             </div>
           </div>
 
@@ -615,6 +621,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        it down — same surface treatment as the cards, one step lifted. */
     .send .client-menu{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:30;
       list-style:none; margin:0; padding:6px; max-height:264px; overflow-y:auto;
+      /* Reaching the end of the list must not hand the wheel to the page —
+         with the menu open, page scroll under the pointer reads as breakage. */
+      overscroll-behavior:contain;
       background:var(--card); border:1px solid var(--line-strong); border-radius:10px;
       box-shadow:0 18px 44px rgba(0,0,0,.5); }
     .send .client-opt{ display:flex; align-items:center; gap:12px; padding:9px 10px;

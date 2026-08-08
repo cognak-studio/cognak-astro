@@ -9,7 +9,7 @@
 import { put } from '@vercel/blob';
 import { requireAdmin } from './_lib/adminAuth.mjs';
 
-const TOKEN_RE = /^[a-zA-Z0-9]{6,32}$/;
+const TOKEN_RE = /^[a-zA-Z0-9]{10,32}$/; // /send mints 10 chars (~49 bits); reject anything shorter
 
 /* Optional per-file preview image, generated in the browser by /send (page 1
    of a PDF, or a downscaled copy of a large image) and uploaded to Blob
