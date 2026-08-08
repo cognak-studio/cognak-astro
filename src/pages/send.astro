@@ -792,7 +792,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     #shares-list .srow-meta,
     #shares-list .srow-expiry,
     #shares-list .srow-files{ padding-right:220px; }
-    #shares-list .srow-actions{ position:absolute; right:16px; top:50%;
+    /* calc(50% + 8px): centred in the row, then nudged 8px down — Pierce
+       2026-08-08, "push the buttons down a little more lol, 5-10 pixels". */
+    #shares-list .srow-actions{ position:absolute; right:16px; top:calc(50% + 8px);
       transform:translateY(-50%); margin-top:0; }
     /* Narrow screens can't spare the gutter — fall back to the stacked
        shape: full-width text, buttons on their own line, bottom-right. */
