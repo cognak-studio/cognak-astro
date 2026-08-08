@@ -31,6 +31,38 @@ export default defineConfig({
   build: {
     format: 'directory',
   },
+  // Content-Security-Policy hardening. Astro hashes every inline + bundled
+  // script at build time and emits a per-page <meta http-equiv> CSP, so an
+  // INJECTED inline script (no matching hash) is rejected by the browser even
+  // though the vercel.json response header still carries 'unsafe-inline' for
+  // header-scanner compatibility. The enforced policy is the intersection of
+  // the two, and this meta side has no unsafe-inline — that's where the real
+  // XSS protection comes from, and it re-hashes itself on every build (no hand-
+  // maintained hash list). See vercel.json for the rest of the CSP directives.
+  security: {
+    csp: {
+      // Every external script host must be re-listed here, or the meta policy
+      // would block it. Keep in sync with script-src in vercel.json.
+      scriptDirective: {
+        resources: [
+          "'self'",
+          'blob:',
+          'https://www.googletagmanager.com',
+          'https://www.google-analytics.com',
+          'https://cdn.jsdelivr.net',
+          'https://assets.unicorn.studio',
+          'https://www.googleadservices.com',
+          'https://www.google.com',
+          'https://googleads.g.doubleclick.net',
+          'https://*.vercel-scripts.com',
+          'https://esm.sh',
+        ],
+      },
+      // Inline style="" attributes can't be hashed; allow them explicitly.
+      // Astro still hashes every <style> block for the style-src directive.
+      directives: ["style-src-attr 'unsafe-inline'"],
+    },
+  },
   integrations: [
     sitemap({
       filter: (page) => {
