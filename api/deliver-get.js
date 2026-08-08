@@ -6,6 +6,7 @@
  * is the link COGNAK sends a client; the token alone is the credential.
  */
 import { list } from '@vercel/blob';
+import { readClientsIndex } from './_lib/clientsIndex.mjs';
 
 const TOKEN_RE = /^[a-zA-Z0-9]{6,32}$/;
 
@@ -50,14 +51,10 @@ export default async function handler(req, res) {
        place and its public URL is CDN-cached (see api/clients.js). */
     let avatarUrl = manifest.avatarUrl || null;
     try {
-      const idx = await list({ prefix: 'clients/index.json', limit: 1 });
-      if (idx.blobs.length) {
-        const data = await fetch(idx.blobs[0].url + '?_=' + Date.now(), { cache: 'no-store' })
-          .then((r) => r.json());
-        const name = String(manifest.client || '').toLowerCase();
-        const c = (data.clients || []).find((x) => String(x.name).toLowerCase() === name);
-        if (c && c.avatarUrl) avatarUrl = c.avatarUrl;
-      }
+      const clients = await readClientsIndex();
+      const name = String(manifest.client || '').toLowerCase();
+      const c = clients.find((x) => String(x.name).toLowerCase() === name);
+      if (c && c.avatarUrl) avatarUrl = c.avatarUrl;
     } catch (e) { /* snapshot fallback */ }
 
     return res.status(200).json({

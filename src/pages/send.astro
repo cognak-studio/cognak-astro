@@ -2013,16 +2013,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       btn.disabled = true;
       btn.textContent = 'Saving…';
       try {
-        /* Two steps when there's a photo: save the name first to get the id
-           the avatar path is keyed on, upload, then save again with the URL.
-           A failed upload still leaves the client saved — the photo can be
-           added later from the chip. */
-        let r = await api('/api/clients', { method: 'POST', body: {
-          action: 'save', ...(cmodalClient ? { id: cmodalClient.id } : {}), name,
-        }});
-        if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this client.');
-        let client = r.data.client;
-
+        /* Upload FIRST, save ONCE. The old shape (save name -> upload ->
+           save again with the URL) was two index writes ~1s apart with a
+           read in between, and Blob overwrite propagation meant that read
+           could see a base from before the first write — which is how
+           DuVine kept un-saving (2026-08-08). The id is generated here for
+           new clients so the avatar has its path before the client exists;
+           api/clients.js accepts it. */
+        const id = (cmodalClient && cmodalClient.id) || randomToken(12);
+        let avatarUrl = null;
         if (cmodalBmp) {
           // Bake the on-screen framing to a 512px JPEG — a phone photo comes
           // in at 4MB+; the avatar painted at 30px should be kilobytes.
@@ -2034,17 +2033,23 @@ import BaseLayout from '../layouts/BaseLayout.astro';
              URL is correct immediately; api/clients.js deletes by the <id>
              prefix, so old versions still get cleaned up with the client. */
           const up = await mod.upload(
-            'clients/avatars/' + client.id + '-' + Date.now() + '.jpg',
+            'clients/avatars/' + id + '-' + Date.now() + '.jpg',
             baked,
             { access: 'public', handleUploadUrl: '/api/deliver-upload-token', contentType: 'image/jpeg' }
           );
-          r = await api('/api/clients', { method: 'POST', body: {
-            action: 'save', id: client.id, name, avatarUrl: up.url,
-          }});
-          if (r.ok && r.data.client) client = r.data.client;
+          avatarUrl = up.url;
         }
 
+        const r = await api('/api/clients', { method: 'POST', body: {
+          action: 'save', id, name, ...(avatarUrl ? { avatarUrl } : {}),
+        }});
+        if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this client.');
+        const client = r.data.client;
+
         await loadClients();
+        /* The reloaded list can lag a just-written index by a beat; the save
+           response is authoritative, so make sure it's represented locally. */
+        if (!savedClients.some((c) => c.id === client.id)) savedClients.push(client);
         const fresh = savedClients.find((c) => c.id === client.id) || client;
         closeClientModal();
         pickClient(fresh);
