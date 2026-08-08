@@ -792,10 +792,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     #shares-list .srow-meta,
     #shares-list .srow-expiry,
     #shares-list .srow-files{ padding-right:220px; }
-    /* calc(50% + 8px): centred in the row, then nudged 8px down — Pierce
-       2026-08-08, "push the buttons down a little more lol, 5-10 pixels". */
-    #shares-list .srow-actions{ position:absolute; right:16px; top:calc(50% + 8px);
-      transform:translateY(-50%); margin-top:0; }
+    /* Anchored to the row's BOTTOM, not its centre — the buttons share their
+       bottom edge with the filename line (Pierce, 2026-08-08: "they should
+       just share a baseline with the file row"). Bottom-anchoring also means
+       a second line of filenames moves the buttons down with it instead of
+       leaving them floating mid-card. 14px matches .srow's own padding, so
+       the buttons and the filename text end on the same line. */
+    #shares-list .srow-actions{ position:absolute; right:16px; bottom:14px;
+      margin-top:0; }
     /* Narrow screens can't spare the gutter — fall back to the stacked
        shape: full-width text, buttons on their own line, bottom-right. */
     @media (max-width:640px){
