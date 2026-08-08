@@ -92,6 +92,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .receive .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
     .receive .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch; margin:0 0 3.4rem 0; }
+    /* Round profile pictures set INTO the lede sentence — the COGNAK mark
+       before "COGNAK" and the client's saved photo (from /send's address
+       book, snapshotted into the manifest) before their name, so the line
+       reads like a hand-off between two people rather than a bare sentence.
+       Initials stand in when a client has no photo; a share made before the
+       address book existed just shows the COGNAK side. line-height 1.65 on
+       the lede absorbs the 26px circle without opening the leading up. */
+    .receive .lavatar{ display:inline-flex; align-items:center; justify-content:center;
+      width:26px; height:26px; border-radius:50%; overflow:hidden; vertical-align:-7px;
+      margin:0 .45rem 0 .12rem; background:rgba(143,194,242,.14); color:var(--accent-soft);
+      border:1px solid var(--line-strong);
+      font-family:'Diatype Mono', monospace; font-size:.56rem; letter-spacing:.04em; }
+    .receive .lavatar img{ width:100%; height:100%; object-fit:cover; display:block; }
     @media (max-width:720px){ .receive .headline{ font-size:clamp(24px,7vw,42px); } }
     html.js .receive-headline, html.js .receive-lede{ opacity:0; }
     @media (prefers-reduced-motion:reduce){
@@ -705,9 +718,50 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       setTimeout(syncScroll, 700);
     }
 
+    /* Small round picture for the lede: image when there is one, initials
+       when there isn't — never an empty circle, never a broken-image glyph.
+       aria-hidden because the sentence already names both parties in text. */
+    function ledeAvatar(src, name) {
+      const span = document.createElement('span');
+      span.className = 'lavatar';
+      span.setAttribute('aria-hidden', 'true');
+      if (src) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.decoding = 'async';
+        img.src = src;
+        img.addEventListener('error', () => {
+          img.remove();
+          span.textContent = initialsOf(name);
+        });
+        span.appendChild(img);
+      } else {
+        span.textContent = initialsOf(name);
+      }
+      return span;
+    }
+    function initialsOf(name) {
+      const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return '?';
+      return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+    }
+
     function renderFiles(payload) {
       showCard($('files-card'));
-      $('receive-lede').textContent = payload.client ? 'From COGNAK, for ' + payload.client + '.' : 'Ready to download.';
+      /* Built as nodes: the client name is manifest data, and the avatars go
+         in as real elements rather than markup. Falls back to the plain
+         sentence shape this line has always had. */
+      const lede = $('receive-lede');
+      lede.textContent = '';
+      if (payload.client) {
+        lede.append('From ');
+        lede.appendChild(ledeAvatar('/favicon-192x192.png', 'COGNAK'));
+        lede.append('COGNAK, for ');
+        lede.appendChild(ledeAvatar(payload.avatarUrl || null, payload.client));
+        lede.append(payload.client + '.');
+      } else {
+        lede.textContent = 'Ready to download.';
+      }
       // The project name headlines the file list when there is one — it's the
       // label the client actually recognises. Falls back to plain "Files".
       $('files-title').textContent = payload.project || 'Files';

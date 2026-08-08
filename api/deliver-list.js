@@ -28,6 +28,7 @@ export default async function handler(req, res) {
           return {
             token: m.token,
             client: m.client,
+            avatarUrl: m.avatarUrl || null,
             project: m.project || '',
             createdAt: m.createdAt,
             expiresAt: m.expiresAt || null,

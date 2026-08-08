@@ -133,9 +133,31 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="field">
             <label class="q" for="client-input">
               <span class="q-title">Client</span>
-              <span class="q-sub">Just the name.</span>
+              <span class="q-sub">Pick a saved client, or type a new name.</span>
             </label>
-            <input class="txt" id="client-input" type="text" autocomplete="off" />
+            {/* Combobox over the saved-clients address book (api/clients.js).
+                The input stays a free-text field — a one-off recipient never
+                has to be saved — but saved clients surface in a menu beneath
+                it, each with their round profile picture, and an unmatched
+                name gets an "add as new client" row that opens the photo
+                modal. The chip on the left of the field shows the current
+                selection's picture (or initials) and doubles as the "edit
+                photo" button for a saved client. */}
+            <div class="client-row" id="client-row">
+              <button type="button" class="client-chip" id="client-chip" hidden
+                      aria-label="Edit client photo"></button>
+              <input class="txt client-txt" id="client-input" type="text" autocomplete="off"
+                     role="combobox" aria-expanded="false" aria-controls="client-menu"
+                     aria-autocomplete="list" aria-haspopup="listbox" />
+              <button type="button" class="client-caret" id="client-caret" tabindex="-1"
+                      aria-label="Show saved clients">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6"/>
+                </svg>
+              </button>
+              <ul class="client-menu" id="client-menu" role="listbox" aria-label="Saved clients" hidden></ul>
+            </div>
           </div>
 
           <div class="field">
@@ -243,6 +265,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       <div class="actions signout-row">
         <button type="button" class="btn btn-ghost" id="signout-btn">Sign out</button>
+      </div>
+
+      {/* Save-client modal — reached from the client picker ("add … as a new
+          client", or the chip on a saved client to change their photo). The
+          photo is optional both ways: "Save without photo" is a real path,
+          not a failure state. Lives inside #dash so signing out takes it off
+          screen with everything else. */}
+      <div class="cmodal" id="client-modal" hidden>
+        <div class="cmodal-backdrop" id="cmodal-backdrop"></div>
+        <div class="cmodal-card" role="dialog" aria-modal="true" aria-labelledby="cmodal-title">
+          <div class="group-title" id="cmodal-title">New client</div>
+          <button type="button" class="cmodal-pic" id="cmodal-pic">
+            <span class="avatar avatar-xl" id="cmodal-avatar"></span>
+            <span class="cmodal-pic-hint" id="cmodal-pic-hint">Add photo</span>
+          </button>
+          <input type="file" id="cmodal-file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif" hidden />
+          <div class="field">
+            <label class="q" for="cmodal-name">
+              <span class="q-title">Name</span>
+            </label>
+            <input class="txt" id="cmodal-name" type="text" autocomplete="off" />
+          </div>
+          <p class="note" id="cmodal-note" role="status" aria-live="polite"></p>
+          <div class="actions cmodal-actions">
+            <button type="button" class="btn btn-primary" id="cmodal-save">Save client</button>
+            <button type="button" class="btn btn-ghost" id="cmodal-cancel">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -511,6 +561,92 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .send .copy-row{ display:flex; gap:10px; }
     .send .copy-row .txt{ flex:1 1 auto; min-width:0; }
+
+    /* ------------------------------------------------- client picker --- */
+    /* Round profile pictures, three sizes: -sm sits beside each recent-share
+       row, -md in the picker menu and the field chip, -xl in the modal.
+       Initials fill in when a client has no photo — tinted with the page's
+       one blue so they read as part of the palette, never as a broken image. */
+    .send .avatar{ display:inline-flex; align-items:center; justify-content:center;
+      border-radius:50%; overflow:hidden; flex:0 0 auto; user-select:none;
+      background:rgba(143,194,242,.14); color:var(--accent-soft);
+      border:1px solid var(--line); font-family:'Diatype Mono', monospace; }
+    .send .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .send .avatar-sm{ width:22px; height:22px; font-size:.56rem; letter-spacing:.04em; }
+    .send .avatar-md{ width:30px; height:30px; font-size:.64rem; letter-spacing:.04em; }
+    .send .avatar-xl{ width:96px; height:96px; font-size:1.5rem; letter-spacing:.06em; }
+
+    .send .client-row{ position:relative; }
+    /* Chip inside the field's left edge; the input pads over to make room.
+       It's a button — clicking it opens the photo modal for the selection. */
+    .send .client-chip{ position:absolute; left:11px; top:50%; transform:translateY(-50%);
+      z-index:2; padding:0; margin:0; background:none; border:none; cursor:pointer;
+      display:inline-flex; border-radius:50%; }
+    .send .client-chip .avatar{ transition:border-color var(--dur-s) var(--ease-standard),
+      box-shadow var(--dur-s) var(--ease-standard); }
+    .send .client-chip:hover .avatar{ border-color:var(--accent-soft);
+      box-shadow:0 0 12px rgba(143,194,242,.35); }
+    .send .client-txt{ padding-right:44px; }
+    .send .client-txt.has-chip{ padding-left:52px; }
+    .send .client-caret{ position:absolute; right:6px; top:50%; transform:translateY(-50%);
+      width:34px; height:34px; display:inline-flex; align-items:center; justify-content:center;
+      padding:0; background:none; border:none; border-radius:8px; cursor:pointer;
+      color:var(--ink-soft); transition:color var(--dur-s) var(--ease-standard),
+      transform var(--dur-s) var(--ease-standard); }
+    .send .client-caret:hover{ color:var(--ink); }
+    .send .client-caret.open{ transform:translateY(-50%) rotate(180deg); }
+
+    /* The menu floats over whatever is beneath the field rather than pushing
+       it down — same surface treatment as the cards, one step lifted. */
+    .send .client-menu{ position:absolute; left:0; right:0; top:calc(100% + 6px); z-index:30;
+      list-style:none; margin:0; padding:6px; max-height:264px; overflow-y:auto;
+      background:var(--card); border:1px solid var(--line-strong); border-radius:10px;
+      box-shadow:0 18px 44px rgba(0,0,0,.5); }
+    .send .client-opt{ display:flex; align-items:center; gap:12px; padding:9px 10px;
+      border-radius:7px; cursor:pointer; font-size:.94rem; color:var(--ink); }
+    .send .client-opt:hover, .send .client-opt.is-active{ background:rgba(213,230,228,.08); }
+    .send .client-opt .co-name{ flex:1 1 auto; min-width:0; overflow:hidden;
+      text-overflow:ellipsis; white-space:nowrap; line-height:1.5; }
+    /* Quiet "already saved" tick on the row that exactly matches the field. */
+    .send .client-opt .co-check{ flex:0 0 auto; color:var(--ok); display:inline-flex; }
+    /* The "add new" row sits under a hairline when saved clients are above it;
+       its circle is dashed — a photo slot not yet filled. */
+    .send .client-opt.co-add{ color:var(--accent-soft); }
+    .send .client-opt.co-add .avatar{ background:none; border-style:dashed;
+      border-color:rgba(143,194,242,.55); color:var(--accent-soft); font-family:inherit;
+      font-size:1rem; line-height:1; }
+    .send .client-menu .co-rule{ height:1px; background:var(--line); margin:6px 4px; }
+    .send .client-menu .co-empty{ padding:10px 12px; font-size:.84rem; color:var(--ink-soft); }
+
+    /* Recent shares: the picture sits before the client name so the list
+       scans by face first, name second. */
+    .send .srow-client .avatar{ margin-right:.1rem; }
+
+    /* ---------------------------------------------------- client modal --- */
+    .send .cmodal{ position:fixed; inset:0; z-index:9999997; display:flex;
+      align-items:center; justify-content:center; padding:24px; }
+    .send .cmodal-backdrop{ position:absolute; inset:0; background:rgba(5,8,7,.72);
+      backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+    .send .cmodal-card{ position:relative; width:min(400px, 100%);
+      background:var(--card); border:1px solid var(--line-strong); border-radius:12px;
+      padding:30px 30px 26px; box-shadow:0 28px 70px rgba(0,0,0,.6);
+      display:flex; flex-direction:column; }
+    .send .cmodal-card .group-title{ margin-bottom:1.5rem; }
+    /* The photo well: one big tap target — circle plus caption both open the
+       file picker. Dashed until a photo is in, solid after. */
+    .send .cmodal-pic{ align-self:center; display:flex; flex-direction:column; align-items:center;
+      gap:.7rem; padding:0 0 1.6rem; margin:0; background:none; border:none; cursor:pointer; }
+    .send .cmodal-pic .avatar-xl{ border-style:dashed; border-color:rgba(143,194,242,.55);
+      transition:border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-s) var(--ease-standard); }
+    .send .cmodal-pic .avatar-xl.has-img{ border-style:solid; border-color:var(--line-strong); }
+    .send .cmodal-pic:hover .avatar-xl{ border-color:var(--accent-soft);
+      box-shadow:0 0 22px rgba(143,194,242,.3); }
+    .send .cmodal-pic.is-over .avatar-xl{ border-color:var(--accent-soft);
+      box-shadow:0 0 22px rgba(143,194,242,.4); }
+    .send .cmodal-pic-hint{ font-family:'Diatype Mono', monospace; font-size:.7rem;
+      letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+    .send .cmodal-pic:hover .cmodal-pic-hint{ color:var(--ink); }
+    .send .cmodal-actions{ justify-content:flex-end; }
 
     /* -------------------------------------------------------- drop zone --- */
     .send .drop{ border:1.5px dashed var(--line-strong); border-radius:10px; padding:28px 16px;
@@ -1008,6 +1144,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // Clear any leftover "signed out after inactivity" note so it
         // doesn't sit there, stale, above the dashboard on the next visit.
         $('idle-note').textContent = '';
+        // Address book first: renderShares uses it to show each row's current
+        // client photo rather than the one snapshotted into the manifest.
+        await loadClients();
         renderShares((r.data && r.data.shares) || []);
         renderPasskeys();
         resetIdle();
@@ -1315,7 +1454,383 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       return el ? Number(el.value) : 7;
     }
 
-    $('client-input').addEventListener('input', updateCreateBtn);
+    /* ------------------------------------------------- saved clients --- */
+    /* The address book behind the Client field. Loaded once per sign-in from
+       /api/clients; selecting a saved client attaches their profile picture
+       to the share (deliver-create snapshots it into the manifest, /receive
+       shows it next to their name). Free text still works exactly as before
+       — a one-off recipient never has to be saved. */
+    let savedClients = [];
+    let selectedClient = null;
+
+    function initialsOf(name) {
+      const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return '?';
+      return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+    }
+
+    /* One builder for every round picture on the page: photo when there is
+       one, initials when there isn't — never an empty or broken circle. */
+    function avatarNode(client, sizeClass) {
+      const span = document.createElement('span');
+      span.className = 'avatar ' + sizeClass;
+      span.setAttribute('aria-hidden', 'true');
+      if (client && client.avatarUrl) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = client.avatarUrl;
+        // A dead avatar URL falls back to initials rather than a blank circle.
+        img.addEventListener('error', () => {
+          img.remove();
+          span.textContent = initialsOf(client.name);
+        });
+        span.appendChild(img);
+      } else {
+        span.textContent = initialsOf(client && client.name);
+      }
+      return span;
+    }
+
+    async function loadClients() {
+      const r = await api('/api/clients');
+      if (r.ok) savedClients = (r.data && r.data.clients) || [];
+    }
+
+    function findClientByName(name) {
+      const n = String(name || '').trim().toLowerCase();
+      if (!n) return null;
+      return savedClients.find((c) => String(c.name).toLowerCase() === n) || null;
+    }
+
+    /* What actually goes on the share: the explicit selection, or — if Pierce
+       typed a name that happens to exactly match a saved client — that client.
+       Typing "DuVine" should never lose the photo just because the menu row
+       wasn't clicked. */
+    function resolvedClient() {
+      const typed = $('client-input').value.trim();
+      if (selectedClient && selectedClient.name === typed) return selectedClient;
+      return findClientByName(typed);
+    }
+
+    const clientInput = $('client-input');
+    const clientMenu = $('client-menu');
+    const clientChip = $('client-chip');
+    const clientCaret = $('client-caret');
+    let menuIndex = -1;
+
+    function syncChip() {
+      const c = resolvedClient();
+      clientChip.hidden = !c;
+      clientInput.classList.toggle('has-chip', !!c);
+      if (c) {
+        clientChip.textContent = '';
+        clientChip.appendChild(avatarNode(c, 'avatar-md'));
+        clientChip.setAttribute('aria-label', 'Change photo for ' + c.name);
+      }
+    }
+
+    function closeMenu() {
+      clientMenu.hidden = true;
+      clientCaret.classList.remove('open');
+      clientInput.setAttribute('aria-expanded', 'false');
+      menuIndex = -1;
+    }
+
+    function menuRows() {
+      return Array.from(clientMenu.querySelectorAll('.client-opt'));
+    }
+
+    function setActive(i) {
+      const rows = menuRows();
+      if (!rows.length) return;
+      menuIndex = ((i % rows.length) + rows.length) % rows.length;
+      rows.forEach((r, j) => r.classList.toggle('is-active', j === menuIndex));
+      rows[menuIndex].scrollIntoView({ block: 'nearest' });
+    }
+
+    function pickClient(c) {
+      selectedClient = c;
+      clientInput.value = c.name;
+      closeMenu();
+      syncChip();
+      updateCreateBtn();
+    }
+
+    function openMenu() {
+      const typed = clientInput.value.trim();
+      const filter = typed.toLowerCase();
+      const matches = savedClients.filter((c) => String(c.name).toLowerCase().includes(filter));
+      const exact = findClientByName(typed);
+      clientMenu.innerHTML = '';
+
+      matches.forEach((c) => {
+        const li = document.createElement('li');
+        li.className = 'client-opt';
+        li.setAttribute('role', 'option');
+        li.appendChild(avatarNode(c, 'avatar-md'));
+        const name = document.createElement('span');
+        name.className = 'co-name';
+        name.textContent = c.name;
+        li.appendChild(name);
+        if (exact && exact.id === c.id) {
+          li.setAttribute('aria-selected', 'true');
+          const check = document.createElement('span');
+          check.className = 'co-check';
+          check.setAttribute('aria-hidden', 'true');
+          check.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" ' +
+            'stroke="currentColor" stroke-width="2.6" stroke-linecap="round" ' +
+            'stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+          li.appendChild(check);
+        }
+        /* mousedown, not click: click fires after the input's blur has
+           already closed the menu and the row is gone. */
+        li.addEventListener('mousedown', (e) => { e.preventDefault(); pickClient(c); });
+        clientMenu.appendChild(li);
+      });
+
+      if (typed && !exact) {
+        if (matches.length) {
+          const rule = document.createElement('li');
+          rule.className = 'co-rule';
+          rule.setAttribute('role', 'presentation');
+          clientMenu.appendChild(rule);
+        }
+        const li = document.createElement('li');
+        li.className = 'client-opt co-add';
+        li.setAttribute('role', 'option');
+        const plus = document.createElement('span');
+        plus.className = 'avatar avatar-md';
+        plus.setAttribute('aria-hidden', 'true');
+        plus.textContent = '+';
+        li.appendChild(plus);
+        const name = document.createElement('span');
+        name.className = 'co-name';
+        name.textContent = 'Save “' + typed + '” as a new client';
+        li.appendChild(name);
+        li.addEventListener('mousedown', (e) => { e.preventDefault(); closeMenu(); openClientModal({ name: typed }); });
+        clientMenu.appendChild(li);
+      }
+
+      if (!clientMenu.children.length) {
+        const li = document.createElement('li');
+        li.className = 'co-empty';
+        li.textContent = 'No saved clients yet — type a name, then save it here.';
+        clientMenu.appendChild(li);
+      }
+
+      clientMenu.hidden = false;
+      clientCaret.classList.add('open');
+      clientInput.setAttribute('aria-expanded', 'true');
+      menuIndex = -1;
+    }
+
+    clientInput.addEventListener('input', () => {
+      if (selectedClient && selectedClient.name !== clientInput.value.trim()) selectedClient = null;
+      syncChip();
+      openMenu();
+      updateCreateBtn();
+    });
+    clientInput.addEventListener('focus', openMenu);
+    clientInput.addEventListener('blur', () => setTimeout(closeMenu, 120));
+    clientInput.addEventListener('keydown', (e) => {
+      if (clientMenu.hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { openMenu(); e.preventDefault(); return; }
+      if (clientMenu.hidden) return;
+      if (e.key === 'ArrowDown') { setActive(menuIndex + 1); e.preventDefault(); }
+      else if (e.key === 'ArrowUp') { setActive(menuIndex - 1); e.preventDefault(); }
+      else if (e.key === 'Enter') {
+        const rows = menuRows();
+        if (menuIndex >= 0 && rows[menuIndex]) {
+          rows[menuIndex].dispatchEvent(new MouseEvent('mousedown'));
+          e.preventDefault();
+        } else closeMenu();
+      }
+      else if (e.key === 'Escape') closeMenu();
+    });
+    // mousedown so it wins the race against the input's blur → closeMenu.
+    clientCaret.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      if (clientMenu.hidden) { clientInput.focus(); openMenu(); } else closeMenu();
+    });
+    clientChip.addEventListener('click', () => {
+      const c = resolvedClient();
+      if (c) openClientModal({ client: c });
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#client-row')) closeMenu();
+    });
+
+    /* ---------------------------------------------------- client modal --- */
+    const cmodal = $('client-modal');
+    let cmodalClient = null;   // editing this saved client, or null for new
+    let cmodalBlob = null;     // downscaled JPEG waiting to upload
+    let cmodalPreviewUrl = null;
+
+    /* Square cover-crop at 512px, JPEG — same canvas approach as the delivery
+       thumbnails above. A phone photo comes in at 4MB+; the avatar that gets
+       painted at 30px should be kilobytes. */
+    const AVATAR_EDGE = 512;
+    async function downscaleAvatar(file) {
+      const bmp = await createImageBitmap(file);
+      const side = Math.min(bmp.width, bmp.height);
+      const scale = Math.min(1, AVATAR_EDGE / side);
+      const edge = Math.max(1, Math.round(side * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = edge; canvas.height = edge;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, edge, edge);
+      ctx.drawImage(bmp,
+        (bmp.width - side) / 2, (bmp.height - side) / 2, side, side,
+        0, 0, edge, edge);
+      bmp.close();
+      return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+    }
+
+    function cmodalPaintAvatar() {
+      const holder = $('cmodal-avatar');
+      holder.textContent = '';
+      holder.classList.remove('has-img');
+      const url = cmodalPreviewUrl || (cmodalClient && cmodalClient.avatarUrl);
+      if (url) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = url;
+        holder.appendChild(img);
+        holder.classList.add('has-img');
+        $('cmodal-pic-hint').textContent = 'Change photo';
+      } else {
+        holder.textContent = initialsOf($('cmodal-name').value || (cmodalClient && cmodalClient.name));
+        $('cmodal-pic-hint').textContent = 'Add photo';
+      }
+    }
+
+    let cmodalReturnFocus = null;
+    function openClientModal(opts) {
+      cmodalClient = (opts && opts.client) || null;
+      cmodalBlob = null;
+      if (cmodalPreviewUrl) { URL.revokeObjectURL(cmodalPreviewUrl); cmodalPreviewUrl = null; }
+      cmodalReturnFocus = document.activeElement;
+      $('cmodal-title').textContent = cmodalClient ? 'Edit client' : 'New client';
+      $('cmodal-save').textContent = 'Save client';
+      $('cmodal-save').disabled = false;
+      $('cmodal-name').value = cmodalClient ? cmodalClient.name : String((opts && opts.name) || '');
+      const note = $('cmodal-note');
+      note.textContent = '';
+      note.className = 'note';
+      cmodalPaintAvatar();
+      cmodal.hidden = false;
+      // New client with a name already typed: the photo is the missing piece,
+      // so the photo well gets focus. Blank name gets the name field.
+      ($('cmodal-name').value ? $('cmodal-pic') : $('cmodal-name')).focus();
+    }
+
+    function closeClientModal() {
+      cmodal.hidden = true;
+      if (cmodalPreviewUrl) { URL.revokeObjectURL(cmodalPreviewUrl); cmodalPreviewUrl = null; }
+      cmodalBlob = null;
+      if (cmodalReturnFocus && cmodalReturnFocus.isConnected) cmodalReturnFocus.focus();
+    }
+
+    async function cmodalTakeFile(file) {
+      if (!file || !/^image\//.test(file.type)) return;
+      const note = $('cmodal-note');
+      note.textContent = '';
+      note.className = 'note';
+      try {
+        cmodalBlob = await downscaleAvatar(file);
+        if (cmodalPreviewUrl) URL.revokeObjectURL(cmodalPreviewUrl);
+        cmodalPreviewUrl = URL.createObjectURL(cmodalBlob);
+        cmodalPaintAvatar();
+      } catch (e) {
+        note.textContent = 'Could not read that image. Try a JPEG or PNG.';
+        note.className = 'note is-error';
+      }
+    }
+
+    $('cmodal-pic').addEventListener('click', () => $('cmodal-file').click());
+    $('cmodal-file').addEventListener('change', () => {
+      cmodalTakeFile($('cmodal-file').files[0]);
+      $('cmodal-file').value = '';
+    });
+    ['dragenter', 'dragover'].forEach((ev) => $('cmodal-pic').addEventListener(ev, (e) => {
+      e.preventDefault(); $('cmodal-pic').classList.add('is-over');
+    }));
+    ['dragleave', 'drop'].forEach((ev) => $('cmodal-pic').addEventListener(ev, (e) => {
+      e.preventDefault(); $('cmodal-pic').classList.remove('is-over');
+    }));
+    $('cmodal-pic').addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files[0]) cmodalTakeFile(e.dataTransfer.files[0]);
+    });
+    // Typing a name updates the initials preview live (photo-less case only).
+    $('cmodal-name').addEventListener('input', () => {
+      if (!cmodalPreviewUrl && !(cmodalClient && cmodalClient.avatarUrl)) cmodalPaintAvatar();
+    });
+
+    $('cmodal-cancel').addEventListener('click', closeClientModal);
+    $('cmodal-backdrop').addEventListener('click', closeClientModal);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !cmodal.hidden) closeClientModal();
+    });
+
+    $('cmodal-save').addEventListener('click', async () => {
+      const note = $('cmodal-note');
+      const btn = $('cmodal-save');
+      const name = $('cmodal-name').value.trim();
+      note.textContent = '';
+      note.className = 'note';
+      if (!name) {
+        note.textContent = 'A client needs a name.';
+        note.className = 'note is-error';
+        $('cmodal-name').focus();
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      try {
+        /* Two steps when there's a photo: save the name first to get the id
+           the avatar path is keyed on, upload, then save again with the URL.
+           A failed upload still leaves the client saved — the photo can be
+           added later from the chip. */
+        let r = await api('/api/clients', { method: 'POST', body: {
+          action: 'save', ...(cmodalClient ? { id: cmodalClient.id } : {}), name,
+        }});
+        if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this client.');
+        let client = r.data.client;
+
+        if (cmodalBlob) {
+          const mod = await blobClient();
+          /* Timestamped path rather than a fixed one: Blob serves public URLs
+             with long cache headers, so overwriting <id>.jpg in place would
+             keep showing the OLD photo everywhere until caches expired. A new
+             URL is correct immediately; api/clients.js deletes by the <id>
+             prefix, so old versions still get cleaned up with the client. */
+          const up = await mod.upload(
+            'clients/avatars/' + client.id + '-' + Date.now() + '.jpg',
+            cmodalBlob,
+            { access: 'public', handleUploadUrl: '/api/deliver-upload-token', contentType: 'image/jpeg' }
+          );
+          r = await api('/api/clients', { method: 'POST', body: {
+            action: 'save', id: client.id, name, avatarUrl: up.url,
+          }});
+          if (r.ok && r.data.client) client = r.data.client;
+        }
+
+        await loadClients();
+        const fresh = savedClients.find((c) => c.id === client.id) || client;
+        closeClientModal();
+        pickClient(fresh);
+        refreshShares(); // recent rows for this client pick up the new photo
+      } catch (err) {
+        note.textContent = (err && err.message) || 'Could not save. Please retry.';
+        note.className = 'note is-error';
+        btn.disabled = false;
+        btn.textContent = 'Save client';
+      } finally {
+        if (cmodal.hidden) { btn.disabled = false; btn.textContent = 'Save client'; }
+      }
+    });
 
     /* Update one row's fill and label in place. A full renderFiles() on every
        progress tick would rebuild the <li> and restart the width transition
@@ -1459,7 +1974,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }));
         if (!files.length) throw new Error('No files uploaded successfully.');
 
-        const r = await api('/api/deliver-create', { method: 'POST', body: { token, client, project, files, expiresInDays } });
+        /* Saved client selected (or name-matched): their profile picture rides
+           along and /receive shows it next to their name. */
+        const rc = resolvedClient();
+        const r = await api('/api/deliver-create', { method: 'POST', body: {
+          token, client, project, files, expiresInDays,
+          ...(rc && rc.avatarUrl ? { avatarUrl: rc.avatarUrl } : {}),
+        } });
         if (!r.ok) throw new Error((r.data && r.data.error) || 'Could not save this share.');
 
         $('out-link').value = r.data.url;
@@ -1477,6 +1998,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       queued = [];
       renderFiles();
       $('client-input').value = '';
+      selectedClient = null;
+      syncChip();
       $('project-input').value = '';
       $('create-note').textContent = '';
       swapStep($('success'), $('new-share'));
@@ -1606,6 +2129,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // "Client — Project" on one line, so the list scans as one column.
         li.querySelector('.srow-client-name').textContent =
           s.project ? clientName + ' — ' + s.project : clientName;
+        /* Round client picture in front of the name. The LIVE address-book
+           photo wins over the manifest's snapshot, so updating a client's
+           photo updates their whole history here; initials otherwise. */
+        const saved = findClientByName(clientName);
+        const rowClient = (saved && saved.avatarUrl) ? saved : { name: clientName, avatarUrl: s.avatarUrl };
+        const clientRow = li.querySelector('.srow-client');
+        clientRow.insertBefore(avatarNode(rowClient, 'avatar-sm'), clientRow.firstChild);
         /* Download badge: has this client opened at least one file yet? Set
            server-side on the manifest the first time a /receive download
            link is clicked (api/deliver-track-download.js) — Pierce,

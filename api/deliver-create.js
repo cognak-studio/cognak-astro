@@ -50,6 +50,13 @@ export default async function handler(req, res) {
   }
 
   const client = String(data.client || 'Client').trim().slice(0, 200) || 'Client';
+  /* Saved-client profile picture, if /send picked one from the address book
+     (api/clients.js). Snapshotted into the manifest rather than joined at read
+     time, so /receive stays one blob-read per view and a later change to the
+     saved client never rewrites what an already-sent link shows. Same
+     blob-store-only validation as thumbUrl below — it lands in an <img src>
+     on /receive. */
+  const avatarUrl = cleanThumbUrl(data.avatarUrl);
   // Optional, and unlike `client` it IS shown to the recipient (it headlines
   // the file list on /receive), so an empty one stays empty rather than
   // falling back to a placeholder.
@@ -91,6 +98,7 @@ export default async function handler(req, res) {
   const manifest = {
     token,
     client,
+    ...(avatarUrl ? { avatarUrl } : {}),
     project,
     createdAt: new Date().toISOString(),
     expiresAt,

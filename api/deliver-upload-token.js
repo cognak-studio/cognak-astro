@@ -31,7 +31,11 @@ export default async function handler(req, res) {
       body,
       request: req,
       onBeforeGenerateToken: async (pathname) => {
-        if (!pathname.startsWith('deliveries/')) {
+        /* clients/avatars/ added 2026-08-08 for the saved-clients picker on
+           /send — profile pictures go up through this same admin-gated
+           handshake rather than a second endpoint. Still nothing outside
+           these two prefixes. */
+        if (!pathname.startsWith('deliveries/') && !pathname.startsWith('clients/avatars/')) {
           throw new Error('Invalid upload path.');
         }
         return {

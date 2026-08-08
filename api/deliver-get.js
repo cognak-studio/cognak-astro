@@ -41,6 +41,9 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       client: manifest.client,
+      // Saved-client profile picture, snapshotted by deliver-create. Absent on
+      // every share made before the address book existed.
+      avatarUrl: manifest.avatarUrl || null,
       project: manifest.project || '',
       createdAt: manifest.createdAt,
       expiresAt: manifest.expiresAt || null,
