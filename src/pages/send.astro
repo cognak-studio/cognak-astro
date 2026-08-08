@@ -776,6 +776,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .srow{ position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px;
       background:var(--field); border:1px solid var(--line); border-radius:8px; padding:14px 16px; }
     .send .srow-main{ flex:1 1 200px; min-width:0; }
+    /* Shares rows only (passkey rows keep the side-by-side layout): the text
+       block owns the card's full width — a long "Client — Project" title was
+       wrapping at half-width against the buttons — and the actions drop to
+       their own line, bottom-right (Pierce, 2026-08-08). */
+    #shares-list .srow{ flex-direction:column; align-items:stretch; }
+    #shares-list .srow-main{ flex:1 1 auto; width:100%; }
+    /* The corner badge floats over the first line's right end; keep the
+       title's text from running underneath it. */
+    #shares-list .srow-client{ padding-right:28px; }
+    #shares-list .srow-actions{ justify-content:flex-end; margin-top:.9rem; }
     /* Three tiers, not two: the client/project name is the thing you scan for,
        so it gets air beneath it; the mono metadata sits a step down in size,
        and expiry takes its own line at that same size rather than wrapping the
