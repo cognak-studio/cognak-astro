@@ -1350,21 +1350,58 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        instead of restarting the entire file from zero. */
     const MULTIPART_THRESHOLD = 50 * 1024 * 1024;
 
+    /* And a watchdog on top of that, because the failure mode here is silence.
+       When a socket dies mid-transfer nothing rejects — the byte counter simply
+       stops moving and the row goes on looking busy forever, which is the worst
+       possible thing for it to do. So we watch the counter ourselves: no bytes
+       for STALL_MS means the transfer is dead, and we'd rather say so and let
+       the file be retried than leave it spinning. Ninety seconds is long enough
+       that a genuinely slow uplink between 8MB parts never trips it. */
+    const STALL_MS = 90 * 1000;
+    const STALL_CHECK_MS = 5 * 1000;
+
     async function uploadOne(item, token, index) {
       uploading++;
       item.status = 'up';
       item.pct = 0;
       paintRow(item);
       const mod = await blobClient();
-      const result = await mod.upload('deliveries/' + token + '/' + item.file.name, item.file, {
-        access: 'public',
-        handleUploadUrl: '/api/deliver-upload-token',
-        multipart: item.file.size > MULTIPART_THRESHOLD,
-        onUploadProgress: (p) => {
-          item.pct = p && typeof p.percentage === 'number' ? p.percentage : item.pct;
-          paintRow(item);
-        },
-      });
+
+      const ctrl = new AbortController();
+      let lastProgressAt = Date.now();
+      let stalled = false;
+      const watchdog = setInterval(() => {
+        if (Date.now() - lastProgressAt < STALL_MS) return;
+        stalled = true;
+        clearInterval(watchdog);
+        ctrl.abort();
+      }, STALL_CHECK_MS);
+
+      let result;
+      try {
+        result = await mod.upload('deliveries/' + token + '/' + item.file.name, item.file, {
+          access: 'public',
+          handleUploadUrl: '/api/deliver-upload-token',
+          multipart: item.file.size > MULTIPART_THRESHOLD,
+          abortSignal: ctrl.signal,
+          onUploadProgress: (p) => {
+            lastProgressAt = Date.now();
+            item.pct = p && typeof p.percentage === 'number' ? p.percentage : item.pct;
+            paintRow(item);
+          },
+        });
+      } catch (e) {
+        /* Rewrite the abort into something that says what actually happened —
+           an AbortError here means our own watchdog pulled the plug, and the
+           file needs sending again. */
+        if (stalled) {
+          throw new Error('\u201C' + item.file.name + '\u201D stopped sending at ' + Math.round(item.pct) + '%. The connection dropped \u2014 remove it from the list and add it again to retry.');
+        }
+        throw e;
+      } finally {
+        clearInterval(watchdog);
+      }
+
       item.status = 'ok';
       item.url = result.url;
       paintRow(item);
