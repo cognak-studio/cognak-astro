@@ -1616,7 +1616,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function openMenu() {
       const typed = clientInput.value.trim();
       const filter = typed.toLowerCase();
-      const matches = savedClients.filter((c) => String(c.name).toLowerCase().includes(filter));
       /* resolvedClient(), not findClientByName(): the current selection
          counts as saved even if the fetched list doesn't contain it yet.
          Belt-and-braces against a stale address-book read — without it the
@@ -1624,6 +1623,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
          the chip right next to it (Pierce, 2026-08-08; root cause was CDN
          caching on clients/index.json, fixed in api/clients.js). */
       const exact = resolvedClient();
+      /* Once the field holds an exact saved client, the text is a SELECTION,
+         not a search — filtering by it would show only the already-chosen
+         row, which answers nothing (Pierce, 2026-08-08). Reopening the menu
+         shows the whole address book, current pick checked, so switching
+         clients is one click instead of clear-then-retype. */
+      const matches = exact
+        ? savedClients.slice()
+        : savedClients.filter((c) => String(c.name).toLowerCase().includes(filter));
       if (exact && !matches.some((c) => c.id === exact.id)) matches.unshift(exact);
       clientMenu.innerHTML = '';
 
@@ -1710,6 +1717,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       updateCreateBtn();
     });
     clientInput.addEventListener('focus', openMenu);
+    // Focus doesn't re-fire on an already-focused input — after picking a
+    // client the menu closes but focus stays, so a plain click must reopen.
+    clientInput.addEventListener('click', () => { if (clientMenu.hidden) openMenu(); });
     clientInput.addEventListener('blur', () => setTimeout(closeMenu, 120));
     clientInput.addEventListener('keydown', (e) => {
       if (clientMenu.hidden && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { openMenu(); e.preventDefault(); return; }
