@@ -358,6 +358,24 @@ import '../styles/site.css';
     })();
   </script>
 
+  <!-- Leaving the homepage: skip the cross-document view transition.
+       The home page keeps heavy things running every frame — the UnicornStudio
+       WebGL hero, the particle canvas (cognak-home.js), Lenis, the cursor loop —
+       and none of them pause on navigation. A cross-document transition keeps
+       the OLD document alive rendering its snapshot until the cross-fade ends,
+       so those loops go on burning the main thread exactly while the destination
+       (e.g. /brief) runs its word-stagger entrance — the entrance stutters. That
+       jitter only shows leaving home because only home has that much running.
+       Skipping the transition here makes home→ a plain swap: the browser discards
+       the home document promptly, the thread is free, and the destination's
+       entrance plays clean. Other transitions (project morph, inner-page fades)
+       are untouched. -->
+  <script is:inline>
+    window.addEventListener('pageswap', function (e) {
+      if (e.viewTransition && location.pathname === '/') e.viewTransition.skipTransition();
+    });
+  </script>
+
   <style is:inline>
     /* Frosted nav blur kept inline so the standard backdrop-filter survives CSS
        minification, which strips the unprefixed property from the bundle and
