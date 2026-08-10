@@ -1,0 +1,11 @@
+{
+  "sessionId": "cowork-seo-check",
+  "state": "idle",
+  "kind": "scheduled",
+  "label": "Running",
+  "title": "Weekly cognak.com SEO & performance check",
+  "cwd": "/Users/pierceliefeld/Local Sites/cognak/cognak-astro",
+  "busySince": "2026-08-10T12:05:41Z",
+  "startedAt": "2026-08-10T12:05:41Z",
+  "updatedAt": "2026-08-10T12:08:00Z"
+}
