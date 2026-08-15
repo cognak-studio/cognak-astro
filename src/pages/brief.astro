@@ -236,8 +236,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .bar-note{ display:none; }
     @media (min-width:960px){
       .brief.progtop .prograil{ display:none; }
-      /* extra padding-bottom makes room for the section receipts under the track */
-      .brief.progtop .progbar-m{ display:flex; padding-bottom:26px; }
+      /* Roomier than the mobile pill in both directions: extra headroom above
+         the track so the line isn't crowded against the top edge, extra below
+         to hold the section receipts. */
+      .brief.progtop .progbar-m{ display:flex; padding:20px 14px 26px; }
       .brief.progtop .bar-note{ display:block; position:absolute; top:10px;
         transform:translateX(-50%);
         font-family:'Diatype Mono', monospace; font-size:.52rem; letter-spacing:.12em;
@@ -1389,17 +1391,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     function positionBarM(){
       var bar=document.getElementById('progBarM');
       if(!bar) return;
+      var sec=document.querySelector('.brief');
+      var vw=document.documentElement.clientWidth;
+      var top=sec&&sec.classList.contains('progtop')&&vw>=960;
+      /* The mobile bar tucks close under the nav (14px); the desktop overlay
+         sits lower (26px) so it reads as part of the form rather than a second
+         row of chrome hanging off the nav. */
       var nav=document.querySelector('.home-bottom-bar.inner-page-nav');
-      if(nav) bar.style.top=(Math.round(nav.getBoundingClientRect().height)+14)+'px';
+      if(nav) bar.style.top=(Math.round(nav.getBoundingClientRect().height)+(top?26:14))+'px';
       /* Desktop top-bar test: pull the bar in to the form column. .brief is
          offset by margin-left:clamp(48px,10vw,180px) and padded 6vw at
          >=960px, so the stylesheet's 6vw gutters would leave it floating wide
          of the questions it's measuring. Measured rather than duplicated in
          CSS so the two can't drift. Cleared below 960 (and off-test) so the
          stylesheet takes back over. */
-      var sec=document.querySelector('.brief');
-      var vw=document.documentElement.clientWidth;
-      if(sec && sec.classList.contains('progtop') && vw>=960){
+      if(top){
         var r=sec.getBoundingClientRect(), cs=getComputedStyle(sec);
         var padL=parseFloat(cs.paddingLeft)||0, padR=parseFloat(cs.paddingRight)||0;
         bar.style.left=Math.round(r.left+padL)+'px';
