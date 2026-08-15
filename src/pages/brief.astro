@@ -196,29 +196,56 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        brief nav (espresso tint + blur) so any form content that passes
        beneath it blurs out while the bar stays readable. No % caps or
        section notes here. */
-    .brief .progbar-m{ display:none; }
-    @media (max-width:959px){
-      .brief .progbar-m{ display:flex; align-items:center; gap:10px; position:fixed; top:100px;
-        left:6vw; right:6vw; z-index:6;
-        padding:11px 14px 13px; border-radius:999px; background:rgba(12,8,3,0.6);
-        -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
-        /* own compositor layer so the backdrop-filter actually paints over the
-           WebGL background — same fix the site navs use */
-        will-change:transform; }
-      /* Tiny mono end-caps: 0% at the left, 100% at the right of the track,
-         matching the desktop rail's caps. */
-      .brief .progbar-m-cap{ font-family:'Diatype Mono', monospace; font-size:.52rem;
-        letter-spacing:.06em; line-height:1; color:var(--ink-soft);
-        pointer-events:none; white-space:nowrap; }
-      .brief .progbar-m-track{ display:block; position:relative; flex:1; height:2px; border-radius:2px;
-        background:rgba(207,187,155,0.16); }
-      /* Filled line from the left: cream at the start, orange at the growing
-         end, glowing along the completed segment (width + color set in JS). */
-      .brief .progbar-m i{ position:absolute; left:0; top:0; bottom:0; width:0; border-radius:2px;
-        background:linear-gradient(90deg, var(--rail-cream) 0%, var(--orange) 100%);
-        box-shadow:0 0 8px 1px rgba(var(--orange-rgb),.5);
-        transition:width var(--dur-xl) var(--ease-standard), background var(--dur-xl) var(--ease-standard), box-shadow var(--dur-xl) var(--ease-standard); }
+    /* The bar's look is NOT mobile-only any more: the same element is also the
+       desktop overlay in the .progtop test below, so the styling lives at the
+       top level and only `display` is switched per context. */
+    .brief .progbar-m{ display:none; align-items:center; gap:10px; position:fixed; top:100px;
+      left:6vw; right:6vw; z-index:6;
+      padding:11px 14px 13px; border-radius:999px; background:rgba(12,8,3,0.6);
+      -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+      /* own compositor layer so the backdrop-filter actually paints over the
+         WebGL background — same fix the site navs use */
+      will-change:transform; }
+    /* Tiny mono end-caps: 0% at the left, 100% at the right of the track,
+       matching the desktop rail's caps. */
+    .brief .progbar-m-cap{ font-family:'Diatype Mono', monospace; font-size:.52rem;
+      letter-spacing:.06em; line-height:1; color:var(--ink-soft);
+      pointer-events:none; white-space:nowrap; }
+    .brief .progbar-m-track{ display:block; position:relative; flex:1; height:2px; border-radius:2px;
+      background:rgba(207,187,155,0.16); }
+    /* Filled line from the left: cream at the start, orange at the growing
+       end, glowing along the completed segment (width + color set in JS). */
+    .brief .progbar-m i{ position:absolute; left:0; top:0; bottom:0; width:0; border-radius:2px;
+      background:linear-gradient(90deg, var(--rail-cream) 0%, var(--orange) 100%);
+      box-shadow:0 0 8px 1px rgba(var(--orange-rgb),.5);
+      transition:width var(--dur-xl) var(--ease-standard), background var(--dur-xl) var(--ease-standard), box-shadow var(--dur-xl) var(--ease-standard); }
+    @media (max-width:959px){ .brief .progbar-m{ display:flex; } }
+
+    /* ---- desktop top-bar TEST (2026-08-15) ----
+       Trial of the mobile treatment on desktop: the progress reads across the
+       top as an overlay instead of standing in the left gutter. Deliberately
+       scoped to ONE discipline — selectDiscipline() puts .progtop on .brief
+       only for PROGTOP_FOR — so the other three briefs still show the rail and
+       the two can be compared in the same session. To adopt everywhere, set
+       PROGTOP_FOR to '*'; to drop the idea, delete PROGTOP_FOR, the class
+       toggle, the bar-note branch in renderRailNotes, and this block.
+       The bar's left/right are measured in JS (positionBarM) because at
+       >=960px the column is offset by a margin + 6vw padding, and a bar
+       running to the viewport edges reads as a browser chrome element rather
+       than as part of the form. */
+    .brief .bar-note{ display:none; }
+    @media (min-width:960px){
+      .brief.progtop .prograil{ display:none; }
+      /* extra padding-bottom makes room for the section receipts under the track */
+      .brief.progtop .progbar-m{ display:flex; padding-bottom:26px; }
+      .brief.progtop .bar-note{ display:block; position:absolute; top:10px;
+        transform:translateX(-50%);
+        font-family:'Diatype Mono', monospace; font-size:.52rem; letter-spacing:.12em;
+        color:var(--ink-soft); white-space:nowrap; opacity:0;
+        transition:opacity var(--dur-2xl) var(--ease-standard); }
+      .brief.progtop .bar-note.on{ opacity:.75; }
     }
+    @media (prefers-reduced-motion:reduce){ .brief.progtop .bar-note{ transition:none; } }
 
     /* ---- project picker: no outline, squared 2px, subtle tile shadow ---- */
     /* stacked, strokeless frosted panels; hover turns all text orange (no raise) */
@@ -811,6 +838,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       ['development','Web apps, e-commerce, tools & builds','5 MIN']
     ];
 
+    /* Which discipline gets the desktop top-bar treatment (see .brief.progtop).
+       '*' = all of them, null = none. One key while it's being evaluated. */
+    var PROGTOP_FOR='development';
+
     var state={discipline:null,colors:[],editing:-1,files:[],budgetPlus:null,groupData:[]};
     var DEFAULT_HEX='#8A7556';
     var PENCIL_SVG='<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
@@ -934,6 +965,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     function selectDiscipline(key){
       state.discipline=key;state.colors=[];state.editing=-1;
+      /* desktop top-bar test — see PROGTOP_FOR / .brief.progtop */
+      var sec=document.querySelector('.brief');
+      if(sec) sec.classList.toggle('progtop', PROGTOP_FOR==='*'||key===PROGTOP_FOR);
       state.files=[];state.budgetPlus=null;
       lastPct=0; // so the 100% swell can fire again on a second brief
       var d=DISCIPLINES[key];
@@ -1357,6 +1391,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(!bar) return;
       var nav=document.querySelector('.home-bottom-bar.inner-page-nav');
       if(nav) bar.style.top=(Math.round(nav.getBoundingClientRect().height)+14)+'px';
+      /* Desktop top-bar test: pull the bar in to the form column. .brief is
+         offset by margin-left:clamp(48px,10vw,180px) and padded 6vw at
+         >=960px, so the stylesheet's 6vw gutters would leave it floating wide
+         of the questions it's measuring. Measured rather than duplicated in
+         CSS so the two can't drift. Cleared below 960 (and off-test) so the
+         stylesheet takes back over. */
+      var sec=document.querySelector('.brief');
+      var vw=document.documentElement.clientWidth;
+      if(sec && sec.classList.contains('progtop') && vw>=960){
+        var r=sec.getBoundingClientRect(), cs=getComputedStyle(sec);
+        var padL=parseFloat(cs.paddingLeft)||0, padR=parseFloat(cs.paddingRight)||0;
+        bar.style.left=Math.round(r.left+padL)+'px';
+        bar.style.right=Math.round(vw-(r.right-padR))+'px';
+      }else{
+        bar.style.left=''; bar.style.right='';
+      }
     }
 
     function updateProgress(){
@@ -1446,20 +1496,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       'Build':'BUILD','The build':'BUILD','Functionality':'FUNCTION'};
     function shortTitle(t){ return RAIL_SHORT[t]||String(t).split(' ')[0].toUpperCase(); }
     function renderRailNotes(form){
-      var rail=document.getElementById('progRail');if(!rail)return;
+      var rail=document.getElementById('progRail');
+      var track=document.querySelector('#progBarM .progbar-m-track');
+      if(!rail&&!track)return;
       var gd=state.groupData||[];
-      if(rail.getAttribute('data-notes-for')!==state.discipline){
-        rail.querySelectorAll('.rail-note').forEach(function(n){n.remove();});
+      /* Build once per discipline, then only the .on toggles run per keystroke.
+         `pos` is the CSS property the notes are laid out on: `top` down the
+         rail, `left` across the bar — same midpoint-of-section math either way.
+         The bar's copies are always built; CSS keeps them hidden unless the
+         page is in the desktop top-bar test. */
+      [[rail,'rail-note','top'],[track,'bar-note','left']].forEach(function(cfg){
+        var host=cfg[0], cls=cfg[1], pos=cfg[2];
+        if(!host||host.getAttribute('data-notes-for')===state.discipline) return;
+        host.querySelectorAll('.'+cls).forEach(function(n){n.remove();});
         gd.forEach(function(g,i){
           var n=document.createElement('span');
-          n.className='rail-note';
-          n.style.top=(((i+0.5)/gd.length)*100)+'%';
+          n.className=cls;
+          n.style[pos]=(((i+0.5)/gd.length)*100)+'%';
           n.textContent=shortTitle(g.title)+' ✓';
-          rail.appendChild(n);
+          host.appendChild(n);
         });
-        rail.setAttribute('data-notes-for',state.discipline||'');
-      }
-      var notes=rail.querySelectorAll('.rail-note');
+        host.setAttribute('data-notes-for',state.discipline||'');
+      });
+      var notes=rail?rail.querySelectorAll('.rail-note'):[];
+      var bnotes=track?track.querySelectorAll('.bar-note'):[];
       form.querySelectorAll('.group').forEach(function(gEl,i){
         var req=gEl.querySelectorAll('.field:not([data-opt="1"])');
         var done=req.length>0;
@@ -1468,6 +1528,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           if(!ok)done=false;
         });
         if(notes[i])notes[i].classList.toggle('on',done);
+        if(bnotes[i])bnotes[i].classList.toggle('on',done);
       });
     }
 
