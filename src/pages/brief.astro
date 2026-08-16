@@ -843,6 +843,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Which discipline gets the desktop top-bar treatment (see .brief.progtop).
        '*' = all of them, null = none. One key while it's being evaluated. */
     var PROGTOP_FOR='development';
+    /* How far the pill bleeds PAST the form column on each side. The caps and
+       the track stay flush with the column's text edges (positionBarM sets the
+       horizontal padding to this same number), so the card reads as a surface
+       the measure sits on rather than a box the measure is crammed into. */
+    var PROGTOP_BLEED=32;
 
     var state={discipline:null,colors:[],editing:-1,files:[],budgetPlus:null,groupData:[]};
     var DEFAULT_HEX='#8A7556';
@@ -1408,10 +1413,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if(top){
         var r=sec.getBoundingClientRect(), cs=getComputedStyle(sec);
         var padL=parseFloat(cs.paddingLeft)||0, padR=parseFloat(cs.paddingRight)||0;
-        bar.style.left=Math.round(r.left+padL)+'px';
-        bar.style.right=Math.round(vw-(r.right-padR))+'px';
+        /* Offset out by the bleed and pad back in by the same amount: the
+           border box is wider than the column, the CONTENT box is exactly the
+           column, so 0% and 100% line up with the question text below. */
+        bar.style.left=Math.round(r.left+padL-PROGTOP_BLEED)+'px';
+        bar.style.right=Math.round(vw-(r.right-padR)-PROGTOP_BLEED)+'px';
+        bar.style.paddingLeft=PROGTOP_BLEED+'px';
+        bar.style.paddingRight=PROGTOP_BLEED+'px';
       }else{
         bar.style.left=''; bar.style.right='';
+        bar.style.paddingLeft=''; bar.style.paddingRight='';
       }
     }
 
