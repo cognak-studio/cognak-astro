@@ -841,8 +841,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     ];
 
     /* Which discipline gets the desktop top-bar treatment (see .brief.progtop).
-       '*' = all of them, null = none. One key while it's being evaluated. */
-    var PROGTOP_FOR='development';
+       '*' = all of them, null = none, or a single key to trial it on one brief.
+       Trialled on 'development' and ADOPTED EVERYWHERE 2026-08-15 (Pierce). */
+    var PROGTOP_FOR='*';
     /* How far the pill bleeds PAST the form column on each side. The caps and
        the track stay flush with the column's text edges (positionBarM sets the
        horizontal padding to this same number), so the card reads as a surface
@@ -1381,9 +1382,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var rail=document.getElementById('progRail');
       var wrap=document.getElementById('formwrap');
       if(!rail||!wrap||wrap.style.display==='none') return;
+      /* Since PROGTOP_FOR='*' the rail is display:none at every breakpoint, and
+         this runs on every scroll event — bail before the layout reads rather
+         than clamping something nobody can see. offsetHeight is 0 exactly when
+         the rail is hidden, so this also re-arms itself if the rail comes back. */
+      var railH=rail.offsetHeight||0;
+      if(!railH) return;
       var r=wrap.getBoundingClientRect();
       var vh=window.innerHeight||document.documentElement.clientHeight;
-      var railH=rail.offsetHeight||0;
       var top=(vh-railH)/2;
       var minTop=r.top+8, maxTop=r.bottom-railH-8;
       top=(maxTop<=minTop) ? (r.top+(r.height-railH)/2) : Math.min(Math.max(top,minTop),maxTop);
