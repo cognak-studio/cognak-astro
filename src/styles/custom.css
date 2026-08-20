@@ -3404,8 +3404,8 @@ html.pv-grid .projects-list,
         overflow: visible;
     }
     .logo-ring-item svg {
-        width: 77px !important;
-        height: 26px !important;
+        width: calc(77px * var(--ring-fit, 1)) !important;
+        height: calc(26px * var(--ring-fit, 1)) !important;
     }
     .studio-columns {
         flex-direction: column;
