@@ -862,6 +862,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        stats line mid-phrase ("expires in / 7 days" was breaking across lines). */
     .send .srow-client{ font-weight:500; font-size:1rem; color:var(--ink); margin-bottom:.55rem;
       display:flex; align-items:center; gap:.5rem; }
+    /* Long client/project names wrap to two lines, and at the page's inherited
+       line-height:1 the second line sat almost on top of the first. The name
+       gets its own leading, and the half-leading that adds above the first line
+       and below the last is pulled straight back off with negative block
+       margins — so a two-line title breathes while every one-line row keeps
+       exactly the height it had before (Pierce, 2026-08-21). */
+    .send .srow-client-name{ line-height:1.4; margin-block:calc((1 - 1.4) * .5em); }
     /* At-least-one-file-opened indicator (Pierce, 2026-07-29). Third pass:
        kept the --ok green from the avail-dot-style attempt, but swapped the
        dot/ring for an actual download glyph in a small circle — reads as
