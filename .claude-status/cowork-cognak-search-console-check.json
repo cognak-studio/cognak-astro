@@ -1,0 +1,11 @@
+{
+  "sessionId": "cowork-cognak-search-console-check",
+  "state": "idle",
+  "kind": "scheduled",
+  "label": "Running",
+  "title": "Weekly cognak.com SEO/perf checklist reminder",
+  "cwd": "/Users/pierceliefeld/Local Sites/cognak/cognak-astro",
+  "busySince": "2026-08-24T12:02:12Z",
+  "startedAt": "2026-08-24T12:02:12Z",
+  "updatedAt": "2026-08-24T12:02:15Z"
+}
