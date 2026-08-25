@@ -35,7 +35,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <BaseLayout
   page="schedule"
   title="Schedule a Call | COGNAK"
-  description="Book time directly on our real calendar — pick a 30 or 60 minute slot, Mon–Thu, and get a Google Calendar invite with a Meet link the moment you submit."
+  description="Book time directly on our real calendar. Pick a 30 or 60 minute slot, Mon–Thu, and get a Google Calendar invite with a Meet link the moment you submit."
   ogUrl="https://cognak.com/schedule/"
   pageBg="#DCEBF5"
 >
@@ -47,7 +47,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p class="lede schedule-lede">
       This checks the same calendar we actually run our week from, so if a
       time's open here, it's open. Pick a length, grab a slot, and you'll get
-      a Google Calendar invite with a Meet link the moment you submit — no
+      a Google Calendar invite with a Meet link the moment you submit. No
       separate scheduling tool, no back-and-forth to find something that works.
     </p>
 
@@ -73,7 +73,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="field">
             <label class="q">
               <span class="q-title">Mon–Thu, 10am–5pm Pacific</span>
-              <span class="q-sub">Pulled live from the calendar — if it's not shown here, it's already booked.</span>
+              <span class="q-sub">Pulled live from the calendar. If it's not shown here, it's already booked.</span>
             </label>
             <div id="days-wrap" class="days-wrap" aria-live="polite">
               <div class="sched-loading">Loading availability…</div>
@@ -95,7 +95,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="field">
             <label class="q" for="notes-input">
               <span class="q-title">What's this about?</span>
-              <span class="q-sub">Optional — a line or two helps us show up prepared.</span>
+              <span class="q-sub">Optional, a line or two helps us show up prepared.</span>
             </label>
             <textarea class="txt" id="notes-input" rows="3"></textarea>
           </div>
@@ -115,7 +115,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <p class="note" id="form-note" role="status"></p>
 
         <p class="tfoot">
-          This is for a conversation, not a project start — we're generally
+          This is for a conversation, not a project start. We're generally
           booking new projects 30–60 days out. If none of this works for
           you, <a href="mailto:hello@cognak.com">email us</a> and we'll find a time.
         </p>
@@ -131,8 +131,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <h2 class="confirmed-title">You're on the calendar.</h2>
         <p class="confirmed-when" id="confirmed-when"></p>
         <p class="confirmed-sub">
-          A calendar invite is on its way to <span id="confirmed-email"></span> —
-          accept it and you're set. Need to reschedule? Just reply to the invite.
+          A calendar invite is on its way to <span id="confirmed-email"></span>.
+          Accept it and you're set. Need to reschedule? Just reply to the invite.
         </p>
         <div class="confirmed-actions">
           <a class="btn" id="confirmed-meet" href="#" target="_blank" rel="noopener noreferrer">Join by Google Meet</a>
@@ -240,13 +240,52 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .pill input{ position:absolute; opacity:0; pointer-events:none; }
   .schedule .pill.on{ border-color:var(--accent); color:var(--deep); background:var(--accent); font-weight:500; }
 
-  /* ------------------------------------------------------ day/slot picker --- */
-  .schedule .days-wrap{ display:flex; flex-direction:column; gap:1.4rem; min-height:60px; }
+  /* ---------------------------------------------------- calendar picker --- */
+  .schedule .days-wrap{ display:flex; flex-direction:column; gap:0; min-height:60px; }
   .schedule .sched-loading, .schedule .sched-empty{ font-size:.92rem; color:var(--ink-soft); padding:.4rem 0; }
   .schedule .sched-empty a{ color:var(--accent-soft); text-decoration:underline; text-underline-offset:var(--link-offset); }
   .schedule .sched-retry{ background:none; border:none; padding:0; margin-left:.4em; color:var(--accent-soft);
     text-decoration:underline; text-underline-offset:var(--link-offset); cursor:pointer; font:inherit; }
-  .schedule .sched-day-label{ font-size:.82rem; font-weight:500; color:var(--ink-soft); margin-bottom:.7rem; }
+
+  /* A real month calendar (Pierce, 2026-08-26: "that's a crazy way to
+     visualize the dates... can we have an actual calendar visualized
+     instead... base it off of best practice or how google does it") —
+     same two-step pattern Google's own scheduler and Calendly use: pick a
+     DAY on a month grid, then a separate row of time buttons appears for
+     just that day, instead of every open day and every open hour listed at
+     once. Only dates present in daysCache (the server already found at
+     least one open slot there) are clickable — weekends, Fridays, past
+     days, fully-booked Mon–Thu days and anything past the 28-day horizon
+     all render dim and inert. Month nav is clamped to the horizon: there's
+     nothing bookable outside it, so there's nothing to browse to. */
+  .schedule .cal-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
+  .schedule .cal-month-label{ font-size:.92rem; font-weight:500; color:var(--ink); }
+  .schedule .cal-nav-btn{ display:inline-flex; align-items:center; justify-content:center;
+    width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong);
+    background:var(--field); color:var(--ink); cursor:pointer; padding:0;
+    transition:border-color var(--dur-s) var(--ease-standard), opacity var(--dur-s) var(--ease-standard); }
+  .schedule .cal-nav-btn:hover:not(:disabled){ border-color:var(--accent-soft); }
+  .schedule .cal-nav-btn:active:not(:disabled){ transform:scale(.94); }
+  .schedule .cal-nav-btn:disabled{ opacity:.28; cursor:not-allowed; }
+  .schedule .cal-nav-btn svg{ display:block; }
+
+  .schedule .cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
+    font-family:'Diatype Mono', monospace; font-size:.64rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-soft); text-align:center; margin-bottom:.5rem; }
+
+  .schedule .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; max-width:392px; }
+  .schedule .cal-day{ position:relative; aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+    font-family:inherit; font-size:.88rem; color:var(--placeholder); background:none; border:1px solid transparent;
+    border-radius:8px; padding:0; cursor:default; -webkit-appearance:none; appearance:none;
+    transition:border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
+  .schedule .cal-day.is-blank{ visibility:hidden; }
+  .schedule .cal-day.is-open{ border-color:var(--line-strong); background:var(--field); color:var(--ink); cursor:pointer; font-weight:500; }
+  .schedule .cal-day.is-open:hover{ border-color:var(--accent-soft); }
+  .schedule .cal-day.is-open:active{ transform:scale(.94); }
+  .schedule .cal-day.on{ border-color:var(--accent); background:var(--accent); color:var(--deep); font-weight:500; }
+
+  .schedule .cal-times{ margin-top:1.4rem; padding-top:1.4rem; border-top:1px solid var(--line); }
+  .schedule .cal-day-label{ font-size:.88rem; font-weight:500; color:var(--ink); margin-bottom:.8rem; }
   .schedule .sched-slots{ display:flex; flex-wrap:wrap; gap:8px; }
   .schedule .sched-slot{ font-family:inherit; font-size:.9rem; color:var(--ink); background:var(--field);
     border:1px solid var(--line-strong); border-radius:8px; padding:9px 14px; cursor:pointer;
@@ -254,6 +293,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .sched-slot:hover{ border-color:var(--accent-soft); }
   .schedule .sched-slot:active{ transform:scale(.96); }
   .schedule .sched-slot.on{ border-color:var(--accent); color:var(--deep); background:var(--accent); font-weight:500; }
+  @media (max-width:480px){ .schedule .cal-grid{ max-width:none; } }
 
   .schedule .selected-slot-banner{ margin:0 0 1.6rem; font-size:.96rem; color:var(--accent-soft); }
   .schedule .selected-slot-banner:empty{ display:none; }
@@ -348,6 +388,40 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   let selectedSlot = null; // ISO string, or null
   let daysCache = [];
 
+  // ---- Calendar state (2026-08-26: real month-grid picker, replacing the
+  // old "every open day listed top to bottom" layout) -----------------
+  const HORIZON_DAYS = 28; // mirrors api/_lib/scheduleSlots.mjs — keep in sync
+  let calCursor = null;    // { y, m } — the month currently displayed
+  let selectedDate = null; // 'YYYY-MM-DD', or null
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function laTodayKey() {
+    // en-CA gives YYYY-MM-DD directly — the same format the server's
+    // dateKey() produces, so string comparison below is safe.
+    return new Intl.DateTimeFormat('en-CA', { timeZone: LA_TZ }).format(new Date());
+  }
+  function keyParts(key) {
+    const [y, m, d] = key.split('-').map(Number);
+    return { y, m, d };
+  }
+  function shiftKey(key, n) {
+    const { y, m, d } = keyParts(key);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + n);
+    const yy = dt.getUTCFullYear(), mm = dt.getUTCMonth() + 1, dd = dt.getUTCDate();
+    return { y: yy, m: mm, key: yy + '-' + pad2(mm) + '-' + pad2(dd) };
+  }
+  function shiftMonth({ y, m }, delta) {
+    const idx = y * 12 + (m - 1) + delta;
+    return { y: Math.floor(idx / 12), m: (idx % 12) + 1 };
+  }
+  function monthIndex({ y, m }) { return y * 12 + m; }
+  function daysInMonth(y, m) { return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+  function firstWeekdayOfMonth(y, m) { return new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); }
+  function monthLabel(y, m) {
+    return new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', year: 'numeric' }).format(new Date(Date.UTC(y, m - 1, 1)));
+  }
+
   function setNote(msg, kind) {
     formNote.textContent = msg || '';
     formNote.classList.toggle('is-error', kind === 'error');
@@ -379,7 +453,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const json = await r.json().catch(() => null);
       if (!r.ok || !json) throw new Error((json && json.error) || 'Could not load availability.');
       daysCache = json.days || [];
-      renderDays();
+      renderCalendar();
     } catch (e) {
       daysWrap.innerHTML = '<div class="sched-empty">Couldn’t load availability right now. '
         + '<button type="button" class="sched-retry" id="retry-btn">Try again</button></div>';
@@ -388,36 +462,140 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
   }
 
-  function renderDays() {
+  function renderCalendar() {
     if (!daysCache.length) {
-      daysWrap.innerHTML = '<div class="sched-empty">Nothing open in the next few weeks — '
-        + '<a href="mailto:hello@cognak.com">email us</a> and we’ll find a time.</div>';
+      daysWrap.innerHTML = '<div class="sched-empty">Nothing open in the next few weeks. '
+        + '<a href="mailto:hello@cognak.com">Email us</a> and we’ll find a time.</div>';
       return;
     }
-    daysWrap.innerHTML = '';
-    for (const day of daysCache) {
-      const dayEl = document.createElement('div');
-      dayEl.className = 'sched-day';
 
-      const label = document.createElement('div');
-      label.className = 'sched-day-label';
-      label.textContent = fmtDayLabel(day.date);
-      dayEl.appendChild(label);
+    const availByDate = new Map(daysCache.map((d) => [d.date, d.slots]));
+    const todayKey = laTodayKey();
+    const minMonth = keyParts(todayKey);
+    const maxMonth = shiftKey(todayKey, HORIZON_DAYS - 1);
 
-      const slotsEl = document.createElement('div');
-      slotsEl.className = 'sched-slots';
-      for (const iso of day.slots) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'sched-slot';
-        b.dataset.iso = iso;
-        b.textContent = fmtTime(iso, LA_TZ);
-        b.addEventListener('click', () => selectSlot(iso, b));
-        slotsEl.appendChild(b);
-      }
-      dayEl.appendChild(slotsEl);
-      daysWrap.appendChild(dayEl);
+    if (!calCursor || monthIndex(calCursor) < monthIndex(minMonth) || monthIndex(calCursor) > monthIndex(maxMonth)) {
+      calCursor = { y: minMonth.y, m: minMonth.m };
     }
+    if (selectedDate && !availByDate.has(selectedDate)) selectedDate = null;
+
+    daysWrap.innerHTML = '';
+
+    // ---- month nav ----
+    const nav = document.createElement('div');
+    nav.className = 'cal-nav';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = 'cal-nav-btn';
+    prevBtn.setAttribute('aria-label', 'Previous month');
+    prevBtn.innerHTML = '<svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true"><path d="M6 1 1 6l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    prevBtn.disabled = monthIndex(calCursor) <= monthIndex(minMonth);
+    prevBtn.addEventListener('click', () => { calCursor = shiftMonth(calCursor, -1); renderCalendar(); });
+
+    const label = document.createElement('div');
+    label.className = 'cal-month-label';
+    label.textContent = monthLabel(calCursor.y, calCursor.m);
+
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'cal-nav-btn';
+    nextBtn.setAttribute('aria-label', 'Next month');
+    nextBtn.innerHTML = '<svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true"><path d="M1 1l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    nextBtn.disabled = monthIndex(calCursor) >= monthIndex(maxMonth);
+    nextBtn.addEventListener('click', () => { calCursor = shiftMonth(calCursor, 1); renderCalendar(); });
+
+    nav.append(prevBtn, label, nextBtn);
+    daysWrap.appendChild(nav);
+
+    // ---- weekday header ----
+    const weekdaysEl = document.createElement('div');
+    weekdaysEl.className = 'cal-weekdays';
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((w) => {
+      const s = document.createElement('span');
+      s.textContent = w;
+      weekdaysEl.appendChild(s);
+    });
+    daysWrap.appendChild(weekdaysEl);
+
+    // ---- day grid ----
+    const grid = document.createElement('div');
+    grid.className = 'cal-grid';
+
+    const lead = firstWeekdayOfMonth(calCursor.y, calCursor.m);
+    for (let i = 0; i < lead; i++) {
+      const blank = document.createElement('span');
+      blank.className = 'cal-day is-blank';
+      grid.appendChild(blank);
+    }
+
+    const total = daysInMonth(calCursor.y, calCursor.m);
+    for (let d = 1; d <= total; d++) {
+      const dateKey = calCursor.y + '-' + pad2(calCursor.m) + '-' + pad2(d);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cal-day';
+      btn.textContent = String(d);
+
+      if (availByDate.has(dateKey)) {
+        btn.classList.add('is-open');
+        if (dateKey === selectedDate) btn.classList.add('on');
+        const fullLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(dateKey + 'T19:00:00Z'));
+        btn.setAttribute('aria-label', fullLabel + ', times available');
+        btn.addEventListener('click', () => selectDate(dateKey, btn));
+      } else {
+        btn.disabled = true;
+        btn.setAttribute('aria-hidden', 'true');
+        btn.tabIndex = -1;
+      }
+      grid.appendChild(btn);
+    }
+    daysWrap.appendChild(grid);
+
+    if (selectedDate) renderTimesFor(selectedDate);
+  }
+
+  function selectDate(dateKey, btnEl) {
+    selectedDate = dateKey;
+    selectedSlot = null;
+    detailsGroup.hidden = true;
+    actions.hidden = true;
+    daysWrap.querySelectorAll('.cal-day.on').forEach((el) => el.classList.remove('on'));
+    btnEl.classList.add('on');
+    renderTimesFor(dateKey);
+    const timesEl = daysWrap.querySelector('.cal-times');
+    if (timesEl) timesEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function renderTimesFor(dateKey) {
+    const existing = daysWrap.querySelector('.cal-times');
+    if (existing) existing.remove();
+
+    const day = daysCache.find((d) => d.date === dateKey);
+    if (!day) return;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'cal-times';
+
+    const label = document.createElement('div');
+    label.className = 'cal-day-label';
+    label.textContent = fmtDayLabel(dateKey);
+    wrap.appendChild(label);
+
+    const slotsEl = document.createElement('div');
+    slotsEl.className = 'sched-slots';
+    for (const iso of day.slots) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sched-slot';
+      b.dataset.iso = iso;
+      b.textContent = fmtTime(iso, LA_TZ);
+      if (iso === selectedSlot) b.classList.add('on');
+      b.addEventListener('click', () => selectSlot(iso, b));
+      slotsEl.appendChild(b);
+    }
+    wrap.appendChild(slotsEl);
+    daysWrap.appendChild(wrap);
   }
 
   function selectSlot(iso, btnEl) {

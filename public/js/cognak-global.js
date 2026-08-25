@@ -365,7 +365,13 @@
             return;
         }
         onProject = false;
-        if (e.target.closest('a, button')) {
+        // .pill covers the site's label+hidden-radio pill buttons (duration
+        // pills on /schedule, format/damage-tolerance pills on /tools) —
+        // real clickable controls that just aren't literally <a>/<button>,
+        // so without this they never got the enlarged link cursor.
+        // (Pierce, 2026-08-26: "30 and 60 minutes on hover should also have
+        // the enlarged circular cursor.")
+        if (e.target.closest('a, button, .pill')) {
             cursor.classList.remove('is-home', 'is-project', 'is-view-projects');
             cursor.classList.add('is-link');
             scheduleClearImg();
