@@ -454,20 +454,19 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   /* Standard dark-blurred-bar every other inner page uses (the pale nav
      was a Sky Milk-only need), themed to this page's purple -- same
      treatment /tools gives it. No logo filter override: the default
-     invert(1) in custom.css already renders it white-on-dark correctly.
-     2026-08-27: the actual dark-background override moved OUT of this
-     block and into custom.css (next to .studio-nav) -- this page-level
-     <style is:inline> tag renders near the END of body (after all the
-     BaseLayout nav/main/footer markup, since schedule.astro's own <style>
-     lives after </BaseLayout> in the source), so a rule that lived here
-     didn't take effect until the parser reached this point, well after the
-     nav had already painted once against custom.css's base pale
-     .inner-page-nav background (rgba(247,241,255,0.75), the Sky-Milk-
-     family default every other inner page without its own dark override
-     also starts from) -- a real, visible flash of pale-then-dark on first
-     paint, not a screenshot artifact. custom.css loads via a blocking
-     <link> in <head>, before ANY body markup paints, so the override lives
-     there now instead -- see .schedule-nav in custom.css. */
+     invert(1) in custom.css already renders it white-on-dark correctly. */
+  .home-bottom-bar.inner-page-nav.schedule-nav{ background:rgba(18,17,22,0.62) !important;
+    -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
+  .schedule-nav .home-bottom-email,
+  .schedule-nav .home-bottom-location,
+  .schedule-nav .inner-nav-links a,
+  .schedule-nav .pulse-dot{ color:#A9A3B8 !important; }
+  .schedule-nav .home-bottom-email,
+  .schedule-nav .inner-nav-links a{ transition:color var(--dur-s) var(--ease-standard); }
+  @media (hover:hover){
+    .schedule-nav .home-bottom-email:hover,
+    .schedule-nav .inner-nav-links a:hover{ color:#C79BFF !important; }
+  }
 </style>
 
 <script>
