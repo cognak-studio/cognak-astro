@@ -41,21 +41,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   ogUrl="https://cognak.com/schedule/"
   pageBg="#17151A"
 >
-  {/* UnicornStudio (2026-08-27 round 11): retrying after round 10's pull --
-     found a likely real cause first (see cognak-unicorn-init.js's dated
-     comment): the shared loader was pinned to runtime v2.1.12, a full
-     minor version behind this scene's own declared format v2.2.12, and
-     an older parser reading newer-format scene JSON is the direction
-     that's actually likely to break, not the reverse. Bumped the shared
-     loader to v2.2.12 (confirmed API-compatible with the older scenes on
-     /send/brief/studio/home too) before re-wiring this mount -- same
-     lazy-load-on-idle mechanism via cognak-unicorn-init.js and
-     [data-us-project], fixed full-bleed behind #cognak-main (z-index:1,
-     see .schedule-webgl below), fades in once its canvas mounts. --bg
-     stays the fallback shown until it mounts and forever under
-     prefers-reduced-motion. */}
-  <div class="schedule-webgl" data-us-project="Mt3f3Tq4KPcsXzo7mZGv" aria-hidden="true"></div>
-
   <main id="cognak-main"><section class="schedule">
 
     <h1 class="headline schedule-headline">
@@ -165,15 +150,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <style is:inline>
   html, body { background-color:#17151A !important; }
 
-  /* UnicornStudio mount -- fixed behind the content, fades in once it mounts.
-     Same pattern as .send-webgl/.brief-webgl; see cognak-unicorn-init.js.
-     2026-08-27 round 11: re-added after round 10's pull, once the loader's
-     version pin was bumped to match this scene's format -- see the mount
-     comment above and cognak-unicorn-init.js. */
-  .schedule-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
-    pointer-events:none; opacity:0; transition:opacity 1.6s var(--ease-standard); }
-  .schedule-webgl.webgl-ready{ opacity:1; }
-  @media (prefers-reduced-motion:reduce){ .schedule-webgl{ display:none; } }
+  /* 2026-08-27 round 9: the UnicornStudio mount (.schedule-webgl) that lived
+     here was pulled -- Pierce's scene wasn't rendering for him and we
+     couldn't diagnose it visually from the sandbox, so back to the flat
+     #17151A ground for now. See project_schedule_page_2026_08.md for the
+     brainstorm on a bespoke replacement (in the style of /tools, /projects,
+     /colophon) if one gets built later. */
   #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
   /* ============================================================
@@ -936,22 +918,4 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   requestAnimationFrame(() => $('scard').classList.add('in'));
 
   loadAvailability();
-
-  // Fade the WebGL background in once UnicornStudio mounts its canvas --
-  // same pattern as /send and /brief (see cognak-unicorn-init.js for the load).
-  (function(){
-    var el = document.querySelector('.schedule-webgl');
-    if(!el) return;
-    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    function ready(){ el.classList.add('webgl-ready'); }
-    if('MutationObserver' in window){
-      var mo = new MutationObserver(function(){
-        if(el.querySelector('canvas')){ ready(); mo.disconnect(); }
-      });
-      mo.observe(el, {childList:true, subtree:true});
-      setTimeout(function(){ ready(); mo.disconnect(); }, 4000);
-    } else {
-      setTimeout(ready, 1200);
-    }
-  })();
 </script>

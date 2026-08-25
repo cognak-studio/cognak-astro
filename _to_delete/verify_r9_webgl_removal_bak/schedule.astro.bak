@@ -41,19 +41,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   ogUrl="https://cognak.com/schedule/"
   pageBg="#17151A"
 >
-  {/* UnicornStudio (2026-08-27 round 11): retrying after round 10's pull --
-     found a likely real cause first (see cognak-unicorn-init.js's dated
-     comment): the shared loader was pinned to runtime v2.1.12, a full
-     minor version behind this scene's own declared format v2.2.12, and
-     an older parser reading newer-format scene JSON is the direction
-     that's actually likely to break, not the reverse. Bumped the shared
-     loader to v2.2.12 (confirmed API-compatible with the older scenes on
-     /send/brief/studio/home too) before re-wiring this mount -- same
-     lazy-load-on-idle mechanism via cognak-unicorn-init.js and
-     [data-us-project], fixed full-bleed behind #cognak-main (z-index:1,
-     see .schedule-webgl below), fades in once its canvas mounts. --bg
-     stays the fallback shown until it mounts and forever under
-     prefers-reduced-motion. */}
+  {/* UnicornStudio (2026-08-27): Pierce built this scene himself, lighter-weight
+     than the heavy home/studio/brief scenes -- same lazy-load-on-idle mechanism
+     via cognak-unicorn-init.js and [data-us-project], fixed full-bleed behind
+     #cognak-main (z-index:1, see .schedule-webgl below), fades in once its canvas
+     mounts. Replaces the flat #17151A ground with real motion; --bg stays the
+     fallback shown until it mounts and forever under prefers-reduced-motion. */}
   <div class="schedule-webgl" data-us-project="Mt3f3Tq4KPcsXzo7mZGv" aria-hidden="true"></div>
 
   <main id="cognak-main"><section class="schedule">
@@ -166,10 +159,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   html, body { background-color:#17151A !important; }
 
   /* UnicornStudio mount -- fixed behind the content, fades in once it mounts.
-     Same pattern as .send-webgl/.brief-webgl; see cognak-unicorn-init.js.
-     2026-08-27 round 11: re-added after round 10's pull, once the loader's
-     version pin was bumped to match this scene's format -- see the mount
-     comment above and cognak-unicorn-init.js. */
+     Same pattern as .send-webgl/.brief-webgl; see cognak-unicorn-init.js. */
   .schedule-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
     pointer-events:none; opacity:0; transition:opacity 1.6s var(--ease-standard); }
   .schedule-webgl.webgl-ready{ opacity:1; }
