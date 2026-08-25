@@ -124,6 +124,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
 
       <div class="confirmed-view" id="confirmed-view" hidden>
+        <button class="schedule-backlink" id="back-to-cal-btn" type="button">&larr; Back to calendar</button>
         <div class="confirmed-check" aria-hidden="true">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5"/>
@@ -391,7 +392,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
      stroke-dasharray, then title/when/sub/actions fade up in sequence,
      instead of the whole block just appearing. Pure CSS; showConfirmed()
      still just flips `hidden`, unchanged. */
-  .schedule .confirmed-view{ text-align:center; padding:1.6rem 0 .6rem; }
+  .schedule .confirmed-view{ position:relative; text-align:center; padding:2.4rem 0 4.4rem; }
+  /* Back-to-calendar (Pierce, 2026-08-27: "add a BACK TO CALENDAR in the
+     top left of the card with an arrow similar to how brief says change
+     project type"). Absolutely positioned so it never pushes the centered
+     confirmation content down -- confirmed-view's own padding-top above
+     is sized to clear it with room to spare. Click resets the card back
+     to the calendar/duration picker and re-runs loadAvailability(), so
+     the slot just booked no longer shows as open. */
+  .schedule .schedule-backlink{ position:absolute; top:2px; left:0; display:flex; align-items:center;
+    gap:.5rem; background:none; border:none; padding:0; margin:0; font:inherit; font-size:.85rem;
+    color:var(--ink-soft); cursor:pointer; text-align:left;
+    transition:color var(--dur-s) var(--ease-standard); }
+  .schedule .schedule-backlink::before{ content:""; position:absolute; inset:-12px -10px; }
+  @media (hover:hover){ .schedule .schedule-backlink:hover{ color:var(--accent-soft); } }
   .schedule .confirmed-check{ color:var(--accent); margin-bottom:1.2rem; }
   .schedule .confirmed-check circle{ stroke-dasharray:69; stroke-dashoffset:69; animation:schedCheckDraw .5s var(--ease-standard) forwards; }
   .schedule .confirmed-check path{ stroke-dasharray:14; stroke-dashoffset:14; animation:schedCheckDraw .35s var(--ease-standard) .45s forwards; }
@@ -445,6 +459,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   const scardBody = $('scard-body');
   const confirmedView = $('confirmed-view');
+  const backToCalBtn = $('back-to-cal-btn');
   const daysWrap = $('days-wrap');
   const detailsGroup = $('details-group');
   const actions = $('actions');
@@ -879,6 +894,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       gtag('event', 'conversion', { send_to: 'AW-876403750/r1GlCKXGmLwcEKa486ED' });
     }
   }
+
+  backToCalBtn.addEventListener('click', () => {
+    confirmedView.hidden = true;
+    scardBody.hidden = false;
+    bookBtn.disabled = true;
+    bookBtn.textContent = 'Book the call';
+    loadAvailability();
+  });
 
   // Card entrance — same immediate-reveal-on-next-frame pattern as /tools'
   // #tcard (there's no shared sitewide .rise revealer; each page fires its

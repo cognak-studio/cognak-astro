@@ -70,6 +70,26 @@ export async function getBusyIntervals(timeMinISO, timeMaxISO) {
  *
  * `attendee` is { name, email }. Returns the created event resource.
  */
+/**
+ * Formats an ISO datetime as e.g. "Tue, Aug 25, 2:00 PM Pacific" so the
+ * event description states the timezone explicitly. Added after a booking
+ * showed as 7:30pm in the guest's own Google Calendar (displayed in their
+ * account's timezone, Eastern) even though 4:30pm Pacific -- the correct
+ * slot -- was what actually got booked; start/end already carry the right
+ * IANA zone, but a plain-language restatement in the description heads
+ * off that exact confusion. (Pierce, 2026-08-27.)
+ */
+function formatPacific(iso) {
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(iso)) + ' Pacific';
+}
+
 export async function createBookingEvent({ startISO, endISO, attendee, notes }) {
   const token = await getAccessToken();
   const id = calendarId();
@@ -77,8 +97,8 @@ export async function createBookingEvent({ startISO, endISO, attendee, notes }) 
   const event = {
     summary: 'Call with ' + attendee.name + ' — COGNAK',
     description: (notes && notes.trim())
-      ? 'Booked via cognak.com/schedule.\n\n' + notes.trim()
-      : 'Booked via cognak.com/schedule.',
+      ? 'Scheduled for ' + formatPacific(startISO) + '.\n\nBooked via cognak.com/schedule.\n\n' + notes.trim()
+      : 'Scheduled for ' + formatPacific(startISO) + '.\n\nBooked via cognak.com/schedule.',
     start: { dateTime: startISO, timeZone: 'America/Los_Angeles' },
     end: { dateTime: endISO, timeZone: 'America/Los_Angeles' },
     attendees: [{ email: attendee.email, displayName: attendee.name, responseStatus: 'accepted' }],
