@@ -18,17 +18,19 @@
  * only, 10am–5pm Pacific, 15 min buffer around existing events, 30 or 60
  * minute calls, 4 hours minimum lead time.
  *
- * Palette (2026-08-26, Pierce: "pale nav menu, pale background... milky blue
- * theme all around", then "start with sky milk, but make the nav bluer"):
- * "Sky Milk" — a light cyan-leaning blue, dark ink text, same
- * .scard/.group/.field/.q/.pill/.btn structure as /tools and /brief, just
- * re-themed. Nav follows /privacy's pale-nav precedent (translucent light
- * bar, dark ink text, unfiltered logo) rather than the dark-blurred-bar
- * treatment every other inner page uses, but tinted a visibly deeper blue
- * than the page ground so it reads as its own element, not a wash.
- * Four options were mocked up and shown to Pierce before this was built —
- * see project_schedule_page_2026_08.md for the other three (Cloud Blue,
- * Powder Blue, Denim Mist), worth reviving if this one ever needs a change.
+ * Palette (2026-08-27, Pierce: "we should go to a dark theme like brief
+ * and studio though, where hover purple is the button color and any
+ * signifier color"): dark, near-black ground (#17151A, the same
+ * --ink-deep every other dark page on the site shares), the site's own
+ * brand purple as the one accent for buttons, borders, focus rings and
+ * the busy-day heat map. Same .scard/.group/.field/.q/.pill/.btn
+ * structure as /tools and /brief, just re-themed. Nav follows the
+ * standard dark-blurred-bar treatment every other inner page uses (not
+ * the pale-nav variant "Sky Milk" needed).
+ * "Sky Milk" (2026-08-26, a light cyan-blue) was the palette before
+ * this -- see project_schedule_page_2026_08.md if it's ever wanted back,
+ * along with the three light alternates (Cloud Blue, Powder Blue, Denim
+ * Mist) that were mocked up alongside it.
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
@@ -37,7 +39,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   title="Schedule a Call | COGNAK"
   description="Book time directly on our real calendar. Pick a 30 or 60 minute slot, Mon–Thu, and get a Google Calendar invite with a Meet link the moment you submit."
   ogUrl="https://cognak.com/schedule/"
-  pageBg="#DCEBF5"
+  pageBg="#17151A"
 >
   <main id="cognak-main"><section class="schedule">
 
@@ -47,8 +49,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <p class="lede schedule-lede">
       This checks the same calendar we actually run our week from, so if a
       time's open here, it's open. Pick a length, grab a slot, and you'll get
-      a Google Calendar invite with a Meet link the moment you submit. No
-      separate scheduling tool, no back-and-forth to find something that works.
+      a Google Calendar invite with a Meet link the moment you submit.
     </p>
 
     <div class="scard rise" id="scard">
@@ -146,32 +147,33 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <style is:inline>
-  html, body { background-color:#DFF1F8 !important; }
+  html, body { background-color:#17151A !important; }
   #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
 
   /* ============================================================
-     COGNAK /schedule — "Sky Milk", dark ink text (2026-08-26).
-     Light cyan-leaning blue ground; --card renders lighter than --bg (an
-     off-white floats ABOVE the blue), the inverse of the dark pages where
-     the card sits slightly lighter than an even-darker ground — same idea,
-     flipped. Contrast checked with the site's usual formula (relative
-     luminance, WCAG). Worst realistic pairing per token, all AA or better:
-     ink 11.6:1, ink-soft 5.5:1, placeholder 4.4:1, accent 4.9:1 (5.5 on the
-     card), accent-soft 6.3:1, ok 5.6:1, err 6.2:1, white-on-accent 5.7:1. */
+     COGNAK /schedule -- dark, purple accent (2026-08-27). Ground is
+     --ink-deep, the same near-black #17151A as home/studio/tools, not a
+     new one-off. --accent is the site's own brand purple
+     (--cognak-purple-text elsewhere) -- Pierce asked for THE purple, the
+     hue that already means "interactive" everywhere else on the site, not
+     a fourth custom hue like /tools' lighter violet or /brief's orange.
+     --accent-soft is a lighter step off it for body-sized purple text
+     (links, banner, headline em) where 16px text needs more contrast than
+     --accent clears on its own; --accent itself stays for borders, icons
+     and the busy-day heat map, where the real floor is 3:1. --deep is dark
+     ink FOR text laid on a solid --accent fill, same role /tools' --deep
+     plays -- white-on-#9F50FF under-contrasts, dark-on-#9F50FF doesn't.
+     Contrast checked, worst realistic pairing per token: ink 15.2:1,
+     ink-soft 7.4:1, placeholder 5.0:1, accent-soft 7.4:1, deep-on-accent
+     4.5:1, accent (decorative use only) 4.4:1 against a 3:1 floor. */
   .schedule {
-    --bg:#DFF1F8;
-    --card:rgba(251,254,255,0.88); --field:rgba(207,236,247,0.55); --field-focus:rgba(190,227,244,0.8);
-    --ink:#123244; --ink-soft:#3E6478; --accent:#0E6E98; --accent-hi:#063E58;
-    /* Headline accent only — a deeper blue than --accent so it reads as text
-       directly on the pale ground (same role tools' --accent-soft plays, but
-       inverted: on a dark page the "soft" accent is lighter than the accent;
-       on this pale page it has to be darker to stay legible). */
-    --accent-soft:#0B5C80;
-    /* Text placed ON a solid --accent fill (pills, buttons) — white reads
-       better here than a dark ink would, the one spot this page's tokens
-       diverge from tools/brief's dark-text-on-accent pattern. */
-    --deep:#FFFFFF; --line:rgba(18,50,68,0.14); --line-strong:rgba(18,50,68,0.28);
-    --placeholder:#4F7385; --ok:#146B47; --err:#A32B21;
+    --bg:#17151A;
+    --card:rgba(33,31,40,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
+    --ink:#EDEAF3; --ink-soft:#A9A3B8;
+    --accent:#9F50FF; --accent-hi:#B46FFF; --accent-rgb:159,80,255;
+    --accent-soft:#C79BFF;
+    --deep:#1B1424; --line:rgba(237,234,243,0.13); --line-strong:rgba(237,234,243,0.28);
+    --placeholder:#8A8499; --ok:#7EE2A8; --err:#FF9E90;
     max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
     color:var(--ink); font-family:'Diatype Variable', sans-serif;
   }
@@ -295,14 +297,28 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .cal-day.is-open:active{ transform:scale(.94); }
   .schedule .cal-day.on{ border-color:var(--accent); background:var(--accent); color:var(--deep); font-weight:500; }
 
-  /* Busy-level dots (Pierce, 2026-08-27: "show some days are busier than
-     others") — see busyTier() in the script for how the tier is derived. */
-  .schedule .cal-day-busy{ position:absolute; left:50%; bottom:5px; transform:translateX(-50%);
-    display:flex; gap:2.5px; pointer-events:none; }
-  .schedule .cal-day-busy i{ display:block; width:3px; height:3px; border-radius:50%; background:var(--line-strong); }
-  .schedule .cal-day-busy i.filled{ background:var(--accent-soft); }
-  .schedule .cal-day.on .cal-day-busy i{ background:rgba(255,255,255,.32); }
-  .schedule .cal-day.on .cal-day-busy i.filled{ background:#fff; }
+  /* Busy-level heat (Pierce, 2026-08-27: "show some days are busier than
+     others"; revised same day -- three filled dots read as a count of
+     open appointments, not a busyness meter, per Pierce). A wash of the
+     page's own purple across the cell itself instead: barely-there for a
+     wide-open day, a solid field for one with limited availability. Reads
+     as heat/intensity, nothing to count. See busyTier() in the script for
+     how the tier is derived; :not(.on) keeps the tint from fighting the
+     solid --accent fill a selected day already gets. */
+  .schedule .cal-day.is-open.busy-1:not(.on){ background:rgba(var(--accent-rgb),.07); }
+  .schedule .cal-day.is-open.busy-2:not(.on){ background:rgba(var(--accent-rgb),.16); }
+  .schedule .cal-day.is-open.busy-3:not(.on){ background:rgba(var(--accent-rgb),.30); border-color:rgba(var(--accent-rgb),.4); }
+
+  /* Legend for the heat above -- without it "some cells are more purple
+     than others" has no stated meaning. Static, not tier-driven; built in
+     renderCalendar() right under the grid. */
+  .schedule .cal-legend{ display:flex; align-items:center; gap:6px; margin-top:.9rem;
+    font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--placeholder); }
+  .schedule .cal-legend-swatch{ width:9px; height:9px; border-radius:2px; flex:0 0 auto; }
+  .schedule .cal-legend-swatch.t1{ background:rgba(var(--accent-rgb),.12); }
+  .schedule .cal-legend-swatch.t2{ background:rgba(var(--accent-rgb),.24); }
+  .schedule .cal-legend-swatch.t3{ background:rgba(var(--accent-rgb),.42); }
 
   .schedule .times-col{ border-left:1px solid var(--line); padding-left:1.8rem; }
   @keyframes schedTimesIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
@@ -341,7 +357,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     border:1px solid var(--line-strong); text-decoration:none;
     transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
   .schedule .btn:hover:not(:disabled){ background:var(--accent); border-color:var(--accent);
-    color:var(--deep); box-shadow:0 0 24px rgba(14,110,152,.28); }
+    color:var(--deep); box-shadow:0 0 24px rgba(var(--accent-rgb),.34); }
   .schedule .btn:active:not(:disabled){ transform:scale(.98); }
   .schedule .btn:disabled{ opacity:.32; cursor:not-allowed; }
   .schedule .btn-ghost{ opacity:.85; }
@@ -388,29 +404,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   /* ------------------------------------------------------------- nav --- */
-  /* Pale nav, not the dark-blurred-bar every other inner page uses — same
-     move /privacy makes (see .privacy-nav in custom.css): a light translucent
-     bar with dark ink text and the logo's default invert() turned off, so it
-     renders in its native mark instead of ghosting white-on-white.
-     Deliberately bluer than the page ground (Pierce: "make the nav bluer") —
-     rgba(191,226,242,.82) over the #DFF1F8 page renders ~#C5E5F3, a clearly
-     deeper blue step than the card/bg, so the bar reads as its own element
-     scrolling under the content instead of blending into the wash. */
-  .home-bottom-bar.inner-page-nav.schedule-nav{ background:rgba(191,226,242,0.82) !important;
+  /* Standard dark-blurred-bar every other inner page uses (the pale nav
+     was a Sky Milk-only need), themed to this page's purple -- same
+     treatment /tools gives it. No logo filter override: the default
+     invert(1) in custom.css already renders it white-on-dark correctly. */
+  .home-bottom-bar.inner-page-nav.schedule-nav{ background:rgba(18,17,22,0.62) !important;
     -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
-  .schedule-nav img:not(.emoji){ filter:none !important; }
   .schedule-nav .home-bottom-email,
-  .schedule-nav .home-bottom-location{ color:#123244 !important; }
-  .schedule-nav .pulse-dot{ color:#123244 !important; }
-  /* Lightened one step off the email/location value — same reasoning as
-     privacy-nav's link color — so the hover-to-near-black jump below still
-     reads as a visible change rather than dark-on-dark. */
-  .schedule-nav .inner-nav-links a{ color:#3E6478 !important; }
+  .schedule-nav .home-bottom-location,
+  .schedule-nav .inner-nav-links a,
+  .schedule-nav .pulse-dot{ color:#A9A3B8 !important; }
   .schedule-nav .home-bottom-email,
   .schedule-nav .inner-nav-links a{ transition:color var(--dur-s) var(--ease-standard); }
   @media (hover:hover){
     .schedule-nav .home-bottom-email:hover,
-    .schedule-nav .inner-nav-links a:hover{ color:#04202E !important; }
+    .schedule-nav .inner-nav-links a:hover{ color:#C79BFF !important; }
   }
 </style>
 
@@ -657,15 +665,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         const fullLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(dateKey + 'T19:00:00Z'));
 
         const tier = busyTier(availByDate.get(dateKey).length, maxSlotCount);
-        const dots = document.createElement('span');
-        dots.className = 'cal-day-busy';
-        dots.setAttribute('aria-hidden', 'true');
-        for (let i = 0; i < 3; i++) {
-          const dot = document.createElement('i');
-          if (i < tier) dot.classList.add('filled');
-          dots.appendChild(dot);
-        }
-        btn.appendChild(dots);
+        btn.classList.add('busy-' + tier);
         btn.setAttribute('aria-label', fullLabel + ', ' + busyLabel(tier));
         btn.addEventListener('click', () => selectDate(dateKey, btn));
       } else {
@@ -676,6 +676,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       grid.appendChild(btn);
     }
     calCol.appendChild(grid);
+
+    const legend = document.createElement('div');
+    legend.className = 'cal-legend';
+    legend.setAttribute('aria-hidden', 'true');
+    legend.innerHTML = '<span>Open</span>'
+      + '<span class="cal-legend-swatch t1"></span>'
+      + '<span class="cal-legend-swatch t2"></span>'
+      + '<span class="cal-legend-swatch t3"></span>'
+      + '<span>Busy</span>';
+    calCol.appendChild(legend);
 
     // ---- times column (right third \u2014 like Google's day view once a date's
     // picked; stays empty until then, per Pierce 2026-08-26) ----

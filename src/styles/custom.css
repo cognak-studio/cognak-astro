@@ -806,12 +806,11 @@ body[data-page="receive"] ::-moz-selection { background: #8FC2F2; color: #090C0B
 body[data-page="tools"] ::selection      { background: #B47CFF; color: #17151A; }
 body[data-page="tools"] ::-moz-selection { background: #B47CFF; color: #17151A; }
 
-/* Inverted from every other page on purpose, same move /privacy makes:
-   this page is light-bg/dark-ink, so the selection swatch itself is dark
-   (the page's own --ink) with the page's pale bg as the text color, instead
-   of a light accent swatch with dark text. Sky Milk palette (2026-08-26). */
-body[data-page="schedule"] ::selection      { background: #123244; color: #DFF1F8; }
-body[data-page="schedule"] ::-moz-selection { background: #123244; color: #DFF1F8; }
+/* Dark, purple-accent palette (2026-08-27) -- same shape as /tools'
+   selection: the page's own accent as the swatch, its dark --deep ink as
+   the text. Was Sky Milk's inverted light-swatch/dark-text pairing before.*/
+body[data-page="schedule"] ::selection      { background: #9F50FF; color: #1B1424; }
+body[data-page="schedule"] ::-moz-selection { background: #9F50FF; color: #1B1424; }
 
 /* ── Custom Cursor ── */
 * { cursor: none !important; }
