@@ -619,6 +619,13 @@
         '#step-pick .lede',
         '.tools-headline',
         '.tools-lede',
+        /* /schedule — same class as /send + /receive below: 'html.js
+           .schedule-headline{opacity:0}' in schedule.astro's own <style>
+           hides the unsplit line pre-JS, so it MUST be listed here or it
+           never gets un-hidden. (Pierce/Claude, 2026-08-25 — this is the
+           exact bug the /send + /receive comment below already documents.) */
+        '.schedule-headline',
+        '.schedule-lede',
         /* /send + /receive. These two were the odd case: both pages set
            `html.js .send-headline{opacity:0}` (so the unsplit line never
            flashes before the splitter runs) but were never added here, so

@@ -8,7 +8,7 @@
 const THEME = '/theme';
 
 export interface Props {
-  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | 'colophon' | 'brief' | 'tools' | 'send' | 'receive' | '404' | 'page';
+  page?: 'home' | 'studio' | 'projects' | 'project' | 'privacy' | 'colophon' | 'brief' | 'tools' | 'schedule' | 'send' | 'receive' | '404' | 'page';
   title?: string;
   description?: string;
   ogType?: string;
@@ -132,7 +132,7 @@ const jsV = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 8)
   || Math.floor(Date.now() / 3600000).toString(36);
 
 // Inner-page top nav (home-bottom-bar inner-page-nav) renders on these pages.
-const innerNavPages = ['studio', 'projects', 'project', 'privacy', 'colophon', 'brief', 'tools', 'send', 'receive', '404'];
+const innerNavPages = ['studio', 'projects', 'project', 'privacy', 'colophon', 'brief', 'tools', 'schedule', 'send', 'receive', '404'];
 const showInnerNav = innerNavPages.includes(page);
 const innerNavVariant =
   page === 'studio' ? ' studio-nav' :
@@ -140,6 +140,7 @@ const innerNavVariant =
   page === 'colophon' ? ' colophon-nav' :
   page === 'brief' ? ' brief-nav' :
   page === 'tools' ? ' tools-nav' :
+  page === 'schedule' ? ' schedule-nav' :
   // /send and /receive have their own teal colorway + nav treatment, distinct
   // from /tools' violet (each page defines its own `.send-nav` overrides in
   // its own <style> block, so sharing the class name between the two is safe).
@@ -507,7 +508,7 @@ import '../styles/site.css';
           <span class="footer-label">Get in touch</span>
           <a href="mailto:hello@cognak.com" class="footer-email-link">hello@cognak.com</a>
           <a href="/brief" class="footer-email-link">submit a brief</a>
-          <a href="https://calendar.app.google/U4EdR5gEVfaGkWhN8" class="footer-email-link">schedule a call</a>
+          <a href="/schedule" class="footer-email-link">schedule a call</a>
         </div>
         <div class="footer-social">
           <span class="footer-label">Social</span>
@@ -621,12 +622,14 @@ import '../styles/site.css';
         copyEmail(link, href.replace(/^mailto:/, '').split('?')[0]);
         return;
       }
-      if (href.indexOf('calendar.app.google') !== -1) {
+      var schedulePath = (href.split('#')[0] || '').split('?')[0];
+      if (schedulePath === '/schedule' || schedulePath === '/schedule/') {
+        // Click-through only, same pattern as /brief below: the real Ads
+        // conversion now fires from schedule.astro once a call is actually
+        // booked, not from clicking a link that only opens the page.
         if (typeof gtag === 'function') {
-          gtag('event', 'click_schedule_call', { 'event_category': 'Contact', 'event_label': 'Schedule a Call' });
+          gtag('event', 'click_schedule_call', { 'event_category': 'Contact', 'event_label': schedulePath });
         }
-        gtag_report_conversion('AW-876403750/r1GlCKXGmLwcEKa486ED', href);
-        return;
       }
       // "Start a project" (home/projects/studio) and the footer's "write a
       // brief" link both point at /brief. This is a click-through, not a
