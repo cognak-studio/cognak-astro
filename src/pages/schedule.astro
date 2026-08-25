@@ -116,7 +116,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
         <p class="tfoot">
           This is for a conversation, not a project start. We're generally
-          booking new projects 30–60 days out. If none of this works for
+          booking new projects 30–60 days out, and Fridays are kept for
+          studio work, not calls. If none of this works for
           you, <a href="mailto:hello@cognak.com">email us</a> and we'll find a time.
         </p>
       </div>
@@ -290,17 +291,31 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     transition:border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
   .schedule .cal-day.is-blank{ visibility:hidden; }
   .schedule .cal-day.is-open{ border-color:var(--line-strong); background:var(--field); color:var(--ink); cursor:pointer; font-weight:500; }
-  .schedule .cal-day.is-open:hover{ border-color:var(--accent-soft); }
+  .schedule .cal-day.is-open:hover{ border-color:var(--accent-soft); transform:translateY(-1px) scale(1.05); }
   .schedule .cal-day.is-open:active{ transform:scale(.94); }
   .schedule .cal-day.on{ border-color:var(--accent); background:var(--accent); color:var(--deep); font-weight:500; }
 
+  /* Busy-level dots (Pierce, 2026-08-27: "show some days are busier than
+     others") — see busyTier() in the script for how the tier is derived. */
+  .schedule .cal-day-busy{ position:absolute; left:50%; bottom:5px; transform:translateX(-50%);
+    display:flex; gap:2.5px; pointer-events:none; }
+  .schedule .cal-day-busy i{ display:block; width:3px; height:3px; border-radius:50%; background:var(--line-strong); }
+  .schedule .cal-day-busy i.filled{ background:var(--accent-soft); }
+  .schedule .cal-day.on .cal-day-busy i{ background:rgba(255,255,255,.32); }
+  .schedule .cal-day.on .cal-day-busy i.filled{ background:#fff; }
+
   .schedule .times-col{ border-left:1px solid var(--line); padding-left:1.8rem; }
-  .schedule .cal-day-label{ font-size:.88rem; font-weight:500; color:var(--ink); margin-bottom:.8rem; }
+  @keyframes schedTimesIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+  .schedule .cal-day-label{ font-size:.88rem; font-weight:500; color:var(--ink); margin-bottom:.8rem;
+    animation:schedTimesIn .32s var(--ease-standard) both; }
+  .schedule .cal-day-note{ font-size:.76rem; color:var(--placeholder); margin:-.5rem 0 .8rem;
+    animation:schedTimesIn .32s var(--ease-standard) .03s both; }
   .schedule .sched-slots{ display:flex; flex-direction:column; gap:8px; }
   .schedule .sched-slot{ font-family:inherit; font-size:.9rem; color:var(--ink); background:var(--field);
     border:1px solid var(--line-strong); border-radius:8px; padding:9px 14px; cursor:pointer; text-align:center;
+    animation:schedTimesIn .3s var(--ease-standard) both;
     transition:transform var(--dur-xs) var(--ease-press), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
-  .schedule .sched-slot:hover{ border-color:var(--accent-soft); }
+  .schedule .sched-slot:hover{ border-color:var(--accent-soft); transform:translateX(3px); }
   .schedule .sched-slot:active{ transform:scale(.96); }
   .schedule .sched-slot.on{ border-color:var(--accent); color:var(--deep); background:var(--accent); font-weight:500; }
 
@@ -337,18 +352,40 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   @media (hover:hover){ .schedule .tfoot a:hover{ color:var(--accent); } }
 
   /* ------------------------------------------------------- confirmed --- */
+  /* Livelier confirmation (Pierce, 2026-08-27: make the page more
+     interactive) — the check circle/mark draw themselves in via
+     stroke-dasharray, then title/when/sub/actions fade up in sequence,
+     instead of the whole block just appearing. Pure CSS; showConfirmed()
+     still just flips `hidden`, unchanged. */
   .schedule .confirmed-view{ text-align:center; padding:1.6rem 0 .6rem; }
   .schedule .confirmed-check{ color:var(--accent); margin-bottom:1.2rem; }
-  .schedule .confirmed-title{ font-size:1.6rem; font-weight:500; margin:0 0 .8rem; color:var(--ink); }
-  .schedule .confirmed-when{ font-size:1.1rem; color:var(--accent-soft); margin:0 0 1.2rem; }
+  .schedule .confirmed-check circle{ stroke-dasharray:69; stroke-dashoffset:69; animation:schedCheckDraw .5s var(--ease-standard) forwards; }
+  .schedule .confirmed-check path{ stroke-dasharray:14; stroke-dashoffset:14; animation:schedCheckDraw .35s var(--ease-standard) .45s forwards; }
+  @keyframes schedCheckDraw{ to{ stroke-dashoffset:0; } }
+  @keyframes schedConfirmIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+  .schedule .confirmed-title{ font-size:1.6rem; font-weight:500; margin:0 0 .8rem; color:var(--ink);
+    animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .55s both; }
+  .schedule .confirmed-when{ font-size:1.1rem; color:var(--accent-soft); margin:0 0 1.2rem;
+    animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .65s both; }
   .schedule .confirmed-sub{ font-size:.95rem; line-height:1.55; color:var(--ink-soft); max-width:46ch;
-    margin:0 auto 2.2rem; }
-  .schedule .confirmed-actions{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+    margin:0 auto 2.2rem; animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .75s both; }
+  .schedule .confirmed-actions{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
+    animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .85s both; }
 
   /* ---------------------------------------------------------- motion --- */
   .schedule .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard); }
   .schedule .rise.in{ opacity:1; transform:none; }
-  @media (prefers-reduced-motion:reduce){ .schedule .rise{ opacity:1; transform:none; transition:none; } }
+  @media (prefers-reduced-motion:reduce){
+    .schedule .rise{ opacity:1; transform:none; transition:none; }
+    .schedule .cal-day.is-open:hover{ transform:none; }
+    .schedule .sched-slot:hover{ transform:none; }
+    .schedule .cal-day-label, .schedule .cal-day-note, .schedule .sched-slot,
+    .schedule .confirmed-check circle, .schedule .confirmed-check path,
+    .schedule .confirmed-title, .schedule .confirmed-when,
+    .schedule .confirmed-sub, .schedule .confirmed-actions{
+      animation:none; opacity:1; transform:none; stroke-dashoffset:0;
+    }
+  }
 
   /* ------------------------------------------------------------- nav --- */
   /* Pale nav, not the dark-blurred-bar every other inner page uses — same
@@ -438,6 +475,38 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     return new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', month: 'long', year: 'numeric' }).format(new Date(Date.UTC(y, m - 1, 1)));
   }
 
+  // Busy-level indicator (Pierce, 2026-08-27: "show some days are busier
+  // than others") — a lightweight relative read using the slot counts the
+  // API already returns, not a real historical baseline. Tier 3 (fewest
+  // slots) always applies at count<=1 regardless of the relative ratio, so
+  // a single-slot day never misreads as "wide open" just because every
+  // other day is just as thin.
+  function busyTier(count, maxCount) {
+    if (count <= 1) return 3;
+    const ratio = count / maxCount;
+    if (ratio >= 0.66) return 1;
+    if (ratio >= 0.33) return 2;
+    return 3;
+  }
+  function busyLabel(tier) {
+    return tier === 1 ? 'wide open' : tier === 2 ? 'some openings' : 'limited availability';
+  }
+
+  // Day-dependent copy (Pierce, 2026-08-27: make the page more interactive)
+  // — a one-line note that shifts with how far out the picked date is.
+  // Purely cosmetic; delete this function and its one call site in
+  // renderTimesFor() if it doesn't land.
+  function relativeNote(dateKey, todayKey) {
+    const t = keyParts(todayKey);
+    const d = keyParts(dateKey);
+    const diffDays = Math.round((Date.UTC(d.y, d.m - 1, d.d) - Date.UTC(t.y, t.m - 1, t.d)) / 86400000);
+    if (diffDays <= 0) return 'Today, if it works.';
+    if (diffDays === 1) return 'Tomorrow.';
+    if (diffDays <= 6) return 'This week.';
+    if (diffDays <= 13) return 'Next week.';
+    return 'A few weeks out.';
+  }
+
   function setNote(msg, kind) {
     formNote.textContent = msg || '';
     formNote.classList.toggle('is-error', kind === 'error');
@@ -494,6 +563,28 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       calCursor = { y: minMonth.y, m: minMonth.m };
     }
     if (selectedDate && !availByDate.has(selectedDate)) selectedDate = null;
+
+    // Auto-populate the day view on load (Pierce, 2026-08-27: "have the
+    // current date automatically populate the day view on load") — default
+    // to today if it's bookable; otherwise fall back to the soonest day
+    // that is (today's usually a Friday/weekend/fully-booked miss, not an
+    // empty calendar). Only fires while nothing's explicitly selected, so
+    // it re-applies after a duration switch clears the pick but never
+    // fights a real choice or a month-nav browse.
+    if (!selectedDate) {
+      if (availByDate.has(todayKey)) {
+        selectedDate = todayKey;
+      } else {
+        const soonest = daysCache.map((d) => d.date).sort()[0];
+        if (soonest) selectedDate = soonest;
+      }
+      if (selectedDate) {
+        const sd = keyParts(selectedDate);
+        if (monthIndex({ y: sd.y, m: sd.m }) !== monthIndex(calCursor)) {
+          calCursor = { y: sd.y, m: sd.m };
+        }
+      }
+    }
 
     daysWrap.innerHTML = '';
 
@@ -552,6 +643,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     const total = daysInMonth(calCursor.y, calCursor.m);
+    const maxSlotCount = Math.max(1, ...daysCache.map((d) => d.slots.length));
     for (let d = 1; d <= total; d++) {
       const dateKey = calCursor.y + '-' + pad2(calCursor.m) + '-' + pad2(d);
       const btn = document.createElement('button');
@@ -563,7 +655,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         btn.classList.add('is-open');
         if (dateKey === selectedDate) btn.classList.add('on');
         const fullLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(dateKey + 'T19:00:00Z'));
-        btn.setAttribute('aria-label', fullLabel + ', times available');
+
+        const tier = busyTier(availByDate.get(dateKey).length, maxSlotCount);
+        const dots = document.createElement('span');
+        dots.className = 'cal-day-busy';
+        dots.setAttribute('aria-hidden', 'true');
+        for (let i = 0; i < 3; i++) {
+          const dot = document.createElement('i');
+          if (i < tier) dot.classList.add('filled');
+          dots.appendChild(dot);
+        }
+        btn.appendChild(dots);
+        btn.setAttribute('aria-label', fullLabel + ', ' + busyLabel(tier));
         btn.addEventListener('click', () => selectDate(dateKey, btn));
       } else {
         btn.disabled = true;
@@ -610,18 +713,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     label.textContent = fmtDayLabel(dateKey);
     timesCol.appendChild(label);
 
+    const note = document.createElement('div');
+    note.className = 'cal-day-note';
+    note.textContent = relativeNote(dateKey, laTodayKey());
+    timesCol.appendChild(note);
+
     const slotsEl = document.createElement('div');
     slotsEl.className = 'sched-slots';
-    for (const iso of day.slots) {
+    day.slots.forEach((iso, i) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'sched-slot';
       b.dataset.iso = iso;
       b.textContent = fmtTime(iso, LA_TZ);
+      b.style.animationDelay = (i * 0.045) + 's';
       if (iso === selectedSlot) b.classList.add('on');
       b.addEventListener('click', () => selectSlot(iso, b));
       slotsEl.appendChild(b);
-    }
+    });
     timesCol.appendChild(slotsEl);
   }
 
