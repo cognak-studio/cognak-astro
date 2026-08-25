@@ -3531,6 +3531,34 @@ html.pv-grid .projects-list,
     color: rgba(255,255,255,0.6) !important;
 }
 
+/* -- Schedule nav (dark, purple-accented) -- moved here 2026-08-27 from
+   schedule.astro's own page-level <style is:inline> block, which rendered
+   too late in document parse order (near the end of body) to prevent a
+   real flash of the base pale .inner-page-nav background on first paint.
+   Same placement pattern as .studio-nav directly above -- this file loads
+   via a blocking <link> in <head>, before any body markup paints. */
+.home-bottom-bar.inner-page-nav.schedule-nav {
+    background: rgba(18, 17, 22, 0.62) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+}
+.schedule-nav .home-bottom-email,
+.schedule-nav .home-bottom-location,
+.schedule-nav .inner-nav-links a,
+.schedule-nav .pulse-dot {
+    color: #A9A3B8 !important;
+}
+.schedule-nav .home-bottom-email,
+.schedule-nav .inner-nav-links a {
+    transition: color var(--dur-s) var(--ease-standard);
+}
+@media (hover: hover) {
+.schedule-nav .home-bottom-email:hover,
+.schedule-nav .inner-nav-links a:hover {
+    color: #C79BFF !important;
+}
+}
+
 /* ── Inner page nav (Projects / Studio) ── */
 .home-bottom-bar.inner-page-nav {
     top: 0;

@@ -3538,7 +3538,7 @@ html.pv-grid .projects-list,
    Same placement pattern as .studio-nav directly above -- this file loads
    via a blocking <link> in <head>, before any body markup paints. */
 .home-bottom-bar.inner-page-nav.schedule-nav {
-    background: rgba(18, 17, 22, 0.62) !important;
+    background: rgba(18, 17, 22, 0.56) !important;
     -webkit-backdrop-filter: blur(12px) !important;
     backdrop-filter: blur(12px) !important;
 }
@@ -3546,7 +3546,7 @@ html.pv-grid .projects-list,
 .schedule-nav .home-bottom-location,
 .schedule-nav .inner-nav-links a,
 .schedule-nav .pulse-dot {
-    color: #A9A3B8 !important;
+    color: #BCB7C9 !important;
 }
 .schedule-nav .home-bottom-email,
 .schedule-nav .inner-nav-links a {
