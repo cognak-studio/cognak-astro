@@ -21,7 +21,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <main id="cognak-main"><section class="brief">
 
     <div id="step-pick">
-      <h1 class="headline">Good work starts with a good <span class="no-widow"><em>brief</em>.</span> Submit yours.</h1>
+      <h1 class="headline">Good work starts with a good <em>brief</em>. Submit yours.</h1>
       <p class="lede">The idea, the audience, the way it should feel. Give us the essentials and we'll have the sum of it before we ever get on a call.</p>
       <div class="picker rise" id="picker"></div>
     </div>
@@ -112,31 +112,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       /* Fixed 190px (not vh-based) so the headline text lands at 274px under
          the 84px nav clearance — the shared header position across
          projects/studio/privacy/colophon/brief. */
-      max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
+      max-width:clamp(680px, 62vw, 1440px); margin:0 auto; padding:190px 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
     /* Mobile: 100px under the 54px nav clearance = headline text at 154px,
        matching the other inner pages. The form step's backlink starts at the
        same spot. */
     @media (max-width:720px){ .brief{ padding-top:100px; } }
-    @media (min-width:960px){ .brief{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
-  /* 2026-08-27 round 16: standard-desktop width (<=1800px) is back to
-     exactly what it was before round 15 -- that attempt to fix ultra-wide
-     dead space (clamp(680px,62vw,1440px)) used a vw coefficient that's
-     SMALLER than 1040px at any viewport under ~1677px, so it shrank the
-     column on every normal desktop instead of just growing it on wide
-     ones (Pierce, 2026-08-27: "too skinny on standard desktop"). Fixed by
-     reverting the base rule above untouched and only growing beyond it
-     past 1800px -- the width the old margin-left clamp already topped out
-     at -- using calc() anchored at that exact point (100vw - 760px ==
-     1040px at vw=1800) so the column's width is CONTINUOUS across the
-     breakpoint, not a jump. */
-  @media (min-width:1800px){
-    .brief{
-      max-width:min(1440px, 100vw - 760px);
-      margin-left:min(240px, 180px + (100vw - 1800px) * 0.15);
-    }
-  }
+    @media (min-width:960px){ .brief{ margin-left:clamp(48px,9vw,220px); margin-right:auto; } }
     .brief .mono{ font-family:'Diatype Mono', monospace; }
 
     /* screen.css hides every <label> globally (Ninja Forms leftover:
@@ -1428,8 +1411,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var nav=document.querySelector('.home-bottom-bar.inner-page-nav');
       if(nav) bar.style.top=(Math.round(nav.getBoundingClientRect().height)+(top?26:14))+'px';
       /* Desktop top-bar test: pull the bar in to the form column. .brief is
-         offset by margin-left:clamp(48px,10vw,180px) (plus a wide-screen
-         growth rule past 1800px, see the .brief media query above) and padded 6vw at
+         offset by margin-left:clamp(48px,9vw,220px) and padded 6vw at
          >=960px, so the stylesheet's 6vw gutters would leave it floating wide
          of the questions it's measuring. Measured rather than duplicated in
          CSS so the two can't drift. Cleared below 960 (and off-test) so the

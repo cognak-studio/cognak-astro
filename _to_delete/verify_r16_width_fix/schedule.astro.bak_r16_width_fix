@@ -200,28 +200,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     --accent-soft:#C79BFF;
     --deep:#1B1424; --line:rgba(237,234,243,0.13); --line-strong:rgba(237,234,243,0.28);
     --placeholder:#8A8499; --ok:#7EE2A8; --err:#FF9E90;
-    max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
+    max-width:clamp(680px, 62vw, 1440px); margin:0 auto; padding:190px 6vw 22vh;
     color:var(--ink); font-family:'Diatype Variable', sans-serif;
   }
   @media (max-width:720px){ .schedule{ padding-top:100px; } }
-  @media (min-width:960px){ .schedule{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
-  /* 2026-08-27 round 16: standard-desktop width (<=1800px) is back to
-     exactly what it was before round 15 -- that attempt to fix ultra-wide
-     dead space (clamp(680px,62vw,1440px)) used a vw coefficient that's
-     SMALLER than 1040px at any viewport under ~1677px, so it shrank the
-     column on every normal desktop instead of just growing it on wide
-     ones (Pierce, 2026-08-27: "too skinny on standard desktop"). Fixed by
-     reverting the base rule above untouched and only growing beyond it
-     past 1800px -- the width the old margin-left clamp already topped out
-     at -- using calc() anchored at that exact point (100vw - 760px ==
-     1040px at vw=1800) so the column's width is CONTINUOUS across the
-     breakpoint, not a jump. */
-  @media (min-width:1800px){
-    .schedule{
-      max-width:min(1440px, 100vw - 760px);
-      margin-left:min(240px, 180px + (100vw - 1800px) * 0.15);
-    }
-  }
+  @media (min-width:960px){ .schedule{ margin-left:clamp(48px,9vw,220px); margin-right:auto; } }
 
   /* screen.css hides every <label> globally (a Ninja Forms leftover) — same
      restore /tools and /brief both need. */
