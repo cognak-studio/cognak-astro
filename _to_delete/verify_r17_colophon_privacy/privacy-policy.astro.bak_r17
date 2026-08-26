@@ -21,7 +21,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <div class="pp-gloss">We count visits, not people.</div>
       <p>We use Google Analytics (GA4) to collect anonymous, aggregate data about how visitors use this site: pages visited, session duration, and general geographic region. This data is never linked to any individual and is not sold or shared with third parties.</p>
       <p>We also run Google Ads to advertise our services. If you accept cookies, Google Ads may set cookies to measure whether an ad led to a visit or inquiry, and to improve the relevance of ads you see. No personally identifiable information is collected or shared.</p>
-      <p>You can opt out of Google Analytics tracking at any time using the <span class="no-widow"><a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a>.</span> You can manage Google ad personalization at <span class="no-widow"><a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>.</span></p>
+      <p>You can opt out of Google Analytics tracking at any time using the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a>. You can manage Google ad personalization at <a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>.</p>
 
       <h2>Cookies</h2>
       <div class="pp-gloss">Nothing is set until you say yes.</div>
@@ -74,7 +74,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <h2>Tools</h2>
       <div class="pp-gloss">Nothing you type into the generator leaves your browser.</div>
       <p>The barcode and QR generator at <a href="/tools/">cognak.com/tools</a> runs entirely in your browser. The numbers, URLs, and settings you enter are never sent to us or to anyone else, and the files you download are produced on your own machine. We never see them and we don't keep a copy. Our analytics record that the page was visited, never what was typed into it.</p>
-      <p>The generator is free and provided as-is, with no warranty of any kind. COGNAK doesn't issue UPC numbers; those come from <span class="no-widow"><a href="https://www.gs1us.org/upcs-barcodes-prefixes/how-to-get-a-upc-barcode" target="_blank" rel="noopener">GS1</a>.</span> How a file reproduces depends on your press, substrate, and scanner, which are outside our control. Always scan a printed proof before committing to a production run.</p>
+      <p>The generator is free and provided as-is, with no warranty of any kind. COGNAK doesn't issue UPC numbers; those come from <a href="https://www.gs1us.org/upcs-barcodes-prefixes/how-to-get-a-upc-barcode" target="_blank" rel="noopener">GS1</a>. How a file reproduces depends on your press, substrate, and scanner, which are outside our control. Always scan a printed proof before committing to a production run.</p>
 
       <h2>File Delivery</h2>
       <div class="pp-gloss">If we send you files, they expire and then they're gone.</div>
@@ -87,7 +87,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       <h2>Your Rights</h2>
       <div class="pp-gloss">Ask, and we delete it.</div>
-      <p>EU visitors may request access to or deletion of any personal data we hold by contacting <span class="no-widow"><a href="mailto:hello@cognak.com">hello@cognak.com</a>.</span></p>
+      <p>EU visitors may request access to or deletion of any personal data we hold by contacting <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
 
       <h2>Intellectual Property</h2>
       <div class="pp-gloss">The work here isn't yours to reuse.</div>
