@@ -112,14 +112,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       /* Fixed 190px (not vh-based) so the headline text lands at 274px under
          the 84px nav clearance — the shared header position across
          projects/studio/privacy/colophon/brief. */
-      max-width:clamp(680px, 62vw, 1440px); margin:0 auto; padding:190px 6vw 22vh;
+      max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
     /* Mobile: 100px under the 54px nav clearance = headline text at 154px,
        matching the other inner pages. The form step's backlink starts at the
        same spot. */
     @media (max-width:720px){ .brief{ padding-top:100px; } }
-    @media (min-width:960px){ .brief{ margin-left:clamp(48px,9vw,220px); margin-right:auto; } }
+    @media (min-width:960px){ .brief{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
     .brief .mono{ font-family:'Diatype Mono', monospace; }
 
     /* screen.css hides every <label> globally (Ninja Forms leftover:
@@ -1411,7 +1411,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       var nav=document.querySelector('.home-bottom-bar.inner-page-nav');
       if(nav) bar.style.top=(Math.round(nav.getBoundingClientRect().height)+(top?26:14))+'px';
       /* Desktop top-bar test: pull the bar in to the form column. .brief is
-         offset by margin-left:clamp(48px,9vw,220px) and padded 6vw at
+         offset by margin-left:clamp(48px,10vw,180px) and padded 6vw at
          >=960px, so the stylesheet's 6vw gutters would leave it floating wide
          of the questions it's measuring. Measured rather than duplicated in
          CSS so the two can't drift. Cleared below 960 (and off-test) so the

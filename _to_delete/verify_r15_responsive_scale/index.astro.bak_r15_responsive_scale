@@ -266,11 +266,11 @@ const toolsJsonLd = {
       --placeholder:#8A8499; --ok:#7EE2A8; --err:#FF9E90;
       /* Fixed 190px, matching the shared header position across
          projects/studio/privacy/colophon/brief. */
-      max-width:clamp(680px, 62vw, 1440px); margin:0 auto; padding:190px 6vw 22vh;
+      max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
       color:var(--ink); font-family:'Diatype Variable', sans-serif;
     }
     @media (max-width:720px){ .tools{ padding-top:100px; } }
-    @media (min-width:960px){ .tools{ margin-left:clamp(48px,9vw,220px); margin-right:auto; } }
+    @media (min-width:960px){ .tools{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
     .tools .mono{ font-family:'Diatype Mono', monospace; }
 
     /* screen.css hides every <label> globally (a Ninja Forms leftover). Restore

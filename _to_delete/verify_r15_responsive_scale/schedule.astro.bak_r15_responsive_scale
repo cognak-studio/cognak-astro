@@ -200,11 +200,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     --accent-soft:#C79BFF;
     --deep:#1B1424; --line:rgba(237,234,243,0.13); --line-strong:rgba(237,234,243,0.28);
     --placeholder:#8A8499; --ok:#7EE2A8; --err:#FF9E90;
-    max-width:clamp(680px, 62vw, 1440px); margin:0 auto; padding:190px 6vw 22vh;
+    max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
     color:var(--ink); font-family:'Diatype Variable', sans-serif;
   }
   @media (max-width:720px){ .schedule{ padding-top:100px; } }
-  @media (min-width:960px){ .schedule{ margin-left:clamp(48px,9vw,220px); margin-right:auto; } }
+  @media (min-width:960px){ .schedule{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
 
   /* screen.css hides every <label> globally (a Ninja Forms leftover) — same
      restore /tools and /brief both need. */
@@ -353,7 +353,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
      steps the real ones use, so "a line that fills more" has a stated
      meaning before anyone hovers a day. Static, not tier-driven; built
      in renderCalendar() right under the grid. */
-  .schedule .cal-legend{ display:flex; align-items:center; gap:7px; margin-top:1.6rem;
+  .schedule .cal-legend{ display:flex; align-items:center; gap:7px; margin-top:.9rem;
     font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.14em; text-transform:uppercase;
     color:var(--placeholder); }
   .schedule .cal-legend-gauge{ position:relative; width:3px; height:12px; border-radius:2px;
