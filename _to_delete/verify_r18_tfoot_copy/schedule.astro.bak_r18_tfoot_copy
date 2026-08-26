@@ -131,10 +131,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <p class="note" id="form-note" role="status"></p>
 
         <p class="tfoot">
-          Shoot us a prelim email if this is your first time working with
-          us. We generally book new projects 30–60 days out, and Fridays
-          are kept for studio work. If you can't find a slot that
-          works, <a href="mailto:hello@cognak.com">email us</a> and we'll help find a time.
+          This is for a conversation, not a project start. We're generally
+          booking new projects 30–60 days out, and Fridays are kept for
+          studio work, not calls. If none of this works for
+          you, <a href="mailto:hello@cognak.com">email us</a> and we'll find a time.
         </p>
       </div>
 
