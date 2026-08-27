@@ -2150,10 +2150,16 @@ html.home-scrolled #cognak-cookie {
 }
 /* The inactive word is taken out of flow so it can't widen the label. The
    ACTIVE one stays in flow so the label keeps a real line box (and therefore a
-   baseline) even before JS measures. */
+   baseline) even before JS measures.
+
+   Pinned RIGHT, not left: while hidden it's wider than the label and, pinned
+   left, its box ran ~20px past the viewport edge — html/body scroll-x is
+   visible, so the whole page could be nudged sideways. Overflow to the LEFT
+   never extends the scroll area in LTR, and the word is opacity:0 whenever
+   it's absolute, so the alignment itself is never visible (2026-08-27). */
 .hp-more-word--all {
     position: absolute;
-    left: 0;
+    right: 0;
     top: 0;
     opacity: 0;
     transform: translateY(6px);

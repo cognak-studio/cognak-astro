@@ -924,6 +924,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         return;
       }
       if (data && data.expired) {
+        // Clear the loading lede too — without this the page shows
+        // "Loading your files…" above the expired card forever.
+        $('receive-lede').textContent = 'These files aren\u2019t available anymore.';
         $('invalid-note').textContent = 'This link has expired. Ask COGNAK to send a new one.';
         showCard($('invalid'));
         return;
@@ -932,6 +935,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     if (!token) {
+      // Same fix as the expired branch: the lede otherwise keeps saying
+      // "Loading your files…" alongside the invalid-link card.
+      $('receive-lede').textContent = 'We couldn\u2019t find a delivery link.';
       showCard($('invalid'));
     } else {
       loadFiles();
