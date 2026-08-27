@@ -227,6 +227,16 @@ import '../styles/site.css';
   <link rel="author" type="text/plain" href="/humans.txt" />
   <link rel="preload" href={`${THEME}/assets/images/cognak-logo.svg`} as="image" type="image/svg+xml" />
   {heroPreload && <link rel="preload" href={heroPreload} as="image" fetchpriority="high" />}
+  {/* Fonts: all four faces paint above the fold on every page (Regular body,
+      Medium/Bold display, Mono nav-meta), so preload them all — ~194KB total —
+      instead of waiting for custom.css to be parsed before they're discovered.
+      `crossorigin` is REQUIRED even though the files are same-origin: font
+      fetches are CORS-mode, and a preload without it doesn't match the CSS's
+      request, so the browser downloads the file TWICE (2026-08-27). */}
+  <link rel="preload" href={`${THEME}/assets/fonts/diatype/ABCDiatype-Regular.woff2`} as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href={`${THEME}/assets/fonts/diatype/ABCDiatype-Medium.woff2`} as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href={`${THEME}/assets/fonts/diatype/ABCDiatype-Bold.woff2`} as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href={`${THEME}/assets/fonts/diatype/ABCDiatypeMono-Regular.woff2`} as="font" type="font/woff2" crossorigin />
 
   <script type="application/ld+json" is:inline set:html={JSON.stringify(professionalService)} />
   {jsonLd && <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)} />}
