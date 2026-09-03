@@ -13,7 +13,7 @@
  * and the "POST an arbitrary time outside business hours" abuse case.
  */
 import { getBusyIntervals, createBookingEvent } from './_lib/googleCalendar.mjs';
-import { isSlotStillOpen, DURATIONS, HORIZON_DAYS } from './_lib/scheduleSlots.mjs';
+import { checkSlot, DURATIONS, HORIZON_DAYS, leadTimeLabel } from './_lib/scheduleSlots.mjs';
 import { checkAndRecordAttempt } from './_lib/scheduleRateLimit.mjs';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -73,8 +73,22 @@ export default async function handler(req, res) {
     const timeMax = new Date(now.getTime() + (HORIZON_DAYS + 1) * 24 * 60 * 60 * 1000).toISOString();
     const busy = await getBusyIntervals(timeMin, timeMax);
 
-    if (!isSlotStillOpen({ startISO, durationMinutes: duration, busy, now })) {
-      return res.status(409).json({ error: 'That time was just booked. Please pick another.' });
+    // Why the reason matters: a page left open drifts out of date two ways —
+    // someone else books the slot, OR the minimum lead time catches up
+    // with it. Both used to say "that time was just booked", which is a lie in
+    // the second case and reads as a broken form. (Pierce, 2026-09-03.)
+    const check = checkSlot({ startISO, durationMinutes: duration, busy, now });
+    if (!check.ok) {
+      const messages = {
+        busy: 'That time was just booked. Please pick another.',
+        too_soon: 'That one\u2019s too close now \u2014 calls need '
+          + leadTimeLabel() + '\u2019 notice. Here\u2019s what\u2019s still open.',
+        outside: 'That time isn\u2019t bookable. Please pick one from the calendar.',
+      };
+      return res.status(409).json({
+        error: messages[check.reason] || messages.busy,
+        reason: check.reason,
+      });
     }
 
     const event = await createBookingEvent({

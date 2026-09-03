@@ -6,10 +6,10 @@
  * Mon-Thu/10-5/15-min-buffer rules in scheduleSlots.mjs over it. See that
  * file for the rules themselves; this handler is just HTTP plumbing.
  *
- * Response: { timeZone, durationMinutes, days: [{ date, weekday, slots }] }
+ * Response: { timeZone, durationMinutes, minLeadMinutes, days: [{ date, weekday, slots }] }
  */
 import { getBusyIntervals } from './_lib/googleCalendar.mjs';
-import { computeAvailableSlots, DURATIONS, HORIZON_DAYS, TIME_ZONE } from './_lib/scheduleSlots.mjs';
+import { computeAvailableSlots, DURATIONS, HORIZON_DAYS, MIN_LEAD_MINUTES, TIME_ZONE } from './_lib/scheduleSlots.mjs';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -32,7 +32,10 @@ export default async function handler(req, res) {
     // Slots are real availability, not static content — don't let any CDN or
     // browser cache them, or a booked slot could still show as open.
     res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).json({ timeZone: TIME_ZONE, durationMinutes, days });
+    // minLeadMinutes travels with the payload so the page can retire slots that
+    // slide inside the lead-time window while it sits open, instead of
+    // offering one the booking endpoint will refuse. (Pierce, 2026-09-03.)
+    return res.status(200).json({ timeZone: TIME_ZONE, durationMinutes, minLeadMinutes: MIN_LEAD_MINUTES, days });
   } catch (e) {
     console.error('schedule-availability failed', e);
     return res.status(502).json({ error: 'Could not load availability right now. Please try again shortly.' });

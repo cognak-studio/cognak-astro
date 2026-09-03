@@ -8,6 +8,9 @@
  *
  * Rules (Pierce, 2026-08-25): Mon–Thu only, no Friday calls, 10am–5pm
  * Pacific, 15 min buffer around existing events, 30 or 60 min calls.
+ * Minimum notice went 4 hours → 30 minutes (Pierce, 2026-09-03): 4 hours ruled
+ * out same-morning calls entirely, and it was the rule quietly retiring slots
+ * out from under an open page — see MIN_LEAD_MINUTES below.
  */
 
 export const TIME_ZONE = 'America/Los_Angeles';
@@ -15,7 +18,18 @@ export const ALLOWED_WEEKDAYS = [1, 2, 3, 4]; // Mon–Thu (JS getUTCDay: Sun=0)
 export const BUSINESS_START_HOUR = 10;
 export const BUSINESS_END_HOUR = 17;
 export const BUFFER_MINUTES = 15;
-export const MIN_LEAD_HOURS = 4;
+export const MIN_LEAD_MINUTES = 30;   // minimum notice before a call can start
+/** Legacy alias — the rule is authored in minutes now. */
+export const MIN_LEAD_HOURS = MIN_LEAD_MINUTES / 60;
+
+/** "30 minutes" / "4 hours" / "90 minutes" — for visitor-facing copy. */
+export function leadTimeLabel() {
+  if (MIN_LEAD_MINUTES % 60 === 0 && MIN_LEAD_MINUTES >= 60) {
+    const h = MIN_LEAD_MINUTES / 60;
+    return h + (h === 1 ? ' hour' : ' hours');
+  }
+  return MIN_LEAD_MINUTES + ' minutes';
+}
 export const SLOT_STEP_MINUTES = 30;
 export const HORIZON_DAYS = 28; // how many calendar days out to compute
 export const DURATIONS = [30, 60];
@@ -77,7 +91,7 @@ export function computeAvailableSlots({ busy, durationMinutes, now = new Date() 
     end: new Date(b.end).getTime() + bufferMs,
   }));
 
-  const earliestStart = now.getTime() + MIN_LEAD_HOURS * 60 * 60 * 1000;
+  const earliestStart = now.getTime() + MIN_LEAD_MINUTES * 60 * 1000;
   const today = getZonedParts(now, TIME_ZONE);
   const days = [];
 
@@ -116,8 +130,60 @@ export function computeAvailableSlots({ busy, durationMinutes, now = new Date() 
  * `durationMinutes` given the same busy list — schedule-book.js calls this
  * right before writing so a booking can only ever land on a slot the rules
  * actually produced (never an arbitrary client-supplied timestamp).
+ *
+ * Returns { ok: true } or { ok: false, reason }, where reason is one of:
+ *   'busy'     — the slot overlaps an event (or its buffer)
+ *   'too_soon' — inside the MIN_LEAD_MINUTES window (or already past)
+ *   'outside'  — not a slot these rules ever produce (wrong day, hour, or
+ *                not on the 30-min grid), i.e. a hand-crafted POST
+ *
+ * The reason matters: a stale page can offer a slot that has since slid
+ * inside the lead-time window, and telling that visitor "someone just
+ * booked it" is both wrong and confusing. (Pierce, 2026-09-03 — a 1:30pm
+ * slot showed as open on a page loaded ~4h15m earlier and was refused on
+ * submit, because by then it was under the 4-hour minimum.)
  */
-export function isSlotStillOpen({ startISO, durationMinutes, busy, now = new Date() }) {
-  const days = computeAvailableSlots({ busy, durationMinutes, now });
-  return days.some((d) => d.slots.includes(startISO));
+export function checkSlot({ startISO, durationMinutes, busy, now = new Date() }) {
+  if (!DURATIONS.includes(durationMinutes)) return { ok: false, reason: 'outside' };
+
+  const startMs = new Date(startISO).getTime();
+  if (isNaN(startMs)) return { ok: false, reason: 'outside' };
+  const endMs = startMs + durationMinutes * 60 * 1000;
+
+  // --- is this a slot the grid could ever produce? ---
+  const p = getZonedParts(new Date(startMs), TIME_ZONE);
+  const weekdayNum = new Date(Date.UTC(p.year, p.month - 1, p.day)).getUTCDay();
+  const mins = p.hour * 60 + p.minute;
+  const lastStartMins = (BUSINESS_END_HOUR - durationMinutes / 60) * 60;
+  const onGrid = (mins - BUSINESS_START_HOUR * 60) % SLOT_STEP_MINUTES === 0;
+  if (
+    !ALLOWED_WEEKDAYS.includes(weekdayNum) ||
+    mins < BUSINESS_START_HOUR * 60 ||
+    mins > lastStartMins ||
+    !onGrid ||
+    startMs > now.getTime() + HORIZON_DAYS * 24 * 60 * 60 * 1000
+  ) {
+    return { ok: false, reason: 'outside' };
+  }
+
+  // --- far enough out? ---
+  if (startMs < now.getTime() + MIN_LEAD_MINUTES * 60 * 1000) {
+    return { ok: false, reason: 'too_soon' };
+  }
+
+  // --- actually free, buffer included? ---
+  const bufferMs = BUFFER_MINUTES * 60 * 1000;
+  const clash = (busy || []).some((b) => {
+    const bStart = new Date(b.start).getTime() - bufferMs;
+    const bEnd = new Date(b.end).getTime() + bufferMs;
+    return startMs < bEnd && endMs > bStart;
+  });
+  if (clash) return { ok: false, reason: 'busy' };
+
+  return { ok: true };
+}
+
+/** Boolean shorthand for checkSlot(). */
+export function isSlotStillOpen(args) {
+  return checkSlot(args).ok;
 }

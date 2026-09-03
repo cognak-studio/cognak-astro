@@ -525,6 +525,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   let selectedSlot = null; // ISO string, or null
   let daysCache = [];
 
+  // Staleness guards (Pierce, 2026-09-03 — "someone tried to book 1:30 and it
+  // wouldn't let them"). The list used to be fetched once and then trusted for
+  // the life of the page, so it drifted out of date two ways: another booking
+  // landed, or the server's minimum lead time crept past a slot that was still
+  // on screen. minLeadMs mirrors MIN_LEAD_MINUTES and comes down with the
+  // availability payload, so the rule stays defined in one place;
+  // pruneStale() retires expired slots locally between fetches.
+  let minLeadMs = 30 * 60 * 1000;        // overwritten by the API response
+  let lastLoadedAt = 0;
+  const REFETCH_MS = 3 * 60 * 1000;      // background re-fetch while visible
+  const PRUNE_MS = 30 * 1000;            // local lead-time sweep
+
   // ---- Calendar state (2026-08-26: real month-grid picker, replacing the
   // old "every open day listed top to bottom" layout) -----------------
   const HORIZON_DAYS = 28; // mirrors api/_lib/scheduleSlots.mjs — keep in sync
@@ -614,6 +626,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     return new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'short', month: 'short', day: 'numeric' }).format(anchor);
   }
 
+  /**
+   * daysCache minus anything that's slipped inside the lead-time window since
+   * the last fetch. Everything that renders reads through this, so a slot the
+   * server would now refuse never stays clickable.
+   */
+  function visibleDays() {
+    const floor = Date.now() + minLeadMs;
+    const out = [];
+    for (const d of daysCache) {
+      const slots = d.slots.filter((iso) => new Date(iso).getTime() >= floor);
+      if (slots.length) out.push({ date: d.date, weekday: d.weekday, slots });
+    }
+    return out;
+  }
+
+  function slotIsLive(iso) {
+    return visibleDays().some((d) => d.slots.includes(iso));
+  }
+
+  /** Selection died under us (expired or taken) — keep their typed details,
+      just unhook the slot and say so. */
+  function dropSelection(msg) {
+    selectedSlot = null;
+    daysWrap.querySelectorAll('.sched-slot.on').forEach((el) => el.classList.remove('on'));
+    updateBookEnabled();
+    if (msg) setNote(msg, 'error');
+  }
+
   async function loadAvailability() {
     daysWrap.innerHTML = '<div class="sched-loading">Loading availability…</div>';
     selectedSlot = null;
@@ -626,23 +666,79 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       const json = await r.json().catch(() => null);
       if (!r.ok || !json) throw new Error((json && json.error) || 'Could not load availability.');
       daysCache = json.days || [];
+      if (typeof json.minLeadMinutes === 'number') minLeadMs = json.minLeadMinutes * 60 * 1000;
+      lastLoadedAt = Date.now();
       renderCalendar();
     } catch (e) {
       daysWrap.innerHTML = '<div class="sched-empty">Couldn’t load availability right now. '
         + '<button type="button" class="sched-retry" id="retry-btn">Try again</button></div>';
       const retry = $('retry-btn');
-      if (retry) retry.addEventListener('click', loadAvailability);
+      if (retry) retry.addEventListener('click', () => loadAvailability());
     }
   }
 
+  /**
+   * Quiet re-fetch: no loading wipe, no scroll jump, keeps whatever they've
+   * typed. Runs on a timer while the tab is visible and whenever it comes
+   * back to the foreground, so a page left open all morning stays honest.
+   * A failed refresh is a no-op — better a slightly stale list than an
+   * error state dropped on someone mid-form.
+   */
+  async function refreshAvailability() {
+    if (!confirmedView.hidden) return; // already booked; nothing to refresh
+    try {
+      const r = await fetch('/api/schedule-availability?duration=' + duration, { cache: 'no-store' });
+      const json = await r.json().catch(() => null);
+      if (!r.ok || !json || !json.days) return;
+      daysCache = json.days;
+      if (typeof json.minLeadMinutes === 'number') minLeadMs = json.minLeadMinutes * 60 * 1000;
+      lastLoadedAt = Date.now();
+      const lost = selectedSlot && !slotIsLive(selectedSlot);
+      renderCalendar();
+      if (lost) dropSelection('That time just went — pick another and you\u2019re set.');
+    } catch (e) { /* keep what we have */ }
+  }
+
+  /**
+   * Between fetches, retire slots the lead-time rule has caught up with. Pure
+   * local arithmetic, so it's cheap enough to run every 30s — but it only
+   * re-renders when the visible set actually changed, or it'd restart the
+   * slot buttons' entrance animation on every tick.
+   */
+  let lastPruneSig = '';
+  function visibleSig() {
+    return visibleDays().map((d) => d.date + ':' + d.slots.length).join('|');
+  }
+  function pruneStale() {
+    if (!confirmedView.hidden || !daysCache.length) return;
+    if (visibleSig() === lastPruneSig) return;
+    const lost = selectedSlot && !slotIsLive(selectedSlot);
+    renderCalendar();
+    if (lost) dropSelection('That time\u2019s too close now — pick another and you\u2019re set.');
+  }
+
+  setInterval(pruneStale, PRUNE_MS);
+  setInterval(() => {
+    if (document.visibilityState === 'visible') refreshAvailability();
+  }, REFETCH_MS);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - lastLoadedAt > 60000) refreshAvailability();
+  });
+  window.addEventListener('focus', () => {
+    if (Date.now() - lastLoadedAt > 60000) refreshAvailability();
+  });
+
   function renderCalendar() {
-    if (!daysCache.length) {
+    // Read through visibleDays(), never daysCache directly — see pruneStale().
+    const days = visibleDays();
+    lastPruneSig = days.map((d) => d.date + ':' + d.slots.length).join('|');
+    if (!days.length) {
       daysWrap.innerHTML = '<div class="sched-empty">Nothing open in the next few weeks. '
         + '<a href="mailto:hello@cognak.com">Email us</a> and we\u2019ll find a time.</div>';
       return;
     }
 
-    const availByDate = new Map(daysCache.map((d) => [d.date, d.slots]));
+    const availByDate = new Map(days.map((d) => [d.date, d.slots]));
     const todayKey = laTodayKey();
     const minMonth = keyParts(todayKey);
     const maxMonth = shiftKey(todayKey, HORIZON_DAYS - 1);
@@ -663,7 +759,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (availByDate.has(todayKey)) {
         selectedDate = todayKey;
       } else {
-        const soonest = daysCache.map((d) => d.date).sort()[0];
+        const soonest = days.map((d) => d.date).sort()[0];
         if (soonest) selectedDate = soonest;
       }
       if (selectedDate) {
@@ -731,7 +827,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     const total = daysInMonth(calCursor.y, calCursor.m);
-    const maxSlotCount = Math.max(1, ...daysCache.map((d) => d.slots.length));
+    const maxSlotCount = Math.max(1, ...days.map((d) => d.slots.length));
     for (let d = 1; d <= total; d++) {
       const dateKey = calCursor.y + '-' + pad2(calCursor.m) + '-' + pad2(d);
       const btn = document.createElement('button');
@@ -814,7 +910,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (!timesCol) return;
     timesCol.innerHTML = '';
 
-    const day = daysCache.find((d) => d.date === dateKey);
+    const day = visibleDays().find((d) => d.date === dateKey);
     if (!day) return;
 
     const label = document.createElement('div');
@@ -878,6 +974,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   bookBtn.addEventListener('click', async () => {
     if (bookBtn.disabled || !selectedSlot) return;
+    // Cheap last look before the round-trip: if the lead-time sweep hasn't
+    // fired yet, catch it here rather than letting the server refuse it.
+    if (!slotIsLive(selectedSlot)) {
+      dropSelection('That time\u2019s too close now — pick another and you\u2019re set.');
+      refreshAvailability();
+      return;
+    }
     bookBtn.disabled = true;
     const original = bookBtn.textContent;
     bookBtn.textContent = 'Booking…';
@@ -902,7 +1005,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         setNote((json && json.error) || 'Something went wrong. Please try again.', 'error');
         bookBtn.disabled = false;
         bookBtn.textContent = original;
-        if (r.status === 409) loadAvailability(); // someone else took it — refresh the list
+        // 409 = the slot went stale between render and submit (taken, or the
+        // lead-time window caught up with it — json.reason says which, and the
+        // server's message is already worded for that case). Refresh quietly so
+        // their typed details survive.
+        if (r.status === 409) {
+          if (json && json.reason) dropSelection();
+          refreshAvailability();
+        }
         return;
       }
 
