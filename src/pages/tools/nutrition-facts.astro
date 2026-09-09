@@ -1,0 +1,716 @@
+---
+/**
+ * /tools/nutrition-facts — free FDA Nutrition Facts panel generator
+ * (2026-09-09). Second entry in /tools, same shell and palette as the barcode
+ * page, same promise: real vector output, type as outlines, nothing uploaded.
+ *
+ * The regulation lives in src/lib/nfp/rules.js (Daily Values, rounding
+ * increments, nutrient order, package tiers); src/lib/nfp/layout.js sets the
+ * panel in points and hands back a doc the barcode emitters can write. The
+ * face is Arimo (SIL OFL), metric-compatible with the Helvetica/Arial the FDA
+ * sample labels use, pre-extracted to outlines in src/lib/nfp/arimo.js.
+ *
+ * ⚑ SAME PRIVACY CLAIM AS /tools: the copy says nothing typed here leaves the
+ * browser. Never add an analytics event that carries a field value — a
+ * nutrient amount, a serving size, a package dimension. Event NAMES and
+ * counts are fine; payloads are not.
+ *
+ * Scope, stated on the page: US FDA panel only (no Canada, no Supplement
+ * Facts, no infant/child formats, no aggregate variety-pack display). The
+ * tool sets the format; the numbers and the compliance are the user's.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebApplication',
+      '@id': 'https://cognak.com/tools/nutrition-facts/#app',
+      name: 'Free Nutrition Facts Label Generator (SVG, PDF, EPS)',
+      alternateName: ['FDA nutrition facts panel generator', 'nutrition label maker for print'],
+      url: 'https://cognak.com/tools/nutrition-facts/',
+      applicationCategory: 'DesignApplication',
+      applicationSubCategory: 'Nutrition Label Generator',
+      operatingSystem: 'Any (runs in the browser)',
+      browserRequirements: 'Requires JavaScript. No account, no upload, no server round-trip.',
+      permissions: 'none',
+      isAccessibleForFree: true,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', availability: 'https://schema.org/InStock' },
+      featureList: [
+        'FDA 2016 Nutrition Facts panel in standard vertical, side-by-side, tabular and linear formats',
+        'Dual-column panels: per serving and per container, or as packaged and as prepared',
+        'Simplified format with the "Not a significant source of" statement',
+        'Rounding and %Daily Value per 21 CFR 101.9',
+        'Package size decides the format tier; enter dimensions or pick a format directly',
+        'Vector downloads: SVG, PDF and EPS with type converted to outlines',
+        'Runs entirely in the browser, so nothing you type is uploaded',
+      ],
+      description: 'A free FDA Nutrition Facts label generator for print. Enter your numbers and package size, get a panel in the correct format, rounded per 21 CFR 101.9, as real vector files (SVG, PDF, EPS). Nothing you type leaves your browser.',
+      publisher: { '@type': 'Organization', name: 'COGNAK', url: 'https://cognak.com/' },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'COGNAK', item: 'https://cognak.com/' },
+        { '@type': 'ListItem', position: 2, name: 'Tools', item: 'https://cognak.com/tools/' },
+        { '@type': 'ListItem', position: 3, name: 'Nutrition Facts Generator', item: 'https://cognak.com/tools/nutrition-facts/' },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout
+  page="tools"
+  title="Free Nutrition Facts Label Generator (SVG, PDF, EPS) | COGNAK"
+  description="Free FDA Nutrition Facts panel generator for print. Vertical, tabular, linear and dual-column formats, rounded per 21 CFR 101.9, downloaded as real vector files. No signup, and nothing you type leaves your browser."
+  ogUrl="https://cognak.com/tools/nutrition-facts/"
+  jsonLd={jsonLd}
+  pageBg="#17151A"
+>
+  <canvas id="tools-lattice" aria-hidden="true"></canvas>
+
+  <main id="cognak-main"><section class="tools nfp">
+
+    <h1 class="headline tools-headline">
+      A <em>Nutrition Facts</em> panel set to the regulation, not to a template.
+    </h1>
+    <p class="lede tools-lede">
+      Enter the numbers from your lab report and the size of your package.
+      The tool rounds every value the way 21 CFR 101.9 says to, picks the
+      format the package qualifies for, and hands back the panel as real
+      vector files with the type converted to outlines. Nothing you type
+      here leaves the browser.
+    </p>
+
+    <div class="tcard rise" id="tcard">
+
+      <!-- ----------------------------------------------------- package --- -->
+      <div class="group">
+        <div class="group-title">Package</div>
+        <p class="q-sub group-note">The FDA decides which formats you may use by the total surface area available for labeling, not by the panel itself. Enter the package and the tool works it out, or skip this and choose a format below.</p>
+
+        <div class="field">
+          <label class="q" for="pkg-shape">
+            <span class="q-title">Package shape</span>
+          </label>
+          <div class="selwrap">
+            <select class="sel" id="pkg-shape">
+              <option value="box">Box or carton — length, width, height</option>
+              <option value="cyl">Can, jar or bottle — diameter, height</option>
+              <option value="bag">Bag or pouch — width, height, two faces</option>
+              <option value="area">I know the labeling area</option>
+              <option value="skip" selected>Skip — I'll pick the format myself</option>
+            </select>
+            <span class="selchev" aria-hidden="true"><svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5 6 6.5 11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+        </div>
+
+        <div class="field trio" id="pkg-dims" hidden>
+          <div class="third" data-dim="a"><label class="q" for="pkg-a"><span class="q-title" id="pkg-a-label">Length</span></label>
+            <div class="suffixed"><input class="txt" id="pkg-a" type="number" min="0" step="0.01" value="" /><span class="suffix">in</span></div></div>
+          <div class="third" data-dim="b"><label class="q" for="pkg-b"><span class="q-title" id="pkg-b-label">Width</span></label>
+            <div class="suffixed"><input class="txt" id="pkg-b" type="number" min="0" step="0.01" value="" /><span class="suffix">in</span></div></div>
+          <div class="third" data-dim="c"><label class="q" for="pkg-c"><span class="q-title" id="pkg-c-label">Height</span></label>
+            <div class="suffixed"><input class="txt" id="pkg-c" type="number" min="0" step="0.01" value="" /><span class="suffix">in</span></div></div>
+        </div>
+
+        <div class="field" id="pkg-vspace" hidden>
+          <label class="q" for="pkg-v">
+            <span class="q-title">Continuous vertical space for the panel</span>
+            <span class="q-sub">Optional. The tallest unbroken run the panel could occupy. Under 3 inches, a package over 40 sq in may use the tabular format.</span>
+          </label>
+          <div class="suffixed suffixed--narrow"><input class="txt" id="pkg-v" type="number" min="0" step="0.05" value="" /><span class="suffix">in</span></div>
+        </div>
+
+        <p class="note" id="pkg-note"></p>
+      </div>
+
+      <!-- ------------------------------------------------------ format --- -->
+      <div class="group">
+        <div class="group-title">Format</div>
+
+        <div class="field">
+          <label class="q" for="fmt-select">
+            <span class="q-title">Panel format</span>
+            <span class="q-sub">Auto follows the package. Choose directly if you already know which one you need.</span>
+          </label>
+          <div class="selwrap">
+            <select class="sel" id="fmt-select">
+              <option value="auto">Auto — from the package above</option>
+              <option value="vertical">Standard vertical</option>
+              <option value="vertical-side">Vertical, vitamins and minerals side by side</option>
+              <option value="tabular">Tabular (horizontal)</option>
+              <option value="linear">Linear (running text)</option>
+            </select>
+            <span class="selchev" aria-hidden="true"><svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5 6 6.5 11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <p class="note" id="fmt-note"></p>
+        </div>
+
+        <div class="field pair">
+          <div class="half">
+            <label class="q" for="cols-select">
+              <span class="q-title">Columns</span>
+              <span class="q-sub">Two columns are required when the container holds 2 to 3 servings.</span>
+            </label>
+            <div class="selwrap">
+              <select class="sel" id="cols-select">
+                <option value="auto">Auto — from servings per container</option>
+                <option value="single">Single column</option>
+                <option value="container">Per serving and per container</option>
+                <option value="prepared">As packaged and as prepared</option>
+              </select>
+              <span class="selchev" aria-hidden="true"><svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5 6 6.5 11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>
+          </div>
+          <div class="half" id="tier-wrap">
+            <label class="q" for="tier-select">
+              <span class="q-title">Type-size tier</span>
+              <span class="q-sub">Set by the package. Override only if you know why.</span>
+            </label>
+            <div class="selwrap">
+              <select class="sel" id="tier-select">
+                <option value="auto">Auto — from the package</option>
+                <option value="standard">Standard — over 40 sq in</option>
+                <option value="small">Small — 40 sq in or less</option>
+                <option value="tiny">Very small — under 12 sq in</option>
+              </select>
+              <span class="selchev" aria-hidden="true"><svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5 6 6.5 11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field pair" id="colheads" hidden>
+          <div class="half"><label class="q" for="colhead-1"><span class="q-title">First column heading</span></label>
+            <input class="txt" id="colhead-1" type="text" value="As packaged" /></div>
+          <div class="half"><label class="q" for="colhead-2"><span class="q-title">Second column heading</span></label>
+            <input class="txt" id="colhead-2" type="text" value="As prepared" /></div>
+        </div>
+
+        <div class="field" id="linear-width" hidden>
+          <label class="q" for="lin-w"><span class="q-title">Linear panel width</span><span class="q-sub">The text wraps to this measure.</span></label>
+          <div class="suffixed suffixed--narrow"><input class="txt" id="lin-w" type="number" min="1.5" max="8" step="0.1" value="3.5" /><span class="suffix">in</span></div>
+        </div>
+      </div>
+
+      <!-- ----------------------------------------------------- serving --- -->
+      <div class="group">
+        <div class="group-title">Serving</div>
+        <div class="field pair">
+          <div class="half">
+            <label class="q" for="servings"><span class="q-title">Servings per container</span><span class="q-sub">Between 2 and 5 it rounds to the nearest half and gets an "about".</span></label>
+            <input class="txt" id="servings" type="number" min="0" step="0.1" value="8" />
+          </div>
+          <div class="half">
+            <label class="q" for="serving-size"><span class="q-title">Serving size</span><span class="q-sub">Household measure, then the metric weight in parentheses.</span></label>
+            <input class="txt" id="serving-size" type="text" value="2/3 cup (55g)" spellcheck="false" />
+          </div>
+        </div>
+      </div>
+
+      <!-- --------------------------------------------------- nutrients --- -->
+      <div class="group">
+        <div class="group-title">Nutrients, per serving</div>
+        <p class="q-sub group-note">Enter unrounded values from your analysis. The column on the right shows what will print; %DV is calculated from the unrounded amount.</p>
+        <div class="ntable" id="ntable">
+          <div class="nhead" id="nhead"><span>Nutrient</span><span>Per serving</span><span class="nhead-2" hidden>Second column</span><span>Prints as</span></div>
+          <!-- rows are built by the script from the nutrient table -->
+        </div>
+        <details class="more" id="more">
+          <summary>More nutrients</summary>
+          <p class="q-sub">Voluntary declarations. Tick one to add its row; it prints in the order the regulation lists.</p>
+          <div class="pills" id="vol-pills"></div>
+        </details>
+      </div>
+
+      <!-- ----------------------------------------------------- options --- -->
+      <div class="group">
+        <div class="group-title">Options</div>
+        <div class="field">
+          <label class="check"><input type="checkbox" id="opt-simplified" /> <span>Simplified format</span></label>
+          <p class="note" id="simp-note"></p>
+        </div>
+        <div class="field">
+          <label class="check"><input type="checkbox" id="opt-footnote" checked /> <span>Include the Daily Value footnote</span></label>
+          <p class="note" id="foot-note"></p>
+        </div>
+        <div class="field">
+          <label class="q" for="opt-scale"><span class="q-title">Scale</span><span class="q-sub">100% is the FDA's minimum type sizes for the tier. Larger is always permitted.</span></label>
+          <div class="suffixed suffixed--narrow"><input class="txt" id="opt-scale" type="number" min="100" max="250" step="5" value="100" /><span class="suffix">%</span></div>
+        </div>
+      </div>
+
+      <!-- ------------------------------------------------------- proof --- -->
+      <div class="group">
+        <div class="group-title">Proof</div>
+        <div class="proof mode-nfp" id="proof" aria-live="polite"></div>
+        <p class="meta mono" id="meta"></p>
+      </div>
+
+      <div class="actions" id="actions">
+        <button type="button" class="btn" data-fmt="svg"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>SVG</button>
+        <button type="button" class="btn" data-fmt="pdf"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>PDF</button>
+        <button type="button" class="btn" data-fmt="eps"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>EPS</button>
+        <span class="actions-note mono">true vector, type as outlines</span>
+      </div>
+    </div>
+
+    <p class="tfoot">
+      Built to 21 CFR 101.9 as amended by the FDA's 2016 final rule, the
+      version in force since 2020: the fifteen mandatory nutrients, the
+      current Daily Values, the rounding increments in paragraph (c), the
+      2–3 serving dual-column rule in (e), the simplified format in (f) and the
+      small-package provisions in (j)(13). Type sizes are the regulation's
+      minimums for each tier, at the proportions of the FDA's own sample
+      labels; the bars are 7 and 3 point, the hairlines half a point. The face
+      is Arimo, an open-license design metrically identical to the Helvetica
+      the samples are set in, exported as outlines so nothing needs to be
+      installed or embedded. US FDA panels only — not Canada's Nutrition
+      Facts table, not Supplement Facts, not the infant or child formats, not
+      the aggregate display for variety packs. The tool sets the format; the
+      numbers, the serving size and the compliance are yours, and a regulatory
+      reviewer should see the label before it prints. Provided as-is, with no
+      warranty. The <a href="/tools">UPC and QR generator</a> works the same way.
+    </p>
+
+  </section></main>
+
+  <style is:inline>
+    html, body { background-color:#17151A !important; }
+    #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
+    #tools-lattice{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0;
+      pointer-events:none; opacity:0; transition:opacity 1.4s var(--ease-standard); }
+    #tools-lattice.is-in{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){ #tools-lattice{ display:none; } }
+
+    /* Same colorway and card as /tools (see that page's :root note for the
+       contrast figures); only the nutrient table and the checkboxes are new. */
+    .tools {
+      --bg:#17151A;
+      --card:rgba(33,31,40,0.90); --field:rgba(0,0,0,0.30); --field-focus:rgba(0,0,0,0.42);
+      --ink:#EDEAF3; --ink-soft:#A9A3B8; --accent:#B47CFF; --accent-hi:#C79BFF;
+      --accent-soft:#B0A3CF;
+      --deep:#1B1424; --line:rgba(237,234,243,0.13); --line-strong:rgba(237,234,243,0.28);
+      --placeholder:#8A8499; --ok:#7EE2A8; --err:#FF9E90; --warn:#FFC98A;
+      max-width:1040px; margin:0 auto; padding:190px 6vw 22vh;
+      color:var(--ink); font-family:'Diatype Variable', sans-serif;
+    }
+    @media (max-width:720px){ .tools{ padding-top:100px; } }
+    @media (min-width:960px){ .tools{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
+    @media (min-width:1800px){
+      .tools{ max-width:min(1440px, 100vw - 760px); margin-left:min(240px, 180px + (100vw - 1800px) * 0.15); }
+    }
+    .tools .mono{ font-family:'Diatype Mono', monospace; }
+    .tools label.q, .tools legend.q, .tools label.check{ display:block !important; }
+    .tools label.pill{ display:inline-flex !important; align-items:center; }
+
+    .tools .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
+      letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+    .tools .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
+    .tools .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
+    @media (max-width:720px){ .tools .headline{ font-size:clamp(24px,7vw,42px); } .tools .lede{ margin-left:0; } }
+    html.js .tools-headline, html.js .tools-lede{ opacity:0; }
+    @media (prefers-reduced-motion:reduce){ html.js .tools-headline, html.js .tools-lede{ opacity:1; } }
+    .tools-lede .stagger-word{ transform:none; transition:opacity var(--dur-xl) var(--ease-standard); }
+
+    .tools .tcard{ background:var(--card); border-radius:10px; padding:34px 34px 30px; box-shadow:0 2px 18px rgba(0,0,0,.28); }
+    @media (max-width:600px){ .tools .tcard{ padding:24px 20px 22px; } }
+    .tools .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
+    .tools .group:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
+    .tools .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
+      text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; }
+    .tools .group-note{ margin:-1rem 0 1.8rem; }
+
+    .tools .field{ margin-bottom:2rem; }
+    .tools .field:last-child{ margin-bottom:0; }
+    .tools .field[hidden]{ display:none; }
+    .tools .q{ display:block; margin-bottom:.85rem; padding:0; }
+    .tools .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
+    .tools .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:60ch; }
+    .tools .q-sub a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset); text-decoration-thickness:1px; }
+    .tools .pair{ display:flex; gap:20px; }
+    .tools .half{ flex:1 1 0; min-width:0; }
+    .tools .trio{ display:flex; gap:20px; }
+    .tools .third{ flex:1 1 0; min-width:0; }
+    .tools .third[hidden]{ display:none; }
+    @media (max-width:600px){ .tools .pair, .tools .trio{ flex-direction:column; gap:1.6rem; } }
+
+    .tools .txt{
+      width:100%; box-sizing:border-box; margin:0;
+      background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
+      color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none;
+      -moz-appearance:textfield; }
+    .tools .txt::-webkit-outer-spin-button, .tools .txt::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    .tools .txt::placeholder{ color:var(--placeholder); }
+    .tools .txt:focus{ border-color:var(--accent); background:var(--field-focus); color:var(--ink); }
+    .tools .txt.is-error{ border-color:var(--err); }
+    .tools a:focus-visible, .tools button:focus-visible, .tools input:focus-visible,
+    .tools select:focus-visible, .tools summary:focus-visible, .tools [tabindex]:focus-visible{ outline-color:var(--accent) !important; }
+
+    .tools .selwrap{ position:relative; }
+    .tools .sel{
+      width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;
+      background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
+      color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 46px 14px 16px;
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none; cursor:pointer; }
+    .tools .sel:focus{ border-color:var(--accent); background:var(--field-focus); }
+    .tools .sel option{ background:#1E1C24; color:#EDEAF3; }
+    .tools .selchev{ position:absolute; right:17px; top:50%; transform:translateY(-50%); color:var(--accent); pointer-events:none; display:flex; }
+    .tools .suffixed{ position:relative; }
+    .tools .suffixed--narrow{ max-width:220px; }
+    .tools .suffix{ position:absolute; right:16px; top:50%; transform:translateY(-50%);
+      font-family:'Diatype Mono', monospace; font-size:.8rem; color:var(--ink-soft); pointer-events:none; }
+    .tools .suffixed .txt{ padding-right:46px; }
+    .tools .note{ margin:.7rem 0 0; font-size:.84rem; line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
+    .tools .note:empty{ min-height:0; margin:0; }
+    .tools .note.is-error{ color:var(--err); }
+    .tools .note.is-ok{ color:var(--ok); }
+    .tools .note.is-warn{ color:var(--warn); }
+
+    /* ------------------------------------------------------ checkboxes --- */
+    .tools .check{ display:flex !important; align-items:center; gap:.75rem; cursor:pointer; font-size:1.08rem; font-weight:500; color:var(--ink); margin:0; }
+    .tools .check input{ appearance:none; -webkit-appearance:none; width:20px; height:20px; margin:0; border:1px solid var(--line-strong);
+      border-radius:5px; background:var(--field); display:inline-grid; place-content:center; cursor:pointer; flex:0 0 auto;
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
+    .tools .check input::before{ content:''; width:10px; height:10px; border-radius:2px; background:var(--deep); transform:scale(0); transition:transform var(--dur-xs) var(--ease-press); }
+    .tools .check input:checked{ background:var(--accent); border-color:var(--accent); }
+    .tools .check input:checked::before{ transform:scale(1); }
+    .tools .check input:disabled{ opacity:.35; cursor:not-allowed; }
+    .tools .check:has(input:disabled){ color:var(--ink-soft); cursor:not-allowed; }
+
+    /* --------------------------------------------------- nutrient table --- */
+    .tools .ntable{ display:grid; grid-template-columns:minmax(0,1.6fr) 150px 150px minmax(0,1fr); column-gap:14px; row-gap:0; align-items:center; }
+    .tools .ntable.one-col{ grid-template-columns:minmax(0,1.6fr) 150px minmax(0,1fr); }
+    .tools .ntable.one-col .col2{ display:none; }
+    .tools .nhead{ display:contents; }
+    .tools .nhead span{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--placeholder); padding-bottom:.9rem; }
+    .tools .nhead span[hidden]{ display:none; }
+    .tools .nrow{ display:contents; }
+    .tools .nrow > *{ border-top:1px solid var(--line); padding:9px 0; }
+    .tools .nrow .nlabel{ font-size:.98rem; color:var(--ink); }
+    .tools .nrow.lvl1 .nlabel{ padding-left:18px; color:var(--ink-soft); }
+    .tools .nrow.lvl2 .nlabel{ padding-left:36px; color:var(--ink-soft); }
+    .tools .nrow.calories .nlabel{ font-weight:500; }
+    .tools .nrow.micro-first > *{ border-top:1px solid var(--line-strong); }
+    .tools .nrow .txt{ padding:9px 40px 9px 12px; font-size:.95rem; }
+    .tools .nrow .suffix{ right:12px; font-size:.72rem; }
+    .tools .nrow .prints{ font-family:'Diatype Mono', monospace; font-size:.78rem; letter-spacing:.03em; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tools .nrow .prints b{ font-weight:500; color:var(--ink); }
+    .tools .nrow .prints .pct{ color:var(--accent-hi); margin-left:.6em; }
+    .tools .nrow[hidden]{ display:none; }
+    @media (max-width:600px){
+      .tools .ntable, .tools .ntable.one-col{ grid-template-columns:minmax(0,1fr) 120px; }
+      .tools .nhead span:nth-child(n+3){ display:none; }
+      .tools .nrow .prints{ grid-column:1 / -1; border-top:none; padding-top:0; margin-top:-6px; padding-left:0; }
+      .tools .nrow .col2{ grid-column:2; border-top:none; padding-top:0; }
+      .tools .ntable.one-col .col2{ display:none; }
+    }
+    .tools .more{ margin-top:1.6rem; }
+    .tools .more summary{ cursor:pointer; font-size:1rem; font-weight:500; color:var(--ink); list-style:none; display:inline-flex; align-items:center; gap:.5rem; }
+    .tools .more summary::-webkit-details-marker{ display:none; }
+    .tools .more summary::before{ content:''; width:8px; height:8px; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:rotate(-45deg); transition:transform var(--dur-s) var(--ease-standard); }
+    .tools .more[open] summary::before{ transform:rotate(45deg); }
+    .tools .more .q-sub{ margin:.6rem 0 1rem; }
+
+    /* ----------------------------------------------------------- pills --- */
+    .tools .pills{ display:flex; flex-wrap:wrap; gap:10px; }
+    .tools .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
+      border-radius:999px; padding:9px 16px; font-size:.9rem; color:var(--ink); background:var(--field);
+      transition:transform var(--dur-xs) var(--ease-press), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
+    .tools .pill:hover{ border-color:var(--ink); }
+    .tools .pill:active{ transform:scale(.96); }
+    .tools .pill input{ position:absolute; opacity:0; pointer-events:none; }
+    .tools .pill.on{ border-color:var(--accent); color:var(--deep); background:var(--accent); font-weight:500; }
+
+    /* ----------------------------------------------------------- proof --- */
+    .tools .proof{ background:#FFFFFF; border-radius:6px; padding:30px 32px; display:flex; align-items:center; justify-content:center; min-height:180px;
+      box-shadow:0 12px 40px rgba(0,0,0,.34); overflow:auto; }
+    .tools .proof svg{ display:block; height:auto; max-width:100%; }
+    .tools .proof.mode-nfp svg{ width:auto; }
+    .tools .proof.is-empty{ background:var(--field); box-shadow:none; color:var(--placeholder); font-size:.88rem; font-family:'Diatype Mono', monospace; letter-spacing:.06em; }
+    .tools .meta{ margin:1rem 0 0; font-size:.74rem; line-height:1.6; letter-spacing:.04em; color:var(--ink-soft); min-height:2.4em; }
+    .tools .meta .warn{ color:var(--warn); }
+
+    /* --------------------------------------------------------- actions --- */
+    .tools .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem; display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .tools .btn{ font-family:inherit; font-size:1rem; font-weight:500; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
+      border-radius:999px; padding:14px 28px; background:none; color:var(--ink); border:1px solid var(--line-strong);
+      transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
+    .tools .btn-ico{ display:block; flex:0 0 auto; }
+    .tools .btn:hover:not(:disabled){ background:var(--accent); border-color:var(--accent); color:var(--deep); box-shadow:0 0 24px rgba(180,124,255,.34); }
+    .tools .btn:active:not(:disabled){ transform:scale(.98); }
+    .tools .btn:disabled{ opacity:.32; cursor:not-allowed; }
+    .tools .actions-note{ margin-left:auto; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--placeholder); }
+    @media (max-width:600px){
+      .tools .actions-note{ display:none; }
+      .tools .actions{ gap:8px; flex-wrap:nowrap; }
+      .tools .btn{ flex:1 1 0; padding:14px 6px; font-size:.94rem; gap:.45rem; }
+    }
+
+    .tools .tfoot{ margin:2.6rem 0 0; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
+    .tools .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset); text-decoration-thickness:1px; }
+    @media (hover:hover){ .tools .tfoot a:hover, .tools .q-sub a:hover{ color:var(--accent); } }
+
+    .tools .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard); }
+    .tools .rise.in{ opacity:1; transform:none; }
+    @media (prefers-reduced-motion:reduce){ .tools .rise{ opacity:1; transform:none; transition:none; } }
+
+    .home-bottom-bar.inner-page-nav.tools-nav{ background:rgba(18,17,22,0.62) !important; -webkit-backdrop-filter:blur(12px) !important; backdrop-filter:blur(12px) !important; }
+    .tools-nav .home-bottom-email, .tools-nav .home-bottom-location, .tools-nav .inner-nav-links a, .tools-nav .pulse-dot{ color:#A9A3B8 !important; }
+    .tools-nav .home-bottom-email, .tools-nav .inner-nav-links a{ transition:color var(--dur-s) var(--ease-standard); }
+    @media (hover:hover){ .tools-nav .home-bottom-email:hover, .tools-nav .inner-nav-links a:hover{ color:#C79BFF !important; } }
+  </style>
+
+  <script>
+    import { layout, NUTRIENTS } from '../../lib/nfp/layout.js';
+    import { declare, roundCalories, tierFor, isInsignificant, SIMPLIFIED_POOL, byKey } from '../../lib/nfp/rules.js';
+    import { toSvg, toPdf, toEps } from '../../lib/barcode/emit.js';
+    import { initLattice } from '../../lib/tools-background.js';
+
+    initLattice(document.getElementById('tools-lattice'));
+
+    const EMITTERS = {
+      svg: { emit: toSvg, mime: 'image/svg+xml' },
+      pdf: { emit: toPdf, mime: 'application/pdf' },
+      eps: { emit: toEps, mime: 'application/postscript' },
+    };
+    const $ = (id) => document.getElementById(id);
+    const num = (v, fallback = 0) => { const n = parseFloat(v); return Number.isFinite(n) ? n : fallback; };
+    const mmToIn = (mm) => (mm / 25.4).toFixed(2);
+
+    /* --------------------------------------------------- nutrient rows --- */
+    // The FDA sample label's numbers, so the page opens on a real panel.
+    const SAMPLE = { calories: 230, fat: 8, sat: 1, trans: 0, chol: 0, sodium: 160, carb: 37, fiber: 4, sugars: 12, addedSugars: 10, protein: 3, vitD: 2, calcium: 260, iron: 8, potassium: 235 };
+
+    const ntable = $('ntable');
+    const rowEls = {};
+    function addRow(key, label, unit, level, extraClass = '') {
+      const row = document.createElement('div');
+      row.className = `nrow lvl${level} ${extraClass}`.trim();
+      row.dataset.key = key;
+      row.innerHTML =
+        `<span class="nlabel">${label}</span>` +
+        `<span class="suffixed"><input class="txt" type="number" min="0" step="any" data-n="${key}" data-col="1" value="${SAMPLE[key] ?? ''}" aria-label="${label}, per serving" /><span class="suffix">${unit}</span></span>` +
+        `<span class="suffixed col2"><input class="txt" type="number" min="0" step="any" data-n="${key}" data-col="2" value="" aria-label="${label}, second column" /><span class="suffix">${unit}</span></span>` +
+        `<span class="prints" data-prints="${key}"></span>`;
+      ntable.appendChild(row);
+      rowEls[key] = row;
+      return row;
+    }
+    addRow('calories', 'Calories', 'kcal', 0, 'calories');
+    let firstMicro = true;
+    for (const n of NUTRIENTS) {
+      const row = addRow(n.key, n.label, n.unit, n.micro ? 0 : n.level, n.micro && firstMicro ? 'micro-first' : '');
+      if (n.micro) firstMicro = false;
+      if (n.voluntary) row.hidden = true;
+    }
+    // Voluntary pills
+    const pills = $('vol-pills');
+    for (const n of NUTRIENTS.filter((x) => x.voluntary)) {
+      const l = document.createElement('label');
+      l.className = 'pill';
+      l.innerHTML = `<input type="checkbox" data-vol="${n.key}" /> ${n.label}`;
+      pills.appendChild(l);
+    }
+    pills.addEventListener('change', (e) => {
+      const key = e.target.dataset.vol;
+      if (!key) return;
+      e.target.closest('.pill').classList.toggle('on', e.target.checked);
+      rowEls[key].hidden = !e.target.checked;
+      render();
+    });
+
+    /* --------------------------------------------------------- package --- */
+    const shapeSel = $('pkg-shape');
+    const DIMS = {
+      box: ['Length', 'Width', 'Height'],
+      cyl: ['Diameter', 'Height', null],
+      bag: ['Width', 'Height', null],
+      area: ['Labeling area (sq in)', null, null],
+    };
+    function packageArea() {
+      const s = shapeSel.value;
+      const a = num($('pkg-a').value), b = num($('pkg-b').value), c = num($('pkg-c').value);
+      switch (s) {
+        case 'box': return a && b && c ? 2 * (a * b + a * c + b * c) : null;
+        case 'cyl': return a && b ? Math.PI * a * b : null; // side only; ends rarely carry labeling
+        case 'bag': return a && b ? 2 * a * b : null;
+        case 'area': return a || null;
+        default: return null;
+      }
+    }
+    function syncPackageUi() {
+      const s = shapeSel.value;
+      const dims = DIMS[s];
+      $('pkg-dims').hidden = !dims;
+      $('pkg-vspace').hidden = s === 'skip';
+      if (dims) {
+        ['a', 'b', 'c'].forEach((k, i) => {
+          const wrap = document.querySelector(`[data-dim="${k}"]`);
+          wrap.hidden = !dims[i];
+          if (dims[i]) $(`pkg-${k}-label`).textContent = dims[i];
+          wrap.querySelector('.suffix').textContent = s === 'area' ? 'sq in' : 'in';
+        });
+      }
+    }
+
+    /* ---------------------------------------------------------- state --- */
+    function readState() {
+      const n = {}; const n2 = {};
+      ntable.querySelectorAll('input[data-n]').forEach((el) => {
+        const key = el.dataset.n;
+        const v = el.value === '' ? null : num(el.value);
+        if (el.dataset.col === '1') n[key] = v; else n2[key] = v;
+      });
+      const calories = n.calories ?? 0; delete n.calories;
+      const calories2 = n2.calories ?? 0; delete n2.calories;
+      const show = {};
+      pills.querySelectorAll('input[data-vol]:checked').forEach((el) => { show[el.dataset.vol] = true; });
+
+      const area = packageArea();
+      const vspace = num($('pkg-v').value) || null;
+      const areaKnown = area != null && shapeSel.value !== 'skip';
+      let tier = $('tier-select').value;
+      if (tier === 'auto') tier = areaKnown ? tierFor(area) : 'standard';
+
+      const servings = num($('servings').value);
+      let columns = $('cols-select').value;
+      if (columns === 'auto') columns = servings >= 2 && servings <= 3 ? 'container' : 'single';
+
+      // Format: auto from package tier and vertical space.
+      let format = $('fmt-select').value;
+      let fmtWhy = '';
+      const vertLimit = vspace != null && vspace < 3;
+      if (format === 'auto') {
+        if (tier === 'tiny') { format = 'linear'; fmtWhy = 'Under 12 sq in: linear, at the small-package sizes. (You may also omit the panel and print an address or phone number for the information instead.)'; }
+        else if (tier === 'small') {
+          if (vspace != null && vspace < 1.25) { format = 'linear'; fmtWhy = 'Too little vertical space for a tabular panel, so linear.'; }
+          else if (vspace != null && vspace < 2.6) { format = 'tabular'; fmtWhy = '40 sq in or less with limited height: tabular.'; }
+          else { format = 'vertical-side'; fmtWhy = '40 sq in or less: the vertical panel with vitamins and minerals side by side keeps it short. Tabular and linear are also permitted.'; }
+        } else if (!areaKnown) { format = 'vertical'; fmtWhy = 'No package entered, so the standard vertical panel.'; }
+        else {
+          if (vertLimit) { format = 'tabular'; fmtWhy = 'Over 40 sq in, but under 3 inches of continuous vertical space: the tabular format is permitted, (d)(11)(iii).'; }
+          else { format = 'vertical'; fmtWhy = 'Over 40 sq in: standard vertical is required.'; }
+        }
+      } else if (areaKnown) {
+        // Manual pick: say whether the package permits it.
+        if (tier === 'standard' && format === 'linear') fmtWhy = 'Not permitted: linear is only for packages of 40 sq in or less.';
+        else if (tier === 'standard' && format === 'tabular' && !vertLimit) fmtWhy = 'Over 40 sq in, tabular is only permitted where the package cannot fit 3 inches of continuous vertical space. Enter the vertical space above if that is the case.';
+        else fmtWhy = '';
+      }
+      // Dual columns exist only in the vertical formats.
+      if (columns !== 'single' && (format === 'tabular' || format === 'linear')) columns = 'single';
+
+      const simplifiedEligible = SIMPLIFIED_POOL.filter((k) => (k === 'calories' ? isInsignificant({ key: 'calories' }, calories) : isInsignificant(byKey[k], n[k]))).length >= 8;
+
+      return {
+        format, tier, scale: Math.max(1, num($('opt-scale').value, 100) / 100), columns,
+        colHeads: [$('colhead-1').value || 'As packaged', $('colhead-2').value || 'As prepared'],
+        servings, servingSize: $('serving-size').value.trim(), calories, calories2, n, n2, show,
+        simplified: simplifiedEligible && $('opt-simplified').checked, footnote: $('opt-footnote').checked,
+        linearWidthIn: num($('lin-w').value, 3.5),
+        _area: areaKnown ? area : null, _vspace: vspace, _fmtWhy: fmtWhy, _eligible: simplifiedEligible,
+      };
+    }
+
+    /* --------------------------------------------------------- render --- */
+    const proof = $('proof');
+    const meta = $('meta');
+    const buttons = [...$('actions').querySelectorAll('button[data-fmt]')];
+    let current = null;
+
+    function setNote(id, text, cls = '') { const el = $(id); el.textContent = text; el.className = `note ${cls}`.trim(); }
+
+    function render() {
+      const st = readState();
+
+      // UI that depends on state
+      $('colheads').hidden = st.columns !== 'prepared' || !(st.format === 'vertical' || st.format === 'vertical-side');
+      ntable.classList.toggle('one-col', st.columns !== 'prepared');
+      $('nhead').querySelector('.nhead-2').hidden = st.columns !== 'prepared';
+      $('linear-width').hidden = st.format !== 'linear';
+      $('opt-simplified').disabled = !st._eligible;
+      setNote('simp-note', st._eligible
+        ? 'Eligible: eight or more of the required nutrients are present in insignificant amounts. The omitted ones are listed in a "Not a significant source of" line.'
+        : 'Only available when eight or more of the required nutrients are present in insignificant amounts, (f)(1).');
+      setNote('foot-note', st.tier === 'standard'
+        ? 'Required on packages over 40 sq in.'
+        : 'The FDA’s linear sample for small packages omits the footnote; its tabular sample keeps it.', st.tier === 'standard' && !st.footnote ? 'is-warn' : '');
+      if (st.tier === 'standard' && !st.footnote && st.format !== 'linear') setNote('foot-note', 'Required on packages over 40 sq in — leaving it off here is a compliance problem.', 'is-warn');
+
+      // Package note
+      if (st._area != null) {
+        const tierName = { standard: 'over 40 sq in, standard formats', small: '40 sq in or less, small-package formats permitted', tiny: 'under 12 sq in, may be exempt from the panel' }[st.tier];
+        setNote('pkg-note', `About ${Math.round(st._area)} sq in of labeling area — ${tierName}.`, 'is-ok');
+      } else if (shapeSel.value !== 'skip') setNote('pkg-note', 'Enter the dimensions to size the panel.');
+      else setNote('pkg-note', '');
+
+      // Per-row "prints as"
+      const calRow = rowEls.calories.querySelector('[data-prints]');
+      calRow.innerHTML = `<b>${roundCalories(st.calories)}</b>`;
+      for (const n of NUTRIENTS) {
+        const d = declare(n, st.n[n.key]);
+        const el = rowEls[n.key].querySelector('[data-prints]');
+        el.innerHTML = `<b>${d.text}</b>${d.pct != null ? `<span class="pct">${d.pct}% DV</span>` : ''}`;
+      }
+
+      // Layout
+      let doc;
+      try {
+        doc = layout(st);
+      } catch (err) {
+        console.error(err);
+        current = null;
+        proof.innerHTML = 'Could not set the panel from these values';
+        proof.classList.add('is-empty');
+        buttons.forEach((b) => { b.disabled = true; });
+        return;
+      }
+      current = { doc, name: `nutrition-facts-${doc.meta.kind}${doc.meta.cols === 2 ? '-dual' : ''}` };
+      proof.innerHTML = toSvg(doc);
+      // Show the panel at roughly 1.6× print size so 6 pt type is readable.
+      const svg = proof.querySelector('svg');
+      if (svg) { svg.style.width = `${Math.round((doc.w / 25.4) * 96 * 1.6)}px`; svg.style.maxWidth = '100%'; svg.removeAttribute('height'); }
+      proof.classList.remove('is-empty');
+      buttons.forEach((b) => { b.disabled = false; });
+
+      const kindName = { vertical: 'standard vertical', 'vertical-side': 'vertical, side-by-side micronutrients', dual: 'vertical, two columns', tabular: 'tabular', linear: 'linear' }[doc.meta.kind];
+      const hIn = doc.h / 25.4;
+      let fit = '';
+      if (st._vspace != null && hIn > st._vspace + 0.01) fit = ` <span class="warn">· ${hIn.toFixed(2)} in tall, taller than the ${st._vspace} in of vertical space entered</span>`;
+      meta.innerHTML =
+        `${doc.w.toFixed(1)} × ${doc.h.toFixed(1)} mm · ${mmToIn(doc.w)} × ${mmToIn(doc.h)} in${fit}<br>` +
+        `${kindName} · ${st.tier} tier · ${Math.round(st.scale * 100)}%${doc.meta.simplified ? ' · simplified' : ''}`;
+      setNote('fmt-note', st._fmtWhy, /Not permitted|only permitted/.test(st._fmtWhy) ? 'is-warn' : '');
+    }
+
+    /* --------------------------------------------------------- wiring --- */
+    const debounce = (fn, ms = 120) => { let t; return () => { clearTimeout(t); t = setTimeout(fn, ms); }; };
+    const rerender = debounce(render);
+    document.querySelectorAll('#tcard input, #tcard select').forEach((el) => {
+      el.addEventListener('input', rerender);
+      el.addEventListener('change', rerender);
+    });
+    shapeSel.addEventListener('change', () => { syncPackageUi(); render(); });
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (!current) return;
+        const { emit, mime } = EMITTERS[btn.dataset.fmt];
+        const doc = { ...current.doc, creator: 'nutrition facts tool' };
+        const blob = new Blob([emit(doc)], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${current.name}.${btn.dataset.fmt}`;
+        document.body.appendChild(a); a.click(); a.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+    });
+
+    syncPackageUi();
+    render();
+    requestAnimationFrame(() => $('tcard').classList.add('in'));
+  </script>
+</BaseLayout>

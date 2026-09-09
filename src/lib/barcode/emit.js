@@ -44,6 +44,27 @@ function glyphPath(g, docH, { flip, unit }) {
   return out;
 }
 
+
+/**
+ * Pre-resolved outline paths (the nutrition label emits these): command rows
+ * already in document millimetres, y down. Same flip/unit treatment as
+ * glyphs, no em scaling.
+ */
+function absPath(cmds, docH, { flip, unit }) {
+  const px = (x) => x * unit;
+  const py = (y) => (flip ? docH - y : y) * unit;
+  const out = [];
+  for (const c of cmds) {
+    switch (c[0]) {
+      case 0: out.push(['M', px(c[1]), py(c[2])]); break;
+      case 1: out.push(['L', px(c[1]), py(c[2])]); break;
+      case 2: out.push(['C', px(c[1]), py(c[2]), px(c[3]), py(c[4]), px(c[5]), py(c[6])]); break;
+      case 3: out.push(['Z']); break;
+    }
+  }
+  return out;
+}
+
 /* --------------------------------------------------------------- SVG ---- */
 
 export function toSvg(doc) {
@@ -63,6 +84,12 @@ export function toSvg(doc) {
   }
   for (const g of doc.glyphs || []) {
     const d = glyphPath(g, doc.h, { flip: false, unit: 1 })
+      .map((c) => c[0] + c.slice(1).map((n) => r(n)).join(' '))
+      .join('');
+    if (d) parts.push(`<path d="${d}"/>`);
+  }
+  for (const cmds of doc.paths || []) {
+    const d = absPath(cmds, doc.h, { flip: false, unit: 1 })
       .map((c) => c[0] + c.slice(1).map((n) => r(n)).join(' '))
       .join('');
     if (d) parts.push(`<path d="${d}"/>`);
@@ -107,6 +134,16 @@ export function toPdf(doc) {
     // counters in 0, 4, 6, 8 and 9 open.
     ops.push('f');
   }
+  for (const cmds of doc.paths || []) {
+    for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
+      const n = c.slice(1).map((v) => r(v, 3)).join(' ');
+      if (c[0] === 'M') ops.push(`${n} m`);
+      else if (c[0] === 'L') ops.push(`${n} l`);
+      else if (c[0] === 'C') ops.push(`${n} c`);
+      else ops.push('h');
+    }
+    ops.push('f');
+  }
   const stream = ops.join('\n');
 
   const objects = [
@@ -148,7 +185,7 @@ export function toEps(doc) {
 
   const L = [];
   L.push('%!PS-Adobe-3.0 EPSF-3.0');
-  L.push(`%%Creator: COGNAK barcode tool`);
+  L.push(`%%Creator: COGNAK ${doc.creator || 'barcode tool'}`);
   L.push(`%%Title: ${doc.title.replace(/[\r\n]/g, ' ')}`);
   L.push(`%%BoundingBox: 0 0 ${Math.ceil(W)} ${Math.ceil(H)}`);
   L.push(`%%HiResBoundingBox: 0 0 ${r(W, 3)} ${r(H, 3)}`);
@@ -183,6 +220,17 @@ export function toEps(doc) {
     if (!cmds.length) continue;
     L.push('newpath');
     for (const c of cmds) {
+      const n = c.slice(1).map((v) => r(v, 3)).join(' ');
+      if (c[0] === 'M') L.push(`${n} moveto`);
+      else if (c[0] === 'L') L.push(`${n} lineto`);
+      else if (c[0] === 'C') L.push(`${n} curveto`);
+      else L.push('closepath');
+    }
+    L.push('fill');
+  }
+  for (const cmds of doc.paths || []) {
+    L.push('newpath');
+    for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
       const n = c.slice(1).map((v) => r(v, 3)).join(' ');
       if (c[0] === 'M') L.push(`${n} moveto`);
       else if (c[0] === 'L') L.push(`${n} lineto`);
