@@ -252,8 +252,13 @@ const jsonLd = {
         <button type="button" class="btn" data-fmt="svg"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>SVG</button>
         <button type="button" class="btn" data-fmt="pdf"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>PDF</button>
         <button type="button" class="btn" data-fmt="eps"><svg class="btn-ico" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1.25V9.4M3.6 6.2 7 9.6l3.4-3.4M1.75 12.25h10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>EPS</button>
-        <span class="actions-note mono">true vector, type as outlines</span>
+        <div class="textmode" role="radiogroup" aria-label="Type in the downloaded file">
+          <label class="pill on"><input type="radio" name="textmode" value="outlines" checked /> Outlines</label>
+          <label class="pill"><input type="radio" name="textmode" value="text" /> Editable text</label>
+        </div>
       </div>
+      <p class="note textmode-note" id="textmode-note">Outlines print identically anywhere. Editable text opens in Illustrator as live Helvetica or Arial, so a number can be changed by hand — the page's rounding won't follow it, so regenerate from the link below when you can.</p>
+      <p class="share mono"><span id="share-status">The address bar carries every value on this page.</span> <button type="button" class="linkbtn" id="share-copy">Copy link to this label</button></p>
     </div>
 
     <p class="tfoot">
@@ -449,6 +454,14 @@ const jsonLd = {
       .tools .btn{ flex:1 1 0; padding:14px 6px; font-size:.94rem; gap:.45rem; }
     }
 
+    .tools .textmode{ display:flex; gap:8px; margin-left:auto; }
+    .tools .textmode .pill{ padding:9px 16px; font-size:.88rem; }
+    .tools .textmode-note{ margin-top:1.2rem; max-width:64ch; }
+    .tools .share{ margin:1.2rem 0 0; font-size:.72rem; letter-spacing:.04em; line-height:1.7; color:var(--placeholder); }
+    .tools .linkbtn{ background:none; border:none; padding:0; margin:0; font:inherit; color:var(--ink-soft); cursor:pointer;
+      text-decoration:underline; text-underline-offset:var(--link-offset); text-decoration-thickness:1px; transition:color var(--dur-s) var(--ease-standard); }
+    @media (hover:hover){ .tools .linkbtn:hover{ color:var(--accent); } }
+    @media (max-width:600px){ .tools .textmode{ margin-left:0; width:100%; } .tools .textmode .pill{ flex:1 1 0; justify-content:center; } }
     .tools .tfoot{ margin:2.6rem 0 0; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
     .tools .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset); text-decoration-thickness:1px; }
     @media (hover:hover){ .tools .tfoot a:hover, .tools .q-sub a:hover{ color:var(--accent); } }
@@ -615,6 +628,50 @@ const jsonLd = {
       };
     }
 
+    /* ------------------------------------------------------ url state --- */
+    // Every input's raw value, keyed by id (or data-n:col / data-vol), packed
+    // into the hash. Nothing is stored anywhere; the link IS the record.
+    const stateEls = () => [...document.querySelectorAll('#tcard input, #tcard select')];
+    const elKey = (el) => el.id || (el.dataset.n ? `n:${el.dataset.n}:${el.dataset.col}` : el.dataset.vol ? `v:${el.dataset.vol}` : el.name === 'textmode' ? `tm:${el.value}` : null);
+    function serialize() {
+      const o = {};
+      for (const el of stateEls()) {
+        const k = elKey(el); if (!k) continue;
+        if (el.type === 'checkbox' || el.type === 'radio') { if (el.checked) o[k] = 1; }
+        else if (el.value !== '' && el.value !== el.defaultValue) o[k] = el.value;
+        else if (el.value === '' && el.defaultValue !== '') o[k] = '';
+      }
+      return o;
+    }
+    function encodeState() {
+      const json = JSON.stringify(serialize());
+      return btoa(unescape(encodeURIComponent(json))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    function decodeState(str) {
+      try {
+        const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(decodeURIComponent(escape(atob(b64))));
+      } catch { return null; }
+    }
+    function applyState(o) {
+      for (const el of stateEls()) {
+        const k = elKey(el); if (!k) continue;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          el.checked = !!o[k];
+          if (el.dataset.vol) { el.closest('.pill').classList.toggle('on', el.checked); rowEls[el.dataset.vol].hidden = !el.checked; }
+          if (el.name === 'textmode') el.closest('.pill').classList.toggle('on', el.checked);
+        } else if (k in o) el.value = o[k];
+      }
+    }
+    let hashTimer;
+    function writeHash() {
+      clearTimeout(hashTimer);
+      hashTimer = setTimeout(() => {
+        const enc = encodeState();
+        history.replaceState(null, '', enc ? `#s=${enc}` : location.pathname);
+      }, 200);
+    }
+
     /* --------------------------------------------------------- render --- */
     const proof = $('proof');
     const meta = $('meta');
@@ -668,7 +725,7 @@ const jsonLd = {
         buttons.forEach((b) => { b.disabled = true; });
         return;
       }
-      current = { doc, name: `nutrition-facts-${doc.meta.kind}${doc.meta.cols === 2 ? '-dual' : ''}` };
+      current = { doc, name: `nutrition-facts-${doc.meta.kind}` };
       proof.innerHTML = toSvg(doc);
       // Show the panel at roughly 1.6× print size so 6 pt type is readable.
       const svg = proof.querySelector('svg');
@@ -684,6 +741,7 @@ const jsonLd = {
         `${doc.w.toFixed(1)} × ${doc.h.toFixed(1)} mm · ${mmToIn(doc.w)} × ${mmToIn(doc.h)} in${fit}<br>` +
         `${kindName} · ${st.tier} tier · ${Math.round(st.scale * 100)}%${doc.meta.simplified ? ' · simplified' : ''}`;
       setNote('fmt-note', st._fmtWhy, /Not permitted|only permitted/.test(st._fmtWhy) ? 'is-warn' : '');
+      writeHash();
     }
 
     /* --------------------------------------------------------- wiring --- */
@@ -699,7 +757,8 @@ const jsonLd = {
       btn.addEventListener('click', () => {
         if (!current) return;
         const { emit, mime } = EMITTERS[btn.dataset.fmt];
-        const doc = { ...current.doc, creator: 'nutrition facts tool' };
+        const live = document.querySelector('input[name="textmode"]:checked')?.value === 'text';
+        const doc = { ...current.doc, creator: 'nutrition facts tool', liveText: live };
         const blob = new Blob([emit(doc)], { type: mime });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -709,7 +768,23 @@ const jsonLd = {
       });
     });
 
+    document.querySelectorAll('input[name="textmode"]').forEach((el) => el.addEventListener('change', () => {
+      document.querySelectorAll('.textmode .pill').forEach((p) => p.classList.toggle('on', p.contains(el) && el.checked));
+      writeHash();
+    }));
+    $('share-copy').addEventListener('click', async () => {
+      const url = `${location.origin}${location.pathname}#s=${encodeState()}`;
+      history.replaceState(null, '', url);
+      try { await navigator.clipboard.writeText(url); $('share-status').textContent = 'Copied. Anyone with the link gets this exact label back.'; }
+      catch { $('share-status').textContent = 'Copy the address bar; it holds every value on this page.'; }
+    });
+
     syncPackageUi();
+    {
+      const m = location.hash.match(/^#s=([A-Za-z0-9_-]+)/);
+      const restored = m && decodeState(m[1]);
+      if (restored) { applyState(restored); syncPackageUi(); }
+    }
     render();
     requestAnimationFrame(() => $('tcard').classList.add('in'));
   </script>

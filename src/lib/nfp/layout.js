@@ -42,7 +42,7 @@ export const SIZES = {
 /* ------------------------------------------------------------- canvas --- */
 
 class Canvas {
-  constructor() { this.rects = []; this.paths = []; }
+  constructor() { this.rects = []; this.paths = []; this.texts = []; }
   rect(x, y, w, h) { if (w > 0 && h > 0) this.rects.push({ x, y, w, h }); }
   hline(x, y, w, th) { this.rect(x, y, w, th); }
   vline(x, y, h, th) { this.rect(x, y, th, h); }
@@ -50,6 +50,8 @@ class Canvas {
   text(x, y, t, face, size) {
     const g = place(t, face, size, x, y);
     if (g.cmds.length) this.paths.push(g.cmds);
+    // Kept alongside the outlines so the emitters can write live text instead.
+    if (String(t).trim().length) this.texts.push({ x, y, t: String(t), face, size });
     return g.w;
   }
   /** Place mixed runs left-to-right from x; returns total width. */
@@ -76,6 +78,8 @@ class Canvas {
       w: r3(W * k), h: r3(H * k), title, fill: '#000000', background: null,
       rects: this.rects.map((b) => ({ x: r3(b.x * k), y: r3(b.y * k), w: r3(b.w * k), h: r3(b.h * k) })),
       paths: this.paths.map((cmds) => cmds.map((c) => (c.length === 1 ? c : c.map((v, i) => (i === 0 ? v : r3(v * k)))))),
+      // x/y in mm (baseline), size in points — the unit fonts are specified in.
+      texts: this.texts.map((t) => ({ x: r3(t.x * k), y: r3(t.y * k), t: t.t, face: t.face, size: r3(t.size) })),
     };
   }
 }

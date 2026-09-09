@@ -65,6 +65,39 @@ function absPath(cmds, docH, { flip, unit }) {
   return out;
 }
 
+/* ------------------------------------------------------- live text ---- */
+
+/**
+ * `doc.texts` are positioned runs the nutrition label records alongside its
+ * outlines: { x, y (mm, baseline), t, face: regular|bold|italic, size (pt) }.
+ * When `doc.liveText` is set the emitters write these as real text instead of
+ * the outline paths, in the base-14 Helvetica family — metric-compatible with
+ * the Arimo the panel was laid out in, and built into every PDF viewer and
+ * RIP, so nothing has to be embedded.
+ */
+const PS_FONT = { regular: 'Helvetica', bold: 'Helvetica-Bold', italic: 'Helvetica-Oblique' };
+
+/**
+ * Encode a string as WinAnsi bytes written as an ASCII PostScript/PDF literal
+ * ( … ) with octal escapes. Characters outside WinAnsi get a plain-ASCII
+ * stand-in so the label never prints a missing-glyph box.
+ */
+const WINANSI = { '\u2022': 0o225, '\u2013': 0o226, '\u2014': 0o227, '\u2019': 0o222, '\u2018': 0o221, '\u201C': 0o223, '\u201D': 0o224, '\u00A0': 0o240, '\u00B7': 0o267, '\u00BD': 0o275, '\u00BC': 0o274, '\u00BE': 0o276, '\u00B0': 0o260 };
+const ASCII_FALLBACK = { '\u2153': '1/3', '\u2154': '2/3', '\u215B': '1/8' };
+function psLiteral(str) {
+  let out = '(';
+  for (const ch of String(str)) {
+    if (ASCII_FALLBACK[ch]) { out += ASCII_FALLBACK[ch]; continue; }
+    const code = ch.charCodeAt(0);
+    if (ch === '(' || ch === ')' || ch === '\\') out += '\\' + ch;
+    else if (code >= 32 && code < 127) out += ch;
+    else if (WINANSI[ch] != null) out += '\\' + WINANSI[ch].toString(8).padStart(3, '0');
+    else if (code >= 160 && code <= 255) out += '\\' + code.toString(8).padStart(3, '0');
+    else out += '?';
+  }
+  return out + ')';
+}
+
 /* --------------------------------------------------------------- SVG ---- */
 
 export function toSvg(doc) {
@@ -72,7 +105,7 @@ export function toSvg(doc) {
   parts.push(
     `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" ` +
     `width="${r(doc.w)}mm" height="${r(doc.h)}mm" ` +
-    `viewBox="0 0 ${r(doc.w)} ${r(doc.h)}">`,
+    `viewBox="0 0 ${r(doc.w)} ${r(doc.h)}" xml:space="preserve">`,
   );
   parts.push(`<title>${escapeXml(doc.title)}</title>`);
   if (doc.background) {
@@ -88,11 +121,23 @@ export function toSvg(doc) {
       .join('');
     if (d) parts.push(`<path d="${d}"/>`);
   }
-  for (const cmds of doc.paths || []) {
-    const d = absPath(cmds, doc.h, { flip: false, unit: 1 })
-      .map((c) => c[0] + c.slice(1).map((n) => r(n)).join(' '))
-      .join('');
-    if (d) parts.push(`<path d="${d}"/>`);
+  if (doc.liveText && doc.texts) {
+    // Font size is in points; the viewBox is millimetres.
+    for (const t of doc.texts) {
+      const style = (t.face === 'bold' ? ' font-weight="bold"' : '') + (t.face === 'italic' ? ' font-style="italic"' : '');
+      // Renderers disagree about leading spaces even under xml:space, so
+      // strip them and move the anchor by their width (0.278 em in this face).
+      const lead = t.t.match(/^ */)[0].length;
+      const x = t.x + (lead * 0.278 * t.size) / MM_TO_PT;
+      parts.push(`<text x="${r(x)}" y="${r(t.y)}" font-family="Arimo, Arial, Helvetica, sans-serif" font-size="${r(t.size / MM_TO_PT)}"${style} style="white-space:pre">${escapeXml(t.t.slice(lead))}</text>`);
+    }
+  } else {
+    for (const cmds of doc.paths || []) {
+      const d = absPath(cmds, doc.h, { flip: false, unit: 1 })
+        .map((c) => c[0] + c.slice(1).map((n) => r(n)).join(' '))
+        .join('');
+      if (d) parts.push(`<path d="${d}"/>`);
+    }
   }
   parts.push('</g></svg>');
   return parts.join('\n');
@@ -134,25 +179,44 @@ export function toPdf(doc) {
     // counters in 0, 4, 6, 8 and 9 open.
     ops.push('f');
   }
-  for (const cmds of doc.paths || []) {
-    for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
-      const n = c.slice(1).map((v) => r(v, 3)).join(' ');
-      if (c[0] === 'M') ops.push(`${n} m`);
-      else if (c[0] === 'L') ops.push(`${n} l`);
-      else if (c[0] === 'C') ops.push(`${n} c`);
-      else ops.push('h');
+  const live = !!(doc.liveText && doc.texts);
+  if (live) {
+    const F = { regular: '/F1', bold: '/F2', italic: '/F3' };
+    ops.push('BT');
+    for (const t of doc.texts) {
+      ops.push(`${F[t.face] || '/F1'} ${r(t.size, 3)} Tf`);
+      ops.push(`1 0 0 1 ${pt(t.x)} ${pt(doc.h - t.y)} Tm`);
+      ops.push(`${psLiteral(t.t)} Tj`);
     }
-    ops.push('f');
+    ops.push('ET');
+  } else {
+    for (const cmds of doc.paths || []) {
+      for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
+        const n = c.slice(1).map((v) => r(v, 3)).join(' ');
+        if (c[0] === 'M') ops.push(`${n} m`);
+        else if (c[0] === 'L') ops.push(`${n} l`);
+        else if (c[0] === 'C') ops.push(`${n} c`);
+        else ops.push('h');
+      }
+      ops.push('f');
+    }
   }
   const stream = ops.join('\n');
 
+  // Base-14 fonts are referenced by name only — no embedding, no file weight.
+  const fontRes = live ? '/Font << /F1 5 0 R /F2 6 0 R /F3 7 0 R >>' : '';
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
     `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${r(W, 3)} ${r(H, 3)}] ` +
-      '/Resources << >> /Contents 4 0 R >>',
+      `/Resources << ${fontRes} >> /Contents 4 0 R >>`,
     `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
   ];
+  if (live) {
+    for (const name of [PS_FONT.regular, PS_FONT.bold, PS_FONT.italic]) {
+      objects.push(`<< /Type /Font /Subtype /Type1 /BaseFont /${name} /Encoding /WinAnsiEncoding >>`);
+    }
+  }
 
   // Deliberately all-ASCII (no binary marker comment) so character offsets and
   // byte offsets stay identical — the xref table below depends on that.
@@ -205,6 +269,18 @@ export function toEps(doc) {
   // Level 2 `rectfill`, because some EPS importers still parse conservatively.
   L.push('/R { /rh exch def /rw exch def /ry exch def /rx exch def');
   L.push('  newpath rx ry moveto rw 0 rlineto 0 rh rlineto rw neg 0 rlineto closepath fill } bind def');
+  if (doc.liveText && doc.texts) {
+    // Helvetica re-encoded so bullets, dashes, quotes and the fractions land on
+    // the same WinAnsi bytes psLiteral() writes for the PDF.
+    L.push('/WinEnc ISOLatin1Encoding dup length array copy def');
+    L.push('WinEnc 16#95 /bullet put WinEnc 16#96 /endash put WinEnc 16#97 /emdash put');
+    L.push('WinEnc 16#92 /quoteright put WinEnc 16#91 /quoteleft put WinEnc 16#93 /quotedblleft put WinEnc 16#94 /quotedblright put');
+    L.push('/ReEnc { findfont dup length dict begin { 1 index /FID ne { def } { pop pop } ifelse } forall');
+    L.push('  /Encoding WinEnc def currentdict end definefont pop } bind def');
+    L.push('/HelvR /Helvetica ReEnc /HelvB /Helvetica-Bold ReEnc /HelvI /Helvetica-Oblique ReEnc');
+    // x y size (string) font T
+    L.push('/T { findfont 3 -1 roll scalefont setfont 3 1 roll moveto show } bind def');
+  }
   L.push('%%EndProlog');
 
   if (doc.background) {
@@ -228,16 +304,23 @@ export function toEps(doc) {
     }
     L.push('fill');
   }
-  for (const cmds of doc.paths || []) {
-    L.push('newpath');
-    for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
-      const n = c.slice(1).map((v) => r(v, 3)).join(' ');
-      if (c[0] === 'M') L.push(`${n} moveto`);
-      else if (c[0] === 'L') L.push(`${n} lineto`);
-      else if (c[0] === 'C') L.push(`${n} curveto`);
-      else L.push('closepath');
+  if (doc.liveText && doc.texts) {
+    const F = { regular: '/HelvR', bold: '/HelvB', italic: '/HelvI' };
+    for (const t of doc.texts) {
+      L.push(`${pt(t.x)} ${pt(doc.h - t.y)} ${r(t.size, 3)} ${psLiteral(t.t)} ${F[t.face] || '/HelvR'} T`);
     }
-    L.push('fill');
+  } else {
+    for (const cmds of doc.paths || []) {
+      L.push('newpath');
+      for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
+        const n = c.slice(1).map((v) => r(v, 3)).join(' ');
+        if (c[0] === 'M') L.push(`${n} moveto`);
+        else if (c[0] === 'L') L.push(`${n} lineto`);
+        else if (c[0] === 'C') L.push(`${n} curveto`);
+        else L.push('closepath');
+      }
+      L.push('fill');
+    }
   }
   L.push('showpage');
   L.push('%%EOF');
