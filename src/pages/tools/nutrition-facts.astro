@@ -7,8 +7,8 @@
  * The regulation lives in src/lib/nfp/rules.js (Daily Values, rounding
  * increments, nutrient order, package tiers); src/lib/nfp/layout.js sets the
  * panel in points and hands back a doc the barcode emitters can write. The
- * face is Arimo (SIL OFL), metric-compatible with the Helvetica/Arial the FDA
- * sample labels use, pre-extracted to outlines in src/lib/nfp/arimo.js.
+ * face is TeX Gyre Heros (GUST Font License), the free Helvetica-family
+ * design, pre-extracted to outlines in src/lib/nfp/heros.js.
  *
  * ⚑ SAME PRIVACY CLAIM AS /tools: the copy says nothing typed here leaves the
  * browser. Never add an analytics event that carries a field value — a
@@ -291,9 +291,10 @@ const jsonLd = {
       small-package provisions in (j)(13). Type sizes are the regulation's
       minimums for each tier, at the proportions of the FDA's own sample
       labels; the bars are 7 and 3 point, the hairlines half a point. The face
-      is Arimo, an open-license design metrically identical to the Helvetica
-      the samples are set in, exported as outlines so nothing needs to be
-      installed or embedded. US FDA panels only — not Canada's Nutrition
+      is TeX Gyre Heros, the freely licensed Helvetica-family design, with
+      Helvetica's metrics and letterforms, exported as outlines so nothing
+      needs to be installed or embedded; the editable-text files reference
+      Helvetica itself. US FDA panels only — not Canada's Nutrition
       Facts table, not Supplement Facts, not the infant or child formats, not
       the aggregate display for variety packs. The tool sets the format; the
       numbers, the serving size and the compliance are yours, and a regulatory

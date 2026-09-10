@@ -29,15 +29,18 @@ export const SIZES = {
   // 16 pt "Calories", 22 pt calorie value, 6 pt footnote — at the proportions
   // of the FDA sample label. Heading has to be larger than everything else.
   standard: { heading: 24, serv: 10, amt: 6, cal: 16, calNum: 22, dvh: 6, nut: 8, lead: 4, foot: 6, footLead: 1.5,
-    thick: 7, med: 3, hair: 0.5, box: 0.5, pad: 4, indent: 8, colPad: 4 },
+    thick: 7, med: 3, hair: 0.5, box: 1, pad: 4, indent: 8, colPad: 4 },
   // Packages ≤ 40 sq in, (j)(13)(ii): 9 pt servings, 10 pt "Calories",
   // 14 pt value, 8 pt nutrients; heading still larger than all but the value.
   small: { heading: 15, serv: 9, amt: 6, cal: 10, calNum: 14, dvh: 6, nut: 8, lead: 2.5, foot: 6, footLead: 1,
-    thick: 5, med: 2.5, hair: 0.5, box: 0.5, pad: 3, indent: 6, colPad: 3 },
+    thick: 5, med: 2.5, hair: 0.5, box: 1, pad: 3, indent: 6, colPad: 3 },
   // < 12 sq in: the linear form may drop to 6 pt (FDA's own sample does).
   tiny: { heading: 12, serv: 8, amt: 6, cal: 10, calNum: 14, dvh: 6, nut: 6, lead: 2, foot: 6, footLead: 1,
-    thick: 4, med: 2, hair: 0.4, box: 0.4, pad: 2.5, indent: 5, colPad: 2.5 },
+    thick: 4, med: 2, hair: 0.4, box: 0.8, pad: 2.5, indent: 5, colPad: 2.5 },
 };
+
+/** Extra weight on bold runs, as a fraction of the em. */
+export const EMBOLDEN = { display: 0.04, text: 0.022 };
 
 /* ------------------------------------------------------------- canvas --- */
 
@@ -49,7 +52,13 @@ class Canvas {
   /** Place one run; returns its width. */
   text(x, y, t, face, size) {
     const g = place(t, face, size, x, y);
-    if (g.cmds.length) this.paths.push(g.cmds);
+    // Heros (like Helvetica) stops at Bold; the FDA sample's heading is Helvetica Black and
+    // its row labels a heavier Bold. Stroking the bold outlines adds the
+    // missing weight (Pierce, 2026-09-10: "make the nutrition facts text
+    // bolder, same with calories, carbs, protein"). Width in points; the
+    // emitters fill and stroke these with a round join.
+    const stroke = face === 'bold' ? size * (size >= 14 ? EMBOLDEN.display : EMBOLDEN.text) : 0;
+    if (g.cmds.length) this.paths.push(stroke ? { cmds: g.cmds, stroke } : g.cmds);
     // Kept alongside the outlines so the emitters can write live text instead.
     if (String(t).trim().length) this.texts.push({ x, y, t: String(t), face, size });
     return g.w;
@@ -77,7 +86,10 @@ class Canvas {
     return {
       w: r3(W * k), h: r3(H * k), title, fill: '#000000', background: null,
       rects: this.rects.map((b) => ({ x: r3(b.x * k), y: r3(b.y * k), w: r3(b.w * k), h: r3(b.h * k) })),
-      paths: this.paths.map((cmds) => cmds.map((c) => (c.length === 1 ? c : c.map((v, i) => (i === 0 ? v : r3(v * k)))))),
+      paths: this.paths.map((p) => {
+        const cmds = (Array.isArray(p) ? p : p.cmds).map((c) => (c.length === 1 ? c : c.map((v, i) => (i === 0 ? v : r3(v * k)))));
+        return Array.isArray(p) ? cmds : { cmds, stroke: r3(p.stroke * k) };
+      }),
       // x/y in mm (baseline), size in points — the unit fonts are specified in.
       texts: this.texts.map((t) => ({ x: r3(t.x * k), y: r3(t.y * k), t: t.t, face: t.face, size: r3(t.size) })),
     };

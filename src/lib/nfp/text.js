@@ -1,6 +1,6 @@
 /**
- * Typesetting over the Arimo outline table: measurement, glyph placement,
- * word-wrapping. Everything is in points, y down, baseline at the given y.
+ * Typesetting over the TeX Gyre Heros outline table: measurement, glyph
+ * placement, word-wrapping. Everything is in points, y down, baseline at the given y.
  *
  * A "run" is { t, face, size } where face is 'regular' | 'bold' | 'italic'.
  * Glyph output is a list of command rows in the same shape the barcode
@@ -8,7 +8,8 @@
  * already resolved to absolute points, so the emitter only has to scale.
  */
 
-import { ARIMO } from './arimo.js';
+import { FACE } from './heros.js';
+const ARIMO = FACE; // historical name; the table is Heros now
 
 const face = (name) => ARIMO[name] || ARIMO.regular;
 const r3 = (n) => Math.round(n * 1000) / 1000;

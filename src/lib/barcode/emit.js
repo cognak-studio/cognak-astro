@@ -98,6 +98,10 @@ function psLiteral(str) {
   return out + ')';
 }
 
+/** A `doc.paths` entry is a command list, or { cmds, stroke } for an
+ *  emboldened run: filled and then stroked `stroke` mm wide, round joins. */
+const pathParts = (p) => (Array.isArray(p) ? { cmds: p, stroke: 0 } : { cmds: p.cmds, stroke: p.stroke || 0 });
+
 /* --------------------------------------------------------------- SVG ---- */
 
 export function toSvg(doc) {
@@ -129,14 +133,18 @@ export function toSvg(doc) {
       // strip them and move the anchor by their width (0.278 em in this face).
       const lead = t.t.match(/^ */)[0].length;
       const x = t.x + (lead * 0.278 * t.size) / MM_TO_PT;
-      parts.push(`<text x="${r(x)}" y="${r(t.y)}" font-family="Arimo, Arial, Helvetica, sans-serif" font-size="${r(t.size / MM_TO_PT)}"${style} style="white-space:pre">${escapeXml(t.t.slice(lead))}</text>`);
+      parts.push(`<text x="${r(x)}" y="${r(t.y)}" font-family="Helvetica, Arial, sans-serif" font-size="${r(t.size / MM_TO_PT)}"${style} style="white-space:pre">${escapeXml(t.t.slice(lead))}</text>`);
     }
   } else {
-    for (const cmds of doc.paths || []) {
+    for (const p of doc.paths || []) {
+      const { cmds, stroke } = pathParts(p);
       const d = absPath(cmds, doc.h, { flip: false, unit: 1 })
         .map((c) => c[0] + c.slice(1).map((n) => r(n)).join(' '))
         .join('');
-      if (d) parts.push(`<path d="${d}"/>`);
+      if (!d) continue;
+      parts.push(stroke
+        ? `<path d="${d}" stroke="${doc.fill}" stroke-width="${r(stroke)}" stroke-linejoin="round"/>`
+        : `<path d="${d}"/>`);
     }
   }
   parts.push('</g></svg>');
@@ -190,7 +198,9 @@ export function toPdf(doc) {
     }
     ops.push('ET');
   } else {
-    for (const cmds of doc.paths || []) {
+    ops.push(`${rgb(doc.fill)} RG 1 j 1 J`);
+    for (const p of doc.paths || []) {
+      const { cmds, stroke } = pathParts(p);
       for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
         const n = c.slice(1).map((v) => r(v, 3)).join(' ');
         if (c[0] === 'M') ops.push(`${n} m`);
@@ -198,7 +208,9 @@ export function toPdf(doc) {
         else if (c[0] === 'C') ops.push(`${n} c`);
         else ops.push('h');
       }
-      ops.push('f');
+      // B = fill and stroke; the stroke is what adds weight to bold runs.
+      if (stroke) ops.push(`${r(stroke * MM_TO_PT, 3)} w B`);
+      else ops.push('f');
     }
   }
   const stream = ops.join('\n');
@@ -310,7 +322,9 @@ export function toEps(doc) {
       L.push(`${pt(t.x)} ${pt(doc.h - t.y)} ${r(t.size, 3)} ${psLiteral(t.t)} ${F[t.face] || '/HelvR'} T`);
     }
   } else {
-    for (const cmds of doc.paths || []) {
+    L.push('1 setlinejoin 1 setlinecap');
+    for (const p of doc.paths || []) {
+      const { cmds, stroke } = pathParts(p);
       L.push('newpath');
       for (const c of absPath(cmds, doc.h, { flip: true, unit: MM_TO_PT })) {
         const n = c.slice(1).map((v) => r(v, 3)).join(' ');
@@ -319,7 +333,8 @@ export function toEps(doc) {
         else if (c[0] === 'C') L.push(`${n} curveto`);
         else L.push('closepath');
       }
-      L.push('fill');
+      if (stroke) L.push(`gsave ${r(stroke * MM_TO_PT, 3)} setlinewidth stroke grestore fill`);
+      else L.push('fill');
     }
   }
   L.push('showpage');
