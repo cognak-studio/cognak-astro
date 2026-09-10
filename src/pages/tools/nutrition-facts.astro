@@ -418,14 +418,18 @@ const jsonLd = {
     .tools .check:has(input:disabled){ color:var(--ink-soft); cursor:not-allowed; }
 
     /* --------------------------------------------------- nutrient table --- */
-    .tools .ntable{ display:grid; grid-template-columns:minmax(0,1.6fr) 150px 150px minmax(0,1fr); column-gap:14px; row-gap:0; align-items:center; }
+    .tools .ntable{ display:grid; grid-template-columns:minmax(0,1.6fr) 150px 150px minmax(0,1fr); column-gap:14px; row-gap:0; align-items:stretch; }
     .tools .ntable.one-col{ grid-template-columns:minmax(0,1.6fr) 150px minmax(0,1fr); }
     .tools .ntable.one-col .col2{ display:none; }
     .tools .nhead{ display:contents; }
     .tools .nhead span{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--placeholder); padding-bottom:.9rem; }
     .tools .nhead span[hidden]{ display:none; }
     .tools .nrow{ display:contents; }
-    .tools .nrow > *{ border-top:1px solid var(--line); padding:9px 0; }
+    /* Cells stretch to the row's full height and centre their own content, so
+       every cell's top border sits on one line whatever the input's height. */
+    .tools .nrow > *{ border-top:1px solid var(--line); padding:9px 0; display:flex; align-items:center; min-width:0; }
+    .tools .nrow .suffixed{ position:relative; }
+    .tools .nrow .suffixed .txt{ width:100%; }
     .tools .nrow .nlabel{ font-size:.98rem; color:var(--ink); }
     .tools .nrow.lvl1 .nlabel{ padding-left:18px; color:var(--ink-soft); }
     .tools .nrow.lvl2 .nlabel{ padding-left:36px; color:var(--ink-soft); }
