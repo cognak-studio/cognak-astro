@@ -78,11 +78,13 @@ const jsonLd = {
       <em>Tools</em> for the part of the work that gets scanned, not seen.
     </h1>
     <p class="lede tools-lede">
-      Like you, we were tired of trying to consistently produce perfect
-      barcodes, QR codes and Nutrition Facts panels for print. So we built
-      our own system. Pick the one you need, enter your specs right here and
-      download as EPS, SVG, or PDF. UPCs are built to the GS1 spec, the panel
-      to 21 CFR 101.9. And, nothing you type here leaves the browser.
+      We got tired of producing barcodes, QR codes and Nutrition Facts panels
+      through a different tool every time and never quite trusting the
+      result, so we built one system that does all three properly and made it
+      free for anyone to use. Pick the asset you need, enter your specs right
+      here and download as EPS, SVG, or PDF. UPCs are built to the GS1 spec,
+      the panel to 21 CFR 101.9. And, nothing you type here leaves the
+      browser.
     </p>
 
     <div class="tcard rise" id="tcard">
@@ -359,9 +361,12 @@ const jsonLd = {
     .tools .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:60ch; }
     .tools .q-sub a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset); text-decoration-thickness:1px; }
     .tools .pair{ display:flex; gap:20px; }
-    .tools .half{ flex:1 1 0; min-width:0; }
     .tools .trio{ display:flex; gap:20px; }
-    .tools .third{ flex:1 1 0; min-width:0; }
+    /* Side-by-side fields: the label block flexes and the control sits at the
+       bottom, so two selects line up regardless of how long each subhead runs
+       (Pierce, 2026-09-10). */
+    .tools .half, .tools .third{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; }
+    .tools .half > .q, .tools .third > .q{ flex:1 0 auto; }
     .tools .third[hidden]{ display:none; }
     @media (max-width:600px){ .tools .pair, .tools .trio{ flex-direction:column; gap:1.6rem; } }
 
