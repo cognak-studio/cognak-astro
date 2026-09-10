@@ -239,11 +239,11 @@ const jsonLd = {
           <div class="nhead" id="nhead"><span>Nutrient</span><span>Per serving</span><span class="nhead-2" hidden>Second column</span><span>Prints as</span></div>
           <!-- rows are built by the script from the nutrient table -->
         </div>
-        <details class="more" id="more">
-          <summary>More nutrients</summary>
-          <p class="q-sub">Voluntary declarations. Tick one to add its row; it prints in the order the regulation lists.</p>
-          <div class="pills" id="vol-pills"></div>
-        </details>
+        <div class="more" id="more">
+          <div class="q"><span class="q-title">More nutrients</span><span class="q-sub">Voluntary. Tick one to add its row; it prints where the regulation puts it, whatever order you pick them in.</span></div>
+          <div class="pillrow"><span class="pillrow-label mono">Vitamins &amp; minerals</span><div class="pills" id="vol-pills-micro"></div></div>
+          <div class="pillrow"><span class="pillrow-label mono">Fats, fiber &amp; sugars</span><div class="pills" id="vol-pills-macro"></div></div>
+        </div>
       </div>
 
       <!-- ----------------------------------------------------- options --- -->
@@ -402,8 +402,11 @@ const jsonLd = {
     .tools .check input{ appearance:none; -webkit-appearance:none; width:20px; height:20px; margin:0; border:1px solid var(--line-strong);
       border-radius:5px; background:var(--field); display:inline-grid; place-content:center; cursor:pointer; flex:0 0 auto;
       transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
-    .tools .check input::before{ content:''; width:10px; height:10px; border-radius:2px; background:var(--deep); transform:scale(0); transition:transform var(--dur-xs) var(--ease-press); }
-    .tools .check input:checked{ background:var(--accent); border-color:var(--accent); }
+    /* Checked: the box stays as it is and a smaller solid square appears
+       inside it — no full fill (Pierce, 2026-09-10: "solid fill square
+       smaller than the selection square"). */
+    .tools .check input::before{ content:''; width:10px; height:10px; border-radius:2px; background:var(--accent); transform:scale(0); transition:transform var(--dur-xs) var(--ease-press); }
+    .tools .check input:checked{ border-color:var(--accent); }
     .tools .check input:checked::before{ transform:scale(1); }
     .tools .check input:disabled{ opacity:.35; cursor:not-allowed; }
     .tools .check:has(input:disabled){ color:var(--ink-soft); cursor:not-allowed; }
@@ -435,12 +438,10 @@ const jsonLd = {
       .tools .nrow .col2{ grid-column:2; border-top:none; padding-top:0; }
       .tools .ntable.one-col .col2{ display:none; }
     }
-    .tools .more{ margin-top:1.6rem; }
-    .tools .more summary{ cursor:pointer; font-size:1rem; font-weight:500; color:var(--ink); list-style:none; display:inline-flex; align-items:center; gap:.5rem; }
-    .tools .more summary::-webkit-details-marker{ display:none; }
-    .tools .more summary::before{ content:''; width:8px; height:8px; border-right:1.5px solid var(--accent); border-bottom:1.5px solid var(--accent); transform:rotate(-45deg); transition:transform var(--dur-s) var(--ease-standard); }
-    .tools .more[open] summary::before{ transform:rotate(45deg); }
-    .tools .more .q-sub{ margin:.6rem 0 1rem; }
+    .tools .more{ margin-top:2.4rem; }
+    .tools .more .q{ margin-bottom:1.2rem; }
+    .tools .pillrow{ margin-top:1.1rem; }
+    .tools .pillrow-label{ display:block; font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--placeholder); margin-bottom:.7rem; }
 
     /* ----------------------------------------------------------- pills --- */
     .tools .pills{ display:flex; flex-wrap:wrap; gap:10px; }
@@ -542,14 +543,20 @@ const jsonLd = {
       if (n.micro) firstMicro = false;
       if (n.voluntary) row.hidden = true;
     }
-    // Voluntary pills
-    const pills = $('vol-pills');
-    for (const n of NUTRIENTS.filter((x) => x.voluntary)) {
+    // Voluntary pills, ordered by how often they actually appear on labels
+    // (the rows themselves still print in the regulation's order).
+    const MICRO_ORDER = ['vitA', 'vitC', 'vitE', 'magnesium', 'zinc', 'vitB12', 'folate', 'vitB6', 'thiamin', 'riboflavin', 'niacin', 'phosphorus', 'vitK', 'selenium', 'copper', 'manganese', 'iodine', 'pantothenic', 'biotin', 'chromium', 'molybdenum', 'chloride', 'choline'];
+    const MACRO_ORDER = ['poly', 'mono', 'solFiber', 'insolFiber', 'sugarAlc'];
+    const pills = $('more');
+    const addPill = (host, key) => {
+      const n = byKey[key];
       const l = document.createElement('label');
       l.className = 'pill';
       l.innerHTML = `<input type="checkbox" data-vol="${n.key}" /> ${n.label}`;
-      pills.appendChild(l);
-    }
+      host.appendChild(l);
+    };
+    MICRO_ORDER.forEach((k) => addPill($('vol-pills-micro'), k));
+    MACRO_ORDER.forEach((k) => addPill($('vol-pills-macro'), k));
     pills.addEventListener('change', (e) => {
       const key = e.target.dataset.vol;
       if (!key) return;
