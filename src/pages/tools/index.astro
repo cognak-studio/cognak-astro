@@ -97,10 +97,10 @@ const toolsJsonLd = {
     </h1>
     <p class="lede tools-lede">
       Like you, we were tired of trying to consistently produce perfect
-      barcodes and QR codes for print. So we built our own system. Enter
-      your specs right here and download as EPS, SVG, or PDF. UPCs are built
-      to the GS1 spec and stay compliant anywhere from 80% to 200%. And,
-      nothing you type here leaves the browser.
+      barcodes, QR codes and Nutrition Facts panels for print. So we built
+      our own system. Pick the one you need, enter your specs right here and
+      download as EPS, SVG, or PDF. UPCs are built to the GS1 spec, the panel
+      to 21 CFR 101.9. And, nothing you type here leaves the browser.
     </p>
 
     <div class="tcard rise" id="tcard">
@@ -110,13 +110,14 @@ const toolsJsonLd = {
         <div class="group-title">Format</div>
         <div class="field">
           <label class="q" for="tool-select">
-            <span class="q-title">Choose UPC or QR code</span>
-            <span class="q-sub">Just these two for now, but <a href="mailto:hello@cognak.com">let us know</a> if you'd like another format.</span>
+            <span class="q-title">Choose UPC, QR code or Nutrition Facts</span>
+            <span class="q-sub">Three for now, but <a href="mailto:hello@cognak.com">let us know</a> if you'd like another.</span>
           </label>
           <div class="selwrap">
             <select class="sel" id="tool-select">
               <option value="upc">UPC-A — retail product barcode</option>
               <option value="qr">QR code — link to a URL</option>
+              <option value="nfp">Nutrition Facts — FDA panel for food packaging</option>
             </select>
             <span class="selchev" aria-hidden="true">
               <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5 6 6.5 11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -232,9 +233,7 @@ const toolsJsonLd = {
       install or substitute. COGNAK doesn't issue UPC numbers; those come
       from <a href="https://www.gs1us.org/upcs-barcodes-prefixes/how-to-get-a-upc-barcode" target="_blank" rel="noopener noreferrer">GS1</a>.
       This tool is provided as-is, with no warranty. Always scan a printed
-      proof before committing to a production run. There is also a
-      <a href="/tools/nutrition-facts">Nutrition Facts panel generator</a>,
-      built the same way.
+      proof before committing to a production run.
     </p>
 
   </section></main>
@@ -641,6 +640,9 @@ const toolsJsonLd = {
     const panels = { upc: $('panel-upc'), qr: $('panel-qr') };
     $('tool-select').addEventListener('change', (e) => {
       const next = e.target.value;
+      // The Nutrition Facts panel is its own page (it needs its own URL to be
+      // found in search); the select is just how you get there from here.
+      if (next === 'nfp') { window.location.href = '/tools/nutrition-facts'; return; }
       if (next === mode) return;
       const from = panels[mode];
       const to = panels[next];
@@ -673,6 +675,13 @@ const toolsJsonLd = {
       });
     });
 
+    // /tools#qr lands on the QR panel directly (the panel page links back this way).
+    if (location.hash === '#qr') {
+      mode = 'qr';
+      $('tool-select').value = 'qr';
+      panels.upc.hidden = true;
+      panels.qr.hidden = false;
+    }
     render();
     requestAnimationFrame(() => $('tcard').classList.add('in'));
   </script>
