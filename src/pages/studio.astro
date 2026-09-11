@@ -1125,7 +1125,7 @@ body[data-page="studio"] #cognak-cursor.is-founder.is-colophon.is-tools #cognak-
             cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-next');
             cursor.classList.add('is-founder', 'is-colophon');
             if (isTools) cursor.classList.add('is-tools');
-            if (label) label.textContent = isTools ? 'The tools' : 'The colophon';
+            if (label) label.textContent = isTools ? 'QR codes, barcodes, etc.' : 'The colophon';
         });
         el.addEventListener('mouseleave', function() {
             cursor.classList.remove('is-founder', 'is-colophon', 'is-tools');
