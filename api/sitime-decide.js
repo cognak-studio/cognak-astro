@@ -34,6 +34,11 @@ export default async function handler(req, res) {
     const state = await readState();
     const batch = state && (state.batches || []).find((b) => b.token === token);
     if (!batch) return res.status(404).json({ error: 'This link is not valid.' });
+    /* Shared passcode on top of the link (Pierce, 2026-09-14: "silicon").
+       Set in the admin Library tab; compared case-insensitively. */
+    const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
+    const got = String((body && body.pass) || '').trim().toLowerCase();
+    if (want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
     if (batch.status === 'draft') return res.status(403).json({ error: 'This batch is a preview. Decisions are not saved yet.' });
     if (!(batch.slotIds || []).includes(slotId)) return res.status(400).json({ error: 'That image is not in this batch.' });
 

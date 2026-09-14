@@ -38,6 +38,11 @@ export default async function handler(req, res) {
     const state = await readState();
     const batch = state && (state.batches || []).find((b) => b.token === token);
     if (!batch) return res.status(404).json({ error: 'This link is not valid.' });
+    /* Shared passcode on top of the link (Pierce, 2026-09-14: "silicon").
+       Set in the admin Library tab; compared case-insensitively. */
+    const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
+    const got = String((body && body.pass) || '').trim().toLowerCase();
+    if (want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
 
     const byId = new Map((state.slots || []).map((s) => [s.id, s]));
     const slots = (batch.slotIds || []).map((id) => byId.get(id)).filter(Boolean).map((s) => ({

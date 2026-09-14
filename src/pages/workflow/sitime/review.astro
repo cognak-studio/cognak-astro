@@ -35,6 +35,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">One moment.</p></div></div>
 
+    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Passcode</div>
+      <label class="q" for="pass"><span class="q-title">Enter the passcode COGNAK sent with this link.</span></label>
+      <div class="passrow"><input class="txt" id="pass" type="password" autocomplete="off" autocapitalize="off" /><button type="button" class="btn" id="pass-go">Continue</button></div>
+      <p class="hint is-error" id="pass-err" hidden></p>
+    </div></div>
+
     <div class="card rise" id="invalid" hidden><div class="group"><div class="group-title">This link</div><p class="hint" id="invalid-note">This link isn't complete. Check the URL COGNAK sent you.</p></div></div>
 
     <div class="card rise" id="card" hidden>
@@ -117,6 +123,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .q-sub{ display:block; font-size:.88rem; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:60ch; }
     .review .hint{ font-size:.92rem; color:var(--ink-soft); margin:0; }
     .review .hint.is-error{ color:var(--err); margin-top:10px; }
+    .review .passrow{ display:flex; gap:12px; margin-top:12px; max-width:480px; }
+    .review .txt{ flex:1; font:inherit; font-size:1rem; color:var(--ink); background:var(--field); border:1px solid var(--line-strong); border-radius:999px; padding:12px 18px; outline:none; }
+    .review .txt:focus{ border-color:var(--accent); }
     .review .field{ margin-bottom:2rem; }
     .review .pills{ display:flex; gap:10px; flex-wrap:wrap; margin-top:1.1rem; }
     .review .pill{ font:inherit; display:inline-flex; align-items:center; border:1px solid var(--line-strong); border-radius:999px; padding:12px 24px; font-size:.95rem; font-weight:500; color:var(--ink); background:none; cursor:pointer;
@@ -207,6 +216,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     const token = getToken();
     const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, preview: false };
+    let pass = '';
+    try { pass = sessionStorage.getItem('sitime-pass-' + token) || ''; } catch (e) {}
 
     function outcome(slot) {
       const d = state.decisions[slot.id] || {};
@@ -302,7 +313,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const which = o.outcome === 'pending' ? o.which : o.which;
       const note = $('note-text').value.trim();
       $('submit').disabled = true; $('saving').hidden = false; $('err').hidden = true;
-      const r = await api('/api/sitime-decide', { token, slotId: s.id, which, decision: state.pending, note });
+      const r = await api('/api/sitime-decide', { token, pass, slotId: s.id, which, decision: state.pending, note });
       $('submit').disabled = false; $('saving').hidden = true;
       if (!r.ok && !(r.status === 403 && state.preview)) {
         $('err').textContent = (r.data && r.data.error) || 'Could not save that. Try again.'; $('err').hidden = false; return;
@@ -318,9 +329,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     async function load() {
       if (!token) { $('loading').hidden = true; $('invalid').hidden = false; return; }
-      const r = await api('/api/sitime-batch', { token });
+      const r = await api('/api/sitime-batch', { token, pass });
       $('loading').hidden = true;
+      if (r.status === 401 && r.data && r.data.needPass) {
+        $('gate').hidden = false; $('card').hidden = true;
+        if (pass) { $('pass-err').textContent = r.data.error; $('pass-err').hidden = false; }
+        $('pass').focus(); return;
+      }
       if (!r.ok || !r.data || !r.data.ok) { $('invalid').hidden = false; $('invalid-note').textContent = (r.data && r.data.error) || 'This link isn’t valid.'; return; }
+      $('gate').hidden = true;
+      try { sessionStorage.setItem('sitime-pass-' + token, pass); } catch (e) {}
       state.batch = r.data.batch; state.slots = r.data.slots; state.decisions = r.data.decisions || {};
       state.preview = state.batch.status === 'draft';
       if (r.data.mock) { $('mock-h1').textContent = r.data.mock.h1 || $('mock-h1').textContent; $('mock-p').textContent = r.data.mock.p || $('mock-p').textContent; $('mock-cta').textContent = r.data.mock.cta || $('mock-cta').textContent; }
@@ -330,6 +348,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (j === -1) { $('card').hidden = false; render(); showSummary(); return; }
       state.i = j; $('card').hidden = false; render();
     }
+    $('pass-go').addEventListener('click', () => { pass = $('pass').value; $('pass-err').hidden = true; $('gate').hidden = true; $('loading').hidden = false; load(); });
+    $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pass-go').click(); });
     load();
   })();
   </script>
