@@ -99,6 +99,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="hint" id="lib-log"></div>
         </div>
         <div class="group">
+          <div class="group-title">Review link passcode</div>
+          <div class="grid3"><label class="q"><span class="q-title">Passcode</span><input class="txt" id="review-pass" placeholder="silicon" /></label><p class="hint" style="grid-column:2/4;align-self:end">Asked once per browser session on every review link, on top of the link itself. Blank turns it off.</p></div>
+        </div>
+        <div class="group">
           <div class="group-title">Mock copy</div>
           <div class="grid3">
             <label class="q"><span class="q-title">Headline</span><input class="txt" id="mock-h1" /></label>
@@ -213,6 +217,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .bslot b{ display:block; color:var(--ink); font-weight:500; font-size:.78rem; }
     .adm dialog{ border:1px solid #ECECE9; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
     .adm dialog::backdrop{ background:rgba(26,26,26,.35); }
+    .adm dialog:focus{ outline:none; }
+    /* The site's custom cursor (#cognak-cursor) is a fixed element on the
+       page layer; a <dialog> renders in the browser's top layer above it, so
+       the dot disappears behind the modal. While a dialog is open, hide the
+       custom dot and let the native cursor show. */
+    html:has(dialog[open]) #cognak-cursor{ display:none !important; }
+    html:has(dialog[open]), html:has(dialog[open]) *{ cursor:auto !important; }
+    html:has(dialog[open]) button, html:has(dialog[open]) .sbtn, html:has(dialog[open]) .link{ cursor:pointer !important; }
     .adm .actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
     @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .cands{ grid-template-columns:repeat(3,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
   </style>
@@ -516,7 +528,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderLib() {
       const n = (S.library || []).length; $('lib-status').textContent = n ? n + ' images indexed.' : 'Not indexed yet.';
       $('mock-h1').value = S.mock?.h1 || ''; $('mock-p').value = S.mock?.p || ''; $('mock-cta').value = S.mock?.cta || '';
+      $('review-pass').value = S.reviewPass == null ? 'silicon' : S.reviewPass;
     }
+    $('review-pass').addEventListener('change', (e) => { S.reviewPass = e.target.value.trim(); mark(); });
     ['mock-h1', 'mock-p', 'mock-cta'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value }; mark(); }));
     $('lib-dir').addEventListener('change', async () => {
       const files = Array.from($('lib-dir').files).filter((f) => /\.(jpe?g|png)$/i.test(f.name));
