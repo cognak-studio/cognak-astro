@@ -5798,3 +5798,22 @@ html.js .fourofour-btn.is-in {
 
 /* <picture> wrappers around body images are layout-transparent */
 #cognak-main picture { display: contents; }
+
+/* -- Workflow nav (/workflow/sitime/*, 2026-09-14): white bar, dark text,
+   the /tools purple on the pulse dot. Lives here, not in the page's own
+   <style>, for the same first-paint reason as .schedule-nav above. */
+.home-bottom-bar.inner-page-nav.workflow-nav {
+    background: rgba(255, 255, 255, 0.82) !important;
+    border-bottom: 1px solid #E6E6E3;
+}
+.workflow-nav .home-bottom-email,
+.workflow-nav .home-bottom-location,
+.workflow-nav .inner-nav-links a {
+    color: #1A1A1A !important;
+}
+.workflow-nav .pulse-dot { color: #B47CFF !important; }
+.workflow-nav img:not(.emoji) { filter: brightness(0.35) !important; opacity: .85; }
+@media (hover: hover) {
+.workflow-nav .home-bottom-email:hover,
+.workflow-nav .inner-nav-links a:hover { color: #4A3F6B !important; }
+}

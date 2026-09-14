@@ -1,0 +1,562 @@
+---
+/**
+ * /workflow/sitime/admin — COGNAK's side of the SiTime image tool.
+ *
+ * Four tabs plus the library indexer:
+ *   Batches      the project at a glance, batch list, "waiting on you"
+ *   Slots        every slot from Ace's inventory (and the migrated pages'
+ *                existing heroes as reviewable rows); pick a main and a
+ *                backup from Adobe Stock (Ace's candidates or a pasted comp),
+ *                SiTime's licensed library, the current site, or an upload;
+ *                check rows, add to a batch
+ *   Replacements anything SiTime denied or held, with the note, so the
+ *                resubmit cycle is its own queue
+ *   Handoff      approved images with source, Stock ID and a license field;
+ *                CSV export for whoever authors AEM
+ *   Library      one-time indexer: pick the Image Mapping folder, the
+ *                Digital-Web + MEMS files are resized in the browser and
+ *                pushed to Blob
+ *
+ * Auth is the existing admin session (sign in on /send). State is one
+ * versioned Blob document written only from here; reviewer decisions are
+ * append-only events read back alongside it. See api/_lib/sitimeStore.mjs.
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  page="workflow"
+  title="SiTime images — COGNAK"
+  description="Internal."
+  ogUrl="https://cognak.com/workflow/sitime/admin"
+  noindex={true}
+  pageBg="#F4F4F2"
+>
+  <main id="cognak-main"><section class="adm">
+
+    <h1 class="headline"><em>SiTime</em> images. Internal.</h1>
+    <p class="lede" id="lede">Assign a main and a backup to each slot, group slots into a batch, send SiTime one link. Decisions come back here; anything denied lands in Replacements.</p>
+
+    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div><p class="hint">This page uses the admin session from <a href="/send">/send</a>. Sign in there, then reload this page.</p></div></div>
+    <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
+
+    <div id="app" hidden>
+      <div class="tabs" id="tabs">
+        <a data-tab="batches" class="on">Batches<i id="n-batches">0</i></a>
+        <a data-tab="slots">Slots<i id="n-slots">0</i></a>
+        <a data-tab="replacements">Replacements<i id="n-repl">0</i></a>
+        <a data-tab="handoff">Handoff<i id="n-handoff">0</i></a>
+        <a data-tab="library">Library<i id="n-lib">0</i></a>
+        <span class="savestate" id="savestate"></span>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <!-- BATCHES -->
+      <div class="card rise tab" id="tab-batches">
+        <div class="group">
+          <div class="card-head"><div class="group-title">Batches</div><div><span class="mini" id="checked-hint"></span><button class="sbtn p" id="new-batch">New batch</button></div></div>
+          <div id="batch-list"></div>
+        </div>
+        <div class="group" id="waiting-group">
+          <div class="group-title">Waiting on you</div>
+          <div class="queue" id="waiting"></div>
+        </div>
+      </div>
+
+      <!-- SLOTS -->
+      <div class="card rise tab" id="tab-slots" hidden>
+        <div class="group">
+          <div class="card-head">
+            <div class="filters" id="filters"></div>
+            <div class="right"><input class="search" id="search" placeholder="Search page or slot" /><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></div>
+          </div>
+          <div class="tablewrap"><table id="slot-table"><thead><tr><th><input type="checkbox" id="check-all" /></th><th>Page · slot</th><th>Pri</th><th>Rec</th><th>Main</th><th>Backup</th><th>State</th><th>Batch</th></tr></thead><tbody id="slot-rows"></tbody></table></div>
+          <p class="hint" id="slot-more"></p>
+        </div>
+        <div class="group drawer" id="drawer" hidden></div>
+      </div>
+
+      <!-- REPLACEMENTS -->
+      <div class="card rise tab" id="tab-replacements" hidden>
+        <div class="group"><div class="group-title">Denied and held</div><div id="repl-list"></div></div>
+      </div>
+
+      <!-- HANDOFF -->
+      <div class="card rise tab" id="tab-handoff" hidden>
+        <div class="group">
+          <div class="card-head"><div class="group-title">Approved</div><div><button class="sbtn" id="export-handoff">Export CSV</button></div></div>
+          <div class="tablewrap"><table><thead><tr><th>Page · slot</th><th>Image</th><th>Source</th><th>Reference</th><th>License / note</th><th>Batch</th></tr></thead><tbody id="handoff-rows"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- LIBRARY -->
+      <div class="card rise tab" id="tab-library" hidden>
+        <div class="group">
+          <div class="group-title">SiTime licensed library</div>
+          <p class="hint" id="lib-status"></p>
+          <p class="hint">Pick the <b>Image Mapping</b> folder from Drive. Only the Digital-Web folders and MEMS-Products are indexed (web-size copy plus a thumbnail per image); everything else stays where it is. Re-run any time SiTime adds files; already-indexed images are skipped.</p>
+          <div class="actions"><label class="sbtn p" for="lib-dir">Choose folder</label><input type="file" id="lib-dir" webkitdirectory directory multiple hidden /><span class="mini" id="lib-progress"></span></div>
+          <div class="hint" id="lib-log"></div>
+        </div>
+        <div class="group">
+          <div class="group-title">Mock copy</div>
+          <div class="grid3">
+            <label class="q"><span class="q-title">Headline</span><input class="txt" id="mock-h1" /></label>
+            <label class="q"><span class="q-title">Subhead</span><input class="txt" id="mock-p" /></label>
+            <label class="q"><span class="q-title">Button</span><input class="txt" id="mock-cta" /></label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- batch modal -->
+    <dialog id="batch-dialog">
+      <div class="group-title" id="bd-title">New batch</div>
+      <label class="q"><span class="q-title">Name</span><input class="txt" id="bd-name" placeholder="Homepage + Applications" /></label>
+      <label class="q"><span class="q-title">Planned for</span><input class="txt" id="bd-date" type="date" /></label>
+      <p class="hint" id="bd-hint"></p>
+      <div class="actions"><button class="sbtn p" id="bd-save">Save</button><button class="sbtn" id="bd-cancel">Cancel</button></div>
+    </dialog>
+
+  </section></main>
+
+  <style is:inline>
+    html, body { background-color:#F4F4F2 !important; }
+    #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
+    .adm label, .adm legend { display:block !important; }
+    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#B47CFF; --head:#4A3F6B; --deep:#1B1424; --line:#E6E6E3; --line-strong:#CFCFCB;
+      max-width:1240px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
+    .adm .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+    .adm .headline em{ font-style:normal; font-weight:500; color:var(--head); }
+    .adm .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 2.4rem 40px; }
+    .adm .card{ background:var(--card); border-radius:12px; padding:34px 34px 30px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; }
+    .adm .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
+    .adm .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
+    .adm .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.6rem; }
+    .adm .hint{ font-size:.9rem; color:var(--ink-soft); line-height:1.5; margin:0 0 .8rem; }
+    .adm .hint a{ color:var(--head); }
+    .adm .q{ display:block; margin-bottom:1rem; }
+    .adm .q-title{ display:block; font-size:.95rem; font-weight:500; margin-bottom:6px; }
+    .adm .txt{ width:100%; font:inherit; font-size:.95rem; color:var(--ink); background:var(--field); border:1px solid var(--line-strong); border-radius:8px; padding:10px 12px; outline:none; }
+    .adm .txt:focus{ border-color:var(--accent); }
+    .adm .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
+    .adm .tabs{ display:flex; gap:6px; margin:0 0 1.6rem 40px; align-items:center; flex-wrap:wrap; }
+    .adm .tabs a{ font-size:.92rem; padding:9px 16px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink); text-decoration:none; cursor:pointer; user-select:none; }
+    .adm .tabs a.on{ background:#1A1A1A; color:#fff; border-color:#1A1A1A; }
+    .adm .tabs a i{ font-style:normal; color:inherit; opacity:.6; margin-left:6px; font-family:'Diatype Mono', monospace; font-size:.75rem; }
+    .adm .savestate{ margin-left:auto; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+    .adm .stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:2rem; }
+    .adm .stat{ background:#fff; border:1px solid #ECECE9; border-radius:10px; padding:16px 18px; }
+    .adm .stat b{ display:block; font-size:1.9rem; font-weight:500; letter-spacing:-.02em; line-height:1; }
+    .adm .stat span{ display:block; font-size:.8rem; color:var(--ink-soft); margin-top:8px; }
+    .adm .stat.warn b{ color:#D94A00; }
+    .adm .card-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:1.4rem; flex-wrap:wrap; }
+    .adm .card-head .right{ display:flex; align-items:center; gap:12px; }
+    .adm .search{ font:inherit; font-size:.9rem; padding:8px 12px; border:1px solid var(--line-strong); border-radius:999px; background:#fff; width:220px; outline:none; }
+    .adm .filters{ display:flex; gap:8px; flex-wrap:wrap; }
+    .adm .sbtn{ font:inherit; font-size:.85rem; font-weight:500; padding:8px 14px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; white-space:nowrap; }
+    .adm .sbtn.on{ background:#1A1A1A; color:#fff; border-color:#1A1A1A; }
+    .adm .sbtn.p{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
+    .adm .sbtn:disabled{ opacity:.4; cursor:not-allowed; }
+    .adm .sbtn.danger{ color:#B00020; border-color:#F0B6BE; }
+    .adm .tablewrap{ overflow-x:auto; }
+    .adm table{ width:100%; border-collapse:collapse; font-size:.92rem; }
+    .adm th{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .adm td{ padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    .adm tr.sel td{ background:#FAF7FF; }
+    .adm tr.clickable{ cursor:pointer; }
+    .adm .pg{ font-weight:500; }
+    .adm .sub{ font-size:.8rem; color:var(--ink-soft); }
+    .adm .pri{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; }
+    .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
+    .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
+    .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
+    .adm .st i{ width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
+    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#B47CFF; } .adm .st.sent i{ background:#B47CFF; box-shadow:0 0 0 2px #EAD9FF; }
+    .adm .st.approved i{ background:#9DFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
+    .adm .st.unreviewed i{ background:#fff; border:1px solid #9A9A96; } .adm .st.kept i{ background:#9DFF00; border:1px solid #6EB300; opacity:.5; }
+    .adm .mini{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.05em; color:var(--ink-soft); }
+    .adm .mini b{ font-weight:400; color:var(--ink); margin-right:10px; }
+    .adm .mini .a{ color:#5A9E00; } .adm .mini .d{ color:#E5231B; } .adm .mini .h{ color:#E07000; }
+    .adm .link{ font:inherit; background:none; border:0; padding:0; color:var(--head); text-decoration:underline; text-underline-offset:3px; font-size:.85rem; margin-right:12px; cursor:pointer; }
+    .adm .queue{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .adm .qitem{ display:flex; gap:12px; align-items:flex-start; border:1px solid #ECECE9; border-radius:8px; padding:12px; }
+    .adm .qitem img{ width:72px; height:48px; object-fit:cover; border-radius:4px; background:#EEE; }
+    .adm .qitem .t{ font-size:.9rem; font-weight:500; }
+    .adm .qitem .n{ font-size:.82rem; color:var(--ink-soft); margin-top:3px; line-height:1.4; }
+    /* drawer */
+    .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
+    .adm .drawer .meta{ display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:24px; font-size:.88rem; line-height:1.5; color:var(--ink-soft); margin:1rem 0 1.4rem; }
+    .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:4px; }
+    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#4A3F6B; line-height:1.5; }
+    .adm .picks{ display:flex; gap:14px; margin:0 0 1.4rem; }
+    .adm .pick{ border:1px solid #E6E6E3; border-radius:8px; padding:10px; width:220px; }
+    .adm .pick img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:4px; background:#EEE; display:block; }
+    .adm .pick .pl{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; display:flex; justify-content:space-between; }
+    .adm .pick .pt{ font-size:.78rem; color:var(--ink-soft); margin-top:6px; line-height:1.3; word-break:break-word; }
+    .adm .srctabs{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+    .adm .cands{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+    .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
+    .adm .cand img{ width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#EEE; }
+    .adm .cand .cb{ padding:8px 10px; font-size:.74rem; line-height:1.35; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .adm .cand .cb b{ display:block; color:var(--ink); font-weight:500; font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.06em; margin-bottom:3px; }
+    .adm .cand .tag{ position:absolute; top:8px; left:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
+    .adm .cand.main{ outline:2px solid #1A1A1A; } .adm .cand.backup{ outline:2px dashed #1A1A1A; } .adm .cand.backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
+    .adm .cand.warn::after{ content:'AI'; position:absolute; top:8px; right:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
+    .adm .cands .more{ grid-column:1/-1; }
+    .adm .up{ border:1px dashed var(--line-strong); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.8rem; color:var(--ink-soft); aspect-ratio:4/3; text-align:center; padding:10px; cursor:pointer; gap:6px; }
+    .adm .batchrow{ display:grid; grid-template-columns:1.4fr 1.2fr 60px 110px 1.2fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:.92rem; }
+    .adm .batchrow.head{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); padding:0 0 12px; }
+    .adm .bslots{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:10px 0 18px; }
+    .adm .bslot{ border:1px solid #ECECE9; border-radius:6px; padding:6px; font-size:.75rem; color:var(--ink-soft); }
+    .adm .bslot img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; background:#EEE; display:block; margin-bottom:5px; }
+    .adm .bslot b{ display:block; color:var(--ink); font-weight:500; font-size:.78rem; }
+    .adm dialog{ border:1px solid #ECECE9; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
+    .adm dialog::backdrop{ background:rgba(26,26,26,.35); }
+    .adm .actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .cands{ grid-template-columns:repeat(3,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
+  </style>
+
+  <script is:inline>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const fmtDate = (iso) => iso ? new Date(iso + (iso.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+
+    async function api(path, opts) {
+      const res = await fetch(path, { method: (opts && opts.method) || 'GET', headers: { 'Content-Type': 'application/json' }, body: opts && opts.body ? JSON.stringify(opts.body) : undefined, credentials: 'same-origin' });
+      let json = null; try { json = await res.json(); } catch (e) {}
+      return { ok: res.ok, status: res.status, data: json };
+    }
+    function randomToken(len = 10) { const a = 'abcdefghjkmnpqrstuvwxyz23456789'; const b = crypto.getRandomValues(new Uint8Array(len)); return Array.from(b, (x) => a[x % a.length]).join(''); }
+
+    let S = null;          // state document
+    let D = {};            // decisions by batch token → { latest: {slotId: {main, backup}} }
+    let checked = new Set();
+    let openSlot = null;
+    let srcTab = 'stock';
+    let libQuery = '', libGroup = '', libShown = 48;
+    const filters = { pri: new Set(), sec: new Set(), st: new Set() };
+    let search = '';
+    let slotsShown = 80;
+
+    /* ---------- save (debounced, whole document) ---------- */
+    let saveTimer = null, saving = false, dirty = false;
+    function mark() { dirty = true; $('savestate').textContent = 'Unsaved'; clearTimeout(saveTimer); saveTimer = setTimeout(save, 1200); }
+    async function save() {
+      if (saving) { dirty = true; return; }
+      saving = true; dirty = false; $('savestate').textContent = 'Saving…';
+      const r = await api('/api/sitime-state', { method: 'POST', body: { state: S } });
+      saving = false;
+      $('savestate').textContent = r.ok ? 'Saved' : 'Save failed';
+      if (dirty) save();
+    }
+
+    /* ---------- derived ---------- */
+    const byId = () => new Map(S.slots.map((s) => [s.id, s]));
+    function batchOf(slot) { return slot.batch ? S.batches.find((b) => b.token === slot.batch) : null; }
+    function outcomeIn(slot, batch) {
+      const d = batch && D[batch.token] && D[batch.token].latest && D[batch.token].latest[slot.id];
+      const m = d && d.main, b = d && d.backup;
+      if (!m) return { outcome: 'pending', which: null };
+      if (m.decision === 'approve') return { outcome: 'approved', which: 'main', ev: m };
+      if (m.decision === 'hold') return { outcome: 'held', which: 'main', ev: m };
+      if (!slot.backup) return { outcome: 'denied', which: 'main', ev: m };
+      if (!b) return { outcome: 'pending', which: 'backup', ev: m };
+      if (b.decision === 'approve') return { outcome: 'approved', which: 'backup', ev: b };
+      if (b.decision === 'hold') return { outcome: 'held', which: 'backup', ev: b };
+      return { outcome: 'denied', which: 'backup', ev: b };
+    }
+    function status(slot) {
+      const b = batchOf(slot);
+      if (b) {
+        if (b.status === 'draft') return 'queued';
+        const o = outcomeIn(slot, b).outcome;
+        return o === 'pending' ? 'sent' : o;
+      }
+      if (slot.state === 'kept') return 'kept';
+      if (slot.state === 'unreviewed') return 'unreviewed';
+      return slot.main ? 'assigned' : 'unassigned';
+    }
+    const STATUS_LABEL = { unassigned: 'Unassigned', assigned: 'Assigned', queued: 'In draft', sent: 'Sent', approved: 'Approved', denied: 'Denied', held: 'Held', unreviewed: 'Unreviewed', kept: 'Kept as is' };
+    function finalPick(slot) { const b = batchOf(slot); const o = b ? outcomeIn(slot, b) : null; return o && o.outcome === 'approved' ? (o.which === 'backup' ? slot.backup : slot.main) : null; }
+
+    /* ---------- render: stats + tabs ---------- */
+    function renderStats() {
+      const st = S.slots.map(status);
+      const n = (k) => st.filter((x) => x === k).length;
+      const inScope = S.slots.filter((s) => s.state !== 'unreviewed' && s.state !== 'kept').length;
+      $('stats').innerHTML = [
+        ['' + inScope, 'slots in scope'],
+        ['' + S.slots.filter((s) => s.main && s.backup).length, 'main + backup assigned'],
+        ['' + n('approved'), 'approved'],
+        ['' + n('denied'), 'denied, need replacement', 'warn'],
+        ['' + n('held'), 'held'],
+      ].map((x) => '<div class="stat ' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('');
+      $('n-batches').textContent = S.batches.length;
+      $('n-slots').textContent = S.slots.length;
+      $('n-repl').textContent = n('denied') + n('held');
+      $('n-handoff').textContent = n('approved');
+      $('n-lib').textContent = (S.library || []).length;
+    }
+    document.querySelectorAll('#tabs a').forEach((a) => a.addEventListener('click', () => showTab(a.dataset.tab)));
+    function showTab(t) {
+      document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === t));
+      ['batches', 'slots', 'replacements', 'handoff', 'library'].forEach((k) => { $('tab-' + k).hidden = k !== t; });
+      $('stats').hidden = t !== 'batches';
+      if (t === 'batches') renderBatches(); if (t === 'slots') renderSlots(); if (t === 'replacements') renderRepl(); if (t === 'handoff') renderHandoff(); if (t === 'library') renderLib();
+    }
+
+    /* ---------- batches ---------- */
+    function batchCounts(b) {
+      const m = byId(); const c = { a: 0, d: 0, h: 0, p: 0 };
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b).outcome; c[o === 'approved' ? 'a' : o === 'denied' ? 'd' : o === 'held' ? 'h' : 'p']++; });
+      return c;
+    }
+    function renderBatches() {
+      const rows = S.batches.slice().sort((a, b) => b.num - a.num).map((b) => {
+        const c = batchCounts(b);
+        const total = (b.slotIds || []).length;
+        const stat = b.status === 'draft' ? 'Draft' : (c.p === 0 && total ? 'Complete' : 'In review');
+        const cls = b.status === 'draft' ? 'draft' : (c.p === 0 && total ? 'approved' : 'held');
+        const link = location.origin + '/workflow/sitime/' + b.token;
+        return '<div class="batchrow" data-b="' + b.token + '"><div><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
+          '<div><span class="mini">' + (b.status === 'draft' ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
+          '<div class="mini">' + (b.sentAt ? fmtDate(b.sentAt.slice(0, 10)) : (b.plannedFor ? fmtDate(b.plannedFor) + ', planned' : '—')) + '</div>' +
+          '<div><button class="link" data-act="open">Open</button>' + (b.status === 'draft' ? '<button class="link" data-act="preview">Preview as SiTime</button><button class="link" data-act="send">Mark sent</button>' : '<button class="link" data-act="copy">Copy link</button><button class="link" data-act="csv">Export CSV</button>') + '</div>' +
+          '<div class="bdetail" hidden style="grid-column:1/-1"></div></div>';
+      });
+      $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Sent</div><div></div></div>' : '<p class="hint">No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.</p>') + rows.join('');
+      $('batch-list').querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', (e) => {
+        const row = e.target.closest('.batchrow'); const b = S.batches.find((x) => x.token === row.dataset.b); const link = location.origin + '/workflow/sitime/' + b.token;
+        const act = btn.dataset.act;
+        if (act === 'open') { const d = row.querySelector('.bdetail'); d.hidden = !d.hidden; if (!d.hidden) renderBatchDetail(b, d); }
+        if (act === 'preview') window.open(link, '_blank');
+        if (act === 'copy') { navigator.clipboard.writeText(link); btn.textContent = 'Copied'; setTimeout(() => (btn.textContent = 'Copy link'), 1500); }
+        if (act === 'send') { if (!(b.slotIds || []).length) { alert('Add slots first.'); return; } b.status = 'sent'; b.sentAt = new Date().toISOString(); mark(); renderBatches(); renderStats(); navigator.clipboard.writeText(link); alert('Marked sent. The link is on your clipboard:\n' + link); }
+        if (act === 'csv') exportBatchCsv(b);
+      }));
+      // waiting on you
+      const m = byId(); const items = [];
+      S.batches.filter((b) => b.status !== 'draft').forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
+      const approvedUnlicensed = S.slots.filter((s) => { const p = finalPick(s); return p && p.source === 'stock' && !(s.license && s.license.id); }).length;
+      $('waiting').innerHTML = items.slice(0, 8).map(({ s, b, o }) => '<div class="qitem"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n">' + (o.outcome === 'denied' ? 'Denied' : 'Held') + ' in ' + String(b.num).padStart(2, '0') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div></div></div>').join('') +
+        (approvedUnlicensed ? '<div class="qitem"><div class="thumb empty" style="width:72px;height:48px"></div><div><div class="t">' + approvedUnlicensed + ' approved Stock image' + (approvedUnlicensed > 1 ? 's' : '') + ' to license</div><div class="n">Approved comps are ready to license on Adobe Stock. Handoff tab has the list and a field for the license ID.</div></div></div>' : '') ||
+        '<p class="hint">Nothing waiting.</p>';
+    }
+    function renderBatchDetail(b, el) {
+      const m = byId();
+      el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (b.status === 'draft' ? 'queued' : o.outcome === 'pending' ? 'sent' : o.outcome) + '"><i></i>' + (b.status === 'draft' ? 'In draft' : STATUS_LABEL[o.outcome === 'pending' ? 'sent' : o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (b.status === 'draft' ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
+        '<div class="actions"><button class="link" data-edit="1">Rename / reschedule</button>' + (b.status === 'draft' ? '<button class="link danger" data-del="1">Delete batch</button>' : '') + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
+      el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.rm); b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }));
+      el.querySelector('[data-edit]').addEventListener('click', () => openBatchDialog(b));
+      const del = el.querySelector('[data-del]'); if (del) del.addEventListener('click', () => { if (!confirm('Delete this draft batch? Slots go back to assigned.')) return; (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; }); S.batches = S.batches.filter((x) => x !== b); mark(); renderBatches(); renderStats(); });
+    }
+    function exportBatchCsv(b) {
+      const m = byId();
+      const rows = [['batch', 'page', 'section', 'url', 'slot', 'outcome', 'via', 'source', 'reference', 'image_url', 'note']];
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.page, s.section, s.url, s.name, o.outcome, o.which || '', p.source || '', p.source === 'stock' ? p.id : (p.path || p.title || ''), p.url || '', (o.ev && o.ev.note) || '']); });
+      downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
+    }
+    function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
+
+    let dialogBatch = null;
+    function openBatchDialog(b) {
+      dialogBatch = b || null;
+      $('bd-title').textContent = b ? 'Batch ' + String(b.num).padStart(2, '0') : 'New batch';
+      $('bd-name').value = b ? b.name : ''; $('bd-date').value = b ? (b.plannedFor || '') : '';
+      $('bd-hint').textContent = b ? '' : (checked.size ? checked.size + ' checked slot' + (checked.size > 1 ? 's' : '') + ' will go in.' : 'Starts empty. Add slots from the Slots tab.');
+      $('batch-dialog').showModal();
+    }
+    $('new-batch').addEventListener('click', () => openBatchDialog(null));
+    $('bd-cancel').addEventListener('click', () => $('batch-dialog').close());
+    $('bd-save').addEventListener('click', () => {
+      const name = $('bd-name').value.trim() || 'Untitled'; const date = $('bd-date').value || null;
+      if (dialogBatch) { dialogBatch.name = name; dialogBatch.plannedFor = date; }
+      else {
+        const num = (S.batches.reduce((a, b) => Math.max(a, b.num || 0), 0) || 0) + 1;
+        const b = { token: randomToken(10), num, name, scope: '', slotIds: [], status: 'draft', createdAt: new Date().toISOString(), plannedFor: date, sentAt: null };
+        addCheckedTo(b); S.batches.push(b);
+      }
+      $('batch-dialog').close(); mark(); renderBatches(); renderStats(); renderSlots();
+    });
+    function addCheckedTo(b) {
+      const m = byId();
+      checked.forEach((id) => { const s = m.get(id); if (!s || s.batch) return; b.slotIds.push(id); s.batch = b.token; });
+      const secs = new Set(b.slotIds.map((id) => m.get(id)?.section).filter(Boolean)); b.scope = Array.from(secs).slice(0, 3).join(', ') + (secs.size > 3 ? ' +' + (secs.size - 3) : '');
+      checked.clear();
+    }
+
+    /* ---------- slots ---------- */
+    const PRI = ['High', 'Medium', 'Low', 'Reuse'];
+    const STATES = ['unassigned', 'assigned', 'queued', 'sent', 'approved', 'denied', 'held', 'unreviewed', 'kept'];
+    function renderFilters() {
+      const secs = Array.from(new Set(S.slots.map((s) => s.section))).sort();
+      const chip = (k, v, label) => '<button class="sbtn ' + (filters[k].has(v) ? 'on' : '') + '" data-f="' + k + '" data-v="' + esc(v) + '">' + esc(label) + '</button>';
+      $('filters').innerHTML = PRI.map((p) => chip('pri', p, p)).join('') + '<span style="width:8px"></span>' + secs.map((s) => chip('sec', s, s)).join('') + '<span style="width:8px"></span>' + ['unassigned', 'assigned', 'sent', 'denied', 'held', 'unreviewed'].map((s) => chip('st', s, STATUS_LABEL[s])).join('');
+      $('filters').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { const set = filters[b.dataset.f]; set.has(b.dataset.v) ? set.delete(b.dataset.v) : set.add(b.dataset.v); slotsShown = 80; renderFilters(); renderSlots(); }));
+    }
+    function filtered() {
+      const q = search.toLowerCase();
+      return S.slots.filter((s) => (filters.pri.size ? filters.pri.has(s.priority) : true) && (filters.sec.size ? filters.sec.has(s.section) : true) && (filters.st.size ? filters.st.has(status(s)) : true) && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
+    }
+    function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '">' : '<div class="thumb empty"></div>'; }
+    function renderSlots() {
+      const list = filtered();
+      const rows = list.slice(0, slotsShown).map((s) => { const st = status(s); const b = batchOf(s); return '<tr class="clickable ' + (openSlot === s.id ? 'sel' : '') + '" data-id="' + s.id + '"><td><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '></td><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></td><td><span class="pri">' + esc(s.priority) + '</span></td><td><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span></td><td>' + thumbCell(s.main) + '</td><td>' + thumbCell(s.backup) + '</td><td><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span></td><td><span class="mini">' + (b ? String(b.num).padStart(2, '0') : '—') + '</span></td></tr>'; });
+      $('slot-rows').innerHTML = rows.join('') || '<tr><td colspan="8" class="hint">Nothing matches.</td></tr>';
+      $('slot-more').innerHTML = list.length > slotsShown ? 'Showing ' + slotsShown + ' of ' + list.length + '. <button class="link" id="show-more">Show more</button>' : list.length + ' slot' + (list.length === 1 ? '' : 's') + '.';
+      const sm = $('show-more'); if (sm) sm.addEventListener('click', () => { slotsShown += 80; renderSlots(); });
+      $('slot-rows').querySelectorAll('input[data-chk]').forEach((c) => c.addEventListener('click', (e) => { e.stopPropagation(); c.checked ? checked.add(c.dataset.chk) : checked.delete(c.dataset.chk); updateChecked(); }));
+      $('slot-rows').querySelectorAll('tr.clickable').forEach((tr) => tr.addEventListener('click', () => { openSlot = openSlot === tr.dataset.id ? null : tr.dataset.id; srcTab = 'stock'; renderSlots(); renderDrawer(); }));
+      updateChecked();
+    }
+    function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
+    $('check-all').addEventListener('change', (e) => { filtered().slice(0, slotsShown).forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
+    $('search').addEventListener('input', (e) => { search = e.target.value; slotsShown = 80; renderSlots(); });
+    $('add-to-batch').addEventListener('click', () => {
+      const drafts = S.batches.filter((b) => b.status === 'draft');
+      if (!drafts.length) { openBatchDialog(null); return; }
+      const choice = drafts.length === 1 ? drafts[0] : drafts.find((b) => String(b.num) === prompt('Which draft batch? ' + drafts.map((b) => b.num + ' = ' + b.name).join(', '), String(drafts[drafts.length - 1].num)));
+      if (!choice) return; addCheckedTo(choice); mark(); renderSlots(); renderStats();
+    });
+
+    /* ---------- drawer: the source picker ---------- */
+    function pickFrom(source, obj) {
+      if (source === 'stock') return { source, id: obj.id, url: obj.comp, thumb: obj.comp, title: obj.title || '' };
+      if (source === 'library') return { source, id: obj.id, url: obj.url, thumb: obj.thumb, title: obj.name, path: obj.path };
+      if (source === 'existing') return { source, id: null, url: obj.url, thumb: obj.url, title: obj.label || 'Current' };
+      return obj;
+    }
+    function assign(slot, pick) {
+      // click: empty main → main; main set and pick differs → backup; clicking the current main clears it, clicking the backup clears backup
+      const same = (a, b) => !!(a && b && a.url === b.url);
+      if (same(slot.main, pick)) { slot.main = slot.backup || null; slot.backup = null; }
+      else if (same(slot.backup, pick)) slot.backup = null;
+      else if (!slot.main) slot.main = pick;
+      else slot.backup = pick;
+      if (slot.state === 'unreviewed' || slot.state === 'kept') slot.state = 'assigned';
+      mark(); renderSlots(); renderDrawer(); renderStats();
+    }
+    function candCard(pick, slot, extra) {
+      const cls = slot.main && slot.main.url === pick.url ? 'main' : slot.backup && slot.backup.url === pick.url ? 'backup' : '';
+      return '<div class="cand ' + cls + (extra && extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<div class="cb"><b>' + esc(extra && extra.label || pick.id || '') + '</b>' + esc(extra && extra.text || pick.title || '') + '</div></div>';
+    }
+    function renderDrawer() {
+      const dr = $('drawer'); const s = openSlot && byId().get(openSlot);
+      if (!s) { dr.hidden = true; return; }
+      dr.hidden = false;
+      const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['upload', 'Upload']];
+      let body = '';
+      if (srcTab === 'stock') {
+        const cands = (s.candidates || []).map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, label: c.id, text: c.why || c.title }));
+        body = '<div class="cands">' + cands.join('') + '<div class="up" id="paste-stock">Paste an Adobe Stock comp URL<br><span class="mini">(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
+      } else if (srcTab === 'library') {
+        const groups = Array.from(new Set((S.library || []).map((l) => l.group))).sort();
+        const q = libQuery.toLowerCase();
+        const items = (S.library || []).filter((l) => (!libGroup || l.group === libGroup) && (!q || (l.name + ' ' + l.group).toLowerCase().includes(q)));
+        body = '<div class="srctabs"><input class="search" id="lib-q" placeholder="Search filenames" value="' + esc(libQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (libGroup === g ? 'on' : '') + '" data-g="' + esc(g) + '">' + (g || 'All') + '</button>').join('') + '</div>' +
+          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name })).join('') + (items.length > libShown ? '<button class="sbtn more" id="lib-more">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">The library is not indexed yet. Library tab, choose the Image Mapping folder.</p>');
+      } else if (srcTab === 'existing') {
+        const ex = (s.existing || []).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
+        body = ex.length ? '<div class="cands">' + ex.join('') + '</div>' : '<p class="hint">No existing image on this page in the Drupal export.</p>';
+      } else {
+        body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG, becomes main if empty, else backup</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
+      }
+      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
+        '<div class="meta"><div><b>Ace’s brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
+        '<div class="picks"><div class="pick"><div class="pl"><span>Main</span>' + (s.main ? '<span>' + esc(s.main.source) + '</span>' : '') + '</div>' + (s.main ? '<img src="' + esc(s.main.thumb || s.main.url) + '"><div class="pt">' + esc(s.main.title || s.main.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div><div class="pick"><div class="pl"><span>Backup</span>' + (s.backup ? '<span>' + esc(s.backup.source) + '</span>' : '') + '</div>' + (s.backup ? '<img src="' + esc(s.backup.thumb || s.backup.url) + '"><div class="pt">' + esc(s.backup.title || s.backup.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div></div>' +
+        '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click a candidate for main, again for backup. Click a chosen one to clear it.</span></div>' + body;
+
+      dr.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderDrawer(); }));
+      dr.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
+        const url = c.dataset.url; let pick = null;
+        if (srcTab === 'stock') { const cc = s.candidates.find((x) => x.comp === url); pick = pickFrom('stock', cc); }
+        if (srcTab === 'library') { const l = S.library.find((x) => x.url === url); pick = pickFrom('library', l); }
+        if (srcTab === 'existing') { const e = s.existing.find((x) => x.url === url); pick = pickFrom('existing', e); }
+        if (pick) assign(s, pick);
+      }));
+      $('close-drawer').addEventListener('click', () => { openSlot = null; renderSlots(); renderDrawer(); });
+      $('clear-picks').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; mark(); renderSlots(); renderDrawer(); renderStats(); });
+      const keep = $('keep-existing'); if (keep) keep.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderDrawer(); renderStats(); });
+      $('slot-note').addEventListener('change', (e) => { s.notes = e.target.value; mark(); });
+      const ps = $('paste-stock'); if (ps) ps.addEventListener('click', () => { const u = prompt('Adobe Stock comp URL (…ftcdn.net/jpg/…/1000_F_<id>_….jpg) or a Stock ID:'); if (!u) return; const m = u.match(/1000_F_(\d+)_/) || u.match(/^(\d{6,12})$/); const id = m ? m[1] : ''; const url = /^https?:/.test(u) ? u : ''; if (!url) { alert('Paste the comp image URL, not just the ID: the tool can’t fetch a comp from an ID alone.'); return; } s.candidates = s.candidates || []; if (!s.candidates.find((c) => c.comp === url)) s.candidates.unshift({ id, title: 'Pasted', comp: url, url: id ? 'https://stock.adobe.com/images/x/' + id : url, why: 'Added by COGNAK', ai: false }); assign(s, pickFrom('stock', s.candidates[0])); });
+      const lq = $('lib-q'); if (lq) { lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; renderDrawer(); const nq = $('lib-q'); nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); }); }
+      dr.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; renderDrawer(); }));
+      const lm = $('lib-more'); if (lm) lm.addEventListener('click', () => { libShown += 48; renderDrawer(); });
+      const uf = $('up-file'); if (uf) uf.addEventListener('change', async () => { const f = uf.files[0]; if (!f) return; $('up-status').textContent = 'Uploading…'; try { const r = await uploadBlob('sitime/uploads/' + s.id + '/' + f.name.replace(/[^\w.\-]+/g, '_'), f); assign(s, { source: 'upload', id: null, url: r.url, thumb: r.url, title: f.name }); } catch (e) { $('up-status').textContent = 'Upload failed: ' + (e.message || e); } });
+    }
+
+    /* ---------- replacements ---------- */
+    function renderRepl() {
+      const m = byId(); const items = [];
+      S.batches.filter((b) => b.status !== 'draft').forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
+      $('repl-list').innerHTML = items.length ? items.map(({ s, b, o }) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + o.outcome + '"><i></i>' + STATUS_LABEL[o.outcome] + '</span> in batch ' + String(b.num).padStart(2, '0') + (o.which === 'backup' ? ' (main and backup both)' : '') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '">Pick a replacement</button></div></div></div>').join('') : '<p class="hint">Nothing denied or held.</p>';
+      $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.re); s.batch = null; s.main = null; s.backup = null; s.state = 'assigned'; mark(); openSlot = s.id; srcTab = 'stock'; showTab('slots'); renderDrawer(); $('drawer').scrollIntoView({ behavior: 'smooth' }); }));
+    }
+
+    /* ---------- handoff ---------- */
+    function renderHandoff() {
+      const rows = S.slots.map((s) => ({ s, p: finalPick(s), b: batchOf(s) })).filter((x) => x.p);
+      $('handoff-rows').innerHTML = rows.map(({ s, p, b }) => '<tr><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></td><td>' + thumbCell(p) + '</td><td>' + esc(p.source) + '</td><td class="sub">' + esc(p.source === 'stock' ? 'Adobe Stock ' + (p.id || '') : p.source === 'library' ? p.path : p.title || '') + '</td><td><input class="txt" data-lic="' + s.id + '" value="' + esc(s.license && s.license.id || '') + '" placeholder="' + (p.source === 'stock' ? 'License #' : 'n/a') + '"></td><td class="mini">' + (b ? String(b.num).padStart(2, '0') : '') + '</td></tr>').join('') || '<tr><td colspan="6" class="hint">Nothing approved yet.</td></tr>';
+      $('handoff-rows').querySelectorAll('[data-lic]').forEach((i) => i.addEventListener('change', (e) => { const s = byId().get(i.dataset.lic); s.license = { id: e.target.value.trim(), at: new Date().toISOString() }; mark(); }));
+    }
+    $('export-handoff').addEventListener('click', () => {
+      const rows = [['page', 'section', 'url', 'slot', 'source', 'reference', 'image_url', 'license', 'batch']];
+      S.slots.forEach((s) => { const p = finalPick(s); if (!p) return; const b = batchOf(s); rows.push([s.page, s.section, s.url, s.name, p.source, p.source === 'stock' ? p.id : (p.path || p.title || ''), p.url, s.license && s.license.id || '', b ? String(b.num).padStart(2, '0') : '']); });
+      downloadCsv('sitime-approved-images.csv', rows);
+    });
+
+    /* ---------- library indexer + mock copy ---------- */
+    let _blob = null;
+    function blobClient() { if (!_blob) _blob = import('https://esm.sh/@vercel/blob@1/client'); return _blob; }
+    async function uploadBlob(pathname, fileOrBlob) { const mod = await blobClient(); return mod.upload(pathname, fileOrBlob, { access: 'public', handleUploadUrl: '/api/sitime-upload-token', contentType: fileOrBlob.type || 'image/jpeg' }); }
+    async function sha1(str) { const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12); }
+    function resize(file, max) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => b ? resolve({ blob: b, w: img.width, h: img.height }) : reject(new Error('encode')), 'image/jpeg', 0.84); URL.revokeObjectURL(img.src); }; img.onerror = reject; img.src = URL.createObjectURL(file); }); }
+    function renderLib() {
+      const n = (S.library || []).length; $('lib-status').textContent = n ? n + ' images indexed.' : 'Not indexed yet.';
+      $('mock-h1').value = S.mock?.h1 || ''; $('mock-p').value = S.mock?.p || ''; $('mock-cta').value = S.mock?.cta || '';
+    }
+    ['mock-h1', 'mock-p', 'mock-cta'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value }; mark(); }));
+    $('lib-dir').addEventListener('change', async () => {
+      const files = Array.from($('lib-dir').files).filter((f) => /\.(jpe?g|png)$/i.test(f.name));
+      const wanted = files.filter((f) => { const p = f.webkitRelativePath; return /\/Digital-Web\//.test(p) || /(^|\/)MEMS-Products\//.test(p); }).filter((f) => !/\/(_index|__|\[Visual-Assets\]-Licensed-Image-Library)\//.test(f.webkitRelativePath) && !/^\[Visual-Assets\]/.test(f.webkitRelativePath.split('/')[1] || ''));
+      const have = new Set((S.library || []).map((l) => l.id));
+      $('lib-log').textContent = wanted.length + ' web-size images found, ' + have.size + ' already indexed.';
+      let done = 0, added = 0, failed = 0; S.library = S.library || [];
+      for (const f of wanted) {
+        const rel = f.webkitRelativePath.split('/').slice(1).join('/'); // drop the chosen folder's own name
+        const id = await sha1(rel);
+        if (!have.has(id)) {
+          try {
+            const web = await resize(f, 1200); const th = await resize(f, 400);
+            const r1 = await uploadBlob('sitime/library/' + id + '.jpg', web.blob);
+            const r2 = await uploadBlob('sitime/library/t/' + id + '.jpg', th.blob);
+            const parts = rel.split('/'); const tier = /Digital-Web/.test(rel) ? 'Digital-Web' : 'product'; const group = parts[0] === 'by-Segment' || parts[0] === 'Thematic' ? parts[1] : parts[0];
+            S.library.push({ id, path: rel, name: f.name, group, tier, url: r1.url, thumb: r2.url, w: web.w, h: web.h });
+            have.add(id); added++;
+            if (added % 25 === 0) { mark(); }
+          } catch (e) { failed++; console.error(rel, e); }
+        }
+        done++; $('lib-progress').textContent = done + ' / ' + wanted.length + (failed ? ' · ' + failed + ' failed' : '');
+      }
+      mark(); renderLib(); renderStats(); $('lib-log').textContent = 'Done. ' + added + ' added' + (failed ? ', ' + failed + ' failed (see console)' : '') + '.';
+    });
+
+    /* ---------- boot ---------- */
+    async function boot() {
+      const r = await api('/api/sitime-state');
+      $('loading').hidden = true;
+      if (r.status === 401) { $('gate').hidden = false; return; }
+      if (!r.ok || !r.data) { $('gate').hidden = false; $('gate').querySelector('.hint').textContent = (r.data && r.data.error) || 'Could not load.'; return; }
+      S = r.data.state; D = r.data.decisions || {};
+      S.batches = S.batches || []; S.library = S.library || [];
+      $('app').hidden = false; $('savestate').textContent = r.data.seeded ? 'Seeded' : 'Saved';
+      renderStats(); renderFilters(); showTab('batches');
+      // refresh decisions every 60s while the page is open
+      setInterval(async () => { const rr = await api('/api/sitime-state'); if (rr.ok && rr.data) { D = rr.data.decisions || {}; if (!$('tab-batches').hidden) { renderBatches(); renderStats(); } } }, 60000);
+    }
+    boot();
+  })();
+  </script>
+</BaseLayout>

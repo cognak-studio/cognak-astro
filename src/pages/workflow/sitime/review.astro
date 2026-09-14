@@ -1,0 +1,336 @@
+---
+/**
+ * /workflow/sitime/review — the SiTime image review page.
+ * Reached as cognak.com/workflow/sitime/<batch-token> via a vercel.json
+ * rewrite; also readable as /workflow/sitime/review?b=<token> under astro dev.
+ *
+ * One shared link per batch, no login: SiTime (Judy, Greg, Dela) decide as a
+ * group and one person clicks, or COGNAK clicks on a call. Each screen shows
+ * one image where it will sit on the new site (a fixed hero mock: nav, the
+ * same three lines of copy every time, a red button), with approve / deny /
+ * hold above it and an optional note. Deny the main and the backup appears
+ * in the same spot. Decisions post to /api/sitime-decide.js as append-only
+ * events; the admin side reads them back.
+ *
+ * Design: the cognak.com utility-page pattern (fixed nav, accent-first-word
+ * headline, lede, one white card with mono labels) in the light version
+ * Pierce chose 2026-09-14 — white nav, off-white ground, Diatype, the /tools
+ * purple, decision buttons outlined at rest and coloured on hover/selected.
+ */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  page="workflow"
+  title="Review images for sitime.com — COGNAK"
+  description="Image review for the new sitime.com."
+  ogUrl="https://cognak.com/workflow/sitime/"
+  noindex={true}
+  pageBg="#F4F4F2"
+>
+
+  <main id="cognak-main"><section class="review">
+
+    <h1 class="headline"><em>Review</em> the images for the new sitime.com.</h1>
+    <p class="lede" id="lede">Each screen shows one image where it will sit on the page. Approve it, deny it, or hold it for later. A note is optional. Anything denied comes back with a replacement in the next batch.</p>
+
+    <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">One moment.</p></div></div>
+
+    <div class="card rise" id="invalid" hidden><div class="group"><div class="group-title">This link</div><p class="hint" id="invalid-note">This link isn't complete. Check the URL COGNAK sent you.</p></div></div>
+
+    <div class="card rise" id="card" hidden>
+      <div class="group">
+        <div class="group-title"><span id="batch-label">Batch</span><span class="sep">·</span><span id="progress">0 of 0</span><span class="bar"><i id="bar"></i></span></div>
+        <div class="field">
+          <span class="q-title" id="slot-title">Slot</span>
+          <span class="q-sub" id="slot-sub"></span>
+          <div class="pills" id="pills" role="group" aria-label="Decision">
+            <button type="button" class="pill" data-v="approve">Approve</button>
+            <button type="button" class="pill" data-v="deny">Deny</button>
+            <button type="button" class="pill" data-v="hold">Hold</button>
+          </div>
+          <div class="note" id="note" hidden>
+            <textarea id="note-text" placeholder="Optional. Anything COGNAK should know about this one."></textarea>
+            <div class="actions">
+              <button type="button" class="btn" id="submit">Submit and continue <span aria-hidden="true">→</span></button>
+              <button type="button" class="skip" id="skip">Skip for now</button>
+              <span class="saving" id="saving" hidden>Saving…</span>
+            </div>
+            <p class="hint is-error" id="err" hidden></p>
+          </div>
+          <p class="decided" id="decided" hidden></p>
+        </div>
+
+        <div class="stage-wrap">
+          <div class="stage-head"><span class="label" id="stage-label">Where it sits</span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
+          <div class="stage" id="stage"><div class="st-inner">
+            <div class="st-nav">
+              <img class="mark" src="/media/sitime/logo.svg" alt="SiTime" />
+              <div class="links"><span>Products</span><span>Applications</span><span>Tools &amp; Resources</span><span>Support</span><span>Company</span></div>
+              <div class="right"><span>Search</span><span>Sign in</span><span class="cta">Sample &amp; Buy</span></div>
+            </div>
+            <div class="st-hero"><img id="hero-img" src="" alt="" /><div class="scrim"></div>
+              <div class="copy"><h2 id="mock-h1">Built for where others fail.</h2><p id="mock-p">From space to factory floors, SiTime timing holds when conditions don’t.</p><span class="btn-s" id="mock-cta">Learn more</span></div>
+            </div>
+          </div></div>
+          <div class="stage-foot"><span id="source"></span><span id="source-note">Comp shown, licensed after approval</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card rise summary" id="summary" hidden>
+      <div class="group">
+        <div class="group-title"><span id="sum-label">Batch</span><span class="sep">·</span><span>Complete</span><span class="bar"><i style="width:100%"></i></span></div>
+        <span class="q-title">That's the batch. Thank you.</span>
+        <span class="q-sub">COGNAK has the decisions. Replacements for anything denied come in the next batch; held images stay parked until you say otherwise.</span>
+        <div class="counts"><div><b id="c-ok">0</b><span>approved</span></div><div><b id="c-deny">0</b><span>denied</span></div><div><b id="c-hold">0</b><span>held</span></div></div>
+        <div id="sum-rows"></div>
+        <div class="actions" style="margin-top:1.6rem"><button type="button" class="btn ghost" id="review-again">Look through them again</button></div>
+      </div>
+    </div>
+
+  </section></main>
+
+  <style is:inline>
+    @font-face{ font-family:'Onest'; src:url(/theme/assets/fonts/onest/Onest-300.ttf) format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'Onest'; src:url(/theme/assets/fonts/onest/Onest-400.ttf) format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'Onest'; src:url(/theme/assets/fonts/onest/Onest-500.ttf) format('truetype'); font-weight:500; font-style:normal; font-display:swap; }
+    @font-face{ font-family:'Onest'; src:url(/theme/assets/fonts/onest/Onest-600.ttf) format('truetype'); font-weight:600; font-style:normal; font-display:swap; }
+    html, body { background-color:#F4F4F2 !important; }
+    #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
+    .review label, .review legend { display:block !important; }
+
+    .review{ --bg:#F4F4F2; --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B;
+      --accent:#B47CFF; --accent-rgb:180,124,255; --head:#4A3F6B; --deep:#1B1424;
+      --line:#E6E6E3; --line-strong:#CFCFCB; --ok:#5A9E00; --err:#E5231B;
+      max-width:1040px; margin:0 auto; padding:190px 6vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
+    .review .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+    .review .headline em{ font-style:normal; font-weight:500; color:var(--head); }
+    .review .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
+    .review .card{ background:var(--card); border-radius:12px; padding:34px 34px 30px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; position:relative; }
+    .review .card + .card{ margin-top:22px; }
+    .review .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
+    .review .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
+    .review .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; display:flex; align-items:center; gap:14px; }
+    .review .group-title .bar{ flex:1; height:2px; background:var(--line); border-radius:2px; overflow:hidden; max-width:260px; margin-left:auto; }
+    .review .group-title .bar i{ display:block; height:100%; width:0; background:var(--accent); transition:width .3s var(--ease-standard); }
+    .review .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
+    .review .q-sub{ display:block; font-size:.88rem; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:60ch; }
+    .review .hint{ font-size:.92rem; color:var(--ink-soft); margin:0; }
+    .review .hint.is-error{ color:var(--err); margin-top:10px; }
+    .review .field{ margin-bottom:2rem; }
+    .review .pills{ display:flex; gap:10px; flex-wrap:wrap; margin-top:1.1rem; }
+    .review .pill{ font:inherit; display:inline-flex; align-items:center; border:1px solid var(--line-strong); border-radius:999px; padding:12px 24px; font-size:.95rem; font-weight:500; color:var(--ink); background:none; cursor:pointer;
+      transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-s) var(--ease-standard); }
+    .review .pill[data-v=approve]{ --fill:#9DFF00; --stroke:#D9FF66; --on-ink:#152400; --glow:157,255,0; }
+    .review .pill[data-v=hold]{ --fill:#FF7A00; --stroke:#FFB24D; --on-ink:#2A1200; --glow:255,122,0; }
+    .review .pill[data-v=deny]{ --fill:#FF1E1E; --stroke:#FF7070; --on-ink:#fff; --glow:255,30,30; }
+    @media (hover:hover){ .review .pill:hover{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); } }
+    .review .pill.on{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); }
+    .review .note{ margin-top:14px; }
+    .review .note textarea{ width:100%; height:84px; resize:vertical; font:inherit; font-size:.95rem; color:var(--ink); background:var(--field); border:1px solid var(--line-strong); border-radius:8px; padding:12px 14px; outline:none; }
+    .review .note textarea:focus{ border-color:var(--accent); }
+    .review .note textarea::placeholder{ color:#9A9A96; }
+    .review .actions{ display:flex; align-items:center; gap:18px; margin-top:14px; flex-wrap:wrap; }
+    .review .btn{ font:inherit; font-size:1rem; font-weight:500; display:inline-flex; align-items:center; gap:.6rem; border-radius:999px; padding:14px 28px; background:var(--accent); color:var(--deep); border:1px solid var(--accent); cursor:pointer; transition:filter var(--dur-s) var(--ease-standard); }
+    .review .btn:hover:not(:disabled){ filter:brightness(1.06); }
+    .review .btn:disabled{ opacity:.4; cursor:not-allowed; }
+    .review .btn.ghost{ background:none; color:var(--ink); border-color:var(--line-strong); }
+    .review .skip{ font:inherit; background:none; border:0; padding:0; color:var(--ink-soft); font-size:.9rem; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+    .review .saving{ font-size:.85rem; color:var(--ink-soft); }
+    .review .decided{ margin:14px 0 0; font-size:.9rem; color:var(--ink-soft); }
+    .review .decided b{ font-weight:500; color:var(--ink); }
+
+    .review .stage-wrap{ margin-top:.4rem; }
+    .review .stage-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .review .stage-head .label{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+    .review .arrows{ display:flex; gap:8px; }
+    .review .arrows button{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; font-size:14px; line-height:1; }
+    .review .arrows button:disabled{ opacity:.32; cursor:default; }
+    .review .stage{ border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,.12); border:1px solid #E1E1DE; font-family:Onest, sans-serif; color:#1A1A1A; --sit:#E60032; --scale:.5; height:calc(var(--scale) * 1000px); }
+    .review .st-inner{ width:1584px; transform:scale(var(--scale)); transform-origin:0 0; }
+    .review .st-nav{ height:88px; display:flex; align-items:center; padding:0 84px; border-bottom:1px solid #E6E6E6; background:#fff; }
+    .review .st-nav .mark{ height:30px; width:auto; display:block; }
+    .review .st-nav .links{ display:flex; gap:42px; margin-left:72px; font-size:18px; font-weight:400; color:#1A1A1A; }
+    .review .st-nav .right{ margin-left:auto; display:flex; align-items:center; gap:32px; font-size:18px; }
+    .review .st-nav .cta{ background:var(--sit); color:#fff; padding:14px 26px; border-radius:6px; font-weight:500; }
+    .review .st-hero{ position:relative; height:912px; background:#111; }
+    .review .st-hero img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 40%; }
+    .review .st-hero .scrim{ position:absolute; inset:0; background:linear-gradient(90deg, rgba(10,10,12,.82) 0%, rgba(10,10,12,.55) 45%, rgba(10,10,12,.05) 80%); }
+    .review .st-hero .copy{ position:absolute; left:84px; bottom:150px; width:760px; color:#fff; }
+    .review .st-hero h2{ font-size:72px; line-height:1.02; letter-spacing:-.025em; font-weight:500; margin:0 0 26px; color:#fff; }
+    .review .st-hero p{ font-size:22px; line-height:1.45; font-weight:300; margin:0 0 36px; max-width:620px; color:#E8E8EA; }
+    .review .st-hero .btn-s{ display:inline-block; background:var(--sit); color:#fff; font-size:18px; font-weight:500; padding:18px 30px; border-radius:6px; }
+    .review .stage-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); gap:16px; flex-wrap:wrap; }
+    .review .stage-foot a{ color:var(--head); text-decoration:none; }
+
+    .review .summary .counts{ display:flex; gap:40px; margin:2rem 0; }
+    .review .summary .counts b{ display:block; font-size:2.2rem; font-weight:500; letter-spacing:-.02em; }
+    .review .summary .counts span{ font-size:.85rem; color:var(--ink-soft); }
+    .review .summary .row{ display:grid; grid-template-columns:110px 1fr; gap:16px; padding:14px 0; border-top:1px solid var(--line); font-size:.95rem; }
+    .review .summary .tag{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.15em; text-transform:uppercase; }
+    .review .summary .tag.deny{ color:#E5231B; } .review .summary .tag.hold{ color:#E07000; } .review .summary .tag.ok{ color:#5A9E00; }
+    .review .summary .n{ color:var(--ink-soft); font-size:.88rem; margin-top:3px; }
+
+    @media (max-width:760px){
+      .review{ padding:150px 5vw 12vh; }
+      .review .headline{ font-size:clamp(24px,7vw,42px); }
+      .review .lede{ margin-left:0; }
+      .review .card{ padding:22px 18px 20px; }
+      .review .pill{ padding:11px 18px; font-size:.9rem; }
+      .review .summary .row{ grid-template-columns:1fr; gap:4px; }
+    }
+  </style>
+
+  <script is:inline>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function getToken() {
+      const m = location.pathname.match(/\/workflow\/sitime\/([a-z0-9]{8,16})\/?$/);
+      if (m) return m[1];
+      const q = new URLSearchParams(location.search).get('b');
+      return q && /^[a-z0-9]{8,16}$/.test(q) ? q : '';
+    }
+
+    async function api(path, body) {
+      const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}), credentials: 'same-origin' });
+      let json = null; try { json = await res.json(); } catch (e) {}
+      return { ok: res.ok, status: res.status, data: json };
+    }
+
+    function fit() {
+      const st = $('stage'); if (!st) return;
+      st.style.setProperty('--scale', (st.clientWidth / 1584).toFixed(4));
+    }
+    window.addEventListener('resize', fit);
+
+    const token = getToken();
+    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, preview: false };
+
+    function outcome(slot) {
+      const d = state.decisions[slot.id] || {};
+      const m = d.main, b = d.backup;
+      if (!m) return { outcome: 'pending', which: 'main' };
+      if (m.decision === 'approve') return { outcome: 'approved', which: 'main' };
+      if (m.decision === 'hold') return { outcome: 'held', which: 'main' };
+      if (!slot.backup) return { outcome: 'denied', which: 'main' };
+      if (!b) return { outcome: 'pending', which: 'backup' };
+      if (b.decision === 'approve') return { outcome: 'approved', which: 'backup' };
+      if (b.decision === 'hold') return { outcome: 'held', which: 'backup' };
+      return { outcome: 'denied', which: 'backup' };
+    }
+
+    function firstPending(from) {
+      const n = state.slots.length;
+      for (let k = 0; k < n; k++) { const j = (from + k) % n; if (outcome(state.slots[j]).outcome === 'pending') return j; }
+      return -1;
+    }
+
+    function render() {
+      const s = state.slots[state.i]; if (!s) return;
+      const o = outcome(s);
+      const which = o.outcome === 'pending' ? o.which : (o.which || 'main');
+      const pick = which === 'backup' ? s.backup : s.main;
+      const done = state.slots.filter((x) => outcome(x).outcome !== 'pending').length;
+
+      $('batch-label').textContent = 'Batch ' + String(state.batch.num || '').padStart(2, '0') + (state.batch.name ? ' · ' + state.batch.name : '');
+      $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length;
+      $('bar').style.width = Math.round((done / state.slots.length) * 100) + '%';
+      $('slot-title').textContent = s.page + ' · ' + s.name;
+      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image, shown because the main was denied.' : (s.backup ? 'Main image. If you deny it, the backup appears in the same spot.' : 'Main image. No backup for this one.'));
+      $('hero-img').src = (pick && pick.url) || '';
+      $('stage-label').textContent = which === 'backup' ? 'Where it sits · backup' : 'Where it sits';
+      $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
+      $('source-note').textContent = pick && pick.source === 'stock' ? 'Comp shown, licensed after approval' : pick && pick.source === 'library' ? 'From SiTime’s licensed library' : '';
+
+      // decision controls
+      document.querySelectorAll('#pills .pill').forEach((p) => p.classList.remove('on'));
+      $('note').hidden = true; $('note-text').value = ''; $('err').hidden = true;
+      state.pending = null;
+      const ev = (state.decisions[s.id] || {})[which];
+      if (o.outcome !== 'pending' && ev) {
+        $('decided').hidden = false;
+        $('decided').innerHTML = 'Decided: <b>' + ({ approve: 'Approved', deny: 'Denied', hold: 'Held' })[ev.decision] + '</b>' + (ev.note ? ' · “' + escapeHtml(ev.note) + '”' : '') + '. Choose again to change it.';
+      } else { $('decided').hidden = true; }
+
+      $('prev').disabled = state.i === 0;
+      $('next').disabled = state.i >= state.slots.length - 1;
+      fit();
+    }
+
+    function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
+
+    function showSummary() {
+      const counts = { approved: 0, denied: 0, held: 0 };
+      const rows = [];
+      state.slots.forEach((s) => {
+        const o = outcome(s); if (o.outcome === 'pending') return;
+        counts[o.outcome]++;
+        const ev = (state.decisions[s.id] || {})[o.which] || {};
+        if (o.outcome !== 'approved') rows.push('<div class="row"><span class="tag ' + (o.outcome === 'denied' ? 'deny' : 'hold') + '">' + (o.outcome === 'denied' ? 'Denied' : 'Held') + '</span><div>' + escapeHtml(s.page + ' · ' + s.name) + '<div class="n">' + (ev.note ? '“' + escapeHtml(ev.note) + '”' : 'No note.') + '</div></div></div>');
+      });
+      $('c-ok').textContent = counts.approved; $('c-deny').textContent = counts.denied; $('c-hold').textContent = counts.held;
+      $('sum-rows').innerHTML = rows.join('');
+      $('sum-label').textContent = $('batch-label').textContent;
+      $('card').hidden = true; $('summary').hidden = false;
+      window.scrollTo({ top: 0, behavior: REDUCE ? 'auto' : 'smooth' });
+    }
+
+    function advance() {
+      const s = state.slots[state.i];
+      const o = outcome(s);
+      if (o.outcome === 'pending') { render(); return; } // main denied → backup now shows in place
+      const j = firstPending(state.i + 1);
+      if (j === -1) { showSummary(); return; }
+      state.i = j; render();
+      window.scrollTo({ top: $('card').offsetTop - 120, behavior: REDUCE ? 'auto' : 'smooth' });
+    }
+
+    document.querySelectorAll('#pills .pill').forEach((p) => p.addEventListener('click', () => {
+      document.querySelectorAll('#pills .pill').forEach((x) => x.classList.remove('on'));
+      p.classList.add('on');
+      state.pending = p.dataset.v;
+      $('note').hidden = false; $('err').hidden = true;
+      $('note-text').focus({ preventScroll: true });
+    }));
+
+    $('submit').addEventListener('click', async () => {
+      if (!state.pending) return;
+      const s = state.slots[state.i];
+      const o = outcome(s);
+      const which = o.outcome === 'pending' ? o.which : o.which;
+      const note = $('note-text').value.trim();
+      $('submit').disabled = true; $('saving').hidden = false; $('err').hidden = true;
+      const r = await api('/api/sitime-decide', { token, slotId: s.id, which, decision: state.pending, note });
+      $('submit').disabled = false; $('saving').hidden = true;
+      if (!r.ok && !(r.status === 403 && state.preview)) {
+        $('err').textContent = (r.data && r.data.error) || 'Could not save that. Try again.'; $('err').hidden = false; return;
+      }
+      if (!state.decisions[s.id]) state.decisions[s.id] = {};
+      state.decisions[s.id][which] = { decision: state.pending, note, at: Date.now() };
+      advance();
+    });
+    $('skip').addEventListener('click', () => { const j = firstPending(state.i + 1); if (j === -1 || j === state.i) { render(); return; } state.i = j; render(); });
+    $('prev').addEventListener('click', () => { if (state.i > 0) { state.i--; render(); } });
+    $('next').addEventListener('click', () => { if (state.i < state.slots.length - 1) { state.i++; render(); } });
+    $('review-again').addEventListener('click', () => { state.i = 0; $('summary').hidden = true; $('card').hidden = false; render(); });
+
+    async function load() {
+      if (!token) { $('loading').hidden = true; $('invalid').hidden = false; return; }
+      const r = await api('/api/sitime-batch', { token });
+      $('loading').hidden = true;
+      if (!r.ok || !r.data || !r.data.ok) { $('invalid').hidden = false; $('invalid-note').textContent = (r.data && r.data.error) || 'This link isn’t valid.'; return; }
+      state.batch = r.data.batch; state.slots = r.data.slots; state.decisions = r.data.decisions || {};
+      state.preview = state.batch.status === 'draft';
+      if (r.data.mock) { $('mock-h1').textContent = r.data.mock.h1 || $('mock-h1').textContent; $('mock-p').textContent = r.data.mock.p || $('mock-p').textContent; $('mock-cta').textContent = r.data.mock.cta || $('mock-cta').textContent; }
+      if (state.preview) $('lede').textContent = 'Preview. This batch has not been sent yet, so decisions here are not saved.';
+      if (!state.slots.length) { $('invalid').hidden = false; $('invalid-note').textContent = 'This batch is empty.'; return; }
+      const j = firstPending(0);
+      if (j === -1) { $('card').hidden = false; render(); showSummary(); return; }
+      state.i = j; $('card').hidden = false; render();
+    }
+    load();
+  })();
+  </script>
+</BaseLayout>

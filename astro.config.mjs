@@ -38,6 +38,7 @@ export default defineConfig({
         // no nav link anywhere. (/tools was here too until 2026-07-31; it's
         // now footer-linked and indexable, so it belongs in the sitemap.)
         if (/\/(send|receive)\/?$/.test(page)) return false;
+        if (/\/workflow\//.test(page)) return false; // internal client tools, noindex
         // /colophon is noindex in BaseLayout, so keep it out of the sitemap
         // too — a noindex URL listed in a sitemap is a mixed signal.
         if (/\/colophon\/?$/.test(page)) return false;

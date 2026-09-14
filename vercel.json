@@ -14,6 +14,10 @@
     {
       "source": "/r/:token",
       "destination": "/receive"
+    },
+    {
+      "source": "/workflow/sitime/:token",
+      "destination": "/workflow/sitime/review"
     }
   ],
   "redirects": [
@@ -119,13 +123,23 @@
     },
     {
       "source": "/",
-      "has": [{ "type": "query", "key": "portfolio" }],
+      "has": [
+        {
+          "type": "query",
+          "key": "portfolio"
+        }
+      ],
       "destination": "/projects",
       "permanent": true
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "query", "key": "portfolio" }],
+      "has": [
+        {
+          "type": "query",
+          "key": "portfolio"
+        }
+      ],
       "destination": "/projects",
       "permanent": true
     }
@@ -134,17 +148,35 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net https://assets.unicorn.studio https://www.googleadservices.com https://www.google.com https://googleads.g.doubleclick.net https://*.vercel-scripts.com https://esm.sh; connect-src 'self' https://api.open-meteo.com https://pagead2.googlesyndication.com https://www.google.com https://www.googleadservices.com https://*.doubleclick.net https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://assets.unicorn.studio https://storage.googleapis.com https://*.vercel-insights.com https://*.vercel-scripts.com https://esm.sh https://cdn.jsdelivr.net https://vercel.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com; img-src 'self' data: https:; media-src 'self' blob: https://*.public.blob.vercel-storage.com; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'self' https://*.public.blob.vercel-storage.com https://www.googletagmanager.com https://td.doubleclick.net https://www.google.com https://bid.g.doubleclick.net; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://pierceliefeld.com https://www.pierceliefeld.com; upgrade-insecure-requests" }
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' blob: https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net https://assets.unicorn.studio https://www.googleadservices.com https://www.google.com https://googleads.g.doubleclick.net https://*.vercel-scripts.com https://esm.sh; connect-src 'self' https://api.open-meteo.com https://pagead2.googlesyndication.com https://www.google.com https://www.googleadservices.com https://*.doubleclick.net https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://assets.unicorn.studio https://storage.googleapis.com https://*.vercel-insights.com https://*.vercel-scripts.com https://esm.sh https://cdn.jsdelivr.net https://vercel.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com https://*.public.blob.vercel-storage.com; img-src 'self' data: https:; media-src 'self' blob: https://*.public.blob.vercel-storage.com; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-src 'self' https://*.public.blob.vercel-storage.com https://www.googletagmanager.com https://td.doubleclick.net https://www.google.com https://bid.g.doubleclick.net; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self' https://pierceliefeld.com https://www.pierceliefeld.com; upgrade-insecure-requests"
+        }
       ]
     },
     {
       "source": "/(media|theme|js)/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=2592000" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, stale-while-revalidate=2592000"
+        }
       ]
     }
   ]
