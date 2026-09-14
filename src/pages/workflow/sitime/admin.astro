@@ -68,10 +68,19 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="group">
           <div class="card-head">
             <div class="filters" id="filters"></div>
-            <div class="right"><input class="search" id="search" placeholder="Search page or slot" /><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></div>
+            <div class="right"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></div>
           </div>
-          <div class="tablewrap"><table id="slot-table"><thead><tr><th><input type="checkbox" id="check-all" /></th><th>Page · slot</th><th>Pri</th><th>Rec</th><th>Main</th><th>Backup</th><th>State</th><th>Batch</th></tr></thead><tbody id="slot-rows"></tbody></table></div>
-          <p class="hint" id="slot-more"></p>
+          <div class="fbar">
+            <input class="search" id="search" placeholder="Search page, slot, URL" />
+            <select class="sel" id="f-section"><option value="">All sections</option></select>
+            <select class="sel" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
+            <label class="chk"><input type="checkbox" id="f-hideai" checked /> Hide Gen-AI candidates</label>
+            <label class="chk"><input type="checkbox" id="f-hidereuse" /> Hide migrate-as-is pages</label>
+            <label class="chk"><input type="checkbox" id="f-needmain" /> Needs a main</label>
+            <span class="pager"><span class="mini" id="pg-count"></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></span>
+          </div>
+          <div class="srows" id="slot-rows"></div>
+          <p class="hint pager-foot" id="slot-more"></p>
         </div>
       </div>
 
@@ -170,18 +179,40 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm tr.clickable{ cursor:pointer; }
     .adm .pg{ font-weight:500; }
     .adm .sub{ font-size:.8rem; color:var(--ink-soft); }
-    .adm .pri{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; }
-    .adm .strip{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; align-items:center; }
-    .adm .strip img{ width:56px; height:38px; object-fit:cover; border-radius:4px; border:2px solid transparent; background:#EEE; cursor:pointer; transition:transform .12s var(--ease-standard); }
-    .adm .strip img:hover{ transform:scale(1.5); position:relative; z-index:2; box-shadow:0 6px 18px rgba(0,0,0,.25); }
-    .adm .strip img.is-main{ border-color:#1A1A1A; box-shadow:0 0 0 1px #fff inset; }
-    .adm .strip img.is-backup{ border-color:#1A1A1A; border-style:dashed; }
-    .adm .strip img.ai{ outline:1px solid #E0B34A; }
-    .adm .strip .more{ font:inherit; font-size:.72rem; font-weight:500; height:38px; min-width:38px; padding:0 10px; border-radius:6px; border:1px dashed var(--line-strong); background:#fff; color:var(--ink-soft); cursor:pointer; }
-    .adm .strip .more:hover{ border-color:var(--accent); color:var(--ink); }
-    .adm tr.drawer-row td{ background:#FAF7FF; padding:22px 18px 26px; }
-    .adm tr.drawer-row .drawer{ border-top:none; padding-top:0; margin-top:0; }
-    .adm tr.drawer-row .cands{ grid-template-columns:repeat(8,1fr); }
+    .adm .pri{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
+    .adm .pri.p-high{ background:#1A1A1A; color:#fff; padding:4px 9px; border-radius:999px; }
+    .adm .pri.p-medium{ background:#E6E6E3; color:#1A1A1A; padding:4px 9px; border-radius:999px; }
+    .adm .pri.p-low{ border:1px solid var(--line-strong); color:var(--ink-soft); padding:3px 8px; border-radius:999px; }
+    .adm .pri.p-reuse{ border:1px dashed var(--line-strong); color:var(--ink-soft); padding:3px 8px; border-radius:999px; }
+    .adm .fbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:-.4rem 0 1.4rem; }
+    .adm .sel{ font:inherit; font-size:.88rem; padding:8px 32px 8px 12px; border:1px solid var(--line-strong); border-radius:999px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/12px; color:var(--ink); appearance:none; -webkit-appearance:none; }
+    .adm .chk{ display:inline-flex !important; align-items:center; gap:6px; font-size:.85rem; color:var(--ink); cursor:pointer; user-select:none; }
+    .adm .chk input{ accent-color:#1A1A1A; }
+    .adm .pager{ display:inline-flex; align-items:center; gap:8px; margin-left:auto; }
+    .adm .pager-foot{ display:flex; align-items:center; gap:8px; justify-content:flex-end; margin-top:1.2rem; }
+    /* one slot = a row of large tiles (main, backup, the next candidates) over a meta line */
+    .adm .srows{ display:flex; flex-direction:column; }
+    .adm .srow{ padding:18px 14px 16px; border-radius:12px; border-bottom:1px solid var(--line); }
+    .adm .srow.sel{ background:#FAF7FF; border-bottom-color:transparent; border-radius:12px 12px 0 0; }
+    .adm .tiles{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+    .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; cursor:pointer; border:2px solid transparent; transition:border-color .12s var(--ease-standard), transform .12s var(--ease-standard); }
+    .adm .tile img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .adm .tile:hover{ border-color:var(--accent); }
+    .adm .tile.is-main{ border-color:#1A1A1A; } .adm .tile.is-backup{ border-color:#1A1A1A; border-style:dashed; }
+    .adm .tile .tag{ position:absolute; top:10px; left:10px; font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
+    .adm .tile.is-backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
+    .adm .tile.ai::after{ content:'AI'; position:absolute; top:10px; right:10px; font-family:'Diatype Mono', monospace; font-size:.62rem; padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
+    .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; font-family:'Diatype Mono', monospace; font-size:.64rem; letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity .12s; }
+    .adm .tile:hover .cap, .adm .tile.is-main .cap, .adm .tile.is-backup .cap{ opacity:1; }
+    .adm .tile.more{ border:1px dashed var(--line-strong); background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; color:var(--ink); font-size:.9rem; font-weight:500; padding:12px; }
+    .adm .tile.more .mini{ font-size:.66rem; }
+    .adm .tile.more:hover{ border-color:var(--accent); border-style:solid; }
+    .adm .mrow{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; cursor:pointer; }
+    .adm .mrow input[type=checkbox]{ accent-color:#1A1A1A; width:15px; height:15px; margin:0; }
+    .adm .mrow .who{ flex:1 1 260px; min-width:0; }
+    .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; gap:18px; }
+    .adm .drawer-wrap{ background:#FAF7FF; padding:6px 18px 26px; border-radius:0 0 12px 12px; border-bottom:1px solid var(--line); margin-bottom:6px; }
+    .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
@@ -265,8 +296,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
     const filters = { pri: new Set(), sec: new Set(), st: new Set() };
+    const fx = { section: '', rec: '', hideAi: true, hideReuse: false, needMain: false };
     let search = '';
-    let slotsShown = 80;
+    const PAGE = 5;
+    let pageIdx = 0;
 
     /* ---------- save (debounced, whole document) ---------- */
     let saveTimer = null, saving = false, dirty = false;
@@ -439,53 +472,85 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderFilters() {
       const secs = Array.from(new Set(S.slots.map((s) => s.section))).sort();
       const chip = (k, v, label) => '<button class="sbtn ' + (filters[k].has(v) ? 'on' : '') + '" data-f="' + k + '" data-v="' + esc(v) + '">' + esc(label) + '</button>';
-      $('filters').innerHTML = PRI.map((p) => chip('pri', p, p)).join('') + '<span style="width:8px"></span>' + secs.map((s) => chip('sec', s, s)).join('') + '<span style="width:8px"></span>' + ['unassigned', 'assigned', 'sent', 'denied', 'held', 'unreviewed'].map((s) => chip('st', s, STATUS_LABEL[s])).join('');
-      $('filters').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { const set = filters[b.dataset.f]; set.has(b.dataset.v) ? set.delete(b.dataset.v) : set.add(b.dataset.v); slotsShown = 80; renderFilters(); renderSlots(); }));
+      $('filters').innerHTML = PRI.map((p) => chip('pri', p, p)).join('') + '<span style="width:8px"></span>' + ['unassigned', 'assigned', 'queued', 'sent', 'approved', 'denied', 'held', 'unreviewed'].map((s) => chip('st', s, STATUS_LABEL[s])).join('');
+      const sel = $('f-section'); if (sel.options.length === 1) secs.forEach((s) => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+      $('filters').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { const set = filters[b.dataset.f]; set.has(b.dataset.v) ? set.delete(b.dataset.v) : set.add(b.dataset.v); pageIdx = 0; renderFilters(); renderSlots(); }));
     }
     function filtered() {
       const q = search.toLowerCase();
-      return S.slots.filter((s) => (filters.pri.size ? filters.pri.has(s.priority) : true) && (filters.sec.size ? filters.sec.has(s.section) : true) && (filters.st.size ? filters.st.has(status(s)) : true) && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
+      return S.slots.filter((s) => (filters.pri.size ? filters.pri.has(s.priority) : true)
+        && (!fx.section || s.section === fx.section)
+        && (!fx.rec || (s.rec || '').toUpperCase().startsWith(fx.rec))
+        && (!fx.hideReuse || s.priority !== 'Reuse')
+        && (!fx.needMain || !s.main)
+        && (filters.st.size ? filters.st.has(status(s)) : true)
+        && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
     }
-    /* The candidate strip: every image Ace attached to the slot, plus the
-       current site image, right in the row. One click = main, second = backup,
-       click a chosen one to clear. "+" opens the full drawer (library, upload). */
-    function stripFor(s) {
+    /* The tiles: three large images per slot, right in the row. The main and
+       backup always come first, then the next candidates; everything else is
+       one click away behind the "+" tile (full drawer: Stock, library, upload).
+       One click = main, second = backup, click a chosen one to clear. */
+    const TILES = 3;
+    function tilesFor(s) {
       const items = [];
-      (s.candidates || []).forEach((c) => items.push({ src: 'stock', key: c.comp, thumb: c.comp, title: (c.id ? c.id + ' · ' : '') + (c.why || c.title || ''), ai: c.ai }));
-      (s.existing || []).forEach((e) => items.push({ src: 'existing', key: e.url, thumb: e.url, title: 'Current site · ' + (e.label || '') }));
-      const mark = (it) => (s.main && s.main.url === it.key) ? ' is-main' : (s.backup && s.backup.url === it.key) ? ' is-backup' : '';
-      return '<div class="strip">' + items.map((it) => '<img loading="lazy" class="' + mark(it).trim() + (it.ai ? ' ai' : '') + '" src="' + esc(it.thumb) + '" title="' + esc(it.title) + '" data-slot="' + s.id + '" data-src="' + it.src + '" data-key="' + esc(it.key) + '">').join('') +
-        '<button class="more" data-slot="' + s.id + '" data-tab="library" title="SiTime library, upload, paste a comp">' + (items.length ? '+' : 'Choose an image') + '</button></div>';
+      const seen = new Set();
+      const push = (it) => { if (seen.has(it.key)) return; seen.add(it.key); items.push(it); };
+      const cands = (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).map((c) => ({ src: 'stock', key: c.comp, thumb: c.comp, label: c.id ? String(c.id) : 'Stock', title: (c.id ? c.id + ' · ' : '') + (c.why || c.title || ''), ai: c.ai }));
+      const exist = (s.existing || []).map((e) => ({ src: 'existing', key: e.url, thumb: e.url, label: 'Current site', title: 'Current site · ' + (e.label || '') }));
+      const all = cands.concat(exist);
+      [s.main, s.backup].forEach((p) => { if (!p) return; const hit = all.find((it) => it.key === p.url); push(hit || { src: 'pick', key: p.url, thumb: p.thumb || p.url, label: p.source === 'library' ? 'SiTime library' : p.source === 'stock' ? String(p.id || 'Stock') : p.source === 'existing' ? 'Current site' : 'Upload', title: p.title || '' }); });
+      all.forEach(push);
+      const shown = items.slice(0, TILES); const rest = items.length - shown.length;
+      const mark = (it) => (s.main && s.main.url === it.key) ? 'is-main' : (s.backup && s.backup.url === it.key) ? 'is-backup' : '';
+      return '<div class="tiles">' + shown.map((it) => { const m = mark(it); return '<div class="tile ' + m + (it.ai ? ' ai' : '') + '" title="' + esc(it.title) + '" data-slot="' + s.id + '" data-src="' + it.src + '" data-key="' + esc(it.key) + '"><img loading="lazy" src="' + esc(it.thumb) + '">' + (m ? '<span class="tag">' + (m === 'is-main' ? 'MAIN' : 'BACKUP') + '</span>' : '') + '<span class="cap">' + esc(it.label) + '</span></div>'; }).join('') +
+        '<div class="tile more" data-slot="' + s.id + '" data-tab="' + (rest ? 'stock' : 'library') + '"><span>' + (rest ? '+' + rest + ' more' : items.length ? 'More options' : 'Choose an image') + '</span><span class="mini">Stock · SiTime library · upload</span></div></div>';
     }
     function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '">' : '<div class="thumb empty"></div>'; }
     function renderSlots() {
       const list = filtered();
-      const rows = list.slice(0, slotsShown).map((s) => {
+      const pages = Math.max(1, Math.ceil(list.length / PAGE));
+      if (pageIdx >= pages) pageIdx = pages - 1;
+      const start = pageIdx * PAGE;
+      const rows = list.slice(start, start + PAGE).map((s) => {
         const st = status(s); const b = batchOf(s); const open = openSlot === s.id;
-        const strip = stripFor(s);
-        return '<tr class="clickable ' + (open ? 'sel' : '') + '" data-id="' + s.id + '"><td><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '></td><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div>' + strip + '</td><td><span class="pri">' + esc(s.priority) + '</span></td><td><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span></td><td>' + thumbCell(s.main) + '</td><td>' + thumbCell(s.backup) + '</td><td><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span></td><td><span class="mini">' + (b ? String(b.num).padStart(2, '0') : '—') + '</span></td></tr>' +
-          (open ? '<tr class="drawer-row"><td colspan="8"><div class="drawer" id="drawer"></div></td></tr>' : '');
+        return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
+          '<div class="mrow"><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '><div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></div>' +
+          '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span>' +
+          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span></div></div></div>' +
+          (open ? '<div class="drawer-wrap"><div class="drawer" id="drawer"></div></div>' : '');
       });
-      $('slot-rows').innerHTML = rows.join('') || '<tr><td colspan="8" class="hint">Nothing matches.</td></tr>';
-      $('slot-more').innerHTML = list.length > slotsShown ? 'Showing ' + slotsShown + ' of ' + list.length + '. <button class="link" id="show-more">Show more</button>' : list.length + ' slot' + (list.length === 1 ? '' : 's') + '.';
-      const sm = $('show-more'); if (sm) sm.addEventListener('click', () => { slotsShown += 80; renderSlots(); });
-      $('slot-rows').querySelectorAll('.strip img').forEach((im) => im.addEventListener('click', (e) => {
+      $('slot-rows').innerHTML = rows.join('') || '<p class="hint">Nothing matches.</p>';
+      const count = list.length ? 'Showing ' + (start + 1) + '–' + Math.min(start + PAGE, list.length) + ' of ' + list.length : '0 slots';
+      $('pg-count').textContent = count;
+      $('pg-prev').disabled = pageIdx === 0; $('pg-next').disabled = start + PAGE >= list.length;
+      $('slot-more').innerHTML = '<span class="mini">' + count + '</span><button class="sbtn" id="pg-prev2" ' + (pageIdx === 0 ? 'disabled' : '') + '>Prev</button><button class="sbtn" id="pg-next2" ' + (start + PAGE >= list.length ? 'disabled' : '') + '>Next</button>';
+      $('pg-prev2').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
+      $('pg-next2').addEventListener('click', () => { if (start + PAGE < list.length) { pageIdx++; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
+      $('slot-rows').querySelectorAll('.tile:not(.more)').forEach((tl) => tl.addEventListener('click', (e) => {
         e.stopPropagation();
-        const s = byId().get(im.dataset.slot); const src = im.dataset.src; const key = im.dataset.key;
+        const s = byId().get(tl.dataset.slot); const src = tl.dataset.src; const key = tl.dataset.key;
         let pick = null;
         if (src === 'stock') pick = pickFrom('stock', s.candidates.find((c) => c.comp === key));
         if (src === 'existing') pick = pickFrom('existing', s.existing.find((x) => x.url === key));
+        if (src === 'pick') pick = (s.main && s.main.url === key) ? s.main : s.backup;
         if (pick) assign(s, pick);
       }));
-      $('slot-rows').querySelectorAll('.strip .more').forEach((m) => m.addEventListener('click', (e) => { e.stopPropagation(); openSlot = m.dataset.slot; srcTab = m.dataset.tab || 'library'; renderSlots(); renderDrawer(); }));
+      $('slot-rows').querySelectorAll('.tile.more').forEach((m) => m.addEventListener('click', (e) => { e.stopPropagation(); openSlot = m.dataset.slot; srcTab = m.dataset.tab || 'library'; renderSlots(); renderDrawer(); }));
       if (openSlot) renderDrawer();
       $('slot-rows').querySelectorAll('input[data-chk]').forEach((c) => c.addEventListener('click', (e) => { e.stopPropagation(); c.checked ? checked.add(c.dataset.chk) : checked.delete(c.dataset.chk); updateChecked(); }));
-      $('slot-rows').querySelectorAll('tr.clickable').forEach((tr) => tr.addEventListener('click', () => { openSlot = openSlot === tr.dataset.id ? null : tr.dataset.id; srcTab = 'library'; renderSlots(); renderDrawer(); }));
+      $('slot-rows').querySelectorAll('.srow .mrow').forEach((mr) => mr.addEventListener('click', () => { const id = mr.closest('.srow').dataset.id; openSlot = openSlot === id ? null : id; srcTab = 'library'; renderSlots(); renderDrawer(); }));
       updateChecked();
     }
     function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
-    $('check-all').addEventListener('change', (e) => { filtered().slice(0, slotsShown).forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
-    $('search').addEventListener('input', (e) => { search = e.target.value; slotsShown = 80; renderSlots(); });
+    $('check-all').addEventListener('change', (e) => { filtered().slice(pageIdx * PAGE, pageIdx * PAGE + PAGE).forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
+    $('f-section').addEventListener('change', (e) => { fx.section = e.target.value; pageIdx = 0; renderSlots(); });
+    $('f-rec').addEventListener('change', (e) => { fx.rec = e.target.value; pageIdx = 0; renderSlots(); });
+    $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); });
+    $('f-hidereuse').addEventListener('change', (e) => { fx.hideReuse = e.target.checked; pageIdx = 0; renderSlots(); });
+    $('f-needmain').addEventListener('change', (e) => { fx.needMain = e.target.checked; pageIdx = 0; renderSlots(); });
+    $('pg-prev').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); } });
+    $('pg-next').addEventListener('click', () => { if ((pageIdx + 1) * PAGE < filtered().length) { pageIdx++; renderSlots(); } });
+    $('search').addEventListener('input', (e) => { search = e.target.value; pageIdx = 0; renderSlots(); });
     $('add-to-batch').addEventListener('click', () => {
       const drafts = S.batches.filter((b) => b.status === 'draft');
       if (!drafts.length) { openBatchDialog(null); return; }
