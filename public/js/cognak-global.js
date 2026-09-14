@@ -818,3 +818,33 @@
         }
     });
 })();
+
+/* ── Type "workflow" anywhere to open /workflow ───────────────────────────── */
+/* Same mechanism as "send" above: the client tools index is unlisted, and this
+   is how Pierce gets there without a bookmark (2026-09-14). */
+(function () {
+    var WORD = 'workflow';
+    var buf = '';
+    var timer = 0;
+    function isTyping(el) {
+        if (!el) return false;
+        if (el.isContentEditable) return true;
+        var tag = el.tagName;
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (isTyping(e.target)) return;
+        if (e.key.length !== 1) return;
+        buf = (buf + e.key.toLowerCase()).slice(-WORD.length);
+        clearTimeout(timer);
+        timer = setTimeout(function () { buf = ''; }, 1600);
+        if (buf === WORD) {
+            buf = '';
+            clearTimeout(timer);
+            if (window.location.pathname.replace(/\/$/, '') !== '/workflow') {
+                window.location.href = '/workflow';
+            }
+        }
+    });
+})();

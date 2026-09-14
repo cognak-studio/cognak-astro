@@ -1,0 +1,65 @@
+---
+/**
+ * /workflow — the front door to COGNAK's client-facing tools. Unlisted:
+ * not in the nav, footer or sitemap. Type "workflow" anywhere on the site
+ * to get here (public/js/cognak-global.js, same mechanism as "send").
+ * One card per client tool; SiTime's image review is the first.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const TOOLS = [
+  {
+    key: 'sitime',
+    client: 'SiTime',
+    title: 'Image review for the new sitime.com',
+    desc: 'Assign a main and a backup to every image slot, send SiTime a batch, collect approve / deny / hold with notes, hand off the approved set.',
+    href: '/workflow/sitime/admin',
+    tag: 'Internal',
+  },
+];
+---
+<BaseLayout
+  page="workflow"
+  title="Workflow — COGNAK"
+  description="Internal."
+  ogUrl="https://cognak.com/workflow/"
+  noindex={true}
+  pageBg="#F4F4F2"
+>
+  <main id="cognak-main"><section class="wf">
+    <h1 class="headline"><em>Workflow</em> tools, one per client.</h1>
+    <p class="lede">Small purpose-built pages for the parts of a project that email handles badly. Each one lives on cognak.com, behind the studio sign-in, with a plain link for the client.</p>
+    <div class="picker rise">
+      {TOOLS.map((t, i) => (
+        <a class="pcard" href={t.href}>
+          <span class="idx">0{i + 1}</span>
+          <span class="ptag">{t.client} · {t.tag}</span>
+          <span class="arrow" aria-hidden="true">&rarr;</span>
+          <h3>{t.title}</h3>
+          <p>{t.desc}</p>
+        </a>
+      ))}
+    </div>
+  </section></main>
+
+  <style is:inline>
+    html, body { background-color:#F4F4F2 !important; }
+    #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
+    .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#4A3F6B; --accent:#B47CFF;
+      max-width:1040px; margin:0 auto; padding:190px 6vw 22vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
+    .wf .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+    .wf .headline em{ font-style:normal; font-weight:500; color:var(--head); }
+    .wf .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
+    .wf .picker{ display:grid; grid-template-columns:1fr; gap:14px; }
+    .wf .pcard{ position:relative; display:block; text-decoration:none; color:var(--ink); background:#fff; border:1px solid #ECECE9; border-radius:12px; padding:24px 24px 22px;
+      box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); transition:background var(--dur-sm) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
+    .wf .pcard:hover{ background:#FAF7FF; box-shadow:0 1px 2px rgba(0,0,0,.04),0 16px 44px rgba(180,124,255,.18); }
+    .wf .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; }
+    .wf .pcard .ptag{ position:absolute; top:24px; right:24px; font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--head); }
+    .wf .pcard h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; margin:.7rem 0 .35rem; color:var(--ink); }
+    .wf .pcard p{ font-size:.9rem; line-height:1.45; color:var(--ink-soft); margin:0; max-width:60ch; }
+    .wf .pcard .arrow{ position:absolute; bottom:20px; right:24px; color:var(--ink-soft); transition:transform var(--dur-sm) var(--ease-standard), color var(--dur-sm) var(--ease-standard); }
+    .wf .pcard:hover .arrow{ transform:translateX(4px); color:var(--head); }
+    @media (max-width:760px){ .wf{ padding:150px 5vw 12vh; } .wf .lede{ margin-left:0; } }
+  </style>
+</BaseLayout>

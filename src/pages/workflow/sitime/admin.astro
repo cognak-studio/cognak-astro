@@ -210,6 +210,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cands .more{ grid-column:1/-1; }
     .adm .up{ border:1px dashed var(--line-strong); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.8rem; color:var(--ink-soft); aspect-ratio:4/3; text-align:center; padding:10px; cursor:pointer; gap:6px; }
     .adm .batchrow{ display:grid; grid-template-columns:1.4fr 1.2fr 60px 110px 1.2fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:.92rem; }
+    .adm .acts{ display:flex; gap:6px; justify-content:flex-end; }
+    .adm .ibtn{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:background var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
+    .adm .ibtn svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .adm .ibtn:hover{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
+    .adm .ibtn[data-act=delete]:hover{ background:#FF1E1E; border-color:#FF7070; color:#fff; }
+    .adm .ibtn.done{ background:#9DFF00; border-color:#D9FF66; color:#152400; }
     .adm .batchrow.head{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); padding:0 0 12px; }
     .adm .bslots{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:10px 0 18px; }
     .adm .bslot{ border:1px solid #ECECE9; border-radius:6px; padding:6px; font-size:.75rem; color:var(--ink-soft); }
@@ -325,6 +331,23 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b).outcome; c[o === 'approved' ? 'a' : o === 'denied' ? 'd' : o === 'held' ? 'h' : 'p']++; });
       return c;
     }
+    const ICONS = {
+      open: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+      preview: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+      send: '<svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>',
+      copy: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
+      csv: '<svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>',
+      delete: '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>',
+    };
+    const ICON = (act, label) => '<button class="ibtn" data-act="' + act + '" title="' + esc(label) + '" aria-label="' + esc(label) + '">' + ICONS[act] + '</button>';
+    function deleteBatch(b) {
+      const total = (b.slotIds || []).length;
+      const msg = b.status === 'draft' ? 'Delete this draft batch? Its ' + total + ' slots go back to assigned.' : 'Delete batch ' + String(b.num).padStart(2, '0') + '? It has been sent; its link stops working and its ' + total + ' slots go back to assigned. Decisions already made are discarded.';
+      if (!confirm(msg)) return;
+      const m = byId(); (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; });
+      S.batches = S.batches.filter((x) => x !== b); delete D[b.token];
+      mark(); renderBatches(); renderStats();
+    }
     function renderBatches() {
       const rows = S.batches.slice().sort((a, b) => b.num - a.num).map((b) => {
         const c = batchCounts(b);
@@ -335,7 +358,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="batchrow" data-b="' + b.token + '"><div><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
           '<div><span class="mini">' + (b.status === 'draft' ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
           '<div class="mini">' + (b.sentAt ? fmtDate(b.sentAt.slice(0, 10)) : (b.plannedFor ? fmtDate(b.plannedFor) + ', planned' : '—')) + '</div>' +
-          '<div><button class="link" data-act="open">Open</button>' + (b.status === 'draft' ? '<button class="link" data-act="preview">Preview as SiTime</button><button class="link" data-act="send">Mark sent</button>' : '<button class="link" data-act="copy">Copy link</button><button class="link" data-act="csv">Export CSV</button>') + '</div>' +
+          '<div class="acts">' + ICON('open', 'Open') + (b.status === 'draft' ? ICON('preview', 'Preview as SiTime') + ICON('send', 'Mark sent and copy the link') : ICON('copy', 'Copy link') + ICON('csv', 'Export CSV')) + ICON('delete', 'Delete batch') + '</div>' +
           '<div class="bdetail" hidden style="grid-column:1/-1"></div></div>';
       });
       $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Sent</div><div></div></div>' : '<p class="hint">No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.</p>') + rows.join('');
@@ -344,9 +367,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const act = btn.dataset.act;
         if (act === 'open') { const d = row.querySelector('.bdetail'); d.hidden = !d.hidden; if (!d.hidden) renderBatchDetail(b, d); }
         if (act === 'preview') window.open(link, '_blank');
-        if (act === 'copy') { navigator.clipboard.writeText(link); btn.textContent = 'Copied'; setTimeout(() => (btn.textContent = 'Copy link'), 1500); }
+        if (act === 'copy') { navigator.clipboard.writeText(link); btn.classList.add('done'); setTimeout(() => btn.classList.remove('done'), 1500); }
         if (act === 'send') { if (!(b.slotIds || []).length) { alert('Add slots first.'); return; } b.status = 'sent'; b.sentAt = new Date().toISOString(); mark(); renderBatches(); renderStats(); navigator.clipboard.writeText(link); alert('Marked sent. The link is on your clipboard:\n' + link); }
         if (act === 'csv') exportBatchCsv(b);
+        if (act === 'delete') deleteBatch(b);
       }));
       // waiting on you
       const m = byId(); const items = [];
@@ -359,10 +383,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderBatchDetail(b, el) {
       const m = byId();
       el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (b.status === 'draft' ? 'queued' : o.outcome === 'pending' ? 'sent' : o.outcome) + '"><i></i>' + (b.status === 'draft' ? 'In draft' : STATUS_LABEL[o.outcome === 'pending' ? 'sent' : o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (b.status === 'draft' ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
-        '<div class="actions"><button class="link" data-edit="1">Rename / reschedule</button>' + (b.status === 'draft' ? '<button class="link danger" data-del="1">Delete batch</button>' : '') + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
+        '<div class="actions"><button class="link" data-edit="1">Rename / reschedule</button><button class="link" data-del="1">Delete batch</button>' + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
       el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.rm); b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }));
       el.querySelector('[data-edit]').addEventListener('click', () => openBatchDialog(b));
-      const del = el.querySelector('[data-del]'); if (del) del.addEventListener('click', () => { if (!confirm('Delete this draft batch? Slots go back to assigned.')) return; (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; }); S.batches = S.batches.filter((x) => x !== b); mark(); renderBatches(); renderStats(); });
+      const del = el.querySelector('[data-del]'); if (del) del.addEventListener('click', () => deleteBatch(b));
     }
     function exportBatchCsv(b) {
       const m = byId();

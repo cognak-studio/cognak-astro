@@ -74,7 +74,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div class="links"><span>Products</span><span>Applications</span><span>Tools &amp; Resources</span><span>Support</span><span>Company</span></div>
               <div class="right"><span>Search</span><span>Sign in</span><span class="cta">Sample &amp; Buy</span></div>
             </div>
-            <div class="st-hero"><img id="hero-img" src="" alt="" /><div class="scrim"></div>
+            <div class="st-hero"><img id="hero-img" src="" alt="" hidden /><div class="noimg" id="noimg">No image assigned to this slot yet</div><div class="scrim"></div>
               <div class="copy"><h2 id="mock-h1">Built for where others fail.</h2><p id="mock-p">From space to factory floors, SiTime timing holds when conditions don’t.</p><span class="btn-s" id="mock-cta">Learn more</span></div>
             </div>
           </div></div>
@@ -164,6 +164,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .st-nav .cta{ background:var(--sit); color:#fff; padding:14px 26px; border-radius:6px; font-weight:500; }
     .review .st-hero{ position:relative; height:912px; background:#111; }
     .review .st-hero img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 40%; }
+    .review .st-hero .noimg{ position:absolute; inset:0; background:repeating-linear-gradient(45deg,#2A2A2C,#2A2A2C 24px,#232325 24px,#232325 48px); color:#8A8A8E; font-size:22px; display:flex; align-items:flex-start; justify-content:flex-end; padding:40px 84px; }
     .review .st-hero .scrim{ position:absolute; inset:0; background:linear-gradient(90deg, rgba(10,10,12,.82) 0%, rgba(10,10,12,.55) 45%, rgba(10,10,12,.05) 80%); }
     .review .st-hero .copy{ position:absolute; left:84px; bottom:150px; width:760px; color:#fff; }
     .review .st-hero h2{ font-size:72px; line-height:1.02; letter-spacing:-.02em; font-weight:300; margin:0 0 26px; color:#fff; }
@@ -250,7 +251,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('bar').style.width = Math.round((done / state.slots.length) * 100) + '%';
       $('slot-title').textContent = s.page + ' · ' + s.name;
       $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image, shown because the main was denied.' : (s.backup ? 'Main image. If you deny it, the backup appears in the same spot.' : 'Main image. No backup for this one.'));
-      $('hero-img').src = (pick && pick.url) || '';
+      const heroUrl = (pick && pick.url) || '';
+      $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
       $('stage-label').textContent = which === 'backup' ? 'Where it sits · backup' : 'Where it sits';
       $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
       $('source-note').textContent = pick && pick.source === 'stock' ? 'Comp shown, licensed after approval' : pick && pick.source === 'library' ? 'From SiTime’s licensed library' : '';
