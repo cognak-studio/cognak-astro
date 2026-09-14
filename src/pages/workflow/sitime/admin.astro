@@ -73,7 +73,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="tablewrap"><table id="slot-table"><thead><tr><th><input type="checkbox" id="check-all" /></th><th>Page · slot</th><th>Pri</th><th>Rec</th><th>Main</th><th>Backup</th><th>State</th><th>Batch</th></tr></thead><tbody id="slot-rows"></tbody></table></div>
           <p class="hint" id="slot-more"></p>
         </div>
-        <div class="group drawer" id="drawer" hidden></div>
       </div>
 
       <!-- REPLACEMENTS -->
@@ -172,6 +171,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pg{ font-weight:500; }
     .adm .sub{ font-size:.8rem; color:var(--ink-soft); }
     .adm .pri{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; }
+    .adm .strip{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+    .adm .strip img{ width:56px; height:38px; object-fit:cover; border-radius:4px; border:2px solid transparent; background:#EEE; cursor:pointer; transition:transform .12s var(--ease-standard); }
+    .adm .strip img:hover{ transform:scale(1.5); position:relative; z-index:2; box-shadow:0 6px 18px rgba(0,0,0,.25); }
+    .adm .strip img.is-main{ border-color:#1A1A1A; box-shadow:0 0 0 1px #fff inset; }
+    .adm .strip img.is-backup{ border-color:#1A1A1A; border-style:dashed; }
+    .adm .strip img.ai{ outline:1px solid #E0B34A; }
+    .adm .strip .more{ font:inherit; font-size:.72rem; font-weight:500; height:38px; min-width:38px; padding:0 10px; border-radius:6px; border:1px dashed var(--line-strong); background:#fff; color:var(--ink-soft); cursor:pointer; }
+    .adm .strip .more:hover{ border-color:var(--accent); color:var(--ink); }
+    .adm tr.drawer-row td{ background:#FAF7FF; padding:22px 18px 26px; }
+    .adm tr.drawer-row .drawer{ border-top:none; padding-top:0; margin-top:0; }
+    .adm tr.drawer-row .cands{ grid-template-columns:repeat(8,1fr); }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
@@ -436,15 +446,41 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const q = search.toLowerCase();
       return S.slots.filter((s) => (filters.pri.size ? filters.pri.has(s.priority) : true) && (filters.sec.size ? filters.sec.has(s.section) : true) && (filters.st.size ? filters.st.has(status(s)) : true) && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
     }
+    /* The candidate strip: every image Ace attached to the slot, plus the
+       current site image, right in the row. One click = main, second = backup,
+       click a chosen one to clear. "+" opens the full drawer (library, upload). */
+    function stripFor(s) {
+      const items = [];
+      (s.candidates || []).forEach((c) => items.push({ src: 'stock', key: c.comp, thumb: c.comp, title: (c.id ? c.id + ' · ' : '') + (c.why || c.title || ''), ai: c.ai }));
+      (s.existing || []).forEach((e) => items.push({ src: 'existing', key: e.url, thumb: e.url, title: 'Current site · ' + (e.label || '') }));
+      const mark = (it) => (s.main && s.main.url === it.key) ? ' is-main' : (s.backup && s.backup.url === it.key) ? ' is-backup' : '';
+      return '<div class="strip">' + items.map((it) => '<img loading="lazy" class="' + mark(it).trim() + (it.ai ? ' ai' : '') + '" src="' + esc(it.thumb) + '" title="' + esc(it.title) + '" data-slot="' + s.id + '" data-src="' + it.src + '" data-key="' + esc(it.key) + '">').join('') +
+        '<button class="more" data-slot="' + s.id + '" data-tab="library" title="SiTime library, upload, paste a comp">' + (items.length ? '+' : 'Choose an image') + '</button></div>';
+    }
     function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '">' : '<div class="thumb empty"></div>'; }
     function renderSlots() {
       const list = filtered();
-      const rows = list.slice(0, slotsShown).map((s) => { const st = status(s); const b = batchOf(s); return '<tr class="clickable ' + (openSlot === s.id ? 'sel' : '') + '" data-id="' + s.id + '"><td><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '></td><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></td><td><span class="pri">' + esc(s.priority) + '</span></td><td><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span></td><td>' + thumbCell(s.main) + '</td><td>' + thumbCell(s.backup) + '</td><td><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span></td><td><span class="mini">' + (b ? String(b.num).padStart(2, '0') : '—') + '</span></td></tr>'; });
+      const rows = list.slice(0, slotsShown).map((s) => {
+        const st = status(s); const b = batchOf(s); const open = openSlot === s.id;
+        const strip = stripFor(s);
+        return '<tr class="clickable ' + (open ? 'sel' : '') + '" data-id="' + s.id + '"><td><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '></td><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div>' + strip + '</td><td><span class="pri">' + esc(s.priority) + '</span></td><td><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span></td><td>' + thumbCell(s.main) + '</td><td>' + thumbCell(s.backup) + '</td><td><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span></td><td><span class="mini">' + (b ? String(b.num).padStart(2, '0') : '—') + '</span></td></tr>' +
+          (open ? '<tr class="drawer-row"><td colspan="8"><div class="drawer" id="drawer"></div></td></tr>' : '');
+      });
       $('slot-rows').innerHTML = rows.join('') || '<tr><td colspan="8" class="hint">Nothing matches.</td></tr>';
       $('slot-more').innerHTML = list.length > slotsShown ? 'Showing ' + slotsShown + ' of ' + list.length + '. <button class="link" id="show-more">Show more</button>' : list.length + ' slot' + (list.length === 1 ? '' : 's') + '.';
       const sm = $('show-more'); if (sm) sm.addEventListener('click', () => { slotsShown += 80; renderSlots(); });
+      $('slot-rows').querySelectorAll('.strip img').forEach((im) => im.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const s = byId().get(im.dataset.slot); const src = im.dataset.src; const key = im.dataset.key;
+        let pick = null;
+        if (src === 'stock') pick = pickFrom('stock', s.candidates.find((c) => c.comp === key));
+        if (src === 'existing') pick = pickFrom('existing', s.existing.find((x) => x.url === key));
+        if (pick) assign(s, pick);
+      }));
+      $('slot-rows').querySelectorAll('.strip .more').forEach((m) => m.addEventListener('click', (e) => { e.stopPropagation(); openSlot = m.dataset.slot; srcTab = m.dataset.tab || 'library'; renderSlots(); renderDrawer(); }));
+      if (openSlot) renderDrawer();
       $('slot-rows').querySelectorAll('input[data-chk]').forEach((c) => c.addEventListener('click', (e) => { e.stopPropagation(); c.checked ? checked.add(c.dataset.chk) : checked.delete(c.dataset.chk); updateChecked(); }));
-      $('slot-rows').querySelectorAll('tr.clickable').forEach((tr) => tr.addEventListener('click', () => { openSlot = openSlot === tr.dataset.id ? null : tr.dataset.id; srcTab = 'stock'; renderSlots(); renderDrawer(); }));
+      $('slot-rows').querySelectorAll('tr.clickable').forEach((tr) => tr.addEventListener('click', () => { openSlot = openSlot === tr.dataset.id ? null : tr.dataset.id; srcTab = 'library'; renderSlots(); renderDrawer(); }));
       updateChecked();
     }
     function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
@@ -480,8 +516,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function renderDrawer() {
       const dr = $('drawer'); const s = openSlot && byId().get(openSlot);
-      if (!s) { dr.hidden = true; return; }
-      dr.hidden = false;
+      if (!s || !dr) return;
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['upload', 'Upload']];
       let body = '';
       if (srcTab === 'stock') {
@@ -528,7 +563,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const m = byId(); const items = [];
       S.batches.filter((b) => b.status !== 'draft').forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
       $('repl-list').innerHTML = items.length ? items.map(({ s, b, o }) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + o.outcome + '"><i></i>' + STATUS_LABEL[o.outcome] + '</span> in batch ' + String(b.num).padStart(2, '0') + (o.which === 'backup' ? ' (main and backup both)' : '') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '">Pick a replacement</button></div></div></div>').join('') : '<p class="hint">Nothing denied or held.</p>';
-      $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.re); s.batch = null; s.main = null; s.backup = null; s.state = 'assigned'; mark(); openSlot = s.id; srcTab = 'stock'; showTab('slots'); renderDrawer(); $('drawer').scrollIntoView({ behavior: 'smooth' }); }));
+      $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.re); s.batch = null; s.main = null; s.backup = null; s.state = 'assigned'; mark(); openSlot = s.id; srcTab = 'stock'; showTab('slots'); const tr = document.querySelector('#slot-rows tr[data-id="' + s.id + '"]'); if (tr) tr.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
     }
 
     /* ---------- handoff ---------- */
