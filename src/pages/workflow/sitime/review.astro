@@ -254,9 +254,35 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return -1;
     }
 
+    /* Merge the server's decisions with what this browser already knows --
+       never replace. Two ways a straight assignment lost the decision that
+       had just been submitted, and in both the reviewer was thrown back to
+       the main image instead of forward to its backup:
+         - a PREVIEW link (draft batch) can never have server-side decisions,
+           because sitime-decide refuses drafts with a 403, so every resync
+           returned {} and wiped the local event. That is also why a preview
+           link behaved differently from the sent one; it no longer does.
+         - on a live batch the Blob listing can lag the write by a moment,
+           so an immediate resync can come back without the newest event.
+       Newest event per (slot, which) wins, same rule the server uses. */
     async function resync() {
       const r = await api('/api/sitime-batch', { token, pass });
-      if (r.ok && r.data && r.data.ok) { state.slots = r.data.slots; state.decisions = r.data.decisions || state.decisions; }
+      if (!(r.ok && r.data && r.data.ok)) return;
+      state.slots = r.data.slots;
+      const server = r.data.decisions || {};
+      const local = state.decisions || {};
+      const merged = {};
+      const ids = new Set(Object.keys(server).concat(Object.keys(local)));
+      ids.forEach((id) => {
+        const out = {};
+        ['main', 'backup'].forEach((w) => {
+          const a = (local[id] || {})[w], b = (server[id] || {})[w];
+          const keep = !b ? a : !a ? b : ((a.at || 0) > (b.at || 0) ? a : b);
+          if (keep) out[w] = keep;
+        });
+        merged[id] = out;
+      });
+      state.decisions = merged;
     }
 
     function render() {

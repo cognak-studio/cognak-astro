@@ -223,9 +223,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        just a bottom hairline -- even weight on all four sides, no bias toward
        the bottom. margin-bottom (not flex gap) is what separates one card from
        the next, because .sel needs to cancel it to sit flush against its own
-       drawer-wrap right below. Border-width stays 2px in both states so the
+       drawer-wrap right below. Border-width stays 1px in both states so the
        colour-only transition never nudges layout by a pixel. */
-    .adm .srow{ padding:18px 14px 16px; border-radius:12px; border:2px solid var(--line); margin-bottom:10px; transition:background .15s var(--ease-standard), border-color .15s var(--ease-standard); }
+    .adm .srow{ padding:18px 14px 16px; border-radius:12px; border:1px solid var(--line); margin-bottom:10px; transition:background .15s var(--ease-standard), border-color .15s var(--ease-standard); }
     .adm .srow:not(.sel):hover{ background:#FAFAF8; border-color:var(--line-strong); }
     /* Selected keeps the exact same stroke (width + colour) as a resting
        card -- no more darkening the border to signal "open." The card reads
@@ -270,7 +270,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
     .adm .srow.sel .mrow .chev{ transform:rotate(180deg); color:#1A1A1A; }
-    .adm .drawer-wrap{ background:#fff; padding:6px 18px 26px; border-radius:0 0 12px 12px; border:2px solid var(--line); border-top:none; margin-bottom:6px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
+    .adm .drawer-wrap{ background:#fff; padding:6px 18px 26px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:6px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
