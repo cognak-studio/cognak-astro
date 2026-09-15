@@ -176,7 +176,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .st-hero{ position:relative; height:912px; background:#111; }
     .review .st-hero img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 40%; }
     .review .st-hero .noimg{ position:absolute; inset:0; background:repeating-linear-gradient(45deg,#2A2A2C,#2A2A2C 24px,#232325 24px,#232325 48px); color:#8A8A8E; font-size:22px; display:flex; align-items:flex-start; justify-content:flex-end; padding:40px 84px; }
-    .review .st-hero .scrim{ position:absolute; inset:0; background:linear-gradient(90deg, rgba(10,10,12,.82) 0%, rgba(10,10,12,.55) 45%, rgba(10,10,12,.05) 80%); }
+    /* DS "scrim / near black" recipe (242629, stops 0%/60%/94% at 52%/26%/0%
+       opacity) -- the old one was pure black at .82 near the text, opaque
+       enough to read as covering half the image. Same left-to-right
+       direction (text sits at the left), just the DS's actual light touch. */
+    .review .st-hero .scrim{ position:absolute; inset:0; background:linear-gradient(90deg, rgba(36,38,41,.52) 0%, rgba(36,38,41,.26) 60%, rgba(36,38,41,0) 94%); }
     .review .st-hero .copy{ position:absolute; left:84px; bottom:150px; width:760px; color:#fff; }
     .review .st-hero h2{ font-size:72px; line-height:1.02; letter-spacing:-.02em; font-weight:300; margin:0 0 26px; color:#fff; }
     .review .st-hero p{ font-size:22px; line-height:1.45; font-weight:300; margin:0 0 36px; max-width:620px; color:#E8E8EA; }
