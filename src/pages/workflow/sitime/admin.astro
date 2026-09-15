@@ -143,19 +143,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="actions"><button class="sbtn p" id="bd-save">Save</button><button class="sbtn" id="bd-cancel">Cancel</button></div>
     </dialog>
 
-    <!-- full-screen image picker: the whole viewport is candidates, the brief
-         collapses into one line, and nothing about choosing an image happens
-         below the fold. See openPicker() / renderPicker(). -->
-    <dialog id="picker" class="picker">
-      <div class="pk-head">
-        <div class="pk-who"><div class="group-title" id="pk-title"></div><span class="mini" id="pk-sub"></span></div>
-        <div class="pk-target" id="pk-target"></div>
-        <button class="sbtn" id="pk-close">Done</button>
-      </div>
-      <div class="pk-brief" id="pk-brief"></div>
-      <div class="pk-tabs" id="pk-tabs"></div>
-      <div class="pk-body" id="pk-body"></div>
-    </dialog>
 
   </section></main>
 
@@ -232,7 +219,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        as open instead by its whiter fill and the drop shadow living on
        drawer-wrap below, grounded under the whole card rather than a glow
        ringing it. */
-    .adm .srow.sel{ background:#fff; border-color:var(--line); border-bottom-color:transparent; border-radius:12px 12px 0 0; margin-bottom:0; }
+    .adm .srow.sel{ background:#fff; border-color:var(--line); border-bottom:none; border-radius:12px 12px 0 0; margin-bottom:0; padding-bottom:0; }
     /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
     .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
     .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
@@ -270,7 +257,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
     .adm .srow.sel .mrow .chev{ transform:rotate(180deg); color:#1A1A1A; }
-    .adm .drawer-wrap{ background:#fff; padding:6px 18px 26px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:6px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
+    .adm .drawer-wrap{ background:#fff; padding:18px 14px 24px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:10px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
@@ -292,15 +279,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .qitem .n{ font-size:.82rem; color:var(--ink-soft); margin-top:3px; line-height:1.4; }
     /* drawer */
     .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
-    .adm .drawer .meta{ display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:24px; font-size:.88rem; line-height:1.5; color:var(--ink-soft); margin:1rem 0 1.4rem; }
+    .adm .drawer .meta{ display:grid; grid-template-columns:1.5fr 1fr; gap:26px; font-size:.88rem; line-height:1.5; color:var(--ink-soft); margin:1rem 0 1.5rem; }
     .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:4px; }
     .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#4B584E; line-height:1.5; }
     .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E6E6E3; border-radius:6px; padding:8px 10px; resize:vertical; min-height:58px; background:#fff; }
     .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; min-height:110px; cursor:default; color:var(--ink-soft); font-size:.78rem; background:#FAFAF8; border-style:dashed; }
     .adm .srctabs{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
-    .adm .cands{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+    .adm .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(184px,1fr)); gap:14px; }
     .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
-    .adm .cand img{ width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:#EEE; }
+    .adm .cand img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; background:#EEE; }
     .adm .cand .cb{ padding:8px 10px; font-size:.74rem; line-height:1.35; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
     .adm .cand .cb b{ display:block; color:var(--ink); font-weight:500; font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.06em; margin-bottom:3px; }
     .adm .cand .tag{ position:absolute; top:8px; left:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
@@ -374,40 +361,23 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pcard .ex img{ width:130px; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#EEE; }
     .adm .pcard .ex .mini{ max-width:22ch; }
 
-    /* ---- full-screen picker ---- */
-    .adm dialog.picker, dialog.picker{ width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; padding:0; margin:0; border:0; border-radius:0; display:none; flex-direction:column; background:#F4F4F2; font-family:'Diatype Variable', sans-serif; color:#1A1A1A; }
-    dialog.picker[open]{ display:flex; }
-    dialog.picker::backdrop{ background:rgba(23,28,24,.6); }
-    dialog.picker .pk-head{ display:flex; align-items:center; gap:20px; padding:18px 26px; background:#fff; border-bottom:1px solid #E6E6E3; flex:none; }
-    dialog.picker .pk-who{ min-width:0; }
-    dialog.picker .pk-who .group-title{ margin-bottom:4px; color:#1A1A1A; }
-    dialog.picker .pk-target{ margin-left:auto; display:flex; align-items:center; gap:8px; }
-    dialog.picker .pk-target .lbl{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:#6B6B6B; margin-right:2px; }
-    dialog.picker .pk-target .tgt{ display:flex; align-items:center; gap:8px; font:inherit; font-size:.85rem; padding:6px 10px 6px 6px; border-radius:999px; border:1px solid #CFCFCB; background:#fff; cursor:pointer; }
-    dialog.picker .pk-target .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
-    dialog.picker .pk-target .tgt img{ width:44px; height:28px; object-fit:cover; border-radius:4px; background:#EEE; }
-    dialog.picker .pk-target .tgt .ph{ width:44px; height:28px; border-radius:4px; background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
-    dialog.picker .pk-target .clr{ font:inherit; font-size:.78rem; white-space:nowrap; background:none; border:0; color:#6B6B6B; text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:0 6px; }
-    dialog.picker .pk-brief{ padding:12px 26px; background:#fff; border-bottom:1px solid #E6E6E3; font-size:.88rem; color:#6B6B6B; line-height:1.5; flex:none; }
-    dialog.picker .pk-brief .oneline{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
-    dialog.picker .pk-brief .rules{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.04em; color:#4B584E; margin-top:6px; }
-    dialog.picker .pk-brief textarea{ width:100%; box-sizing:border-box; font:inherit; font-size:.86rem; border:1px solid #E6E6E3; border-radius:6px; padding:8px 10px; resize:vertical; min-height:70px; margin-top:6px; }
-    dialog.picker .pk-brief .more{ font:inherit; font-size:.8rem; background:none; border:0; color:#4B584E; text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:0; margin-left:6px; }
-    dialog.picker .pk-tabs{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:12px 26px; background:#fff; border-bottom:1px solid #E6E6E3; flex:none; }
-    dialog.picker .pk-body{ flex:1 1 auto; overflow-y:auto; padding:22px 26px 40px; }
-    dialog.picker .pk-body .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px; }
-    dialog.picker .pk-body .cand img{ aspect-ratio:3/2; }
-    dialog.picker .pk-body .cand .cb{ -webkit-line-clamp:4; }
-    dialog.picker .pk-body .cand .meta2{ display:flex; gap:8px; flex-wrap:wrap; padding:0 10px 9px; }
-    dialog.picker .pk-body .cand .flag{ font-family:'Diatype Mono', monospace; font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; padding:3px 7px; border-radius:999px; border:1px solid #E6E6E3; color:#6B6B6B; }
-    dialog.picker .pk-body .cand .flag.real{ color:#4B584E; border-color:#C9D6CC; }
-    dialog.picker .pk-body .cand .flag.ai{ background:#FFF3CD; color:#8A5A00; border-color:#F0E0AE; }
-    dialog.picker .pk-body .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
-    dialog.picker .pk-body .cand .adobe{ display:block; padding:0 10px 10px; font-size:.78rem; color:#4B584E; text-decoration:underline; text-underline-offset:3px; }
-    dialog.picker .pk-body .up{ min-height:190px; }
+    /* ---- the picker lives INSIDE the row's drawer ---- */
+    .adm .drawer .tgtbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .adm .drawer .tgtbar .lbl{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+    .adm .drawer .tgt{ display:inline-flex; align-items:center; gap:8px; font:inherit; font-size:.85rem; padding:5px 12px 5px 5px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; cursor:pointer; }
+    .adm .drawer .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
+    .adm .drawer .tgt img{ width:40px; height:26px; object-fit:cover; border-radius:4px; background:#EEE; }
+    .adm .drawer .tgt .ph{ width:40px; height:26px; border-radius:4px; background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
+    .adm .drawer .meta textarea.terms-edit{ width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:6px; padding:8px 10px; resize:vertical; min-height:58px; background:#fff; }
+    .adm .cand .meta2{ display:flex; gap:6px; flex-wrap:wrap; padding:0 10px 9px; }
+    .adm .cand .flag{ font-family:'Diatype Mono', monospace; font-size:.58rem; letter-spacing:.08em; text-transform:uppercase; padding:3px 6px; border-radius:999px; border:1px solid var(--line); color:var(--ink-soft); }
+    .adm .cand .flag.real{ color:#4B584E; border-color:#C9D6CC; }
+    .adm .cand .flag.ai{ background:#FFF3CD; color:#8A5A00; border-color:#F0E0AE; }
+    .adm .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
+    .adm .cand .adobe{ display:block; padding:0 10px 10px; font-size:.76rem; color:var(--head); text-decoration:underline; text-underline-offset:3px; }
 
     @media (max-width:900px){ .adm .workspace{ grid-template-columns:1fr; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; } }
-    @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .cands{ grid-template-columns:repeat(3,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
+    @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
   </style>
 
   <script is:inline>
@@ -428,7 +398,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let checked = new Set();
     let openSlots = new Set();   // slot ids whose inline detail drawer (brief, note) is open -- several at once now, so "Expand all" means something
     let railOpen = new Set();    // section names expanded in the left rail
-    let pkSlot = null, pkWhich = 'main', pkBriefOpen = false; // the full-screen picker: which slot, and whether the next pick lands on main or backup
+    const pkWhich = {};          // slotId -> 'main' | 'backup': which tile the next click in that row's picker fills
     let stockSlotId = null, stockQ = '', stockResults = [], stockBusy = false, stockErr = ''; // live Adobe Stock search state, reset when the picker switches to a different slot
     let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
@@ -749,7 +719,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
           '<div class="mrow"><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '><div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></div>' +
           '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span>' +
-          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Brief and notes">' + ICONS.chevron + '</span></div></div>' +
+          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Brief and notes">' + ICONS.chevron + '</span></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
       });
       $('slot-rows').innerHTML = rows.join('') || '<p class="hint">Nothing matches.</p>';
@@ -798,23 +768,54 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('expand-all').textContent = shown.length && shown.every((s) => openSlots.has(s.id)) ? 'Collapse all' : 'Expand all';
       updateChecked();
     }
-    /* The row drawer: the brief and the note, nothing to pick. */
+    /* The row drawer IS the picker. Header: who this slot is, plus the
+       Main/Backup target the next click fills. Then the brief and the search
+       terms, both editable. Then the sources and the candidate grid. No rules
+       block, no note field -- they were taking the width the images want. */
     function renderDetail(s, el) {
       if (!s || !el) return;
-      el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' +
-        '<button class="sbtn p" data-browse="' + s.id + '">Browse images</button>' +
-        (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="' + s.id + '">Keep the current image</button>' : '') +
-        '<button class="sbtn" data-clear="' + s.id + '">Clear picks</button></div></div>' +
-        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + '<textarea class="q2 brief-edit" data-brief="' + s.id + '" rows="3" placeholder="What should this image show? Editing this changes what Generate 5 sends.">' + esc(s.prompt || '') + '</textarea></div>' +
-        '<div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div>' +
-        '<div><b>Rules</b><div class="q2">' + HOUSE_RULES + '</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" data-note="' + s.id + '" value="' + esc(s.notes || '') + '"></label></div></div>';
-      el.querySelector('[data-browse]').addEventListener('click', () => openPicker(s.id, s.main ? 'backup' : 'main'));
+      const which = targetOf(s);
+      if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
+      const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
+
+      el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc([s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ')) + '</span></div>' +
+        '<div class="tgtbar"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
+        (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') +
+        '<button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
+        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate 5 sends.">' + esc(s.prompt || '') + '</textarea></div>' +
+        '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
+        '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b>' + which + '</b>.</span></div>' +
+        sourceBody(s);
+
+      el.querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich[s.id] = b.dataset.tgt; refreshDrawer(s.id); }));
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
-      el.querySelector('[data-clear]').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; mark(); renderSlots(); renderStats(); });
+      el.querySelector('[data-clear]').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); });
+      el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
       el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
-      el.querySelector('[data-note]').addEventListener('change', (e) => { s.notes = e.target.value; mark(); });
+      el.querySelector('[data-terms]').addEventListener('change', (e) => { s.terms = e.target.value.split('\n').map((t) => t.trim()).filter(Boolean); _hay.delete(s.id); stockSlotId = null; mark(); refreshDrawer(s.id); });
+      el.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; refreshDrawer(s.id); }));
+      wireSource(s, el);
     }
-    const HOUSE_RULES = 'no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages';
+    function targetOf(s) { return pkWhich[s.id] === 'backup' ? 'backup' : 'main'; }
+    function tgtBtn(s, which) {
+      const p = s[which];
+      return '<button class="tgt ' + (targetOf(s) === which ? 'on' : '') + '" data-tgt="' + which + '">' + (p ? '<img src="' + esc(p.thumb || p.url) + '">' : '<span class="ph"></span>') + which[0].toUpperCase() + which.slice(1) + '</button>';
+    }
+    /* Re-render just the one open drawer, leaving the rest of the list alone. */
+    function refreshDrawer(id) {
+      const el = document.querySelector('[data-detail="' + id + '"]');
+      if (el) renderDetail(byId().get(id), el);
+    }
+    /* Open a row's drawer aimed at a particular tile. */
+    function openPicker(slotId, which) {
+      const s = byId().get(slotId); if (!s) return;
+      pkWhich[slotId] = which === 'backup' ? 'backup' : 'main';
+      srcTab = defaultSrcTab(s); libShown = 48; revealTile = null;
+      openSlots.add(slotId);
+      renderSlots();
+      const el = document.querySelector('[data-detail="' + slotId + '"]');
+      if (el) el.closest('.drawer-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 
     function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
     function visibleSlots() { const l = filtered(); return fx.page ? l : l.slice(pageIdx * PAGE, pageIdx * PAGE + PAGE); }
@@ -822,7 +823,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('f-pri').addEventListener('change', (e) => { fx.pri = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-status').addEventListener('change', (e) => { fx.status = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-rec').addEventListener('change', (e) => { fx.rec = e.target.value; pageIdx = 0; renderSlots(); });
-    $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); if ($('picker').open) renderPicker(); });
+    $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); });
     $('f-hidereuse').addEventListener('change', (e) => { fx.hideReuse = e.target.checked; pageIdx = 0; renderSlots(); });
     $('pg-prev').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); } });
     $('pg-next').addEventListener('click', () => { if ((pageIdx + 1) * PAGE < filtered().length) { pageIdx++; renderSlots(); } });
@@ -854,13 +855,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        the picker open, so both are chosen in two clicks; anything else closes
        it, because the job is done. */
     function assign(slot, pick) {
-      const which = pkWhich === 'backup' ? 'backup' : 'main';
+      const which = targetOf(slot);
       slot[which] = pick;
       if (slot.state === 'unreviewed' || slot.state === 'kept') slot.state = 'assigned';
       revealTile = null;
+      // Filling an empty main moves the aim to backup, so two clicks fill both.
+      if (which === 'main' && !slot.backup) pkWhich[slot.id] = 'backup';
       mark(); renderSlots(); renderStats();
-      if (which === 'main' && !slot.backup) { pkWhich = 'backup'; renderPicker(); }
-      else closePicker();
     }
     function candCard(pick, slot, extra) {
       extra = extra || {};
@@ -881,7 +882,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       slot.candidates = (slot.candidates || []).filter((c) => c.comp !== url);
       if (slot.main && slot.main.url === url) slot.main = null;
       if (slot.backup && slot.backup.url === url) slot.backup = null;
-      mark(); renderSlots(); renderStats(); renderPicker();
+      mark(); renderSlots(); renderStats();
     }
     /* ---------- AI-generated candidates ---------- */
     const genBusy = {}; // slotId -> true while a generate call is in flight
@@ -890,7 +891,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const count = idx === null ? 5 : 1;
       if (genBusy[slot.id]) return;
       if (!(slot.prompt || '').trim()) { alert('Write a brief first — that’s what gets sent to the image generator.'); return; }
-      genBusy[slot.id] = true; renderPicker();
+      genBusy[slot.id] = true; refreshDrawer(slot.id);
       try {
         const r = await api('/api/sitime-generate', { method: 'POST', body: { slotId: slot.id, prompt: slot.prompt || '', count } });
         if (!r.ok || !r.data || !r.data.ok) { alert((r.data && r.data.error) || 'Generation failed (' + r.status + ').'); return; }
@@ -905,89 +906,55 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } catch (e) {
         alert('Generation failed: ' + (e && e.message ? e.message : e));
       } finally {
-        genBusy[slot.id] = false; renderPicker();
+        genBusy[slot.id] = false; refreshDrawer(slot.id);
       }
     }
     /* ---------- live Adobe Stock search ---------- */
-    async function searchStock(q) {
+    async function searchStock(slot, q) {
       stockQ = q; stockErr = '';
       const query = q.trim();
-      if (!query) { stockResults = []; renderPicker(); return; }
-      stockBusy = true; renderPicker();
+      if (!query) { stockResults = []; refreshDrawer(slot.id); return; }
+      stockBusy = true; refreshDrawer(slot.id);
       try {
         const r = await api('/api/sitime-stock-search', { method: 'POST', body: { query } });
         if (!r.ok || !r.data || !r.data.ok) { stockErr = (r.data && r.data.error) || 'Search failed (' + r.status + ').'; stockResults = []; }
         else stockResults = r.data.results || [];
       } catch (e) { stockErr = 'Search failed: ' + (e && e.message ? e.message : e); stockResults = []; }
-      stockBusy = false; renderPicker();
+      stockBusy = false; refreshDrawer(slot.id);
     }
 
-    /* ---------- the full-screen picker ---------- */
+    /* ---------- the source panels, rendered into the row drawer ---------- */
     function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : ((S.library || []).length ? 'library' : ((s.existing || []).length ? 'existing' : 'generated')); }
-    function openPicker(slotId, which) {
-      const s = byId().get(slotId); if (!s) return;
-      pkSlot = slotId; pkWhich = which === 'backup' ? 'backup' : 'main';
-      pkBriefOpen = false; srcTab = defaultSrcTab(s); libShown = 48; revealTile = null;
-      const dlg = $('picker'); if (!dlg.open) dlg.showModal();
-      renderPicker();
-    }
-    function closePicker() { pkSlot = null; const dlg = $('picker'); if (dlg.open) dlg.close(); }
-    function tgtBtn(s, which) {
-      const p = s[which];
-      return '<button class="tgt ' + (pkWhich === which ? 'on' : '') + '" data-tgt="' + which + '">' + (p ? '<img src="' + esc(p.thumb || p.url) + '">' : '<span class="ph"></span>') + which[0].toUpperCase() + which.slice(1) + '</button>';
-    }
-    function renderPicker() {
-      const dlg = $('picker'); if (!dlg.open) return;
-      const s = pkSlot && byId().get(pkSlot); if (!s) { closePicker(); return; }
-      if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
-
-      $('pk-title').textContent = s.page + ' · ' + s.name;
-      $('pk-sub').textContent = [s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ');
-      $('pk-target').innerHTML = '<span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
-        ((s.main || s.backup) ? '<button class="clr" id="pk-clear">Clear both</button>' : '');
-      $('pk-target').querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich = b.dataset.tgt; renderPicker(); }));
-      const pc = $('pk-clear'); if (pc) pc.addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich = 'main'; mark(); renderSlots(); renderStats(); renderPicker(); });
-
-      $('pk-brief').innerHTML = pkBriefOpen
-        ? '<b>The brief</b> <button class="more" id="pk-briefless">hide</button><textarea id="pk-brieftext" rows="3">' + esc(s.prompt || '') + '</textarea><div class="rules">Rules: ' + HOUSE_RULES + '</div>'
-        : '<span class="oneline">' + esc(s.prompt || 'No brief written for this slot.') + '</span><button class="more" id="pk-briefmore">brief &amp; rules</button>';
-      const bm = $('pk-briefmore'); if (bm) bm.addEventListener('click', () => { pkBriefOpen = true; renderPicker(); });
-      const bl = $('pk-briefless'); if (bl) bl.addEventListener('click', () => { pkBriefOpen = false; renderPicker(); });
-      const bt = $('pk-brieftext'); if (bt) bt.addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
-
-      const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
-      $('pk-tabs').innerHTML = tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') +
-        '<span class="mini">Click an image to set the <b>' + pkWhich + '</b>.</span>';
-      $('pk-tabs').querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderPicker(); }));
-
-      const dr = $('pk-body');
-      let body = '';
+    function sourceBody(s) {
       if (srcTab === 'stock') {
         const allCands = s.candidates || [];
         const shownCands = allCands.filter((c) => !(fx.hideAi && c.ai));
         const hiddenCount = allCands.length - shownCands.length;
         const cands = shownCands.map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, editorial: c.editorial, dims: c.dims, label: c.id, text: c.why || c.title, adobe: c.url }));
-        if (hiddenCount) cands.push('<div class="hint" style="grid-column:1/-1">' + hiddenCount + ' generative-AI result' + (hiddenCount === 1 ? '' : 's') + ' hidden — <a href="#" id="show-ai-cands">show ' + (hiddenCount === 1 ? 'it' : 'them') + '</a></div>');
+        if (hiddenCount) cands.push('<div class="hint" style="grid-column:1/-1">' + hiddenCount + ' generative-AI result' + (hiddenCount === 1 ? '' : 's') + ' hidden — <a href="#" data-showai="1">show ' + (hiddenCount === 1 ? 'it' : 'them') + '</a></div>');
         const stockQuery = (s.terms && s.terms.length) ? s.terms.join(' ') : (s.prompt || s.name || s.page || '');
         const stockSearchUrl = 'https://stock.adobe.com/search?k=' + encodeURIComponent(stockQuery);
         const searchCards = stockResults.map((r, i) => {
           const already = allCands.some((c) => c.id === r.id);
           return '<div class="cand' + (already ? ' added' : '') + '" data-srch-idx="' + i + '"><img loading="lazy" src="' + esc(r.thumb) + '">' + (already ? '<span class="tag">ADDED</span>' : '') + '<div class="cb"><b>' + esc(r.id) + (r.type ? ' · ' + esc(r.type) : '') + '</b>' + esc(r.creator ? 'by ' + r.creator : '') + '</div></div>';
         }).join('');
-        body = '<div class="stocksearch"><input class="txt" type="text" id="stock-q" placeholder="Search Adobe Stock…" value="' + esc(stockQ) + '"><button type="button" class="sbtn p" id="stock-go" ' + (stockBusy ? 'disabled' : '') + '>' + (stockBusy ? 'Searching…' : 'Search') + '</button></div>' +
+        return '<div class="stocksearch"><input class="txt" type="text" data-stockq="1" placeholder="Search Adobe Stock…" value="' + esc(stockQ) + '"><button type="button" class="sbtn p" data-stockgo="1" ' + (stockBusy ? 'disabled' : '') + '>' + (stockBusy ? 'Searching…' : 'Search') + '</button></div>' +
           (stockErr ? '<p class="hint" style="color:#B00020">' + esc(stockErr) + '</p>' : '') +
           (stockResults.length ? '<div class="cands">' + searchCards + '</div><p class="mini" style="margin:2px 0 18px">Click a result to add it here and assign it.</p>' : '') +
-          '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" id="paste-stock" style="margin-top:8px">Paste a comp URL instead<br>(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
-      } else if (srcTab === 'library') {
+          '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" data-paste="1" style="margin-top:8px">Paste a comp URL instead<br>(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
+      }
+      if (srcTab === 'library') {
         const groups = Array.from(new Set((S.library || []).map((l) => l.group))).sort();
         const q = libQuery.toLowerCase();
         const items = (S.library || []).filter((l) => (!libGroup || l.group === libGroup) && (!q || (l.name + ' ' + l.group).toLowerCase().includes(q)));
-        body = '<div class="srctabs"><input class="search" id="lib-q" placeholder="Search filenames" value="' + esc(libQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (libGroup === g ? 'on' : '') + '" data-g="' + esc(g) + '">' + (g || 'All') + '</button>').join('') + '</div>' +
-          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name })).join('') + (items.length > libShown ? '<button class="sbtn more" id="lib-more">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">The library is not indexed yet. Library tab, choose the Image Mapping folder.</p>');
-      } else if (srcTab === 'existing') {
+        return '<div class="srctabs"><input class="search" data-libq="1" placeholder="Search filenames" value="' + esc(libQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (libGroup === g ? 'on' : '') + '" data-g="' + esc(g) + '">' + (g || 'All') + '</button>').join('') + '</div>' +
+          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">The library is not indexed yet. Library tab, choose the Image Mapping folder.</p>');
+      }
+      if (srcTab === 'existing') {
         const ex = (s.existing || []).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
-        body = ex.length ? '<div class="cands">' + ex.join('') + '</div>' : '<p class="hint">No existing image on this page in the Drupal export.</p>';
-      } else if (srcTab === 'generated') {
+        return ex.length ? '<div class="cands">' + ex.join('') + '</div>' : '<p class="hint">No existing image on this page in the Drupal export.</p>';
+      }
+      if (srcTab === 'generated') {
         const busy = !!genBusy[s.id];
         const gens = s.generated || [];
         const cards = [0, 1, 2, 3, 4].map((i) => {
@@ -996,29 +963,27 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           const cls = s.main && s.main.url === g.url ? 'main' : s.backup && s.backup.url === g.url ? 'backup' : '';
           return '<div class="cand ' + cls + '" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
         });
-        body = '<div class="up" style="margin-bottom:12px;min-height:0;padding:14px"><button class="sbtn p" id="gen-all" ' + (busy ? 'disabled' : '') + '>' + (busy ? 'Generating…' : (gens.length ? 'Refresh all 5' : 'Generate 5')) + '</button><span class="mini" style="margin-left:10px">Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.</span></div><div class="cands">' + cards.join('') + '</div>';
-      } else {
-        body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG — lands on the ' + pkWhich + '</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
+        return '<div class="up" style="margin-bottom:12px;aspect-ratio:auto;padding:14px"><button class="sbtn p" data-genall="1" ' + (busy ? 'disabled' : '') + '>' + (busy ? 'Generating…' : (gens.length ? 'Refresh all 5' : 'Generate 5')) + '</button><span class="mini" style="margin-left:10px">Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.</span></div><div class="cands">' + cards.join('') + '</div>';
       }
-      dr.innerHTML = body;
-      dr.scrollTop = 0;
-
-      dr.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
-      dr.querySelectorAll('[data-stop]').forEach((a) => a.addEventListener('click', (ev) => ev.stopPropagation()));
-      const sq = $('stock-q'); const sg = $('stock-go');
-      if (sq) sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchStock(sq.value); } });
-      if (sg) sg.addEventListener('click', () => searchStock(($('stock-q') || {}).value || ''));
-      dr.querySelectorAll('[data-srch-idx]').forEach((c) => c.addEventListener('click', () => {
+      return '<div class="cands"><label class="up" data-uplabel="1">Drop or choose an image<br><span class="mini">JPG or PNG — lands on the ' + targetOf(s) + '</span><input type="file" data-upfile="1" accept="image/*" hidden></label><span class="mini" data-upstatus="1"></span></div>';
+    }
+    function wireSource(s, el) {
+      el.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
+      el.querySelectorAll('.cand .adobe').forEach((a) => a.addEventListener('click', (ev) => ev.stopPropagation()));
+      const sq = el.querySelector('[data-stockq]'); const sg = el.querySelector('[data-stockgo]');
+      if (sq) sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchStock(s, sq.value); } });
+      if (sg) sg.addEventListener('click', () => searchStock(s, sq ? sq.value : ''));
+      el.querySelectorAll('[data-srch-idx]').forEach((c) => c.addEventListener('click', () => {
         const r = stockResults[Number(c.dataset.srchIdx)]; if (!r) return;
         s.candidates = s.candidates || [];
         let cc = s.candidates.find((x) => x.id === r.id);
         if (!cc) { cc = { id: r.id, title: r.title || '', comp: r.comp, url: 'https://stock.adobe.com/images/x/' + r.id, why: r.creator ? 'by ' + r.creator + (r.type ? ' · ' + r.type : '') : 'Found via search', ai: false, manual: true }; s.candidates.unshift(cc); }
         assign(s, pickFrom('stock', cc));
       }));
-      const showAi = dr.querySelector('#show-ai-cands'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; renderPicker(); });
-      const genAll = $('gen-all'); if (genAll) genAll.addEventListener('click', () => generateImages(s));
-      dr.querySelectorAll('[data-gen-idx]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); generateImages(s, { index: Number(b.dataset.genIdx) }); }));
-      dr.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
+      const showAi = el.querySelector('[data-showai]'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; refreshDrawer(s.id); });
+      const genAll = el.querySelector('[data-genall]'); if (genAll) genAll.addEventListener('click', () => generateImages(s));
+      el.querySelectorAll('[data-gen-idx]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); generateImages(s, { index: Number(b.dataset.genIdx) }); }));
+      el.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
         const url = c.dataset.url; if (!url) return; let pick = null;
         if (srcTab === 'stock') { const cc = s.candidates.find((x) => x.comp === url); pick = pickFrom('stock', cc); }
         if (srcTab === 'library') { const l = S.library.find((x) => x.url === url); pick = pickFrom('library', l); }
@@ -1026,14 +991,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (srcTab === 'generated') { const g = (s.generated || []).find((x) => x.url === url); if (g) pick = pickFrom('generated', g); }
         if (pick) assign(s, pick);
       }));
-      const ps = $('paste-stock'); if (ps) ps.addEventListener('click', () => { const u = prompt('Adobe Stock comp URL (…ftcdn.net/jpg/…/1000_F_<id>_….jpg) or a Stock ID:'); if (!u) return; const m = u.match(/1000_F_(\d+)_/) || u.match(/^(\d{6,12})$/); const id = m ? m[1] : ''; const url = /^https?:/.test(u) ? u : ''; if (!url) { alert('Paste the comp image URL, not just the ID: the tool can’t fetch a comp from an ID alone.'); return; } s.candidates = s.candidates || []; if (!s.candidates.find((c) => c.comp === url)) s.candidates.unshift({ id, title: 'Pasted', comp: url, url: id ? 'https://stock.adobe.com/images/x/' + id : url, why: 'Added by COGNAK', ai: false, manual: true }); assign(s, pickFrom('stock', s.candidates[0])); });
-      const lq = $('lib-q'); if (lq) { lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; renderPicker(); const nq = $('lib-q'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } }); }
-      dr.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; renderPicker(); }));
-      const lm = $('lib-more'); if (lm) lm.addEventListener('click', () => { libShown += 48; renderPicker(); });
-      const uf = $('up-file'); if (uf) uf.addEventListener('change', async () => { const f = uf.files[0]; if (!f) return; $('up-status').textContent = 'Uploading…'; try { const r = await uploadBlob('sitime/uploads/' + s.id + '/' + f.name.replace(/[^\w.\-]+/g, '_'), f); assign(s, { source: 'upload', id: null, url: r.url, thumb: r.url, title: f.name }); } catch (e) { $('up-status').textContent = 'Upload failed: ' + (e.message || e); } });
+      const ps = el.querySelector('[data-paste]'); if (ps) ps.addEventListener('click', () => { const u = prompt('Adobe Stock comp URL (…ftcdn.net/jpg/…/1000_F_<id>_….jpg) or a Stock ID:'); if (!u) return; const m = u.match(/1000_F_(\d+)_/) || u.match(/^(\d{6,12})$/); const id = m ? m[1] : ''; const url = /^https?:/.test(u) ? u : ''; if (!url) { alert('Paste the comp image URL, not just the ID: the tool can’t fetch a comp from an ID alone.'); return; } s.candidates = s.candidates || []; if (!s.candidates.find((c) => c.comp === url)) s.candidates.unshift({ id, title: 'Pasted', comp: url, url: id ? 'https://stock.adobe.com/images/x/' + id : url, why: 'Added by COGNAK', ai: false, manual: true }); assign(s, pickFrom('stock', s.candidates[0])); });
+      const lq = el.querySelector('[data-libq]'); if (lq) lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; refreshDrawer(s.id); const nq = document.querySelector('[data-detail="' + s.id + '"] [data-libq]'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } });
+      el.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; refreshDrawer(s.id); }));
+      const lm = el.querySelector('[data-libmore]'); if (lm) lm.addEventListener('click', () => { libShown += 48; refreshDrawer(s.id); });
+      const uf = el.querySelector('[data-upfile]'); if (uf) uf.addEventListener('change', async () => { const f = uf.files[0]; if (!f) return; const st = el.querySelector('[data-upstatus]'); st.textContent = 'Uploading…'; try { const r = await uploadBlob('sitime/uploads/' + s.id + '/' + f.name.replace(/[^\w.\-]+/g, '_'), f); assign(s, { source: 'upload', id: null, url: r.url, thumb: r.url, title: f.name }); } catch (e) { st.textContent = 'Upload failed: ' + (e.message || e); } });
     }
-    $('pk-close').addEventListener('click', closePicker);
-    $('picker').addEventListener('close', () => { pkSlot = null; renderSlots(); });
 
     /* ---------- replacements ---------- */
     function renderRepl() {
