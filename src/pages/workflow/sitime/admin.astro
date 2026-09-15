@@ -276,6 +276,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cand.warn::after{ content:'AI'; position:absolute; top:8px; right:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
     .adm .cands .more{ grid-column:1/-1; }
     .adm .up{ border:1px dashed var(--line-strong); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.8rem; color:var(--ink-soft); aspect-ratio:4/3; text-align:center; padding:10px; cursor:pointer; gap:6px; }
+    .adm .stocksearch{ display:flex; gap:8px; margin-bottom:14px; }
+    .adm .stocksearch .txt{ flex:1; }
     .adm .up.stock-add{ cursor:default; }
     .adm .up .paste-link{ cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
     .adm .up .paste-link:hover{ color:var(--ink); }
@@ -323,6 +325,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let checked = new Set();
     let openSlot = null;
     let swapTarget = null; // 'main' | 'backup' -- set when the drawer was opened to fill/replace one specific slot (an empty tile or its Swap button), so the next pick lands there instead of the old auto-fill logic
+    let stockSlotId = null, stockQ = '', stockResults = [], stockBusy = false, stockErr = ''; // live Adobe Stock search state, reset when the drawer switches to a different slot
     let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
@@ -681,9 +684,24 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         genBusy[slot.id] = false; renderDrawer();
       }
     }
+    /* ---------- live Adobe Stock search ---------- */
+    async function searchStock(q) {
+      stockQ = q; stockErr = '';
+      const query = q.trim();
+      if (!query) { stockResults = []; renderDrawer(); return; }
+      stockBusy = true; renderDrawer();
+      try {
+        const r = await api('/api/sitime-stock-search', { method: 'POST', body: { query } });
+        if (!r.ok || !r.data || !r.data.ok) { stockErr = (r.data && r.data.error) || 'Search failed (' + r.status + ').'; stockResults = []; }
+        else stockResults = r.data.results || [];
+      } catch (e) { stockErr = 'Search failed: ' + (e && e.message ? e.message : e); stockResults = []; }
+      stockBusy = false; renderDrawer();
+    }
+
     function renderDrawer() {
       const dr = $('drawer'); const s = openSlot && byId().get(openSlot);
       if (!s || !dr) return;
+      if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
       let body = '';
       if (srcTab === 'stock') {
@@ -701,7 +719,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         // searching the right thing instead of a blank search box.
         const stockQuery = (s.terms && s.terms.length) ? s.terms.join(' ') : (s.prompt || s.name || s.page || '');
         const stockSearchUrl = 'https://stock.adobe.com/search?k=' + encodeURIComponent(stockQuery);
-        body = '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" id="paste-stock" style="margin-top:8px">Paste a comp URL instead<br>(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
+        const searchCards = stockResults.map((r, i) => {
+          const already = allCands.some((c) => c.id === r.id);
+          return '<div class="cand' + (already ? ' added' : '') + '" data-srch-idx="' + i + '"><img loading="lazy" src="' + esc(r.thumb) + '">' + (already ? '<span class="tag">ADDED</span>' : '') + '<div class="cb"><b>' + esc(r.id) + (r.type ? ' · ' + esc(r.type) : '') + '</b>' + esc(r.creator ? 'by ' + r.creator : '') + '</div></div>';
+        }).join('');
+        body = '<div class="stocksearch"><input class="txt" type="text" id="stock-q" placeholder="Search Adobe Stock…" value="' + esc(stockQ) + '"><button type="button" class="sbtn p" id="stock-go" ' + (stockBusy ? 'disabled' : '') + '>' + (stockBusy ? 'Searching…' : 'Search') + '</button></div>' +
+          (stockErr ? '<p class="hint" style="color:#B00020">' + esc(stockErr) + '</p>' : '') +
+          (stockResults.length ? '<div class="cands">' + searchCards + '</div><p class="mini" style="margin:2px 0 18px">Click a result to add it here and assign it.</p>' : '') +
+          '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" id="paste-stock" style="margin-top:8px">Paste a comp URL instead<br>(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
       } else if (srcTab === 'library') {
         const groups = Array.from(new Set((S.library || []).map((l) => l.group))).sort();
         const q = libQuery.toLowerCase();
@@ -730,12 +755,22 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       dr.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderDrawer(); }));
       dr.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
+      const sq = $('stock-q'); const sg = $('stock-go');
+      if (sq) sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchStock(sq.value); } });
+      if (sg) sg.addEventListener('click', () => searchStock(($('stock-q') || {}).value || ''));
+      dr.querySelectorAll('[data-srch-idx]').forEach((c) => c.addEventListener('click', () => {
+        const r = stockResults[Number(c.dataset.srchIdx)]; if (!r) return;
+        s.candidates = s.candidates || [];
+        let cc = s.candidates.find((x) => x.id === r.id);
+        if (!cc) { cc = { id: r.id, title: r.title || '', comp: r.comp, url: 'https://stock.adobe.com/images/x/' + r.id, why: r.creator ? 'by ' + r.creator + (r.type ? ' · ' + r.type : '') : 'Found via search', ai: false, manual: true }; s.candidates.unshift(cc); }
+        assign(s, pickFrom('stock', cc));
+      }));
       const showAi = dr.querySelector('#show-ai-cands'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; renderDrawer(); });
       const briefEl = $('brief-text'); if (briefEl) briefEl.addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
       const genAll = $('gen-all'); if (genAll) genAll.addEventListener('click', () => generateImages(s));
       dr.querySelectorAll('[data-gen-idx]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); generateImages(s, { index: Number(b.dataset.genIdx) }); }));
       dr.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
-        const url = c.dataset.url; let pick = null;
+        const url = c.dataset.url; if (!url) return; let pick = null;
         if (srcTab === 'stock') { const cc = s.candidates.find((x) => x.comp === url); pick = pickFrom('stock', cc); }
         if (srcTab === 'library') { const l = S.library.find((x) => x.url === url); pick = pickFrom('library', l); }
         if (srcTab === 'existing') { const e = s.existing.find((x) => x.url === url); pick = pickFrom('existing', e); }
