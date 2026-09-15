@@ -194,19 +194,33 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .srows{ display:flex; flex-direction:column; }
     .adm .srow{ padding:18px 14px 16px; border-radius:12px; border-bottom:1px solid var(--line); }
     .adm .srow.sel{ background:#FAF7FF; border-bottom-color:transparent; border-radius:12px 12px 0 0; }
-    .adm .tiles{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
-    .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; cursor:pointer; border:2px solid transparent; transition:border-color .12s var(--ease-standard), transform .12s var(--ease-standard); }
+    /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
+    .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+    .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
     .adm .tile img{ width:100%; height:100%; object-fit:cover; display:block; }
-    .adm .tile:hover{ border-color:var(--accent); }
+    .adm .tile.filled{ cursor:pointer; }
+    .adm .tile.filled:hover{ border-color:var(--accent); }
     .adm .tile.is-main{ border-color:#1A1A1A; } .adm .tile.is-backup{ border-color:#1A1A1A; border-style:dashed; }
     .adm .tile .tag{ position:absolute; top:10px; left:10px; font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
     .adm .tile.is-backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
     .adm .tile.ai::after{ content:'AI'; position:absolute; top:10px; right:10px; font-family:'Diatype Mono', monospace; font-size:.62rem; padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
     .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; font-family:'Diatype Mono', monospace; font-size:.64rem; letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity .12s; }
-    .adm .tile:hover .cap, .adm .tile.is-main .cap, .adm .tile.is-backup .cap{ opacity:1; }
-    .adm .tile.more{ border:1px dashed var(--line-strong); background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; color:var(--ink); font-size:.9rem; font-weight:500; padding:12px; }
-    .adm .tile.more .mini{ font-size:.66rem; }
-    .adm .tile.more:hover{ border-color:var(--accent); border-style:solid; }
+    .adm .tile.filled .cap{ opacity:1; }
+    /* Click a filled tile to reveal these -- Swap re-opens the picker for just
+       that slot, the trash icon clears just that slot. Nothing happens on a
+       single click besides revealing them; the old click-to-assign / click-
+       again-for-backup / click-again-to-clear cycle is gone. */
+    .adm .tile-actions{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(15,13,18,.55); opacity:0; pointer-events:none; transition:opacity .12s var(--ease-standard); }
+    .adm .tile.is-open .tile-actions{ opacity:1; pointer-events:auto; }
+    .adm .tile.is-open .cap{ opacity:0; }
+    .adm .tact{ font:inherit; font-size:.82rem; font-weight:500; padding:9px 16px; border-radius:999px; border:1px solid #fff; background:#fff; color:#1A1A1A; cursor:pointer; }
+    .adm .tact:hover{ background:var(--accent); border-color:var(--accent); }
+    .adm .tact.trash{ width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:transparent; color:#fff; }
+    .adm .tact.trash svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .adm .tact.trash:hover{ background:#FF1E1E; border-color:#FF7070; color:#fff; }
+    .adm .tile.empty{ border:1px dashed var(--line-strong); background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; color:var(--ink); font-size:.9rem; font-weight:500; padding:12px; cursor:pointer; text-transform:capitalize; }
+    .adm .tile.empty .mini{ font-size:.66rem; text-transform:none; }
+    .adm .tile.empty:hover{ border-color:var(--accent); border-style:solid; }
     .adm .mrow{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; cursor:pointer; }
     .adm .mrow input[type=checkbox]{ accent-color:#1A1A1A; width:15px; height:15px; margin:0; }
     .adm .mrow .who{ flex:1 1 260px; min-width:0; }
@@ -293,6 +307,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let D = {};            // decisions by batch token → { latest: {slotId: {main, backup}} }
     let checked = new Set();
     let openSlot = null;
+    let swapTarget = null; // 'main' | 'backup' -- set when the drawer was opened to fill/replace one specific slot (an empty tile or its Swap button), so the next pick lands there instead of the old auto-fill logic
+    let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
     const filters = { pri: new Set(), sec: new Set(), st: new Set() };
@@ -486,25 +502,24 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         && (filters.st.size ? filters.st.has(status(s)) : true)
         && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
     }
-    /* The tiles: three large images per slot, right in the row. The main and
-       backup always come first, then the next candidates; everything else is
-       one click away behind the "+" tile (full drawer: Stock, library, upload).
-       One click = main, second = backup, click a chosen one to clear. */
-    const TILES = 3;
-    function tilesFor(s) {
-      const items = [];
-      const seen = new Set();
-      const push = (it) => { if (seen.has(it.key)) return; seen.add(it.key); items.push(it); };
-      const cands = (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).map((c) => ({ src: 'stock', key: c.comp, thumb: c.comp, label: c.id ? String(c.id) : 'Stock', title: (c.id ? c.id + ' · ' : '') + (c.why || c.title || ''), ai: c.ai }));
-      const exist = (s.existing || []).map((e) => ({ src: 'existing', key: e.url, thumb: e.url, label: 'Current site', title: 'Current site · ' + (e.label || '') }));
-      const all = cands.concat(exist);
-      [s.main, s.backup].forEach((p) => { if (!p) return; const hit = all.find((it) => it.key === p.url); push(hit || { src: 'pick', key: p.url, thumb: p.thumb || p.url, label: p.source === 'library' ? 'SiTime library' : p.source === 'stock' ? String(p.id || 'Stock') : p.source === 'existing' ? 'Current site' : 'Upload', title: p.title || '' }); });
-      all.forEach(push);
-      const shown = items.slice(0, TILES); const rest = items.length - shown.length;
-      const mark = (it) => (s.main && s.main.url === it.key) ? 'is-main' : (s.backup && s.backup.url === it.key) ? 'is-backup' : '';
-      return '<div class="tiles">' + shown.map((it) => { const m = mark(it); return '<div class="tile ' + m + (it.ai ? ' ai' : '') + '" title="' + esc(it.title) + '" data-slot="' + s.id + '" data-src="' + it.src + '" data-key="' + esc(it.key) + '"><img loading="lazy" src="' + esc(it.thumb) + '">' + (m ? '<span class="tag">' + (m === 'is-main' ? 'MAIN' : 'BACKUP') + '</span>' : '') + '<span class="cap">' + esc(it.label) + '</span></div>'; }).join('') +
-        '<div class="tile more" data-slot="' + s.id + '" data-tab="' + (rest ? 'stock' : 'library') + '"><span>' + (rest ? '+' + rest + ' more' : items.length ? 'More options' : 'Choose an image') + '</span><span class="mini">Stock · SiTime library · upload</span></div></div>';
+    /* The tiles: exactly two per slot, Main and Backup, not a candidate strip.
+       Click a filled tile to reveal Swap (re-opens the picker targeted at
+       just that slot) and a trash icon (clears just that slot). Click an
+       empty tile to open the picker for it directly. See swapTarget/assign()
+       below -- no more click-to-assign / click-again-for-backup / click-
+       again-to-clear cycling through candidates in the row itself. */
+    function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : 'library'; }
+    function tileHtml(s, which) {
+      const pick = s[which];
+      if (!pick) return '<div class="tile empty" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · upload</span></div>';
+      const open = revealTile && revealTile.slotId === s.id && revealTile.which === which;
+      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + '" title="' + esc(pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
+        '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
+        '<span class="tag">' + which.toUpperCase() + '</span>' +
+        '<span class="cap">' + esc(pick.title || pick.id || '') + '</span>' +
+        '<div class="tile-actions"><button class="tact swap" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '">Swap</button><button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
     }
+    function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + tileHtml(s, 'backup') + '</div>'; }
     function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '">' : '<div class="thumb empty"></div>'; }
     function renderSlots() {
       const list = filtered();
@@ -526,19 +541,33 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('slot-more').innerHTML = '<span class="mini">' + count + '</span><button class="sbtn" id="pg-prev2" ' + (pageIdx === 0 ? 'disabled' : '') + '>Prev</button><button class="sbtn" id="pg-next2" ' + (start + PAGE >= list.length ? 'disabled' : '') + '>Next</button>';
       $('pg-prev2').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
       $('pg-next2').addEventListener('click', () => { if (start + PAGE < list.length) { pageIdx++; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
-      $('slot-rows').querySelectorAll('.tile:not(.more)').forEach((tl) => tl.addEventListener('click', (e) => {
+      $('slot-rows').querySelectorAll('.tile.empty').forEach((tl) => tl.addEventListener('click', (e) => {
         e.stopPropagation();
-        const s = byId().get(tl.dataset.slot); const src = tl.dataset.src; const key = tl.dataset.key;
-        let pick = null;
-        if (src === 'stock') pick = pickFrom('stock', s.candidates.find((c) => c.comp === key));
-        if (src === 'existing') pick = pickFrom('existing', s.existing.find((x) => x.url === key));
-        if (src === 'pick') pick = (s.main && s.main.url === key) ? s.main : s.backup;
-        if (pick) assign(s, pick);
+        const s = byId().get(tl.dataset.slot);
+        openSlot = s.id; swapTarget = tl.dataset.which; srcTab = defaultSrcTab(s); revealTile = null;
+        renderSlots(); renderDrawer();
       }));
-      $('slot-rows').querySelectorAll('.tile.more').forEach((m) => m.addEventListener('click', (e) => { e.stopPropagation(); openSlot = m.dataset.slot; srcTab = m.dataset.tab || 'library'; renderSlots(); renderDrawer(); }));
+      $('slot-rows').querySelectorAll('.tile.filled').forEach((tl) => tl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const slotId = tl.dataset.slot, which = tl.dataset.which;
+        revealTile = (revealTile && revealTile.slotId === slotId && revealTile.which === which) ? null : { slotId, which };
+        renderSlots();
+      }));
+      $('slot-rows').querySelectorAll('.tact').forEach((btn) => btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const s = byId().get(btn.dataset.slot); const which = btn.dataset.which;
+        if (btn.dataset.act === 'trash') {
+          s[which] = null; revealTile = null;
+          if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
+          mark(); renderSlots(); renderStats(); if (openSlot === s.id) renderDrawer();
+        } else if (btn.dataset.act === 'swap') {
+          openSlot = s.id; swapTarget = which; srcTab = defaultSrcTab(s); revealTile = null;
+          renderSlots(); renderDrawer();
+        }
+      }));
       if (openSlot) renderDrawer();
       $('slot-rows').querySelectorAll('input[data-chk]').forEach((c) => c.addEventListener('click', (e) => { e.stopPropagation(); c.checked ? checked.add(c.dataset.chk) : checked.delete(c.dataset.chk); updateChecked(); }));
-      $('slot-rows').querySelectorAll('.srow .mrow').forEach((mr) => mr.addEventListener('click', () => { const id = mr.closest('.srow').dataset.id; openSlot = openSlot === id ? null : id; srcTab = 'library'; renderSlots(); renderDrawer(); }));
+      $('slot-rows').querySelectorAll('.srow .mrow').forEach((mr) => mr.addEventListener('click', () => { const id = mr.closest('.srow').dataset.id; openSlot = openSlot === id ? null : id; swapTarget = null; revealTile = null; srcTab = 'library'; renderSlots(); renderDrawer(); }));
       updateChecked();
     }
     function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
@@ -566,7 +595,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return obj;
     }
     function assign(slot, pick) {
-      // click: empty main → main; main set and pick differs → backup; clicking the current main clears it, clicking the backup clears backup
+      if (swapTarget === 'main' || swapTarget === 'backup') {
+        // Targeted from an empty tile or its Swap button: the pick lands in
+        // exactly that slot, no matter what the other slot holds.
+        slot[swapTarget] = pick;
+        if (slot.state === 'unreviewed' || slot.state === 'kept') slot.state = 'assigned';
+        swapTarget = null; openSlot = null; revealTile = null;
+        mark(); renderSlots(); renderStats();
+        return;
+      }
+      // Untargeted (opened by clicking the row itself to browse): empty main
+      // → main; main set and pick differs → backup; clicking the current
+      // main clears it, clicking the backup clears backup.
       const same = (a, b) => !!(a && b && a.url === b.url);
       if (same(slot.main, pick)) { slot.main = slot.backup || null; slot.backup = null; }
       else if (same(slot.backup, pick)) slot.backup = null;
@@ -599,10 +639,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } else {
         body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG, becomes main if empty, else backup</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
       }
-      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
+      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#4A3F6B">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
         '<div class="meta"><div><b>Ace’s brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
         '<div class="picks"><div class="pick"><div class="pl"><span>Main</span>' + (s.main ? '<span>' + esc(s.main.source) + '</span>' : '') + '</div>' + (s.main ? '<img src="' + esc(s.main.thumb || s.main.url) + '"><div class="pt">' + esc(s.main.title || s.main.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div><div class="pick"><div class="pl"><span>Backup</span>' + (s.backup ? '<span>' + esc(s.backup.source) + '</span>' : '') + '</div>' + (s.backup ? '<img src="' + esc(s.backup.thumb || s.backup.url) + '"><div class="pt">' + esc(s.backup.title || s.backup.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div></div>' +
-        '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click a candidate for main, again for backup. Click a chosen one to clear it.</span></div>' + body;
+        '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">' + (swapTarget ? 'Click a candidate to set the ' + swapTarget + ' image.' : 'Click a candidate for main, again for backup. Click a chosen one to clear it.') + '</span></div>' + body;
 
       dr.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderDrawer(); }));
       dr.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
@@ -612,7 +652,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (srcTab === 'existing') { const e = s.existing.find((x) => x.url === url); pick = pickFrom('existing', e); }
         if (pick) assign(s, pick);
       }));
-      $('close-drawer').addEventListener('click', () => { openSlot = null; renderSlots(); renderDrawer(); });
+      $('close-drawer').addEventListener('click', () => { openSlot = null; swapTarget = null; revealTile = null; renderSlots(); renderDrawer(); });
       $('clear-picks').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; mark(); renderSlots(); renderDrawer(); renderStats(); });
       const keep = $('keep-existing'); if (keep) keep.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderDrawer(); renderStats(); });
       $('slot-note').addEventListener('change', (e) => { s.notes = e.target.value; mark(); });
