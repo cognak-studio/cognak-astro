@@ -151,11 +151,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
     .adm label, .adm legend { display:block !important; }
     .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#86988A; --head:#4B584E; --deep:#171C18; --line:#E6E6E3; --line-strong:#CFCFCB;
-      max-width:1240px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
+      max-width:1560px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .adm .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .adm .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .adm .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 2.4rem 40px; }
-    .adm .card{ background:var(--card); border-radius:12px; padding:34px 34px 30px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; }
+    .adm .card{ background:var(--card); border-radius:12px; padding:38px 40px 34px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; }
     .adm .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .adm .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
     .adm .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.6rem; }
@@ -198,7 +198,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pri.p-medium{ background:#E6E6E3; color:#1A1A1A; padding:4px 9px; border-radius:999px; }
     .adm .pri.p-low{ border:1px solid var(--line-strong); color:var(--ink-soft); padding:3px 8px; border-radius:999px; }
     .adm .pri.p-reuse{ border:1px dashed var(--line-strong); color:var(--ink-soft); padding:3px 8px; border-radius:999px; }
-    .adm .fbar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:-.4rem 0 1.4rem; }
+    .adm .fbar{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:-.4rem 0 2rem; }
     .adm .sel{ font:inherit; font-size:.88rem; padding:8px 32px 8px 12px; border:1px solid var(--line-strong); border-radius:999px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/12px; color:var(--ink); appearance:none; -webkit-appearance:none; }
     .adm .chk{ display:inline-flex !important; align-items:center; gap:6px; font-size:.85rem; color:var(--ink); cursor:pointer; user-select:none; }
     .adm .chk input{ accent-color:#1A1A1A; }
@@ -212,7 +212,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        the next, because .sel needs to cancel it to sit flush against its own
        drawer-wrap right below. Border-width stays 1px in both states so the
        colour-only transition never nudges layout by a pixel. */
-    .adm .srow{ padding:18px 14px 16px; border-radius:12px; border:1px solid var(--line); margin-bottom:10px; transition:background .15s var(--ease-standard), border-color .15s var(--ease-standard); }
+    .adm .srow{ padding:22px 20px 20px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px; transition:background .15s var(--ease-standard), border-color .15s var(--ease-standard); }
     .adm .srow:not(.sel):hover{ background:#FAFAF8; border-color:var(--line-strong); }
     /* Selected keeps the exact same stroke (width + colour) as a resting
        card -- no more darkening the border to signal "open." The card reads
@@ -221,8 +221,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        ringing it. */
     .adm .srow.sel{ background:#fff; border-color:var(--line); border-bottom:none; border-radius:12px 12px 0 0; margin-bottom:0; padding-bottom:0; }
     /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
-    .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
-    .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
+    .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:18px; margin-bottom:20px; }
+    .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; max-height:300px; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
     .adm .tile img{ width:100%; height:100%; object-fit:cover; display:block; }
     .adm .tile.filled{ cursor:pointer; }
     .adm .tile.filled:hover{ border-color:var(--accent); }
@@ -257,7 +257,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
     .adm .srow.sel .mrow .chev{ transform:rotate(180deg); color:#1A1A1A; }
-    .adm .drawer-wrap{ background:#fff; padding:18px 14px 24px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:10px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
+    .adm .drawer-wrap{ background:#fff; padding:24px 20px 32px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:14px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
@@ -278,17 +278,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .qitem .t{ font-size:.9rem; font-weight:500; }
     .adm .qitem .n{ font-size:.82rem; color:var(--ink-soft); margin-top:3px; line-height:1.4; }
     /* drawer */
-    .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
-    .adm .drawer .meta{ display:grid; grid-template-columns:1.5fr 1fr; gap:26px; font-size:.88rem; line-height:1.5; color:var(--ink-soft); margin:1rem 0 1.5rem; }
-    .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:4px; }
+    .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; }
+    .adm .drawer .meta{ display:grid; grid-template-columns:1.5fr 1fr; gap:38px; font-size:.88rem; line-height:1.6; color:var(--ink-soft); margin:1.4rem 0 2rem; }
+    .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:6px; }
     .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#4B584E; line-height:1.5; }
-    .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E6E6E3; border-radius:6px; padding:8px 10px; resize:vertical; min-height:58px; background:#fff; }
+    .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E6E6E3; border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
     .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; min-height:110px; cursor:default; color:var(--ink-soft); font-size:.78rem; background:#FAFAF8; border-style:dashed; }
-    .adm .srctabs{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
-    .adm .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(184px,1fr)); gap:14px; }
+    .adm .srctabs{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+    .adm .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(224px,1fr)); gap:20px; }
     .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
     .adm .cand img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; background:#EEE; }
-    .adm .cand .cb{ padding:8px 10px; font-size:.74rem; line-height:1.35; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .adm .cand .cb{ padding:10px 12px; font-size:.76rem; line-height:1.35; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
     .adm .cand .cb b{ display:block; color:var(--ink); font-weight:500; font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.06em; margin-bottom:3px; }
     .adm .cand .tag{ position:absolute; top:8px; left:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
     .adm .cand-x{ position:absolute; top:6px; right:6px; width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.6); background:rgba(26,26,26,.55); color:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
@@ -298,7 +298,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cand.warn::after{ content:'AI'; position:absolute; top:8px; right:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
     .adm .cands .more{ grid-column:1/-1; }
     .adm .up{ border:1px dashed var(--line-strong); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.8rem; color:var(--ink-soft); aspect-ratio:4/3; text-align:center; padding:10px; cursor:pointer; gap:6px; }
-    .adm .stocksearch{ display:flex; gap:8px; margin-bottom:14px; }
+    .adm .stocksearch{ display:flex; gap:10px; margin-bottom:20px; }
     .adm .stocksearch .txt{ flex:1; }
     .adm .up.stock-add{ cursor:default; }
     .adm .up .paste-link{ cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
@@ -331,17 +331,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        gallery, so 401 slots are navigable by where they live instead of only
        by a 5-at-a-time pager. Picking a page in the rail shows that page's
        slots whole, with no pager at all. ---- */
-    .adm .workspace{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; }
+    .adm .workspace{ display:grid; grid-template-columns:264px minmax(0,1fr); gap:40px; align-items:start; }
     .adm .rail{ position:sticky; top:110px; max-height:calc(100vh - 150px); overflow-y:auto; overscroll-behavior:contain; padding-right:8px; border-right:1px solid var(--line); }
     .adm .railhead{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:1; }
     .adm .railhead .link{ margin:0; }
-    .adm .rsec{ margin-bottom:2px; }
-    .adm .rsec > button{ width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); background:none; border:0; padding:8px 4px; cursor:pointer; text-align:left; }
+    .adm .rsec{ margin-bottom:4px; }
+    .adm .rsec > button{ width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); background:none; border:0; padding:11px 4px; cursor:pointer; text-align:left; }
     .adm .rsec > button:hover{ color:var(--ink); }
     .adm .rsec > button b{ margin-left:auto; font-weight:400; opacity:.7; }
     .adm .rsec.open > button{ color:var(--ink); }
     .adm .rpages{ padding:0 0 8px 4px; }
-    .adm .rpage{ display:block; width:100%; text-align:left; font:inherit; font-size:.84rem; line-height:1.35; color:var(--ink); background:none; border:0; border-left:2px solid transparent; padding:6px 8px; cursor:pointer; }
+    .adm .rpage{ display:block; width:100%; text-align:left; font:inherit; font-size:.86rem; line-height:1.4; color:var(--ink); background:none; border:0; border-left:2px solid transparent; padding:9px 10px; cursor:pointer; border-radius:0 6px 6px 0; }
     .adm .rpage:hover{ background:#F6F8F7; }
     .adm .rpage.on{ border-left-color:#1A1A1A; background:#F2F5F3; font-weight:500; }
     .adm .rpage i{ font-style:normal; font-family:'Diatype Mono', monospace; font-size:.66rem; color:var(--ink-soft); margin-left:6px; }
@@ -351,7 +351,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     /* the page header card, Ace's equivalent: status tags, slot count, and the
        Drupal hero that carries over if the page migrates as-is */
-    .adm .pcard{ border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:18px; background:#FCFCFB; }
+    .adm .pcard{ border:1px solid var(--line); border-radius:10px; padding:22px 24px; margin-bottom:24px; background:#FCFCFB; }
     .adm .pcard .pt{ font-size:1.3rem; font-weight:500; letter-spacing:-.01em; }
     .adm .pcard .pu{ font-size:.85rem; color:var(--ink-soft); margin-top:3px; }
     .adm .pcard .tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
@@ -368,13 +368,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
     .adm .drawer .tgt img{ width:40px; height:26px; object-fit:cover; border-radius:4px; background:#EEE; }
     .adm .drawer .tgt .ph{ width:40px; height:26px; border-radius:4px; background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
-    .adm .drawer .meta textarea.terms-edit{ width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:6px; padding:8px 10px; resize:vertical; min-height:58px; background:#fff; }
-    .adm .cand .meta2{ display:flex; gap:6px; flex-wrap:wrap; padding:0 10px 9px; }
+    .adm .drawer .meta textarea.terms-edit{ width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
+    .adm .cand .meta2{ display:flex; gap:6px; flex-wrap:wrap; padding:0 12px 10px; }
     .adm .cand .flag{ font-family:'Diatype Mono', monospace; font-size:.58rem; letter-spacing:.08em; text-transform:uppercase; padding:3px 6px; border-radius:999px; border:1px solid var(--line); color:var(--ink-soft); }
     .adm .cand .flag.real{ color:#4B584E; border-color:#C9D6CC; }
     .adm .cand .flag.ai{ background:#FFF3CD; color:#8A5A00; border-color:#F0E0AE; }
     .adm .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
-    .adm .cand .adobe{ display:block; padding:0 10px 10px; font-size:.76rem; color:var(--head); text-decoration:underline; text-underline-offset:3px; }
+    .adm .cand .adobe{ display:block; padding:0 12px 12px; font-size:.76rem; color:var(--head); text-decoration:underline; text-underline-offset:3px; }
 
     @media (max-width:900px){ .adm .workspace{ grid-template-columns:1fr; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; } }
     @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
@@ -941,7 +941,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="stocksearch"><input class="txt" type="text" data-stockq="1" placeholder="Search Adobe Stock…" value="' + esc(stockQ) + '"><button type="button" class="sbtn p" data-stockgo="1" ' + (stockBusy ? 'disabled' : '') + '>' + (stockBusy ? 'Searching…' : 'Search') + '</button></div>' +
           (stockErr ? '<p class="hint" style="color:#B00020">' + esc(stockErr) + '</p>' : '') +
           (stockResults.length ? '<div class="cands">' + searchCards + '</div><p class="mini" style="margin:2px 0 18px">Click a result to add it here and assign it.</p>' : '') +
-          '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" data-paste="1" style="margin-top:8px">Paste a comp URL instead<br>(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
+          '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" data-paste="1" style="margin-top:8px">Paste a comp URL instead</span></div></div>';
       }
       if (srcTab === 'library') {
         const groups = Array.from(new Set((S.library || []).map((l) => l.group))).sort();
