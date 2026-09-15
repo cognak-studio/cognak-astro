@@ -641,7 +641,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function candCard(pick, slot, extra) {
       const cls = slot.main && slot.main.url === pick.url ? 'main' : slot.backup && slot.backup.url === pick.url ? 'backup' : '';
-      return '<div class="cand ' + cls + (extra && extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + (pick.manual ? '<button type="button" class="cand-x" data-remove-cand="' + esc(pick.url) + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button>' : '') + '<div class="cb"><b>' + esc(extra && extra.label || pick.id || '') + '</b>' + esc(extra && extra.text || pick.title || '') + '</div></div>';
+      return '<div class="cand ' + cls + (extra && extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + (pick.source === 'stock' ? '<button type="button" class="cand-x" data-remove-cand="' + esc(pick.url) + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button>' : '') + '<div class="cb"><b>' + esc(extra && extra.label || pick.id || '') + '</b>' + esc(extra && extra.text || pick.title || '') + '</div></div>';
     }
     function removeCandidate(slot, url) {
       slot.candidates = (slot.candidates || []).filter((c) => c.comp !== url);
