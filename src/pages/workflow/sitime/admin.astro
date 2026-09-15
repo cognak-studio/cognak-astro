@@ -196,6 +196,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* one slot = a row of large tiles (main, backup, the next candidates) over a meta line */
     .adm .srows{ display:flex; flex-direction:column; }
     .adm .srow{ padding:18px 14px 16px; border-radius:12px; border-bottom:1px solid var(--line); }
+    .adm .srow:not(.sel):hover{ background:#FAFAF8; }
     .adm .srow.sel{ background:#F6F8F7; border-bottom-color:transparent; border-radius:12px 12px 0 0; }
     /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
     .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
@@ -214,8 +215,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        single click besides revealing them; the old click-to-assign / click-
        again-for-backup / click-again-to-clear cycle is gone. */
     .adm .tile-actions{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(15,13,18,.55); opacity:0; pointer-events:none; transition:opacity .12s var(--ease-standard); }
-    .adm .tile.is-open .tile-actions{ opacity:1; pointer-events:auto; }
-    .adm .tile.is-open .cap{ opacity:0; }
+    .adm .tile.is-open .tile-actions, .adm .tile.filled:hover .tile-actions{ opacity:1; pointer-events:auto; }
+    .adm .tile.is-open .cap, .adm .tile.filled:hover .cap{ opacity:0; }
     .adm .tact{ font:inherit; font-size:.82rem; font-weight:500; padding:9px 16px; border-radius:999px; border:1px solid #fff; background:#fff; color:#1A1A1A; cursor:pointer; }
     .adm .tact:hover{ background:var(--accent); border-color:var(--accent); }
     .adm .tact.trash{ width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:transparent; color:#fff; }
@@ -230,6 +231,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow .who .pg{ font-size:1.15rem; margin-bottom:6px; }
     .adm .mrow .who .sub{ line-height:1.45; }
     .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; gap:18px; }
+    .adm .mrow .chev{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; color:var(--ink-soft); flex:none; transition:transform .15s var(--ease-standard), color .15s var(--ease-standard); }
+    .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
+    .adm .srow.sel .mrow .chev{ transform:rotate(180deg); color:#1A1A1A; }
     .adm .drawer-wrap{ background:#F6F8F7; padding:6px 18px 26px; border-radius:0 0 12px 12px; border-bottom:1px solid var(--line); margin-bottom:6px; }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
@@ -421,6 +426,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       csv: '<svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>',
       delete: '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>',
       refresh: '<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"/><path d="M3 21v-5h5"/></svg>',
+      chevron: '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
     };
     const ICON = (act, label) => '<button class="ibtn" data-act="' + act + '" title="' + esc(label) + '" aria-label="' + esc(label) + '">' + ICONS[act] + '</button>';
     function deleteBatch(b) {
@@ -554,7 +560,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
           '<div class="mrow"><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '><div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></div>' +
           '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span>' +
-          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span></div></div></div>' +
+          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Browse images for this slot">' + ICONS.chevron + '</span></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" id="drawer"></div></div>' : '');
       });
       $('slot-rows').innerHTML = rows.join('') || '<p class="hint">Nothing matches.</p>';
