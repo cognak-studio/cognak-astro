@@ -139,7 +139,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     html, body { background-color:#F4F4F2 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
     .adm label, .adm legend { display:block !important; }
-    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#78A182; --head:#43604A; --deep:#132016; --line:#E6E6E3; --line-strong:#CFCFCB;
+    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#86988A; --head:#4B584E; --deep:#171C18; --line:#E6E6E3; --line-strong:#CFCFCB;
       max-width:1240px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .adm .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .adm .headline em{ font-style:normal; font-weight:500; color:var(--head); }
@@ -178,7 +178,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm table{ width:100%; border-collapse:collapse; font-size:.92rem; }
     .adm th{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
     .adm td{ padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
-    .adm tr.sel td{ background:#F3F9F5; }
+    .adm tr.sel td{ background:#F6F8F7; }
     .adm tr.clickable{ cursor:pointer; }
     .adm .pg{ font-weight:500; }
     .adm .sub{ font-size:.8rem; color:var(--ink-soft); }
@@ -196,7 +196,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* one slot = a row of large tiles (main, backup, the next candidates) over a meta line */
     .adm .srows{ display:flex; flex-direction:column; }
     .adm .srow{ padding:18px 14px 16px; border-radius:12px; border-bottom:1px solid var(--line); }
-    .adm .srow.sel{ background:#F3F9F5; border-bottom-color:transparent; border-radius:12px 12px 0 0; }
+    .adm .srow.sel{ background:#F6F8F7; border-bottom-color:transparent; border-radius:12px 12px 0 0; }
     /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
     .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
     .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
@@ -230,13 +230,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow .who .pg{ font-size:1.15rem; margin-bottom:6px; }
     .adm .mrow .who .sub{ line-height:1.45; }
     .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; gap:18px; }
-    .adm .drawer-wrap{ background:#F3F9F5; padding:6px 18px 26px; border-radius:0 0 12px 12px; border-bottom:1px solid var(--line); margin-bottom:6px; }
+    .adm .drawer-wrap{ background:#F6F8F7; padding:6px 18px 26px; border-radius:0 0 12px 12px; border-bottom:1px solid var(--line); margin-bottom:6px; }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
     .adm .st i{ width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
-    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#78A182; } .adm .st.sent i{ background:#78A182; box-shadow:0 0 0 2px #D3EEDA; }
+    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#86988A; } .adm .st.sent i{ background:#86988A; box-shadow:0 0 0 2px #DAE7DD; }
     .adm .st.approved i{ background:#9DFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
     .adm .st.unreviewed i{ background:#fff; border:1px solid #9A9A96; } .adm .st.kept i{ background:#9DFF00; border:1px solid #6EB300; opacity:.5; }
     .adm .mini{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.05em; color:var(--ink-soft); }
@@ -254,7 +254,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
     .adm .drawer .meta{ display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:24px; font-size:.88rem; line-height:1.5; color:var(--ink-soft); margin:1rem 0 1.4rem; }
     .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:4px; }
-    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#43604A; line-height:1.5; }
+    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#4B584E; line-height:1.5; }
     .adm .srctabs{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
     .adm .cands{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
     .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
@@ -656,7 +656,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } else {
         body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG, becomes main if empty, else backup</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
       }
-      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#43604A">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
+      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#4B584E">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div class="q2" style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">' + (swapTarget ? 'Click a candidate to set the ' + swapTarget + ' image.' : 'Click a candidate for main, again for backup. Click a chosen one to clear it.') + '</span></div>' + body;
 
