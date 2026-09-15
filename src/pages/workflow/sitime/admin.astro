@@ -195,9 +195,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pager-foot{ display:flex; align-items:center; gap:8px; justify-content:flex-end; margin-top:1.2rem; }
     /* one slot = a row of large tiles (main, backup, the next candidates) over a meta line */
     .adm .srows{ display:flex; flex-direction:column; }
-    .adm .srow{ padding:18px 14px 16px; border-radius:12px; border:2px solid transparent; border-bottom-color:var(--line); transition:background .15s var(--ease-standard), border-color .15s var(--ease-standard); }
-    .adm .srow:not(.sel):hover{ background:#FAFAF8; }
-    .adm .srow.sel{ background:#fff; border-color:var(--ink); border-bottom-color:transparent; border-radius:12px 12px 0 0; box-shadow:0 4px 14px rgba(26,26,26,.06); }
+    /* Every row is its own thin-stroke card at rest now, not a table row with
+       just a bottom hairline -- even weight on all four sides, no bias toward
+       the bottom. margin-bottom (not flex gap) is what separates one card from
+       the next, because .sel needs to cancel it to sit flush against its own
+       drawer-wrap right below. Border-width stays 2px in both states so the
+       colour-only transition never nudges layout by a pixel. */
+    .adm .srow{ padding:18px 14px 16px; border-radius:12px; border:2px solid var(--line); margin-bottom:10px; transition:background .15s var(--ease-standard), border-color .15s var(--ease-standard); }
+    .adm .srow:not(.sel):hover{ background:#FAFAF8; border-color:var(--line-strong); }
+    .adm .srow.sel{ background:#fff; border-color:var(--ink); border-bottom-color:transparent; border-radius:12px 12px 0 0; margin-bottom:0; box-shadow:0 4px 14px rgba(26,26,26,.06); }
     /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
     .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
     .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }

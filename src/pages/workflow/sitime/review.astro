@@ -104,6 +104,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     html, body { background-color:#F4F4F2 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
     .review label, .review legend { display:block !important; }
+    /* [hidden] loses to ANY author rule setting display on the same element
+       (UA origin < author origin, regardless of specificity) -- .noimg sets
+       display:flex to lay out its text, which silently cancelled every
+       el.hidden = true/false toggle in render() and left it painted over
+       the actual hero image even once one loaded. Same bug class as
+       /send's passkey buttons (see hidden-attribute-css-bug memory);
+       same fix: force it back to a hard override for this page. */
+    .review [hidden]{ display:none !important; }
 
     .review{ --bg:#F4F4F2; --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B;
       --accent:#86988A; --accent-rgb:134,152,138; --head:#4B584E; --deep:#171C18;
