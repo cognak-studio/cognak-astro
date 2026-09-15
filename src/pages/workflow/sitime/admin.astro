@@ -67,7 +67,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="card rise tab" id="tab-slots" hidden>
         <div class="group">
           <div class="card-head">
-            <div class="filters" id="filters"></div>
+            <div class="filters" id="filters"><select class="sel" id="f-pri"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select><select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In draft</option><option value="sent">Sent</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select></div>
             <div class="right"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></div>
           </div>
           <div class="fbar">
@@ -264,6 +264,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cand.warn::after{ content:'AI'; position:absolute; top:8px; right:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
     .adm .cands .more{ grid-column:1/-1; }
     .adm .up{ border:1px dashed var(--line-strong); border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:.8rem; color:var(--ink-soft); aspect-ratio:4/3; text-align:center; padding:10px; cursor:pointer; gap:6px; }
+    .adm .up.stock-add{ cursor:default; }
+    .adm .up .paste-link{ cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+    .adm .up .paste-link:hover{ color:var(--ink); }
     .adm .batchrow{ display:grid; grid-template-columns:1.4fr 1.2fr 60px 110px 1.2fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:.92rem; }
     .adm .acts{ display:flex; gap:6px; justify-content:flex-end; }
     .adm .ibtn{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:background var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
@@ -311,8 +314,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
-    const filters = { pri: new Set(), sec: new Set(), st: new Set() };
-    const fx = { section: '', rec: '', hideAi: true, hideReuse: false, needMain: false };
+    const fx = { pri: '', status: '', section: '', rec: '', hideAi: true, hideReuse: false, needMain: false };
     let search = '';
     const PAGE = 5;
     let pageIdx = 0;
@@ -483,23 +485,22 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
 
     /* ---------- slots ---------- */
-    const PRI = ['High', 'Medium', 'Low', 'Reuse'];
-    const STATES = ['unassigned', 'assigned', 'queued', 'sent', 'approved', 'denied', 'held', 'unreviewed', 'kept'];
+    // f-pri / f-status are plain <select>s in the markup (Priority, Status --
+    // was a row of multi-select toggle pills; single-select dropdowns match
+    // the section/recommendation filters beside them). renderFilters() now
+    // only has the section list left to populate.
     function renderFilters() {
       const secs = Array.from(new Set(S.slots.map((s) => s.section))).sort();
-      const chip = (k, v, label) => '<button class="sbtn ' + (filters[k].has(v) ? 'on' : '') + '" data-f="' + k + '" data-v="' + esc(v) + '">' + esc(label) + '</button>';
-      $('filters').innerHTML = PRI.map((p) => chip('pri', p, p)).join('') + '<span style="width:8px"></span>' + ['unassigned', 'assigned', 'queued', 'sent', 'approved', 'denied', 'held', 'unreviewed'].map((s) => chip('st', s, STATUS_LABEL[s])).join('');
       const sel = $('f-section'); if (sel.options.length === 1) secs.forEach((s) => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
-      $('filters').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { const set = filters[b.dataset.f]; set.has(b.dataset.v) ? set.delete(b.dataset.v) : set.add(b.dataset.v); pageIdx = 0; renderFilters(); renderSlots(); }));
     }
     function filtered() {
       const q = search.toLowerCase();
-      return S.slots.filter((s) => (filters.pri.size ? filters.pri.has(s.priority) : true)
+      return S.slots.filter((s) => (!fx.pri || s.priority === fx.pri)
+        && (!fx.status || status(s) === fx.status)
         && (!fx.section || s.section === fx.section)
         && (!fx.rec || (s.rec || '').toUpperCase().startsWith(fx.rec))
         && (!fx.hideReuse || s.priority !== 'Reuse')
         && (!fx.needMain || !s.main)
-        && (filters.st.size ? filters.st.has(status(s)) : true)
         && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
     }
     /* The tiles: exactly two per slot, Main and Backup, not a candidate strip.
@@ -572,6 +573,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
     $('check-all').addEventListener('change', (e) => { filtered().slice(pageIdx * PAGE, pageIdx * PAGE + PAGE).forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
+    $('f-pri').addEventListener('change', (e) => { fx.pri = e.target.value; pageIdx = 0; renderSlots(); });
+    $('f-status').addEventListener('change', (e) => { fx.status = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-section').addEventListener('change', (e) => { fx.section = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-rec').addEventListener('change', (e) => { fx.rec = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); });
@@ -626,7 +629,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       let body = '';
       if (srcTab === 'stock') {
         const cands = (s.candidates || []).map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, label: c.id, text: c.why || c.title }));
-        body = '<div class="cands">' + cands.join('') + '<div class="up" id="paste-stock">Paste an Adobe Stock comp URL<br><span class="mini">(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
+        // The search link is built from the slot's own search terms (falling
+        // back to its prompt, then its name) so it opens Stock already
+        // searching the right thing instead of a blank search box.
+        const stockQuery = (s.terms && s.terms.length) ? s.terms.join(' ') : (s.prompt || s.name || s.page || '');
+        const stockSearchUrl = 'https://stock.adobe.com/search?k=' + encodeURIComponent(stockQuery);
+        body = '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" id="paste-stock" style="margin-top:8px">Paste a comp URL instead<br>(right-click the comp on stock.adobe.com, copy image address)</span></div></div>';
       } else if (srcTab === 'library') {
         const groups = Array.from(new Set((S.library || []).map((l) => l.group))).sort();
         const q = libQuery.toLowerCase();
@@ -640,7 +648,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG, becomes main if empty, else backup</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
       }
       dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#4A3F6B">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
-        '<div class="meta"><div><b>Ace’s brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
+        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
         '<div class="picks"><div class="pick"><div class="pl"><span>Main</span>' + (s.main ? '<span>' + esc(s.main.source) + '</span>' : '') + '</div>' + (s.main ? '<img src="' + esc(s.main.thumb || s.main.url) + '"><div class="pt">' + esc(s.main.title || s.main.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div><div class="pick"><div class="pl"><span>Backup</span>' + (s.backup ? '<span>' + esc(s.backup.source) + '</span>' : '') + '</div>' + (s.backup ? '<img src="' + esc(s.backup.thumb || s.backup.url) + '"><div class="pt">' + esc(s.backup.title || s.backup.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">' + (swapTarget ? 'Click a candidate to set the ' + swapTarget + ' image.' : 'Click a candidate for main, again for backup. Click a chosen one to clear it.') + '</span></div>' + body;
 

@@ -30,8 +30,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
   <main id="cognak-main"><section class="review">
 
-    <h1 class="headline"><em>Review</em> the images for the new sitime.com.</h1>
-    <p class="lede" id="lede">Each screen shows one image where it will sit on the page. Approve it, deny it, or hold it for later. A note is optional. Anything denied comes back with a replacement in the next batch.</p>
+    <h1 class="headline"><em>Review</em> the images.</h1>
 
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">One moment.</p></div></div>
 
@@ -344,7 +343,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       state.batch = r.data.batch; state.slots = r.data.slots; state.decisions = r.data.decisions || {};
       state.preview = state.batch.status === 'draft';
       if (r.data.mock) { $('mock-h1').textContent = r.data.mock.h1 || $('mock-h1').textContent; $('mock-p').textContent = r.data.mock.p || $('mock-p').textContent; $('mock-cta').textContent = r.data.mock.cta || $('mock-cta').textContent; }
-      if (state.preview) $('lede').textContent = 'Preview. This batch has not been sent yet, so decisions here are not saved.';
       if (!state.slots.length) { $('invalid').hidden = false; $('invalid-note').textContent = 'This batch is empty.'; return; }
       const j = firstPending(0);
       if (j === -1) { $('card').hidden = false; render(); showSummary(); return; }

@@ -5815,7 +5815,7 @@ html.js .fourofour-btn.is-in {
     color: #1A1A1A !important;
 }
 .workflow-nav .pulse-dot { color: #B47CFF !important; }
-.workflow-nav img:not(.emoji) { filter: brightness(0.35) !important; opacity: .85; }
+.workflow-nav img:not(.emoji) { filter: none !important; }
 @media (hover: hover) {
 .workflow-nav .home-bottom-email:hover,
 .workflow-nav .inner-nav-links a:hover { color: #4A3F6B !important; }
