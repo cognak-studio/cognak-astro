@@ -782,7 +782,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<div class="tgtbar"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') +
         '<button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
-        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate 5 sends.">' + esc(s.prompt || '') + '</textarea></div>' +
+        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b>' + which + '</b>.</span></div>' +
         sourceBody(s);
@@ -963,7 +963,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           const cls = s.main && s.main.url === g.url ? 'main' : s.backup && s.backup.url === g.url ? 'backup' : '';
           return '<div class="cand ' + cls + '" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
         });
-        return '<div class="up" style="margin-bottom:12px;aspect-ratio:auto;padding:14px"><button class="sbtn p" data-genall="1" ' + (busy ? 'disabled' : '') + '>' + (busy ? 'Generating…' : (gens.length ? 'Refresh all 5' : 'Generate 5')) + '</button><span class="mini" style="margin-left:10px">Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.</span></div><div class="cands">' + cards.join('') + '</div>';
+        // ONE image per click, never a batch of five -- every call costs money
+        // and most of these will never be used. The first empty card is the
+        // target; a filled card is re-rolled one at a time with its own ↻.
+        const nextEmpty = [0, 1, 2, 3, 4].findIndex((i) => !gens[i]);
+        const full = nextEmpty === -1;
+        return '<div class="up" style="margin-bottom:12px;aspect-ratio:auto;padding:14px"><button class="sbtn p" data-genall="1" ' + (busy || full ? 'disabled' : '') + '>' + (busy ? 'Generating…' : 'Generate one') + '</button><span class="mini" style="margin-left:10px">' + (full ? 'All five filled — re-roll any one with its ↻.' : 'One image per click. Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.') + '</span></div><div class="cands">' + cards.join('') + '</div>';
       }
       return '<div class="cands"><label class="up" data-uplabel="1">Drop or choose an image<br><span class="mini">JPG or PNG — lands on the ' + targetOf(s) + '</span><input type="file" data-upfile="1" accept="image/*" hidden></label><span class="mini" data-upstatus="1"></span></div>';
     }
@@ -981,7 +986,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         assign(s, pickFrom('stock', cc));
       }));
       const showAi = el.querySelector('[data-showai]'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; refreshDrawer(s.id); });
-      const genAll = el.querySelector('[data-genall]'); if (genAll) genAll.addEventListener('click', () => generateImages(s));
+      const genAll = el.querySelector('[data-genall]'); if (genAll) genAll.addEventListener('click', () => {
+        const gens = s.generated || [];
+        const next = [0, 1, 2, 3, 4].findIndex((i) => !gens[i]);
+        if (next === -1) return;
+        generateImages(s, { index: next });
+      });
       el.querySelectorAll('[data-gen-idx]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); generateImages(s, { index: Number(b.dataset.genIdx) }); }));
       el.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
         const url = c.dataset.url; if (!url) return; let pick = null;
