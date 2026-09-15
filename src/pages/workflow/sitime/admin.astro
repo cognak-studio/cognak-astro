@@ -525,11 +525,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
     }
     /* The tiles: exactly two per slot, Main and Backup, not a candidate strip.
-       Click a filled tile to reveal Swap (re-opens the picker targeted at
-       just that slot) and a trash icon (clears just that slot). Click an
-       empty tile to open the picker for it directly. See swapTarget/assign()
-       below -- no more click-to-assign / click-again-for-backup / click-
-       again-to-clear cycling through candidates in the row itself. */
+       Click a filled tile to reveal Swap (swaps main and backup with each
+       other, no picker involved) and a trash icon (clears just that slot).
+       Click an empty tile to open the picker for it directly. See
+       swapTarget/assign() below -- no more click-to-assign / click-again-
+       for-backup / click-again-to-clear cycling through candidates in the
+       row itself. */
     function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : 'library'; }
     function tileHtml(s, which) {
       const pick = s[which];
@@ -583,8 +584,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
           mark(); renderSlots(); renderStats(); if (openSlot === s.id) renderDrawer();
         } else if (btn.dataset.act === 'swap') {
-          openSlot = s.id; swapTarget = which; srcTab = defaultSrcTab(s); revealTile = null;
-          renderSlots(); renderDrawer();
+          const tmp = s.main; s.main = s.backup; s.backup = tmp; revealTile = null;
+          mark(); renderSlots(); renderStats(); if (openSlot === s.id) renderDrawer();
         }
       }));
       if (openSlot) renderDrawer();

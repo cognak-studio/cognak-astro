@@ -66,7 +66,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
 
         <div class="stage-wrap">
-          <div class="stage-head"><span class="label-line"><span class="label" id="stage-label">Where it sits</span><span class="sep">·</span><span class="count" id="progress">0 of 0</span></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
+          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
           <div class="stage" id="stage"><div class="st-inner">
             <div class="st-nav">
               <img class="mark" src="/media/sitime/logo.svg" alt="SiTime" />
@@ -253,7 +253,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image, shown because the main was denied.' : (s.backup ? 'Main image. If you deny it, the backup appears in the same spot.' : 'Main image. No backup for this one.'));
       const heroUrl = (pick && pick.url) || '';
       $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
-      $('stage-label').textContent = which === 'backup' ? 'Where it sits · backup' : 'Where it sits';
       $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
       $('source-note').textContent = pick && pick.source === 'stock' ? 'Comp shown, licensed after approval' : pick && pick.source === 'library' ? 'From SiTime’s licensed library' : '';
 
