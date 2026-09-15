@@ -48,6 +48,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="field">
           <span class="q-title" id="slot-title">Slot</span>
           <span class="q-sub" id="slot-sub"></span>
+          <p class="handoff" id="handoff" hidden></p>
           <div class="pills" id="pills" role="group" aria-label="Decision">
             <button type="button" class="pill" data-v="approve">Approve</button>
             <button type="button" class="pill" data-v="deny">Deny</button>
@@ -147,6 +148,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .saving{ font-size:.85rem; color:var(--ink-soft); }
     .review .decided{ margin:14px 0 0; font-size:.9rem; color:var(--ink-soft); }
     .review .decided b{ font-weight:500; color:var(--ink); }
+    .review .handoff{ margin:12px 0 0; padding:10px 14px; border-radius:8px; background:#FDF2F2; border:1px solid #F3D2D2; color:#8A2A2A; font-size:.85rem; line-height:1.5; }
+    .review .handoff b{ font-weight:600; }
 
     .review .stage-wrap{ margin-top:.4rem; }
     .review .stage-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
@@ -239,6 +242,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return -1;
     }
 
+    async function resync() {
+      const r = await api('/api/sitime-batch', { token, pass });
+      if (r.ok && r.data && r.data.ok) { state.slots = r.data.slots; state.decisions = r.data.decisions || state.decisions; }
+    }
+
     function render() {
       const s = state.slots[state.i]; if (!s) return;
       const o = outcome(s);
@@ -265,6 +273,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         $('decided').hidden = false;
         $('decided').innerHTML = 'Decided: <b>' + ({ approve: 'Approved', deny: 'Denied', hold: 'Held' })[ev.decision] + '</b>' + (ev.note ? ' · “' + escapeHtml(ev.note) + '”' : '') + '. Choose again to change it.';
       } else { $('decided').hidden = true; }
+
+      // Landed on the backup because the main was denied -- say so plainly,
+      // with whatever note came with that denial, instead of the silent
+      // hand-off reviewers were missing (subtitle alone was too easy to skim past).
+      const mainEv = (state.decisions[s.id] || {}).main;
+      if (which === 'backup' && mainEv && mainEv.decision === 'deny') {
+        $('handoff').hidden = false;
+        $('handoff').innerHTML = '<b>Main image denied' + (mainEv.note ? ':</b> “' + escapeHtml(mainEv.note) + '”' : '.</b>') + ' Reviewing the backup now.';
+      } else { $('handoff').hidden = true; }
 
       $('prev').disabled = state.i === 0;
       $('next').disabled = state.i >= state.slots.length - 1;
@@ -321,6 +338,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       }
       if (!state.decisions[s.id]) state.decisions[s.id] = {};
       state.decisions[s.id][which] = { decision: state.pending, note, at: Date.now() };
+      await resync();
       advance();
     });
     $('skip').addEventListener('click', () => { const j = firstPending(state.i + 1); if (j === -1 || j === state.i) { render(); return; } state.i = j; render(); });
@@ -350,6 +368,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     $('pass-go').addEventListener('click', () => { pass = $('pass').value; $('pass-err').hidden = true; $('gate').hidden = true; $('loading').hidden = false; load(); });
     $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pass-go').click(); });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && state.batch) resync().then(() => { if (!$('card').hidden) render(); });
+    });
     load();
   })();
   </script>
