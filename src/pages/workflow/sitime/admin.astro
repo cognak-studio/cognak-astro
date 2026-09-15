@@ -255,6 +255,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .meta{ display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:24px; font-size:.88rem; line-height:1.5; color:var(--ink-soft); margin:1rem 0 1.4rem; }
     .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:4px; }
     .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#4B584E; line-height:1.5; }
+    .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E6E6E3; border-radius:6px; padding:8px 10px; resize:vertical; min-height:58px; background:#fff; }
+    .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; min-height:110px; cursor:default; color:var(--ink-soft); font-size:.78rem; background:#FAFAF8; border-style:dashed; }
     .adm .srctabs{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
     .adm .cands{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
     .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
@@ -327,12 +329,26 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* ---------- save (debounced, whole document) ---------- */
     let saveTimer = null, saving = false, dirty = false;
     function mark() { dirty = true; $('savestate').textContent = 'Unsaved'; clearTimeout(saveTimer); saveTimer = setTimeout(save, 1200); }
+    async function verifySaved(savedAt, tries) {
+      tries = tries || 0;
+      const rr = await api('/api/sitime-state');
+      if (rr.ok && rr.data && rr.data.state && rr.data.state.savedAt === savedAt) return true;
+      if (tries >= 5) return false;
+      await new Promise((res) => setTimeout(res, 400 * (tries + 1)));
+      return verifySaved(savedAt, tries + 1);
+    }
     async function save() {
       if (saving) { dirty = true; return; }
       saving = true; dirty = false; $('savestate').textContent = 'Saving…';
       const r = await api('/api/sitime-state', { method: 'POST', body: { state: S } });
+      if (r.ok && r.data && r.data.savedAt) {
+        $('savestate').textContent = 'Verifying…';
+        const ok = await verifySaved(r.data.savedAt);
+        $('savestate').textContent = ok ? 'Saved' : 'Saved (unverified — wait a moment before sharing the link)';
+      } else {
+        $('savestate').textContent = 'Save failed';
+      }
       saving = false;
-      $('savestate').textContent = r.ok ? 'Saved' : 'Save failed';
       if (dirty) save();
     }
 
@@ -404,6 +420,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       copy: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
       csv: '<svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>',
       delete: '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>',
+      refresh: '<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"/><path d="M3 21v-5h5"/></svg>',
     };
     const ICON = (act, label) => '<button class="ibtn" data-act="' + act + '" title="' + esc(label) + '" aria-label="' + esc(label) + '">' + ICONS[act] + '</button>';
     function deleteBatch(b) {
@@ -516,7 +533,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : 'library'; }
     function tileHtml(s, which) {
       const pick = s[which];
-      if (!pick) return '<div class="tile empty" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · upload</span></div>';
+      if (!pick) return '<div class="tile empty" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · generate · upload</span></div>';
       const open = revealTile && revealTile.slotId === s.id && revealTile.which === which;
       return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + '" title="' + esc(pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
@@ -598,6 +615,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (source === 'stock') return { source, id: obj.id, url: obj.comp, thumb: obj.comp, title: obj.title || '', manual: !!obj.manual };
       if (source === 'library') return { source, id: obj.id, url: obj.url, thumb: obj.thumb, title: obj.name, path: obj.path };
       if (source === 'existing') return { source, id: null, url: obj.url, thumb: obj.url, title: obj.label || 'Current' };
+      if (source === 'generated') return { source, id: obj.id, url: obj.url, thumb: obj.thumb || obj.url, title: 'Generated' };
       return obj;
     }
     function assign(slot, pick) {
@@ -607,7 +625,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         slot[swapTarget] = pick;
         if (slot.state === 'unreviewed' || slot.state === 'kept') slot.state = 'assigned';
         swapTarget = null; openSlot = null; revealTile = null;
-        mark(); renderSlots(); renderStats();
+        mark(); renderSlots(); renderStats(); renderDrawer();
         return;
       }
       // Untargeted (opened by clicking the row itself to browse): empty main
@@ -631,13 +649,46 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (slot.backup && slot.backup.url === url) slot.backup = null;
       mark(); renderSlots(); renderStats(); renderDrawer();
     }
+    /* ---------- AI-generated candidates ---------- */
+    const genBusy = {}; // slotId -> true while a generate call is in flight
+    async function generateImages(slot, opts) {
+      const idx = opts && typeof opts.index === 'number' ? opts.index : null;
+      const count = idx === null ? 5 : 1;
+      if (genBusy[slot.id]) return;
+      if (!(slot.prompt || '').trim()) { alert('Write a brief first — that\u2019s what gets sent to the image generator.'); return; }
+      genBusy[slot.id] = true; renderDrawer();
+      try {
+        const r = await api('/api/sitime-generate', { method: 'POST', body: { slotId: slot.id, prompt: slot.prompt || '', count } });
+        if (!r.ok || !r.data || !r.data.ok) { alert((r.data && r.data.error) || 'Generation failed (' + r.status + ').'); return; }
+        const images = r.data.images || [];
+        if (idx === null) {
+          slot.generated = images.map((im) => ({ id: im.id, url: im.url, thumb: im.url, at: im.at }));
+        } else {
+          slot.generated = slot.generated || [];
+          if (images[0]) slot.generated[idx] = { id: images[0].id, url: images[0].url, thumb: images[0].url, at: images[0].at };
+        }
+        mark(); renderSlots(); renderStats();
+      } catch (e) {
+        alert('Generation failed: ' + (e && e.message ? e.message : e));
+      } finally {
+        genBusy[slot.id] = false; renderDrawer();
+      }
+    }
     function renderDrawer() {
       const dr = $('drawer'); const s = openSlot && byId().get(openSlot);
       if (!s || !dr) return;
-      const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['upload', 'Upload']];
+      const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
       let body = '';
       if (srcTab === 'stock') {
-        const cands = (s.candidates || []).map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, label: c.id, text: c.why || c.title }));
+        // "Hide Gen-AI candidates" (f-hideai, checked by default) is meant to hide
+        // AI-flagged Stock comps the way Ace's tool does -- it used to only steer
+        // which tab opened by default and never filtered this list, so the checkbox
+        // did nothing once you were on the Stock tab. Filtering here is the fix.
+        const allCands = s.candidates || [];
+        const shownCands = allCands.filter((c) => !(fx.hideAi && c.ai));
+        const hiddenCount = allCands.length - shownCands.length;
+        const cands = shownCands.map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, label: c.id, text: c.why || c.title }));
+        if (hiddenCount) cands.push('<div class="hint" style="flex-basis:100%">' + hiddenCount + ' generative-AI result' + (hiddenCount === 1 ? '' : 's') + ' hidden \u2014 <a href="#" id="show-ai-cands">show ' + (hiddenCount === 1 ? 'it' : 'them') + '</a></div>');
         // The search link is built from the slot's own search terms (falling
         // back to its prompt, then its name) so it opens Stock already
         // searching the right thing instead of a blank search box.
@@ -653,20 +704,35 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } else if (srcTab === 'existing') {
         const ex = (s.existing || []).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
         body = ex.length ? '<div class="cands">' + ex.join('') + '</div>' : '<p class="hint">No existing image on this page in the Drupal export.</p>';
+      } else if (srcTab === 'generated') {
+        const busy = !!genBusy[s.id];
+        const gens = s.generated || [];
+        const cards = [0, 1, 2, 3, 4].map((i) => {
+          const g = gens[i];
+          if (!g) return '<div class="cand gen-empty">' + (busy ? 'Generating…' : 'Empty') + '</div>';
+          const cls = s.main && s.main.url === g.url ? 'main' : s.backup && s.backup.url === g.url ? 'backup' : '';
+          return '<div class="cand ' + cls + '" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
+        });
+        body = '<div class="up" style="margin-bottom:12px"><button class="sbtn p" id="gen-all" ' + (busy ? 'disabled' : '') + '>' + (busy ? 'Generating…' : (gens.length ? 'Refresh all 5' : 'Generate 5')) + '</button><span class="mini" style="margin-left:10px">Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.</span></div><div class="cands">' + cards.join('') + '</div>';
       } else {
         body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG, becomes main if empty, else backup</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
       }
       dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#4B584E">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
-        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div class="q2" style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
+        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + '<textarea class="q2 brief-edit" id="brief-text" rows="3" placeholder="What should this image show? Editing this changes what Generate 5 sends.">' + esc(s.prompt || '') + '</textarea>' + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">' + (swapTarget ? 'Click a candidate to set the ' + swapTarget + ' image.' : 'Click a candidate for main, again for backup. Click a chosen one to clear it.') + '</span></div>' + body;
 
       dr.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderDrawer(); }));
       dr.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
+      const showAi = dr.querySelector('#show-ai-cands'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; renderDrawer(); });
+      const briefEl = $('brief-text'); if (briefEl) briefEl.addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
+      const genAll = $('gen-all'); if (genAll) genAll.addEventListener('click', () => generateImages(s));
+      dr.querySelectorAll('[data-gen-idx]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); generateImages(s, { index: Number(b.dataset.genIdx) }); }));
       dr.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
         const url = c.dataset.url; let pick = null;
         if (srcTab === 'stock') { const cc = s.candidates.find((x) => x.comp === url); pick = pickFrom('stock', cc); }
         if (srcTab === 'library') { const l = S.library.find((x) => x.url === url); pick = pickFrom('library', l); }
         if (srcTab === 'existing') { const e = s.existing.find((x) => x.url === url); pick = pickFrom('existing', e); }
+        if (srcTab === 'generated') { const g = (s.generated || []).find((x) => x.url === url); if (g) pick = pickFrom('generated', g); }
         if (pick) assign(s, pick);
       }));
       $('close-drawer').addEventListener('click', () => { openSlot = null; swapTarget = null; revealTile = null; renderSlots(); renderDrawer(); });
