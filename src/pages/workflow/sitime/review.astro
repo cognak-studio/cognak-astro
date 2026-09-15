@@ -44,7 +44,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise" id="card" hidden>
       <div class="group">
-        <div class="group-title"><span id="batch-label">Batch</span><span class="sep">·</span><span id="progress">0 of 0</span><span class="bar"><i id="bar"></i></span></div>
+        <div class="group-title"><span id="batch-label">Batch</span><span class="bar"><i id="bar"></i></span></div>
         <div class="field">
           <span class="q-title" id="slot-title">Slot</span>
           <span class="q-sub" id="slot-sub"></span>
@@ -66,7 +66,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
 
         <div class="stage-wrap">
-          <div class="stage-head"><span class="label" id="stage-label">Where it sits</span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
+          <div class="stage-head"><span class="label-line"><span class="label" id="stage-label">Where it sits</span><span class="sep">·</span><span class="count" id="progress">0 of 0</span></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
           <div class="stage" id="stage"><div class="st-inner">
             <div class="st-nav">
               <img class="mark" src="/media/sitime/logo.svg" alt="SiTime" />
@@ -105,7 +105,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review label, .review legend { display:block !important; }
 
     .review{ --bg:#F4F4F2; --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B;
-      --accent:#B47CFF; --accent-rgb:180,124,255; --head:#4A3F6B; --deep:#1B1424;
+      --accent:#78A182; --accent-rgb:120,161,130; --head:#43604A; --deep:#132016;
       --line:#E6E6E3; --line-strong:#CFCFCB; --ok:#5A9E00; --err:#E5231B;
       max-width:1040px; margin:0 auto; padding:190px 6vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .review .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
@@ -150,7 +150,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     .review .stage-wrap{ margin-top:.4rem; }
     .review .stage-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-    .review .stage-head .label{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+    .review .stage-head .label-line{ display:flex; align-items:center; gap:8px; }
+    .review .stage-head .label, .review .stage-head .sep, .review .stage-head .count{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
     .review .arrows{ display:flex; gap:8px; }
     .review .arrows button{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; font-size:14px; line-height:1; }
     .review .arrows button:disabled{ opacity:.32; cursor:default; }

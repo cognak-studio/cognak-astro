@@ -76,9 +76,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             <select class="sel" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
             <label class="chk"><input type="checkbox" id="f-hideai" checked /> Hide Gen-AI candidates</label>
             <label class="chk"><input type="checkbox" id="f-hidereuse" /> Hide migrate-as-is pages</label>
-            <label class="chk"><input type="checkbox" id="f-needmain" /> Needs a main</label>
-            <span class="pager"><span class="mini" id="pg-count"></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></span>
           </div>
+          <div class="pager-top"><span class="mini" id="pg-count"></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
           <div class="srows" id="slot-rows"></div>
           <p class="hint pager-foot" id="slot-more"></p>
         </div>
@@ -105,6 +104,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <p class="hint">Pick the <b>Image Mapping</b> folder from Drive. Only the Digital-Web folders and MEMS-Products are indexed (web-size copy plus a thumbnail per image); everything else stays where it is. Re-run any time SiTime adds files; already-indexed images are skipped.</p>
           <div class="actions"><label class="sbtn p" for="lib-dir">Choose folder</label><input type="file" id="lib-dir" webkitdirectory directory multiple hidden /><span class="mini" id="lib-progress"></span></div>
           <div class="hint" id="lib-log"></div>
+        </div>
+        <div class="group">
+          <div class="card-head"><div class="group-title">Sourced from Stock / uploads</div><span class="mini" id="sourced-count"></span></div>
+          <div class="queue" id="sourced-list"></div>
         </div>
         <div class="group">
           <div class="group-title">Review link passcode</div>
@@ -136,7 +139,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     html, body { background-color:#F4F4F2 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
     .adm label, .adm legend { display:block !important; }
-    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#B47CFF; --head:#4A3F6B; --deep:#1B1424; --line:#E6E6E3; --line-strong:#CFCFCB;
+    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#78A182; --head:#43604A; --deep:#132016; --line:#E6E6E3; --line-strong:#CFCFCB;
       max-width:1240px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .adm .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .adm .headline em{ font-style:normal; font-weight:500; color:var(--head); }
@@ -175,7 +178,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm table{ width:100%; border-collapse:collapse; font-size:.92rem; }
     .adm th{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
     .adm td{ padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
-    .adm tr.sel td{ background:#FAF7FF; }
+    .adm tr.sel td{ background:#F3F9F5; }
     .adm tr.clickable{ cursor:pointer; }
     .adm .pg{ font-weight:500; }
     .adm .sub{ font-size:.8rem; color:var(--ink-soft); }
@@ -188,12 +191,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .sel{ font:inherit; font-size:.88rem; padding:8px 32px 8px 12px; border:1px solid var(--line-strong); border-radius:999px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/12px; color:var(--ink); appearance:none; -webkit-appearance:none; }
     .adm .chk{ display:inline-flex !important; align-items:center; gap:6px; font-size:.85rem; color:var(--ink); cursor:pointer; user-select:none; }
     .adm .chk input{ accent-color:#1A1A1A; }
-    .adm .pager{ display:inline-flex; align-items:center; gap:8px; margin-left:auto; }
+    .adm .pager-top{ display:flex; align-items:center; justify-content:flex-end; gap:8px; margin:0 0 .8rem; }
     .adm .pager-foot{ display:flex; align-items:center; gap:8px; justify-content:flex-end; margin-top:1.2rem; }
     /* one slot = a row of large tiles (main, backup, the next candidates) over a meta line */
     .adm .srows{ display:flex; flex-direction:column; }
     .adm .srow{ padding:18px 14px 16px; border-radius:12px; border-bottom:1px solid var(--line); }
-    .adm .srow.sel{ background:#FAF7FF; border-bottom-color:transparent; border-radius:12px 12px 0 0; }
+    .adm .srow.sel{ background:#F3F9F5; border-bottom-color:transparent; border-radius:12px 12px 0 0; }
     /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
     .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; margin-bottom:14px; }
     .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
@@ -224,14 +227,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; cursor:pointer; }
     .adm .mrow input[type=checkbox]{ accent-color:#1A1A1A; width:15px; height:15px; margin:0; }
     .adm .mrow .who{ flex:1 1 260px; min-width:0; }
+    .adm .mrow .who .pg{ font-size:1.15rem; margin-bottom:6px; }
+    .adm .mrow .who .sub{ line-height:1.45; }
     .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; gap:18px; }
-    .adm .drawer-wrap{ background:#FAF7FF; padding:6px 18px 26px; border-radius:0 0 12px 12px; border-bottom:1px solid var(--line); margin-bottom:6px; }
+    .adm .drawer-wrap{ background:#F3F9F5; padding:6px 18px 26px; border-radius:0 0 12px 12px; border-bottom:1px solid var(--line); margin-bottom:6px; }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
     .adm .st i{ width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
-    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#B47CFF; } .adm .st.sent i{ background:#B47CFF; box-shadow:0 0 0 2px #EAD9FF; }
+    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#78A182; } .adm .st.sent i{ background:#78A182; box-shadow:0 0 0 2px #D3EEDA; }
     .adm .st.approved i{ background:#9DFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
     .adm .st.unreviewed i{ background:#fff; border:1px solid #9A9A96; } .adm .st.kept i{ background:#9DFF00; border:1px solid #6EB300; opacity:.5; }
     .adm .mini{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.05em; color:var(--ink-soft); }
@@ -239,6 +244,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mini .a{ color:#5A9E00; } .adm .mini .d{ color:#E5231B; } .adm .mini .h{ color:#E07000; }
     .adm .link{ font:inherit; background:none; border:0; padding:0; color:var(--head); text-decoration:underline; text-underline-offset:3px; font-size:.85rem; margin-right:12px; cursor:pointer; }
     .adm .queue{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .adm #sourced-list .qitem{ align-items:center; }
+    .adm #sourced-list .qitem .sbtn{ margin-left:auto; flex-shrink:0; }
     .adm .qitem{ display:flex; gap:12px; align-items:flex-start; border:1px solid #ECECE9; border-radius:8px; padding:12px; }
     .adm .qitem img{ width:72px; height:48px; object-fit:cover; border-radius:4px; background:#EEE; }
     .adm .qitem .t{ font-size:.9rem; font-weight:500; }
@@ -247,12 +254,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; }
     .adm .drawer .meta{ display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:24px; font-size:.88rem; line-height:1.5; color:var(--ink-soft); margin:1rem 0 1.4rem; }
     .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:4px; }
-    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#4A3F6B; line-height:1.5; }
-    .adm .picks{ display:flex; gap:14px; margin:0 0 1.4rem; }
-    .adm .pick{ border:1px solid #E6E6E3; border-radius:8px; padding:10px; width:220px; }
-    .adm .pick img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:4px; background:#EEE; display:block; }
-    .adm .pick .pl{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; display:flex; justify-content:space-between; }
-    .adm .pick .pt{ font-size:.78rem; color:var(--ink-soft); margin-top:6px; line-height:1.3; word-break:break-word; }
+    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#43604A; line-height:1.5; }
     .adm .srctabs{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
     .adm .cands{ display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
     .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
@@ -260,6 +262,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cand .cb{ padding:8px 10px; font-size:.74rem; line-height:1.35; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
     .adm .cand .cb b{ display:block; color:var(--ink); font-weight:500; font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.06em; margin-bottom:3px; }
     .adm .cand .tag{ position:absolute; top:8px; left:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
+    .adm .cand-x{ position:absolute; top:6px; right:6px; width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.6); background:rgba(26,26,26,.55); color:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
+    .adm .cand-x svg{ width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .adm .cand-x:hover{ background:#FF1E1E; border-color:#FF7070; }
     .adm .cand.main{ outline:2px solid #1A1A1A; } .adm .cand.backup{ outline:2px dashed #1A1A1A; } .adm .cand.backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
     .adm .cand.warn::after{ content:'AI'; position:absolute; top:8px; right:8px; font-family:'Diatype Mono', monospace; font-size:.62rem; padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
     .adm .cands .more{ grid-column:1/-1; }
@@ -314,7 +319,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
-    const fx = { pri: '', status: '', section: '', rec: '', hideAi: true, hideReuse: false, needMain: false };
+    const fx = { pri: '', status: '', section: '', rec: '', hideAi: true, hideReuse: false };
     let search = '';
     const PAGE = 5;
     let pageIdx = 0;
@@ -490,7 +495,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     // the section/recommendation filters beside them). renderFilters() now
     // only has the section list left to populate.
     function renderFilters() {
-      const secs = Array.from(new Set(S.slots.map((s) => s.section))).sort();
+      const secs = Array.from(new Set(S.slots.map((s) => s.section))).filter((s) => s && s !== '(unmapped)').sort();
       const sel = $('f-section'); if (sel.options.length === 1) secs.forEach((s) => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
     }
     function filtered() {
@@ -500,7 +505,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         && (!fx.section || s.section === fx.section)
         && (!fx.rec || (s.rec || '').toUpperCase().startsWith(fx.rec))
         && (!fx.hideReuse || s.priority !== 'Reuse')
-        && (!fx.needMain || !s.main)
         && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
     }
     /* The tiles: exactly two per slot, Main and Backup, not a candidate strip.
@@ -579,7 +583,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('f-rec').addEventListener('change', (e) => { fx.rec = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); });
     $('f-hidereuse').addEventListener('change', (e) => { fx.hideReuse = e.target.checked; pageIdx = 0; renderSlots(); });
-    $('f-needmain').addEventListener('change', (e) => { fx.needMain = e.target.checked; pageIdx = 0; renderSlots(); });
     $('pg-prev').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); } });
     $('pg-next').addEventListener('click', () => { if ((pageIdx + 1) * PAGE < filtered().length) { pageIdx++; renderSlots(); } });
     $('search').addEventListener('input', (e) => { search = e.target.value; pageIdx = 0; renderSlots(); });
@@ -592,7 +595,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     /* ---------- drawer: the source picker ---------- */
     function pickFrom(source, obj) {
-      if (source === 'stock') return { source, id: obj.id, url: obj.comp, thumb: obj.comp, title: obj.title || '' };
+      if (source === 'stock') return { source, id: obj.id, url: obj.comp, thumb: obj.comp, title: obj.title || '', manual: !!obj.manual };
       if (source === 'library') return { source, id: obj.id, url: obj.url, thumb: obj.thumb, title: obj.name, path: obj.path };
       if (source === 'existing') return { source, id: null, url: obj.url, thumb: obj.url, title: obj.label || 'Current' };
       return obj;
@@ -620,7 +623,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function candCard(pick, slot, extra) {
       const cls = slot.main && slot.main.url === pick.url ? 'main' : slot.backup && slot.backup.url === pick.url ? 'backup' : '';
-      return '<div class="cand ' + cls + (extra && extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<div class="cb"><b>' + esc(extra && extra.label || pick.id || '') + '</b>' + esc(extra && extra.text || pick.title || '') + '</div></div>';
+      return '<div class="cand ' + cls + (extra && extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + (pick.manual ? '<button type="button" class="cand-x" data-remove-cand="' + esc(pick.url) + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button>' : '') + '<div class="cb"><b>' + esc(extra && extra.label || pick.id || '') + '</b>' + esc(extra && extra.text || pick.title || '') + '</div></div>';
+    }
+    function removeCandidate(slot, url) {
+      slot.candidates = (slot.candidates || []).filter((c) => c.comp !== url);
+      if (slot.main && slot.main.url === url) slot.main = null;
+      if (slot.backup && slot.backup.url === url) slot.backup = null;
+      mark(); renderSlots(); renderStats(); renderDrawer();
     }
     function renderDrawer() {
       const dr = $('drawer'); const s = openSlot && byId().get(openSlot);
@@ -647,12 +656,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } else {
         body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG, becomes main if empty, else backup</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
       }
-      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#4A3F6B">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
-        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
-        '<div class="picks"><div class="pick"><div class="pl"><span>Main</span>' + (s.main ? '<span>' + esc(s.main.source) + '</span>' : '') + '</div>' + (s.main ? '<img src="' + esc(s.main.thumb || s.main.url) + '"><div class="pt">' + esc(s.main.title || s.main.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div><div class="pick"><div class="pl"><span>Backup</span>' + (s.backup ? '<span>' + esc(s.backup.source) + '</span>' : '') + '</div>' + (s.backup ? '<img src="' + esc(s.backup.thumb || s.backup.url) + '"><div class="pt">' + esc(s.backup.title || s.backup.id || '') + '</div>' : '<div class="thumb empty" style="width:100%;aspect-ratio:16/9;height:auto"></div>') + '</div></div>' +
+      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#43604A">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
+        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + (s.prompt ? '<div class="q2" style="margin-top:6px">' + esc(s.prompt) + '</div>' : '') + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">' + (swapTarget ? 'Click a candidate to set the ' + swapTarget + ' image.' : 'Click a candidate for main, again for backup. Click a chosen one to clear it.') + '</span></div>' + body;
 
       dr.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderDrawer(); }));
+      dr.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
       dr.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
         const url = c.dataset.url; let pick = null;
         if (srcTab === 'stock') { const cc = s.candidates.find((x) => x.comp === url); pick = pickFrom('stock', cc); }
@@ -664,7 +673,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('clear-picks').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; mark(); renderSlots(); renderDrawer(); renderStats(); });
       const keep = $('keep-existing'); if (keep) keep.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderDrawer(); renderStats(); });
       $('slot-note').addEventListener('change', (e) => { s.notes = e.target.value; mark(); });
-      const ps = $('paste-stock'); if (ps) ps.addEventListener('click', () => { const u = prompt('Adobe Stock comp URL (…ftcdn.net/jpg/…/1000_F_<id>_….jpg) or a Stock ID:'); if (!u) return; const m = u.match(/1000_F_(\d+)_/) || u.match(/^(\d{6,12})$/); const id = m ? m[1] : ''; const url = /^https?:/.test(u) ? u : ''; if (!url) { alert('Paste the comp image URL, not just the ID: the tool can’t fetch a comp from an ID alone.'); return; } s.candidates = s.candidates || []; if (!s.candidates.find((c) => c.comp === url)) s.candidates.unshift({ id, title: 'Pasted', comp: url, url: id ? 'https://stock.adobe.com/images/x/' + id : url, why: 'Added by COGNAK', ai: false }); assign(s, pickFrom('stock', s.candidates[0])); });
+      const ps = $('paste-stock'); if (ps) ps.addEventListener('click', () => { const u = prompt('Adobe Stock comp URL (…ftcdn.net/jpg/…/1000_F_<id>_….jpg) or a Stock ID:'); if (!u) return; const m = u.match(/1000_F_(\d+)_/) || u.match(/^(\d{6,12})$/); const id = m ? m[1] : ''; const url = /^https?:/.test(u) ? u : ''; if (!url) { alert('Paste the comp image URL, not just the ID: the tool can’t fetch a comp from an ID alone.'); return; } s.candidates = s.candidates || []; if (!s.candidates.find((c) => c.comp === url)) s.candidates.unshift({ id, title: 'Pasted', comp: url, url: id ? 'https://stock.adobe.com/images/x/' + id : url, why: 'Added by COGNAK', ai: false, manual: true }); assign(s, pickFrom('stock', s.candidates[0])); });
       const lq = $('lib-q'); if (lq) { lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; renderDrawer(); const nq = $('lib-q'); nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); }); }
       dr.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; renderDrawer(); }));
       const lm = $('lib-more'); if (lm) lm.addEventListener('click', () => { libShown += 48; renderDrawer(); });
@@ -697,10 +706,25 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function uploadBlob(pathname, fileOrBlob) { const mod = await blobClient(); return mod.upload(pathname, fileOrBlob, { access: 'public', handleUploadUrl: '/api/sitime-upload-token', contentType: fileOrBlob.type || 'image/jpeg' }); }
     async function sha1(str) { const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12); }
     function resize(file, max) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => b ? resolve({ blob: b, w: img.width, h: img.height }) : reject(new Error('encode')), 'image/jpeg', 0.84); URL.revokeObjectURL(img.src); }; img.onerror = reject; img.src = URL.createObjectURL(file); }); }
+    function sourcedRows() {
+      const rows = [];
+      (S.slots || []).forEach((s) => { ['main', 'backup'].forEach((which) => { const p = s[which]; if (p && (p.source === 'stock' || p.source === 'upload')) rows.push({ s, which, p }); }); });
+      return rows;
+    }
     function renderLib() {
       const n = (S.library || []).length; $('lib-status').textContent = n ? n + ' images indexed.' : 'Not indexed yet.';
       $('mock-h1').value = S.mock?.h1 || ''; $('mock-p').value = S.mock?.p || ''; $('mock-cta').value = S.mock?.cta || '';
       $('review-pass').value = S.reviewPass == null ? 'silicon' : S.reviewPass;
+      const sourced = sourcedRows();
+      $('sourced-count').textContent = sourced.length ? sourced.length + ' image' + (sourced.length === 1 ? '' : 's') : '';
+      $('sourced-list').innerHTML = sourced.length ? sourced.map(({ s, which, p }) => '<div class="qitem"><img src="' + esc(p.thumb || p.url) + '"><div><div class="t">' + esc(s.page) + ' · ' + esc(s.name) + ' <span class="mini">(' + which + ')</span></div><div class="n">' + esc(p.source === 'stock' ? 'Adobe Stock' + (p.id ? ' · ' + p.id : '') : (p.title || p.path || 'Uploaded')) + '</div></div><button class="sbtn" data-unassign="' + s.id + ':' + which + '">Remove</button></div>').join('') : '<p class="hint">Nothing sourced from Stock or uploaded yet.</p>';
+      $('sourced-list').querySelectorAll('[data-unassign]').forEach((b) => b.addEventListener('click', () => {
+        const [id, which] = b.dataset.unassign.split(':');
+        const s = byId().get(id); if (!s) return;
+        s[which] = null;
+        if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
+        mark(); renderLib(); renderSlots(); renderStats();
+      }));
     }
     $('review-pass').addEventListener('change', (e) => { S.reviewPass = e.target.value.trim(); mark(); });
     ['mock-h1', 'mock-p', 'mock-cta'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value }; mark(); }));
