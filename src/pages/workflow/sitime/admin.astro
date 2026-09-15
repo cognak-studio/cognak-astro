@@ -66,20 +66,30 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <!-- SLOTS -->
       <div class="card rise tab" id="tab-slots" hidden>
         <div class="group">
-          <div class="card-head">
-            <div class="filters" id="filters"><select class="sel" id="f-pri"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select><select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In draft</option><option value="sent">Sent</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select></div>
-            <div class="right"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></div>
-          </div>
           <div class="fbar">
-            <input class="search" id="search" placeholder="Search page, slot, URL" />
-            <select class="sel" id="f-section"><option value="">All sections</option></select>
+            <input class="search" id="search" placeholder="Search page, slot, URL, part number, search term" />
+            <select class="sel" id="f-pri"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select>
+            <select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In draft</option><option value="sent">Sent</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
             <select class="sel" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
             <label class="chk"><input type="checkbox" id="f-hideai" checked /> Hide Gen-AI candidates</label>
             <label class="chk"><input type="checkbox" id="f-hidereuse" /> Hide migrate-as-is pages</label>
+            <button class="sbtn" id="expand-all">Expand all</button>
           </div>
-          <div class="pager-top"><span class="mini" id="pg-count"></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
-          <div class="srows" id="slot-rows"></div>
-          <p class="hint pager-foot" id="slot-more"></p>
+          <div class="workspace">
+            <aside class="rail">
+              <div class="railhead"><span class="mini" id="rail-count"></span><button class="link" id="rail-clear">Whole site</button></div>
+              <div id="rail"></div>
+            </aside>
+            <div class="railmain">
+              <div id="page-card"></div>
+              <div class="card-head">
+                <span class="mini" id="pg-count"></span>
+                <div class="right"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
+              </div>
+              <div class="srows" id="slot-rows"></div>
+              <p class="hint pager-foot" id="slot-more"></p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -131,6 +141,20 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <label class="q"><span class="q-title">Planned for</span><input class="txt" id="bd-date" type="date" /></label>
       <p class="hint" id="bd-hint"></p>
       <div class="actions"><button class="sbtn p" id="bd-save">Save</button><button class="sbtn" id="bd-cancel">Cancel</button></div>
+    </dialog>
+
+    <!-- full-screen image picker: the whole viewport is candidates, the brief
+         collapses into one line, and nothing about choosing an image happens
+         below the fold. See openPicker() / renderPicker(). -->
+    <dialog id="picker" class="picker">
+      <div class="pk-head">
+        <div class="pk-who"><div class="group-title" id="pk-title"></div><span class="mini" id="pk-sub"></span></div>
+        <div class="pk-target" id="pk-target"></div>
+        <button class="sbtn" id="pk-close">Done</button>
+      </div>
+      <div class="pk-brief" id="pk-brief"></div>
+      <div class="pk-tabs" id="pk-tabs"></div>
+      <div class="pk-body" id="pk-body"></div>
     </dialog>
 
   </section></main>
@@ -315,6 +339,74 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     html:has(dialog[open]), html:has(dialog[open]) *{ cursor:auto !important; }
     html:has(dialog[open]) button, html:has(dialog[open]) .sbtn, html:has(dialog[open]) .link{ cursor:pointer !important; }
     .adm .actions{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+
+    /* ---- Slots workspace: a left rail of sections and pages, like Ace's
+       gallery, so 401 slots are navigable by where they live instead of only
+       by a 5-at-a-time pager. Picking a page in the rail shows that page's
+       slots whole, with no pager at all. ---- */
+    .adm .workspace{ display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start; }
+    .adm .rail{ position:sticky; top:110px; max-height:calc(100vh - 150px); overflow-y:auto; overscroll-behavior:contain; padding-right:8px; border-right:1px solid var(--line); }
+    .adm .railhead{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:1; }
+    .adm .railhead .link{ margin:0; }
+    .adm .rsec{ margin-bottom:2px; }
+    .adm .rsec > button{ width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); background:none; border:0; padding:8px 4px; cursor:pointer; text-align:left; }
+    .adm .rsec > button:hover{ color:var(--ink); }
+    .adm .rsec > button b{ margin-left:auto; font-weight:400; opacity:.7; }
+    .adm .rsec.open > button{ color:var(--ink); }
+    .adm .rpages{ padding:0 0 8px 4px; }
+    .adm .rpage{ display:block; width:100%; text-align:left; font:inherit; font-size:.84rem; line-height:1.35; color:var(--ink); background:none; border:0; border-left:2px solid transparent; padding:6px 8px; cursor:pointer; }
+    .adm .rpage:hover{ background:#F6F8F7; }
+    .adm .rpage.on{ border-left-color:#1A1A1A; background:#F2F5F3; font-weight:500; }
+    .adm .rpage i{ font-style:normal; font-family:'Diatype Mono', monospace; font-size:.66rem; color:var(--ink-soft); margin-left:6px; }
+    .adm .rpage .dot{ display:inline-block; width:6px; height:6px; border-radius:50%; background:#C9C9C4; margin-right:6px; vertical-align:1px; }
+    .adm .rpage .dot.done{ background:#9DFF00; border:1px solid #6EB300; }
+    .adm .rpage .dot.part{ background:#1A1A1A; }
+
+    /* the page header card, Ace's equivalent: status tags, slot count, and the
+       Drupal hero that carries over if the page migrates as-is */
+    .adm .pcard{ border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:18px; background:#FCFCFB; }
+    .adm .pcard .pt{ font-size:1.3rem; font-weight:500; letter-spacing:-.01em; }
+    .adm .pcard .pu{ font-size:.85rem; color:var(--ink-soft); margin-top:3px; }
+    .adm .pcard .tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
+    .adm .pcard .tg{ font-family:'Diatype Mono', monospace; font-size:.64rem; letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink-soft); }
+    .adm .pcard .tg.on{ background:#1A1A1A; border-color:#1A1A1A; color:#fff; }
+    .adm .pcard .ex{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:flex-start; }
+    .adm .pcard .ex img{ width:130px; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#EEE; }
+    .adm .pcard .ex .mini{ max-width:22ch; }
+
+    /* ---- full-screen picker ---- */
+    .adm dialog.picker, dialog.picker{ width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; padding:0; margin:0; border:0; border-radius:0; display:none; flex-direction:column; background:#F4F4F2; font-family:'Diatype Variable', sans-serif; color:#1A1A1A; }
+    dialog.picker[open]{ display:flex; }
+    dialog.picker::backdrop{ background:rgba(23,28,24,.6); }
+    dialog.picker .pk-head{ display:flex; align-items:center; gap:20px; padding:18px 26px; background:#fff; border-bottom:1px solid #E6E6E3; flex:none; }
+    dialog.picker .pk-who{ min-width:0; }
+    dialog.picker .pk-who .group-title{ margin-bottom:4px; color:#1A1A1A; }
+    dialog.picker .pk-target{ margin-left:auto; display:flex; align-items:center; gap:8px; }
+    dialog.picker .pk-target .lbl{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:#6B6B6B; margin-right:2px; }
+    dialog.picker .pk-target .tgt{ display:flex; align-items:center; gap:8px; font:inherit; font-size:.85rem; padding:6px 10px 6px 6px; border-radius:999px; border:1px solid #CFCFCB; background:#fff; cursor:pointer; }
+    dialog.picker .pk-target .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
+    dialog.picker .pk-target .tgt img{ width:44px; height:28px; object-fit:cover; border-radius:4px; background:#EEE; }
+    dialog.picker .pk-target .tgt .ph{ width:44px; height:28px; border-radius:4px; background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
+    dialog.picker .pk-target .clr{ font:inherit; font-size:.78rem; white-space:nowrap; background:none; border:0; color:#6B6B6B; text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:0 6px; }
+    dialog.picker .pk-brief{ padding:12px 26px; background:#fff; border-bottom:1px solid #E6E6E3; font-size:.88rem; color:#6B6B6B; line-height:1.5; flex:none; }
+    dialog.picker .pk-brief .oneline{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+    dialog.picker .pk-brief .rules{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.04em; color:#4B584E; margin-top:6px; }
+    dialog.picker .pk-brief textarea{ width:100%; box-sizing:border-box; font:inherit; font-size:.86rem; border:1px solid #E6E6E3; border-radius:6px; padding:8px 10px; resize:vertical; min-height:70px; margin-top:6px; }
+    dialog.picker .pk-brief .more{ font:inherit; font-size:.8rem; background:none; border:0; color:#4B584E; text-decoration:underline; text-underline-offset:3px; cursor:pointer; padding:0; margin-left:6px; }
+    dialog.picker .pk-tabs{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:12px 26px; background:#fff; border-bottom:1px solid #E6E6E3; flex:none; }
+    dialog.picker .pk-body{ flex:1 1 auto; overflow-y:auto; padding:22px 26px 40px; }
+    dialog.picker .pk-body .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:16px; }
+    dialog.picker .pk-body .cand img{ aspect-ratio:3/2; }
+    dialog.picker .pk-body .cand .cb{ -webkit-line-clamp:4; }
+    dialog.picker .pk-body .cand .meta2{ display:flex; gap:8px; flex-wrap:wrap; padding:0 10px 9px; }
+    dialog.picker .pk-body .cand .flag{ font-family:'Diatype Mono', monospace; font-size:.6rem; letter-spacing:.08em; text-transform:uppercase; padding:3px 7px; border-radius:999px; border:1px solid #E6E6E3; color:#6B6B6B; }
+    dialog.picker .pk-body .cand .flag.real{ color:#4B584E; border-color:#C9D6CC; }
+    dialog.picker .pk-body .cand .flag.ai{ background:#FFF3CD; color:#8A5A00; border-color:#F0E0AE; }
+    dialog.picker .pk-body .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
+    dialog.picker .pk-body .cand .adobe{ display:block; padding:0 10px 10px; font-size:.78rem; color:#4B584E; text-decoration:underline; text-underline-offset:3px; }
+    dialog.picker .pk-body .up{ min-height:190px; }
+
+    @media (max-width:900px){ .adm .workspace{ grid-template-columns:1fr; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; } }
     @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .cands{ grid-template-columns:repeat(3,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
   </style>
 
@@ -334,15 +426,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let S = null;          // state document
     let D = {};            // decisions by batch token → { latest: {slotId: {main, backup}} }
     let checked = new Set();
-    let openSlot = null;
-    let swapTarget = null; // 'main' | 'backup' -- set when the drawer was opened to fill/replace one specific slot (an empty tile or its Swap button), so the next pick lands there instead of the old auto-fill logic
-    let stockSlotId = null, stockQ = '', stockResults = [], stockBusy = false, stockErr = ''; // live Adobe Stock search state, reset when the drawer switches to a different slot
+    let openSlots = new Set();   // slot ids whose inline detail drawer (brief, note) is open -- several at once now, so "Expand all" means something
+    let railOpen = new Set();    // section names expanded in the left rail
+    let pkSlot = null, pkWhich = 'main', pkBriefOpen = false; // the full-screen picker: which slot, and whether the next pick lands on main or backup
+    let stockSlotId = null, stockQ = '', stockResults = [], stockBusy = false, stockErr = ''; // live Adobe Stock search state, reset when the picker switches to a different slot
     let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
-    const fx = { pri: '', status: '', section: '', rec: '', hideAi: true, hideReuse: false };
+    const fx = { pri: '', status: '', section: '', page: '', rec: '', hideAi: true, hideReuse: false };
     let search = '';
-    const PAGE = 5;
+    const PAGE = 8;
     let pageIdx = 0;
 
     /* ---------- save (debounced, whole document) ---------- */
@@ -531,27 +624,103 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     // was a row of multi-select toggle pills; single-select dropdowns match
     // the section/recommendation filters beside them). renderFilters() now
     // only has the section list left to populate.
-    function renderFilters() {
-      const secs = Array.from(new Set(S.slots.map((s) => s.section))).filter((s) => s && s !== '(unmapped)').sort();
-      const sel = $('f-section'); if (sel.options.length === 1) secs.forEach((s) => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+    function renderFilters() { /* the left rail replaced the section dropdown; kept as a no-op so boot() reads the same */ }
+    let _pmap = null;
+    /* Cached, and never written onto the slot objects themselves -- the whole
+       state document is POSTed verbatim, so a stray derived field would be
+       saved to the Blob forever. */
+    const pageById = () => (_pmap || (_pmap = new Map((S.pages || []).map((p) => [p.id, p]))));
+    const _hay = new Map();
+    /* Search now matches what Ace's box matches: page name, slot name, URL,
+       the page's part numbers, and the slot's Stock search terms. */
+    function haystack(s) {
+      let h = _hay.get(s.id);
+      if (h === undefined) {
+        const p = pageById().get(s.pageId);
+        h = (s.page + ' ' + s.name + ' ' + s.url + ' ' + (s.terms || []).join(' ') + ' ' + ((p && p.parts) || []).join(' ')).toLowerCase();
+        _hay.set(s.id, h);
+      }
+      return h;
     }
-    function filtered() {
+    /* Everything except the page pick -- the rail counts and the "whole site"
+       list are both built from this, so the rail never offers a page that the
+       current filters would show as empty. */
+    function preFiltered() {
       const q = search.toLowerCase();
       return S.slots.filter((s) => (!fx.pri || s.priority === fx.pri)
         && (!fx.status || status(s) === fx.status)
         && (!fx.section || s.section === fx.section)
         && (!fx.rec || (s.rec || '').toUpperCase().startsWith(fx.rec))
         && (!fx.hideReuse || s.priority !== 'Reuse')
-        && (!q || (s.page + ' ' + s.name + ' ' + s.url).toLowerCase().includes(q)));
+        && (!q || haystack(s).includes(q)));
     }
-    /* The tiles: exactly two per slot, Main and Backup, not a candidate strip.
-       Click a filled tile to reveal Swap (swaps main and backup with each
-       other, no picker involved) and a trash icon (clears just that slot).
-       Click an empty tile to open the picker for it directly. See
-       swapTarget/assign() below -- no more click-to-assign / click-again-
-       for-backup / click-again-to-clear cycling through candidates in the
-       row itself. */
-    function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : 'library'; }
+    function filtered() {
+      const base = preFiltered();
+      return fx.page ? base.filter((s) => s.pageId === fx.page) : base;
+    }
+    /* ---------- left rail: sections → pages ---------- */
+    /* The dot beside a page in the rail. An EX- slot arrives with its migrated
+       hero already in `main` and state 'unreviewed', so "has a main" is not the
+       test for done -- the status is. */
+    function pageProgress(slots) {
+      const done = slots.filter((s) => { const st = status(s); return st !== 'unassigned' && st !== 'unreviewed'; }).length;
+      return done === 0 ? '' : done === slots.length ? 'done' : 'part';
+    }
+    function renderRail() {
+      const list = preFiltered();
+      const secs = new Map();
+      list.forEach((s) => {
+        const sec = s.section || '(unmapped)';
+        if (!secs.has(sec)) secs.set(sec, new Map());
+        const pages = secs.get(sec);
+        if (!pages.has(s.pageId)) pages.set(s.pageId, []);
+        pages.get(s.pageId).push(s);
+      });
+      // keep the section holding the selected page open without a click
+      if (fx.page) { const s0 = S.slots.find((x) => x.pageId === fx.page); if (s0) railOpen.add(s0.section || '(unmapped)'); }
+      const html = Array.from(secs.keys()).sort().map((sec) => {
+        const pages = secs.get(sec);
+        const n = Array.from(pages.values()).reduce((a, b) => a + b.length, 0);
+        const open = railOpen.has(sec);
+        const inner = open ? '<div class="rpages">' + Array.from(pages.entries()).map(([pid, slots]) => {
+          const p = pageById().get(pid);
+          return '<button class="rpage ' + (fx.page === pid ? 'on' : '') + '" data-page="' + esc(pid) + '"><span class="dot ' + pageProgress(slots) + '"></span>' + esc((p && p.name) || slots[0].page) + '<i>' + slots.length + '</i></button>';
+        }).join('') + '</div>' : '';
+        return '<div class="rsec ' + (open ? 'open' : '') + '"><button data-sec="' + esc(sec) + '">' + esc(sec === '(unmapped)' ? 'Unsectioned' : sec) + '<b>' + n + '</b></button>' + inner + '</div>';
+      }).join('');
+      $('rail').innerHTML = html || '<p class="hint">Nothing matches.</p>';
+      $('rail-count').textContent = list.length + ' slots';
+      $('rail').querySelectorAll('[data-sec]').forEach((b) => b.addEventListener('click', () => {
+        const sec = b.dataset.sec;
+        railOpen.has(sec) ? railOpen.delete(sec) : railOpen.add(sec);
+        renderRail();
+      }));
+      $('rail').querySelectorAll('[data-page]').forEach((b) => b.addEventListener('click', () => {
+        fx.page = fx.page === b.dataset.page ? '' : b.dataset.page;
+        pageIdx = 0; openSlots.clear(); renderRail(); renderSlots();
+      }));
+    }
+    /* ---------- the page header card (Ace's page card) ---------- */
+    function renderPageCard() {
+      const el = $('page-card');
+      const p = fx.page && pageById().get(fx.page);
+      if (!p) { el.innerHTML = ''; el.hidden = true; return; }
+      el.hidden = false;
+      const slots = S.slots.filter((s) => s.pageId === p.id);
+      const cut = (t) => t && t.length > 54 ? t.slice(0, 52).replace(/[\s—·-]+$/, '') + '…' : t;
+      const tags = [cut(p.status || p.briefStatus), p.type, p.scope ? 'v11: ' + p.scope : '', slots.length + ' slot' + (slots.length === 1 ? '' : 's'), (p.drupalImages || []).length ? 'Drupal export: yes' : 'Drupal export: no']
+        .filter(Boolean).map((t, i) => '<span class="tg ' + (i === 0 ? 'on' : '') + '" title="' + esc(i === 0 ? (p.status || p.briefStatus || '') : t) + '">' + esc(t) + '</span>').join('');
+      const imgs = (p.drupalImages || []).slice(0, 4).map((u) => '<img loading="lazy" src="' + esc(u) + '">').join('');
+      el.innerHTML = '<div class="pcard"><div class="pt">' + esc(p.name) + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div><div class="tags">' + tags + '</div>' +
+        ((p.drupalImages || []).length ? '<div class="ex">' + imgs + '<span class="mini">Existing imagery in the Drupal export' + ((p.drupalImages || []).length > 4 ? ' (' + ((p.drupalImages || []).length - 4) + ' more)' : '') + '. Carries over untouched on a page that migrates as is.</span></div>' : '') +
+        (p.parts && p.parts.length ? '<div class="mini" style="margin-top:12px">Parts: ' + esc(p.parts.slice(0, 12).join(' · ')) + (p.parts.length > 12 ? ' +' + (p.parts.length - 12) : '') + '</div>' : '') +
+        '</div>';
+    }
+    /* Two tiles per slot, Main and Backup. Clicking an empty tile -- or Swap
+       on a filled one -- opens the FULL-SCREEN picker (openPicker below), not
+       an inline drawer. The chevron opens the row's detail drawer, which is
+       now just the brief, the search terms, the rules and the note: no
+       candidate grid, so nothing about choosing an image lives under a fold. */
     function tileHtml(s, which) {
       const pick = s[which];
       if (!pick) return '<div class="tile empty" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · generate · upload</span></div>';
@@ -560,35 +729,44 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
         '<span class="tag">' + which.toUpperCase() + '</span>' +
         '<span class="cap">' + esc(pick.title || pick.id || '') + '</span>' +
-        '<div class="tile-actions"><button class="tact swap" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '">Swap</button><button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
+        '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
+        (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
+        '<button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
     }
     function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + tileHtml(s, 'backup') + '</div>'; }
     function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '">' : '<div class="thumb empty"></div>'; }
     function renderSlots() {
+      renderRail(); renderPageCard();
       const list = filtered();
+      // A page picked in the rail shows whole. Only the "whole site" view pages.
+      const paged = !fx.page;
       const pages = Math.max(1, Math.ceil(list.length / PAGE));
       if (pageIdx >= pages) pageIdx = pages - 1;
-      const start = pageIdx * PAGE;
-      const rows = list.slice(start, start + PAGE).map((s) => {
-        const st = status(s); const b = batchOf(s); const open = openSlot === s.id;
+      const start = paged ? pageIdx * PAGE : 0;
+      const shown = paged ? list.slice(start, start + PAGE) : list;
+      const rows = shown.map((s) => {
+        const st = status(s); const b = batchOf(s); const open = openSlots.has(s.id);
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
           '<div class="mrow"><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '><div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></div>' +
           '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span>' +
-          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Browse images for this slot">' + ICONS.chevron + '</span></div></div></div>' +
-          (open ? '<div class="drawer-wrap"><div class="drawer" id="drawer"></div></div>' : '');
+          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Brief and notes">' + ICONS.chevron + '</span></div></div>' +
+          (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
       });
       $('slot-rows').innerHTML = rows.join('') || '<p class="hint">Nothing matches.</p>';
-      const count = list.length ? 'Showing ' + (start + 1) + '–' + Math.min(start + PAGE, list.length) + ' of ' + list.length : '0 slots';
+      const count = !list.length ? '0 slots' : paged
+        ? 'Showing ' + (start + 1) + '–' + Math.min(start + PAGE, list.length) + ' of ' + list.length
+        : list.length + ' slot' + (list.length === 1 ? '' : 's') + ' on this page';
       $('pg-count').textContent = count;
-      $('pg-prev').disabled = pageIdx === 0; $('pg-next').disabled = start + PAGE >= list.length;
-      $('slot-more').innerHTML = '<span class="mini">' + count + '</span><button class="sbtn" id="pg-prev2" ' + (pageIdx === 0 ? 'disabled' : '') + '>Prev</button><button class="sbtn" id="pg-next2" ' + (start + PAGE >= list.length ? 'disabled' : '') + '>Next</button>';
-      $('pg-prev2').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
-      $('pg-next2').addEventListener('click', () => { if (start + PAGE < list.length) { pageIdx++; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
+      $('pg-prev').hidden = !paged; $('pg-next').hidden = !paged;
+      $('pg-prev').disabled = pageIdx === 0; $('pg-next').disabled = !paged || start + PAGE >= list.length;
+      $('slot-more').innerHTML = paged
+        ? '<span class="mini">' + count + '</span><button class="sbtn" id="pg-prev2" ' + (pageIdx === 0 ? 'disabled' : '') + '>Prev</button><button class="sbtn" id="pg-next2" ' + (start + PAGE >= list.length ? 'disabled' : '') + '>Next</button>'
+        : '';
+      const pv = $('pg-prev2'), nx = $('pg-next2');
+      if (pv) pv.addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
+      if (nx) nx.addEventListener('click', () => { if (start + PAGE < list.length) { pageIdx++; renderSlots(); window.scrollTo({ top: $('tab-slots').offsetTop - 80, behavior: 'smooth' }); } });
       $('slot-rows').querySelectorAll('.tile.empty').forEach((tl) => tl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const s = byId().get(tl.dataset.slot);
-        openSlot = s.id; swapTarget = tl.dataset.which; srcTab = defaultSrcTab(s); revealTile = null;
-        renderSlots(); renderDrawer();
+        e.stopPropagation(); openPicker(tl.dataset.slot, tl.dataset.which);
       }));
       $('slot-rows').querySelectorAll('.tile.filled').forEach((tl) => tl.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -602,35 +780,59 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (btn.dataset.act === 'trash') {
           s[which] = null; revealTile = null;
           if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
-          mark(); renderSlots(); renderStats(); if (openSlot === s.id) renderDrawer();
+          mark(); renderSlots(); renderStats();
         } else if (btn.dataset.act === 'swap') {
           const tmp = s.main; s.main = s.backup; s.backup = tmp; revealTile = null;
-          mark(); renderSlots(); renderStats(); if (openSlot === s.id) renderDrawer();
+          mark(); renderSlots(); renderStats();
+        } else if (btn.dataset.act === 'replace') {
+          revealTile = null; openPicker(s.id, which);
         }
       }));
-      if (openSlot) renderDrawer();
       $('slot-rows').querySelectorAll('input[data-chk]').forEach((c) => c.addEventListener('click', (e) => { e.stopPropagation(); c.checked ? checked.add(c.dataset.chk) : checked.delete(c.dataset.chk); updateChecked(); }));
-      $('slot-rows').querySelectorAll('.srow .mrow').forEach((mr) => mr.addEventListener('click', () => { const id = mr.closest('.srow').dataset.id; openSlot = openSlot === id ? null : id; swapTarget = null; revealTile = null; srcTab = 'library'; renderSlots(); renderDrawer(); }));
+      $('slot-rows').querySelectorAll('.srow .mrow').forEach((mr) => mr.addEventListener('click', () => {
+        const id = mr.closest('.srow').dataset.id;
+        openSlots.has(id) ? openSlots.delete(id) : openSlots.add(id);
+        revealTile = null; renderSlots();
+      }));
+      $('slot-rows').querySelectorAll('[data-detail]').forEach((el) => renderDetail(byId().get(el.dataset.detail), el));
+      $('expand-all').textContent = shown.length && shown.every((s) => openSlots.has(s.id)) ? 'Collapse all' : 'Expand all';
       updateChecked();
     }
+    /* The row drawer: the brief and the note, nothing to pick. */
+    function renderDetail(s, el) {
+      if (!s || !el) return;
+      el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' +
+        '<button class="sbtn p" data-browse="' + s.id + '">Browse images</button>' +
+        (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="' + s.id + '">Keep the current image</button>' : '') +
+        '<button class="sbtn" data-clear="' + s.id + '">Clear picks</button></div></div>' +
+        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + '<textarea class="q2 brief-edit" data-brief="' + s.id + '" rows="3" placeholder="What should this image show? Editing this changes what Generate 5 sends.">' + esc(s.prompt || '') + '</textarea></div>' +
+        '<div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div>' +
+        '<div><b>Rules</b><div class="q2">' + HOUSE_RULES + '</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" data-note="' + s.id + '" value="' + esc(s.notes || '') + '"></label></div></div>';
+      el.querySelector('[data-browse]').addEventListener('click', () => openPicker(s.id, s.main ? 'backup' : 'main'));
+      const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
+      el.querySelector('[data-clear]').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; mark(); renderSlots(); renderStats(); });
+      el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
+      el.querySelector('[data-note]').addEventListener('change', (e) => { s.notes = e.target.value; mark(); });
+    }
+    const HOUSE_RULES = 'no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages';
+
     function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
-    $('check-all').addEventListener('change', (e) => { filtered().slice(pageIdx * PAGE, pageIdx * PAGE + PAGE).forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
+    function visibleSlots() { const l = filtered(); return fx.page ? l : l.slice(pageIdx * PAGE, pageIdx * PAGE + PAGE); }
+    $('check-all').addEventListener('change', (e) => { visibleSlots().forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
     $('f-pri').addEventListener('change', (e) => { fx.pri = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-status').addEventListener('change', (e) => { fx.status = e.target.value; pageIdx = 0; renderSlots(); });
-    $('f-section').addEventListener('change', (e) => { fx.section = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-rec').addEventListener('change', (e) => { fx.rec = e.target.value; pageIdx = 0; renderSlots(); });
-    $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); });
+    $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); if ($('picker').open) renderPicker(); });
     $('f-hidereuse').addEventListener('change', (e) => { fx.hideReuse = e.target.checked; pageIdx = 0; renderSlots(); });
     $('pg-prev').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); } });
     $('pg-next').addEventListener('click', () => { if ((pageIdx + 1) * PAGE < filtered().length) { pageIdx++; renderSlots(); } });
     $('search').addEventListener('input', (e) => { search = e.target.value; pageIdx = 0; renderSlots(); });
-    // Click anywhere outside an open row/drawer closes it -- the explicit
-    // Close button in the drawer still works too, this is just the faster path.
-    document.addEventListener('click', (e) => {
-      if (!openSlot) return;
-      if (e.target.closest('.srow, .drawer-wrap')) return;
-      openSlot = null; swapTarget = null; revealTile = null;
-      renderSlots(); renderDrawer();
+    $('rail-clear').addEventListener('click', () => { fx.page = ''; pageIdx = 0; openSlots.clear(); renderSlots(); });
+    $('expand-all').addEventListener('click', () => {
+      const vis = visibleSlots();
+      const allOpen = vis.length && vis.every((s) => openSlots.has(s.id));
+      vis.forEach((s) => allOpen ? openSlots.delete(s.id) : openSlots.add(s.id));
+      renderSlots();
     });
     $('add-to-batch').addEventListener('click', () => {
       const drafts = S.batches.filter((b) => b.status === 'draft');
@@ -647,36 +849,39 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (source === 'generated') return { source, id: obj.id, url: obj.url, thumb: obj.thumb || obj.url, title: 'Generated' };
       return obj;
     }
+    /* The pick always lands on whichever tile the picker is currently aiming
+       at (pkWhich). Filling an empty main moves the aim to backup and keeps
+       the picker open, so both are chosen in two clicks; anything else closes
+       it, because the job is done. */
     function assign(slot, pick) {
-      if (swapTarget === 'main' || swapTarget === 'backup') {
-        // Targeted from an empty tile or its Swap button: the pick lands in
-        // exactly that slot, no matter what the other slot holds.
-        slot[swapTarget] = pick;
-        if (slot.state === 'unreviewed' || slot.state === 'kept') slot.state = 'assigned';
-        swapTarget = null; openSlot = null; revealTile = null;
-        mark(); renderSlots(); renderStats(); renderDrawer();
-        return;
-      }
-      // Untargeted (opened by clicking the row itself to browse): empty main
-      // → main; main set and pick differs → backup; clicking the current
-      // main clears it, clicking the backup clears backup.
-      const same = (a, b) => !!(a && b && a.url === b.url);
-      if (same(slot.main, pick)) { slot.main = slot.backup || null; slot.backup = null; }
-      else if (same(slot.backup, pick)) slot.backup = null;
-      else if (!slot.main) slot.main = pick;
-      else slot.backup = pick;
+      const which = pkWhich === 'backup' ? 'backup' : 'main';
+      slot[which] = pick;
       if (slot.state === 'unreviewed' || slot.state === 'kept') slot.state = 'assigned';
-      mark(); renderSlots(); renderDrawer(); renderStats();
+      revealTile = null;
+      mark(); renderSlots(); renderStats();
+      if (which === 'main' && !slot.backup) { pkWhich = 'backup'; renderPicker(); }
+      else closePicker();
     }
     function candCard(pick, slot, extra) {
+      extra = extra || {};
       const cls = slot.main && slot.main.url === pick.url ? 'main' : slot.backup && slot.backup.url === pick.url ? 'backup' : '';
-      return '<div class="cand ' + cls + (extra && extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + (pick.source === 'stock' ? '<button type="button" class="cand-x" data-remove-cand="' + esc(pick.url) + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button>' : '') + '<div class="cb"><b>' + esc(extra && extra.label || pick.id || '') + '</b>' + esc(extra && extra.text || pick.title || '') + '</div></div>';
+      const flags = [];
+      if (pick.source === 'stock') flags.push(extra.ai ? '<span class="flag ai">Generative AI</span>' : '<span class="flag real">Real photo</span>');
+      if (extra.editorial) flags.push('<span class="flag ed">Editorial only</span>');
+      if (extra.dims) flags.push('<span class="flag">' + esc(extra.dims) + '</span>');
+      return '<div class="cand ' + cls + (extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
+        (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') +
+        (pick.source === 'stock' ? '<button type="button" class="cand-x" data-remove-cand="' + esc(pick.url) + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button>' : '') +
+        '<div class="cb"><b>' + esc(extra.label || pick.id || '') + '</b>' + esc(extra.text || pick.title || '') + '</div>' +
+        (flags.length ? '<div class="meta2">' + flags.join('') + '</div>' : '') +
+        (extra.adobe ? '<a class="adobe" href="' + esc(extra.adobe) + '" target="_blank" rel="noopener" data-stop="1">Open on Adobe Stock ↗</a>' : '') +
+        '</div>';
     }
     function removeCandidate(slot, url) {
       slot.candidates = (slot.candidates || []).filter((c) => c.comp !== url);
       if (slot.main && slot.main.url === url) slot.main = null;
       if (slot.backup && slot.backup.url === url) slot.backup = null;
-      mark(); renderSlots(); renderStats(); renderDrawer();
+      mark(); renderSlots(); renderStats(); renderPicker();
     }
     /* ---------- AI-generated candidates ---------- */
     const genBusy = {}; // slotId -> true while a generate call is in flight
@@ -684,8 +889,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const idx = opts && typeof opts.index === 'number' ? opts.index : null;
       const count = idx === null ? 5 : 1;
       if (genBusy[slot.id]) return;
-      if (!(slot.prompt || '').trim()) { alert('Write a brief first — that\u2019s what gets sent to the image generator.'); return; }
-      genBusy[slot.id] = true; renderDrawer();
+      if (!(slot.prompt || '').trim()) { alert('Write a brief first — that’s what gets sent to the image generator.'); return; }
+      genBusy[slot.id] = true; renderPicker();
       try {
         const r = await api('/api/sitime-generate', { method: 'POST', body: { slotId: slot.id, prompt: slot.prompt || '', count } });
         if (!r.ok || !r.data || !r.data.ok) { alert((r.data && r.data.error) || 'Generation failed (' + r.status + ').'); return; }
@@ -700,42 +905,69 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } catch (e) {
         alert('Generation failed: ' + (e && e.message ? e.message : e));
       } finally {
-        genBusy[slot.id] = false; renderDrawer();
+        genBusy[slot.id] = false; renderPicker();
       }
     }
     /* ---------- live Adobe Stock search ---------- */
     async function searchStock(q) {
       stockQ = q; stockErr = '';
       const query = q.trim();
-      if (!query) { stockResults = []; renderDrawer(); return; }
-      stockBusy = true; renderDrawer();
+      if (!query) { stockResults = []; renderPicker(); return; }
+      stockBusy = true; renderPicker();
       try {
         const r = await api('/api/sitime-stock-search', { method: 'POST', body: { query } });
         if (!r.ok || !r.data || !r.data.ok) { stockErr = (r.data && r.data.error) || 'Search failed (' + r.status + ').'; stockResults = []; }
         else stockResults = r.data.results || [];
       } catch (e) { stockErr = 'Search failed: ' + (e && e.message ? e.message : e); stockResults = []; }
-      stockBusy = false; renderDrawer();
+      stockBusy = false; renderPicker();
     }
 
-    function renderDrawer() {
-      const dr = $('drawer'); const s = openSlot && byId().get(openSlot);
-      if (!s || !dr) return;
+    /* ---------- the full-screen picker ---------- */
+    function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : ((S.library || []).length ? 'library' : ((s.existing || []).length ? 'existing' : 'generated')); }
+    function openPicker(slotId, which) {
+      const s = byId().get(slotId); if (!s) return;
+      pkSlot = slotId; pkWhich = which === 'backup' ? 'backup' : 'main';
+      pkBriefOpen = false; srcTab = defaultSrcTab(s); libShown = 48; revealTile = null;
+      const dlg = $('picker'); if (!dlg.open) dlg.showModal();
+      renderPicker();
+    }
+    function closePicker() { pkSlot = null; const dlg = $('picker'); if (dlg.open) dlg.close(); }
+    function tgtBtn(s, which) {
+      const p = s[which];
+      return '<button class="tgt ' + (pkWhich === which ? 'on' : '') + '" data-tgt="' + which + '">' + (p ? '<img src="' + esc(p.thumb || p.url) + '">' : '<span class="ph"></span>') + which[0].toUpperCase() + which.slice(1) + '</button>';
+    }
+    function renderPicker() {
+      const dlg = $('picker'); if (!dlg.open) return;
+      const s = pkSlot && byId().get(pkSlot); if (!s) { closePicker(); return; }
       if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
+
+      $('pk-title').textContent = s.page + ' · ' + s.name;
+      $('pk-sub').textContent = [s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ');
+      $('pk-target').innerHTML = '<span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
+        ((s.main || s.backup) ? '<button class="clr" id="pk-clear">Clear both</button>' : '');
+      $('pk-target').querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich = b.dataset.tgt; renderPicker(); }));
+      const pc = $('pk-clear'); if (pc) pc.addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich = 'main'; mark(); renderSlots(); renderStats(); renderPicker(); });
+
+      $('pk-brief').innerHTML = pkBriefOpen
+        ? '<b>The brief</b> <button class="more" id="pk-briefless">hide</button><textarea id="pk-brieftext" rows="3">' + esc(s.prompt || '') + '</textarea><div class="rules">Rules: ' + HOUSE_RULES + '</div>'
+        : '<span class="oneline">' + esc(s.prompt || 'No brief written for this slot.') + '</span><button class="more" id="pk-briefmore">brief &amp; rules</button>';
+      const bm = $('pk-briefmore'); if (bm) bm.addEventListener('click', () => { pkBriefOpen = true; renderPicker(); });
+      const bl = $('pk-briefless'); if (bl) bl.addEventListener('click', () => { pkBriefOpen = false; renderPicker(); });
+      const bt = $('pk-brieftext'); if (bt) bt.addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
+
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
+      $('pk-tabs').innerHTML = tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') +
+        '<span class="mini">Click an image to set the <b>' + pkWhich + '</b>.</span>';
+      $('pk-tabs').querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderPicker(); }));
+
+      const dr = $('pk-body');
       let body = '';
       if (srcTab === 'stock') {
-        // "Hide Gen-AI candidates" (f-hideai, checked by default) is meant to hide
-        // AI-flagged Stock comps the way Ace's tool does -- it used to only steer
-        // which tab opened by default and never filtered this list, so the checkbox
-        // did nothing once you were on the Stock tab. Filtering here is the fix.
         const allCands = s.candidates || [];
         const shownCands = allCands.filter((c) => !(fx.hideAi && c.ai));
         const hiddenCount = allCands.length - shownCands.length;
-        const cands = shownCands.map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, label: c.id, text: c.why || c.title }));
-        if (hiddenCount) cands.push('<div class="hint" style="flex-basis:100%">' + hiddenCount + ' generative-AI result' + (hiddenCount === 1 ? '' : 's') + ' hidden \u2014 <a href="#" id="show-ai-cands">show ' + (hiddenCount === 1 ? 'it' : 'them') + '</a></div>');
-        // The search link is built from the slot's own search terms (falling
-        // back to its prompt, then its name) so it opens Stock already
-        // searching the right thing instead of a blank search box.
+        const cands = shownCands.map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, editorial: c.editorial, dims: c.dims, label: c.id, text: c.why || c.title, adobe: c.url }));
+        if (hiddenCount) cands.push('<div class="hint" style="grid-column:1/-1">' + hiddenCount + ' generative-AI result' + (hiddenCount === 1 ? '' : 's') + ' hidden — <a href="#" id="show-ai-cands">show ' + (hiddenCount === 1 ? 'it' : 'them') + '</a></div>');
         const stockQuery = (s.terms && s.terms.length) ? s.terms.join(' ') : (s.prompt || s.name || s.page || '');
         const stockSearchUrl = 'https://stock.adobe.com/search?k=' + encodeURIComponent(stockQuery);
         const searchCards = stockResults.map((r, i) => {
@@ -764,16 +996,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           const cls = s.main && s.main.url === g.url ? 'main' : s.backup && s.backup.url === g.url ? 'backup' : '';
           return '<div class="cand ' + cls + '" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
         });
-        body = '<div class="up" style="margin-bottom:12px"><button class="sbtn p" id="gen-all" ' + (busy ? 'disabled' : '') + '>' + (busy ? 'Generating…' : (gens.length ? 'Refresh all 5' : 'Generate 5')) + '</button><span class="mini" style="margin-left:10px">Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.</span></div><div class="cands">' + cards.join('') + '</div>';
+        body = '<div class="up" style="margin-bottom:12px;min-height:0;padding:14px"><button class="sbtn p" id="gen-all" ' + (busy ? 'disabled' : '') + '>' + (busy ? 'Generating…' : (gens.length ? 'Refresh all 5' : 'Generate 5')) + '</button><span class="mini" style="margin-left:10px">Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.</span></div><div class="cands">' + cards.join('') + '</div>';
       } else {
-        body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG, becomes main if empty, else backup</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
+        body = '<div class="cands"><label class="up" for="up-file">Drop or choose an image<br><span class="mini">JPG or PNG — lands on the ' + pkWhich + '</span></label><input type="file" id="up-file" accept="image/*" hidden><span class="mini" id="up-status"></span></div>';
       }
-      dr.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + (swapTarget ? ' <span class="mini" style="color:#4B584E">— choosing ' + swapTarget + '</span>' : '') + '</div><span class="mini">' + esc(s.section + ' · sitime.com' + s.url + ' · ' + s.priority) + '</span></div><div class="actions">' + (s.state === 'unreviewed' ? '<button class="sbtn" id="keep-existing">Keep the current image</button>' : '') + '<button class="sbtn" id="clear-picks">Clear picks</button><button class="sbtn" id="close-drawer">Close</button></div></div>' +
-        '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + (s.action ? ' · ' + esc(s.action) : '') + '<textarea class="q2 brief-edit" id="brief-text" rows="3" placeholder="What should this image show? Editing this changes what Generate 5 sends.">' + esc(s.prompt || '') + '</textarea>' + '</div><div><b>Search</b><div class="q2">' + esc((s.terms || []).join(' · ') || '—') + '</div></div><div><b>Rules</b><div class="q2">no hands holding · no light trails · no deep space (LEO only) · no blue or cyan as shot · aircraft and defense only on their own market pages</div><label class="q" style="margin-top:10px"><span class="q-title" style="font-size:.8rem">Note to self</span><input class="txt" id="slot-note" value="' + esc(s.notes || '') + '"></label></div></div>' +
-        '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">' + (swapTarget ? 'Click a candidate to set the ' + swapTarget + ' image.' : 'Click a candidate for main, again for backup. Click a chosen one to clear it.') + '</span></div>' + body;
+      dr.innerHTML = body;
+      dr.scrollTop = 0;
 
-      dr.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; renderDrawer(); }));
       dr.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
+      dr.querySelectorAll('[data-stop]').forEach((a) => a.addEventListener('click', (ev) => ev.stopPropagation()));
       const sq = $('stock-q'); const sg = $('stock-go');
       if (sq) sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchStock(sq.value); } });
       if (sg) sg.addEventListener('click', () => searchStock(($('stock-q') || {}).value || ''));
@@ -784,8 +1015,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (!cc) { cc = { id: r.id, title: r.title || '', comp: r.comp, url: 'https://stock.adobe.com/images/x/' + r.id, why: r.creator ? 'by ' + r.creator + (r.type ? ' · ' + r.type : '') : 'Found via search', ai: false, manual: true }; s.candidates.unshift(cc); }
         assign(s, pickFrom('stock', cc));
       }));
-      const showAi = dr.querySelector('#show-ai-cands'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; renderDrawer(); });
-      const briefEl = $('brief-text'); if (briefEl) briefEl.addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
+      const showAi = dr.querySelector('#show-ai-cands'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; renderPicker(); });
       const genAll = $('gen-all'); if (genAll) genAll.addEventListener('click', () => generateImages(s));
       dr.querySelectorAll('[data-gen-idx]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); generateImages(s, { index: Number(b.dataset.genIdx) }); }));
       dr.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
@@ -796,23 +1026,21 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (srcTab === 'generated') { const g = (s.generated || []).find((x) => x.url === url); if (g) pick = pickFrom('generated', g); }
         if (pick) assign(s, pick);
       }));
-      $('close-drawer').addEventListener('click', () => { openSlot = null; swapTarget = null; revealTile = null; renderSlots(); renderDrawer(); });
-      $('clear-picks').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; mark(); renderSlots(); renderDrawer(); renderStats(); });
-      const keep = $('keep-existing'); if (keep) keep.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderDrawer(); renderStats(); });
-      $('slot-note').addEventListener('change', (e) => { s.notes = e.target.value; mark(); });
       const ps = $('paste-stock'); if (ps) ps.addEventListener('click', () => { const u = prompt('Adobe Stock comp URL (…ftcdn.net/jpg/…/1000_F_<id>_….jpg) or a Stock ID:'); if (!u) return; const m = u.match(/1000_F_(\d+)_/) || u.match(/^(\d{6,12})$/); const id = m ? m[1] : ''; const url = /^https?:/.test(u) ? u : ''; if (!url) { alert('Paste the comp image URL, not just the ID: the tool can’t fetch a comp from an ID alone.'); return; } s.candidates = s.candidates || []; if (!s.candidates.find((c) => c.comp === url)) s.candidates.unshift({ id, title: 'Pasted', comp: url, url: id ? 'https://stock.adobe.com/images/x/' + id : url, why: 'Added by COGNAK', ai: false, manual: true }); assign(s, pickFrom('stock', s.candidates[0])); });
-      const lq = $('lib-q'); if (lq) { lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; renderDrawer(); const nq = $('lib-q'); nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); }); }
-      dr.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; renderDrawer(); }));
-      const lm = $('lib-more'); if (lm) lm.addEventListener('click', () => { libShown += 48; renderDrawer(); });
+      const lq = $('lib-q'); if (lq) { lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; renderPicker(); const nq = $('lib-q'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } }); }
+      dr.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; renderPicker(); }));
+      const lm = $('lib-more'); if (lm) lm.addEventListener('click', () => { libShown += 48; renderPicker(); });
       const uf = $('up-file'); if (uf) uf.addEventListener('change', async () => { const f = uf.files[0]; if (!f) return; $('up-status').textContent = 'Uploading…'; try { const r = await uploadBlob('sitime/uploads/' + s.id + '/' + f.name.replace(/[^\w.\-]+/g, '_'), f); assign(s, { source: 'upload', id: null, url: r.url, thumb: r.url, title: f.name }); } catch (e) { $('up-status').textContent = 'Upload failed: ' + (e.message || e); } });
     }
+    $('pk-close').addEventListener('click', closePicker);
+    $('picker').addEventListener('close', () => { pkSlot = null; renderSlots(); });
 
     /* ---------- replacements ---------- */
     function renderRepl() {
       const m = byId(); const items = [];
       S.batches.filter((b) => b.status !== 'draft').forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
       $('repl-list').innerHTML = items.length ? items.map(({ s, b, o }) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + o.outcome + '"><i></i>' + STATUS_LABEL[o.outcome] + '</span> in batch ' + String(b.num).padStart(2, '0') + (o.which === 'backup' ? ' (main and backup both)' : '') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '">Pick a replacement</button></div></div></div>').join('') : '<p class="hint">Nothing denied or held.</p>';
-      $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.re); s.batch = null; s.main = null; s.backup = null; s.state = 'assigned'; mark(); openSlot = s.id; srcTab = 'stock'; showTab('slots'); const tr = document.querySelector('#slot-rows tr[data-id="' + s.id + '"]'); if (tr) tr.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+      $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.re); s.batch = null; s.main = null; s.backup = null; s.state = 'assigned'; mark(); fx.page = s.pageId; pageIdx = 0; showTab('slots'); renderSlots(); openPicker(s.id, 'main'); }));
     }
 
     /* ---------- handoff ---------- */
