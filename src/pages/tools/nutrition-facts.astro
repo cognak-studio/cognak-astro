@@ -91,12 +91,13 @@ const jsonLd = {
         <div class="group-title">Format</div>
         <div class="field">
           <label class="q" for="tool-select">
-            <span class="q-title">Choose UPC, QR code or Nutrition Facts</span>
-            <span class="q-sub">Three for now, but <a href="mailto:hello@cognak.com">let us know</a> if you'd like another.</span>
+            <span class="q-title">Choose UPC, ITF-14, QR code or Nutrition Facts</span>
+            <span class="q-sub">Four for now, but <a href="mailto:hello@cognak.com">let us know</a> if you'd like another.</span>
           </label>
           <div class="selwrap">
             <select class="sel" id="tool-select">
               <option value="upc">UPC-A — retail product barcode</option>
+              <option value="itf">ITF-14 — shipping case barcode</option>
               <option value="qr">QR code — link to a URL</option>
               <option value="nfp" selected>Nutrition Facts — FDA panel for food packaging</option>
             </select>
@@ -799,6 +800,7 @@ const jsonLd = {
     $('tool-select').addEventListener('change', (e) => {
       if (e.target.value === 'upc') window.location.href = '/tools';
       else if (e.target.value === 'qr') window.location.href = '/tools#qr';
+      else if (e.target.value === 'itf') window.location.href = '/tools#itf';
     });
 
     buttons.forEach((btn) => {

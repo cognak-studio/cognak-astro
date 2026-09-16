@@ -41,7 +41,7 @@ const toolsJsonLd = {
       '@type': 'WebApplication',
       '@id': 'https://cognak.com/tools/#app',
       name: 'Free UPC Barcode & QR Code Generator',
-      alternateName: ['UPC-A barcode generator', 'QR code generator for print'],
+      alternateName: ['UPC-A barcode generator', 'ITF-14 shipping case barcode generator', 'QR code generator for print'],
       url: 'https://cognak.com/tools/',
       applicationCategory: 'DesignApplication',
       applicationSubCategory: 'Barcode Generator',
@@ -57,6 +57,7 @@ const toolsJsonLd = {
       },
       featureList: [
         'Free UPC-A barcode generator with automatic check digit',
+        'ITF-14 (GTIN-14 / SCC-14) shipping case barcode generator with bearer bars',
         'QR code generator for any URL',
         'Vector downloads: SVG, PDF and EPS, not PNG screenshots',
         'GS1-compliant magnification from 80% to 200%',
@@ -97,7 +98,7 @@ const toolsJsonLd = {
     </h1>
     <p class="lede tools-lede">
       Select the asset you need, enter your specs, and download as EPS, SVG,
-      or PDF. UPCs are built to the GS1 spec, the Nutrition Facts panels to
+      or PDF. UPCs and ITF-14s are built to the GS1 spec, the Nutrition Facts panels to
       21 CFR 101.9. Nothing you type here leaves the browser. The standards
       each one follows are spelled out at the bottom of the page.
     </p>
@@ -109,12 +110,13 @@ const toolsJsonLd = {
         <div class="group-title">Format</div>
         <div class="field">
           <label class="q" for="tool-select">
-            <span class="q-title">Choose UPC, QR code or Nutrition Facts</span>
-            <span class="q-sub">Three for now, but <a href="mailto:hello@cognak.com">let us know</a> if you'd like another.</span>
+            <span class="q-title">Choose UPC, ITF-14, QR code or Nutrition Facts</span>
+            <span class="q-sub">Four for now, but <a href="mailto:hello@cognak.com">let us know</a> if you'd like another.</span>
           </label>
           <div class="selwrap">
             <select class="sel" id="tool-select">
               <option value="upc">UPC-A — retail product barcode</option>
+              <option value="itf">ITF-14 — shipping case barcode</option>
               <option value="qr">QR code — link to a URL</option>
               <option value="nfp">Nutrition Facts — FDA panel for food packaging</option>
             </select>
@@ -164,6 +166,59 @@ const toolsJsonLd = {
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- ------------------------------------------------------ ITF-14 --- -->
+      <div class="group panel" id="panel-itf" hidden>
+        <div class="group-title">The number</div>
+
+        <div class="field">
+          <label class="q" for="itf-input">
+            <span class="q-title">GTIN-14 / SCC-14</span>
+            <span class="q-sub">14 digits, the case-level code. If you only have 13, the check digit will be added for you.</span>
+          </label>
+          <input
+            class="txt mono" id="itf-input" type="text"
+            inputmode="numeric" autocomplete="off" spellcheck="false"
+            placeholder="10036000291459" value="10036000291459"
+            aria-describedby="itf-note" />
+          <p class="note" id="itf-note"></p>
+        </div>
+
+        <div class="field pair">
+          <div class="half">
+            <label class="q" for="itf-mag">
+              <span class="q-title">Magnification</span>
+              <span class="q-sub">GS1 allows 50–100% on cases. Use 100% on corrugated.</span>
+            </label>
+            <div class="suffixed">
+              <input class="txt" id="itf-mag" type="number" min="50" max="100" step="1" value="100" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="half">
+            <label class="q" for="itf-bwr">
+              <span class="q-title">Bar width reduction</span>
+              <span class="q-sub">Only if the printer asks for it.</span>
+            </label>
+            <div class="suffixed">
+              <input class="txt" id="itf-bwr" type="number" min="0" max="0.3" step="0.01" value="0" />
+              <span class="suffix">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <fieldset class="field fieldset">
+          <legend class="q">
+            <span class="q-title">Bearer bars</span>
+            <span class="q-sub">The frame keeps a flexo plate from bowing into the bars and stops short scans. Keep it for printing on corrugated.</span>
+          </legend>
+          <div class="pills" id="itf-bearer">
+            <label class="pill on"><input type="radio" name="bearer" value="frame" checked /> Full frame</label>
+            <label class="pill"><input type="radio" name="bearer" value="bars" /> Top and bottom</label>
+            <label class="pill"><input type="radio" name="bearer" value="none" /> None</label>
+          </div>
+        </fieldset>
       </div>
 
       <!-- ---------------------------------------------------------- QR --- -->
@@ -226,7 +281,10 @@ const toolsJsonLd = {
     <p class="tfoot">
       UPC-A follows the GS1 nominal symbol — 0.33&nbsp;mm module,
       37.29&nbsp;&times;&nbsp;25.91&nbsp;mm at 100%, nine-module quiet zones,
-      guard bars run to the baseline. The human-readable line is OCR-B at 9pt
+      guard bars run to the baseline. ITF-14 uses a 1.016&nbsp;mm module
+      at 100% with a 2.5:1 wide-to-narrow ratio, ten-module quiet zones,
+      32&nbsp;mm bars and 4.83&nbsp;mm bearer bars, 152.4&nbsp;mm wide
+      framed. The UPC's human-readable line is OCR-B at 9pt
       with no tracking, the size where each digit's advance matches one
       7-module cell. It's exported as outlines, so there's no font to embed,
       install or substitute. COGNAK doesn't issue UPC numbers; those come
@@ -407,6 +465,7 @@ const toolsJsonLd = {
       box-shadow:0 12px 40px rgba(0,0,0,.34); }
     .tools .proof svg{ display:block; height:auto; max-width:100%; }
     .tools .proof.mode-upc svg{ width:100%; max-width:520px; }
+    .tools .proof.mode-itf svg{ width:100%; max-width:640px; }
     .tools .proof.mode-qr svg{ width:216px; }
     .tools .proof.is-empty{ background:var(--field); box-shadow:none; color:var(--placeholder);
       font-size:.88rem; font-family:'Diatype Mono', monospace; letter-spacing:.06em; }
@@ -479,6 +538,7 @@ const toolsJsonLd = {
 
   <script>
     import { normalizeUpc, buildUpcA } from '../../lib/barcode/upca.js';
+    import { normalizeItf14, buildItf14 } from '../../lib/barcode/itf14.js';
     import { buildQr } from '../../lib/barcode/qr.js';
     import { toSvg, toPdf, toEps } from '../../lib/barcode/emit.js';
     import { initLattice } from '../../lib/tools-background.js';
@@ -513,6 +573,7 @@ const toolsJsonLd = {
       proof.innerHTML = toSvg(docObj);
       proof.classList.remove('is-empty');
       proof.classList.toggle('mode-upc', kind === 'upc');
+      proof.classList.toggle('mode-itf', kind === 'itf');
       proof.classList.toggle('mode-qr', kind === 'qr');
       buttons.forEach((b) => { b.disabled = false; });
     }
@@ -521,7 +582,7 @@ const toolsJsonLd = {
       current = null;
       proof.innerHTML = message;
       proof.classList.add('is-empty');
-      proof.classList.remove('mode-upc', 'mode-qr');
+      proof.classList.remove('mode-upc', 'mode-itf', 'mode-qr');
       meta.innerHTML = '';
       buttons.forEach((b) => { b.disabled = true; });
     }
@@ -556,6 +617,45 @@ const toolsJsonLd = {
         `${doc.w} × ${doc.h} mm · ${mmToIn(doc.w)} × ${mmToIn(doc.h)} in<br>` +
         `module ${(0.33 * mag).toFixed(4)} mm · ${Math.round(mag * 100)}% magnification` +
         (mag < 0.9 ? ' <span class="warn">· below 90%, test on a scanner</span>' : '');
+    }
+
+    /* ----------------------------------------------------------- ITF-14 --- */
+
+    function currentBearer() {
+      const on = $('itf-bearer').querySelector('input:checked');
+      return on ? on.value : 'frame';
+    }
+
+    function renderItf() {
+      const input = $('itf-input');
+      const note = $('itf-note');
+      const result = normalizeItf14(input.value);
+
+      if (!result.ok) {
+        input.classList.toggle('is-error', input.value.trim().length > 0);
+        note.textContent = result.error;
+        note.className = 'note is-error';
+        clear('Waiting on a valid number');
+        return;
+      }
+
+      input.classList.remove('is-error');
+      note.textContent = result.computed
+        ? `Check digit ${result.check} added; the full code is ${result.digits}.`
+        : `Valid. Check digit ${result.check} confirmed.`;
+      note.className = 'note is-ok';
+
+      const mag = clamp($('itf-mag').value, 50, 100, 100) / 100;
+      const bwr = clamp($('itf-bwr').value, 0, 0.3, 0);
+      const bearer = currentBearer();
+      const doc = buildItf14(result.digits, { magnification: mag, bwr, bearer });
+
+      show(doc, `itf-14-${result.digits}`, 'itf');
+      meta.innerHTML =
+        `${doc.w} × ${doc.h} mm · ${mmToIn(doc.w)} × ${mmToIn(doc.h)} in<br>` +
+        `module ${doc.meta.x.toFixed(3)} mm · ${Math.round(mag * 100)}% magnification · bars ${doc.meta.barH} mm` +
+        (bearer === 'none' ? ' <span class="warn">· no bearer bars, not for plate printing</span>' : '') +
+        (mag < 0.62 ? ' <span class="warn">· below 62%, fine for labels, not for corrugated</span>' : '');
     }
 
     /* --------------------------------------------------------------- QR --- */
@@ -613,7 +713,7 @@ const toolsJsonLd = {
         (m.moduleMm < 0.4 ? ' <span class="warn">· under 0.4 mm, print it bigger</span>' : '');
     }
 
-    const render = () => (mode === 'upc' ? renderUpc() : renderQr());
+    const render = () => (mode === 'upc' ? renderUpc() : mode === 'itf' ? renderItf() : renderQr());
 
     /* ------------------------------------------------------------ wiring --- */
 
@@ -622,7 +722,7 @@ const toolsJsonLd = {
       return () => { clearTimeout(t); t = setTimeout(fn, ms); };
     };
 
-    ['upc-input', 'upc-mag', 'upc-bwr', 'qr-input', 'qr-size'].forEach((id) => {
+    ['upc-input', 'upc-mag', 'upc-bwr', 'itf-input', 'itf-mag', 'itf-bwr', 'qr-input', 'qr-size'].forEach((id) => {
       $(id).addEventListener('input', debounce(render));
     });
 
@@ -636,7 +736,15 @@ const toolsJsonLd = {
       render();
     });
 
-    const panels = { upc: $('panel-upc'), qr: $('panel-qr') };
+    $('itf-bearer').addEventListener('change', (e) => {
+      if (e.target.name !== 'bearer') return;
+      $('itf-bearer').querySelectorAll('.pill').forEach((p) => {
+        p.classList.toggle('on', p.contains(e.target));
+      });
+      render();
+    });
+
+    const panels = { upc: $('panel-upc'), itf: $('panel-itf'), qr: $('panel-qr') };
     $('tool-select').addEventListener('change', (e) => {
       const next = e.target.value;
       // The Nutrition Facts panel is its own page (it needs its own URL to be
@@ -674,12 +782,13 @@ const toolsJsonLd = {
       });
     });
 
-    // /tools#qr lands on the QR panel directly (the panel page links back this way).
-    if (location.hash === '#qr') {
-      mode = 'qr';
-      $('tool-select').value = 'qr';
+    // /tools#qr and /tools#itf land on that panel directly (the panel page links back this way).
+    const hashMode = location.hash.slice(1);
+    if (hashMode === 'qr' || hashMode === 'itf') {
+      mode = hashMode;
+      $('tool-select').value = hashMode;
       panels.upc.hidden = true;
-      panels.qr.hidden = false;
+      panels[hashMode].hidden = false;
     }
     render();
     requestAnimationFrame(() => $('tcard').classList.add('in'));
