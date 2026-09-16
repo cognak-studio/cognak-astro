@@ -35,12 +35,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">One moment.</p></div></div>
 
     <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Passcode</div>
-      <label class="q" for="pass"><span class="q-title">Enter the passcode COGNAK sent with this link.</span></label>
+      <label class="q" for="pass"><span class="q-title">Enter the review passcode.</span></label>
       <div class="passrow"><input class="txt" id="pass" type="password" autocomplete="off" autocapitalize="off" /><button type="button" class="btn" id="pass-go">Continue</button></div>
       <p class="hint is-error" id="pass-err" hidden></p>
     </div></div>
 
-    <div class="card rise" id="invalid" hidden><div class="group"><div class="group-title">This link</div><p class="hint" id="invalid-note">This link isn't complete. Check the URL COGNAK sent you.</p></div></div>
+    <div class="card rise" id="invalid" hidden><div class="group"><div class="group-title">This link</div><p class="hint" id="invalid-note">This link isn't complete. Open it again from the Batches tab.</p></div></div>
 
     <div class="card rise" id="card" hidden>
       <div class="group">
@@ -235,7 +235,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     window.addEventListener('resize', fit);
 
     const token = getToken();
-    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, preview: false };
+    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null };
     let pass = '';
     try { pass = sessionStorage.getItem('sitime-pass-' + token) || ''; } catch (e) {}
 
@@ -262,10 +262,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        never replace. Two ways a straight assignment lost the decision that
        had just been submitted, and in both the reviewer was thrown back to
        the main image instead of forward to its backup:
-         - a PREVIEW link (draft batch) can never have server-side decisions,
-           because sitime-decide refuses drafts with a 403, so every resync
-           returned {} and wiped the local event. That is also why a preview
-           link behaved differently from the sent one; it no longer does.
+         - (historical) draft-batch preview links had no server-side
+           decisions, so a resync wiped the local event. Drafts are gone
+           (9/16), but the merge stays for the case below.
          - on a live batch the Blob listing can lag the write by a moment,
            so an immediate resync can come back without the newest event.
        Newest event per (slot, which) wins, same rule the server uses. */
@@ -375,7 +374,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('submit').disabled = true; $('saving').hidden = false; $('err').hidden = true;
       const r = await api('/api/sitime-decide', { token, pass, slotId: s.id, which, decision: state.pending, note });
       $('submit').disabled = false; $('saving').hidden = true;
-      if (!r.ok && !(r.status === 403 && state.preview)) {
+      if (!r.ok) {
         $('err').textContent = (r.data && r.data.error) || 'Could not save that. Try again.'; $('err').hidden = false; return;
       }
       if (!state.decisions[s.id]) state.decisions[s.id] = {};
@@ -401,7 +400,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('gate').hidden = true;
       try { sessionStorage.setItem('sitime-pass-' + token, pass); } catch (e) {}
       state.batch = r.data.batch; state.slots = r.data.slots; state.decisions = r.data.decisions || {};
-      state.preview = state.batch.status === 'draft';
       if (r.data.mock) { $('mock-h1').textContent = r.data.mock.h1 || $('mock-h1').textContent; $('mock-p').textContent = r.data.mock.p || $('mock-p').textContent; $('mock-cta').textContent = r.data.mock.cta || $('mock-cta').textContent; }
       if (!state.slots.length) { $('invalid').hidden = false; $('invalid-note').textContent = 'This batch is empty.'; return; }
       const j = firstPending(0);

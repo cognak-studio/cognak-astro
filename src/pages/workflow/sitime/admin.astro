@@ -34,7 +34,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   <main id="cognak-main"><section class="adm">
 
     <h1 class="headline"><em>SiTime</em> images. Internal.</h1>
-    <p class="lede" id="lede">Assign a main and a backup to each slot, group slots into a batch, send SiTime one link. Decisions come back here; anything denied lands in Replacements.</p>
+    <p class="lede" id="lede">Assign a main and a backup to each slot, group slots into a batch, then open the batch on a call with SiTime and record their decisions. Decisions land here; anything denied lands in Replacements.</p>
 
     <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div><p class="hint">This page uses the admin session from <a href="/send">/send</a>. Sign in there, then reload this page.</p></div></div>
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
@@ -69,7 +69,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="fbar">
             <input class="search" id="search" placeholder="Search page, slot, URL, part number, search term" />
             <select class="sel" id="f-pri"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select>
-            <select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In draft</option><option value="sent">Sent</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
+            <select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In a batch</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
             <select class="sel" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
             <label class="chk"><input type="checkbox" id="f-hideai" checked /> Hide Gen-AI candidates</label>
             <label class="chk"><input type="checkbox" id="f-hidereuse" /> Hide migrate-as-is pages</label>
@@ -270,7 +270,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
     .adm .st i{ width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
-    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#9B948A; } .adm .st.sent i{ background:#9B948A; box-shadow:0 0 0 2px #E3DED5; }
+    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#9B948A; }
     .adm .st.approved i{ background:#9DFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
     .adm .st.unreviewed i{ background:#fff; border:1px solid #9A9A96; } .adm .st.kept i{ background:#9DFF00; border:1px solid #6EB300; opacity:.5; }
     .adm .mini{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.05em; color:var(--ink-soft); }
@@ -457,6 +457,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (dirty) save();
     }
 
+    /* Save now and wait for it. Opening a batch for review reads the SAVED
+       state, so a batch made (or filled) in the last second would otherwise
+       open as "not valid" or missing slots. */
+    async function flush() {
+      clearTimeout(saveTimer);
+      if (dirty && !saving) await save();
+      while (saving) await new Promise((r) => setTimeout(r, 200));
+    }
+
     /* ---------- derived ---------- */
     const byId = () => new Map(S.slots.map((s) => [s.id, s]));
     function batchOf(slot) { return slot.batch ? S.batches.find((b) => b.token === slot.batch) : null; }
@@ -475,15 +484,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function status(slot) {
       const b = batchOf(slot);
       if (b) {
-        if (b.status === 'draft') return 'queued';
+        /* No send step (Pierce, 9/16): batches are reviewed live on calls,
+           so a batch is open for decisions from the moment it exists. */
         const o = outcomeIn(slot, b).outcome;
-        return o === 'pending' ? 'sent' : o;
+        return o === 'pending' ? 'queued' : o;
       }
       if (slot.state === 'kept') return 'kept';
       if (slot.state === 'unreviewed') return 'unreviewed';
       return slot.main ? 'assigned' : 'unassigned';
     }
-    const STATUS_LABEL = { unassigned: 'Unassigned', assigned: 'Assigned', queued: 'In draft', sent: 'Sent', approved: 'Approved', denied: 'Denied', held: 'Held', unreviewed: 'Unreviewed', kept: 'Kept as is' };
+    const STATUS_LABEL = { unassigned: 'Unassigned', assigned: 'Assigned', queued: 'In a batch', approved: 'Approved', denied: 'Denied', held: 'Held', unreviewed: 'Unreviewed', kept: 'Kept as is' };
     function finalPick(slot) { const b = batchOf(slot); const o = b ? outcomeIn(slot, b) : null; return o && o.outcome === 'approved' ? (o.which === 'backup' ? slot.backup : slot.main) : null; }
 
     /* ---------- render: stats + tabs ---------- */
@@ -520,8 +530,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     const ICONS = {
       open: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
-      preview: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
-      send: '<svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>',
+      review: '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
       copy: '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
       csv: '<svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>',
       delete: '<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>',
@@ -531,7 +540,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const ICON = (act, label) => '<button class="ibtn" data-act="' + act + '" title="' + esc(label) + '" aria-label="' + esc(label) + '">' + ICONS[act] + '</button>';
     function deleteBatch(b) {
       const total = (b.slotIds || []).length;
-      const msg = b.status === 'draft' ? 'Delete this draft batch? Its ' + total + ' slots go back to assigned.' : 'Delete batch ' + String(b.num).padStart(2, '0') + '? It has been sent; its link stops working and its ' + total + ' slots go back to assigned. Decisions already made are discarded.';
+      const c = batchCounts(b); const decided = c.a + c.d + c.h;
+      const msg = 'Delete batch ' + String(b.num).padStart(2, '0') + '? Its ' + total + ' slots go back to assigned.' + (decided ? ' ' + decided + ' decision' + (decided > 1 ? 's' : '') + ' already recorded will be discarded.' : '');
       if (!confirm(msg)) return;
       const m = byId(); (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; });
       S.batches = S.batches.filter((x) => x !== b); delete D[b.token];
@@ -541,29 +551,34 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const rows = S.batches.slice().sort((a, b) => b.num - a.num).map((b) => {
         const c = batchCounts(b);
         const total = (b.slotIds || []).length;
-        const stat = b.status === 'draft' ? 'Draft' : (c.p === 0 && total ? 'Complete' : 'In review');
-        const cls = b.status === 'draft' ? 'draft' : (c.p === 0 && total ? 'approved' : 'held');
+        const decided = c.a + c.d + c.h;
+        const stat = !total ? 'Empty' : c.p === 0 ? 'Complete' : decided ? 'In review' : 'Ready';
+        const cls = !total || !decided ? 'draft' : c.p === 0 ? 'approved' : 'held';
         const link = location.origin + '/workflow/sitime/' + b.token;
         return '<div class="batchrow" data-b="' + b.token + '"><div><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
-          '<div><span class="mini">' + (b.status === 'draft' ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
-          '<div class="mini">' + (b.sentAt ? fmtDate(b.sentAt.slice(0, 10)) : (b.plannedFor ? fmtDate(b.plannedFor) + ', planned' : '—')) + '</div>' +
-          '<div class="acts">' + ICON('open', 'Open') + (b.status === 'draft' ? ICON('preview', 'Preview as SiTime') + ICON('send', 'Mark sent and copy the link') : ICON('copy', 'Copy link') + ICON('csv', 'Export CSV')) + ICON('delete', 'Delete batch') + '</div>' +
+          '<div><span class="mini">' + (!decided ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
+          '<div class="mini">' + (b.plannedFor ? fmtDate(b.plannedFor) : b.createdAt ? fmtDate(b.createdAt.slice(0, 10)) : '—') + '</div>' +
+          '<div class="acts">' + ICON('open', 'Show slots') + ICON('review', 'Open for review') + ICON('copy', 'Copy link') + ICON('csv', 'Export CSV') + ICON('delete', 'Delete batch') + '</div>' +
           '<div class="bdetail" hidden style="grid-column:1/-1"></div></div>';
       });
-      $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Sent</div><div></div></div>' : '<p class="hint">No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.</p>') + rows.join('');
+      $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Call date</div><div></div></div>' : '<p class="hint">No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.</p>') + rows.join('');
       $('batch-list').querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', (e) => {
         const row = e.target.closest('.batchrow'); const b = S.batches.find((x) => x.token === row.dataset.b); const link = location.origin + '/workflow/sitime/' + b.token;
         const act = btn.dataset.act;
         if (act === 'open') { const d = row.querySelector('.bdetail'); d.hidden = !d.hidden; if (!d.hidden) renderBatchDetail(b, d); }
-        if (act === 'preview') window.open(link, '_blank');
+        if (act === 'review') {
+          if (!(b.slotIds || []).length) { alert('Add slots first.'); return; }
+          // open the tab inside the click so it isn't popup-blocked, point it once saved
+          const w = window.open('about:blank', '_blank');
+          flush().then(() => { if (w) w.location.href = link; else location.href = link; });
+        }
         if (act === 'copy') { navigator.clipboard.writeText(link); btn.classList.add('done'); setTimeout(() => btn.classList.remove('done'), 1500); }
-        if (act === 'send') { if (!(b.slotIds || []).length) { alert('Add slots first.'); return; } b.status = 'sent'; b.sentAt = new Date().toISOString(); mark(); renderBatches(); renderStats(); navigator.clipboard.writeText(link); alert('Marked sent. The link is on your clipboard:\n' + link); }
         if (act === 'csv') exportBatchCsv(b);
         if (act === 'delete') deleteBatch(b);
       }));
       // waiting on you
       const m = byId(); const items = [];
-      S.batches.filter((b) => b.status !== 'draft').forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
+      S.batches.forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
       const approvedUnlicensed = S.slots.filter((s) => { const p = finalPick(s); return p && p.source === 'stock' && !(s.license && s.license.id); }).length;
       $('waiting').innerHTML = items.slice(0, 8).map(({ s, b, o }) => '<div class="qitem"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n">' + (o.outcome === 'denied' ? 'Denied' : 'Held') + ' in ' + String(b.num).padStart(2, '0') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div></div></div>').join('') +
         (approvedUnlicensed ? '<div class="qitem"><div class="thumb empty" style="width:72px;height:48px"></div><div><div class="t">' + approvedUnlicensed + ' approved Stock image' + (approvedUnlicensed > 1 ? 's' : '') + ' to license</div><div class="n">Approved comps are ready to license on Adobe Stock. Handoff tab has the list and a field for the license ID.</div></div></div>' : '') ||
@@ -571,7 +586,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function renderBatchDetail(b, el) {
       const m = byId();
-      el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (b.status === 'draft' ? 'queued' : o.outcome === 'pending' ? 'sent' : o.outcome) + '"><i></i>' + (b.status === 'draft' ? 'In draft' : STATUS_LABEL[o.outcome === 'pending' ? 'sent' : o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (b.status === 'draft' ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
+      el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (o.outcome === 'pending' ? 'queued' : o.outcome) + '"><i></i>' + (o.outcome === 'pending' ? 'Not yet decided' : STATUS_LABEL[o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (!o.ev ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
         '<div class="actions"><button class="link" data-edit="1">Rename / reschedule</button><button class="link" data-del="1">Delete batch</button>' + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
       el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.rm); b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }));
       el.querySelector('[data-edit]').addEventListener('click', () => openBatchDialog(b));
@@ -613,7 +628,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (dialogBatch) { dialogBatch.name = name; dialogBatch.plannedFor = date; }
       else {
         const num = (S.batches.reduce((a, b) => Math.max(a, b.num || 0), 0) || 0) + 1;
-        const b = { token: randomToken(10), num, name, scope: '', slotIds: [], status: 'draft', createdAt: new Date().toISOString(), plannedFor: date, sentAt: null };
+        const b = { token: randomToken(10), num, name, scope: '', slotIds: [], status: 'open', createdAt: new Date().toISOString(), plannedFor: date };
         addCheckedTo(b); S.batches.push(b);
       }
       $('batch-dialog').close(); mark(); renderBatches(); renderStats(); renderSlots();
@@ -872,9 +887,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       renderSlots();
     });
     $('add-to-batch').addEventListener('click', () => {
-      const drafts = S.batches.filter((b) => b.status === 'draft');
+      /* Any batch still waiting on decisions can take more slots. */
+      const drafts = S.batches.filter((b) => { const c = batchCounts(b); return !(b.slotIds || []).length || c.p > 0; });
       if (!drafts.length) { openBatchDialog(null); return; }
-      const choice = drafts.length === 1 ? drafts[0] : drafts.find((b) => String(b.num) === prompt('Which draft batch? ' + drafts.map((b) => b.num + ' = ' + b.name).join(', '), String(drafts[drafts.length - 1].num)));
+      const choice = drafts.length === 1 ? drafts[0] : drafts.find((b) => String(b.num) === prompt('Which batch? ' + drafts.map((b) => b.num + ' = ' + b.name).join(', '), String(drafts[drafts.length - 1].num)));
       if (!choice) return; addCheckedTo(choice); mark(); renderSlots(); renderStats();
     });
 
@@ -1209,7 +1225,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* ---------- replacements ---------- */
     function renderRepl() {
       const m = byId(); const items = [];
-      S.batches.filter((b) => b.status !== 'draft').forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
+      S.batches.forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
       $('repl-list').innerHTML = items.length ? items.map(({ s, b, o }) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + o.outcome + '"><i></i>' + STATUS_LABEL[o.outcome] + '</span> in batch ' + String(b.num).padStart(2, '0') + (o.which === 'backup' ? ' (main and backup both)' : '') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '">Pick a replacement</button></div></div></div>').join('') : '<p class="hint">Nothing denied or held.</p>';
       $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.re); s.batch = null; s.main = null; s.backup = null; s.state = 'assigned'; mark(); fx.page = s.pageId; pageIdx = 0; showTab('slots'); renderSlots(); openPicker(s.id, 'main'); }));
     }
@@ -1297,7 +1313,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('app').hidden = false; $('savestate').textContent = r.data.seeded ? 'Seeded' : 'Saved';
       renderStats(); renderFilters(); showTab('batches');
       // refresh decisions every 60s while the page is open
-      setInterval(async () => { const rr = await api('/api/sitime-state'); if (rr.ok && rr.data) { D = rr.data.decisions || {}; if (!$('tab-batches').hidden) { renderBatches(); renderStats(); } } }, 60000);
+      // refresh decisions every 60s, and straight away when coming back from a review tab
+      const refreshDecisions = async () => { const rr = await api('/api/sitime-state'); if (rr.ok && rr.data) { D = rr.data.decisions || {}; renderStats(); if (!$('tab-batches').hidden) renderBatches(); } };
+      setInterval(refreshDecisions, 60000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDecisions(); });
     }
     boot();
   })();

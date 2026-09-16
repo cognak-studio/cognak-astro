@@ -5,8 +5,9 @@
  * Append-only: each call writes its own file under sitime/decisions/<token>/
  * and never touches the admin state, so a reviewer and the admin page can
  * never race. Re-deciding the same slot simply appends a newer event, which
- * readers prefer. Refused for draft batches (preview links) and for slots
- * that are not in the batch.
+ * readers prefer. Refused for slots that are not in the batch. There is no
+ * draft/sent gate: batches are reviewed live on calls (Pierce, 9/16), so a
+ * batch takes decisions from the moment it exists.
  */
 import { readState, writeDecision, TOKEN_RE } from './_lib/sitimeStore.mjs';
 
@@ -39,7 +40,6 @@ export default async function handler(req, res) {
     const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
     const got = String((body && body.pass) || '').trim().toLowerCase();
     if (want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
-    if (batch.status === 'draft') return res.status(403).json({ error: 'This batch is a preview. Decisions are not saved yet.' });
     if (!(batch.slotIds || []).includes(slotId)) return res.status(400).json({ error: 'That image is not in this batch.' });
 
     const r = await writeDecision(token, { slotId, which, decision, note });

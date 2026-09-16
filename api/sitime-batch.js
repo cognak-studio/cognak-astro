@@ -5,9 +5,7 @@
  *
  * Only the fields the reviewer needs cross the wire; Ace's candidate lists,
  * prompts, Drupal export URLs and the rest of the working state stay
- * admin-side. preview:true returns the same shape for a draft batch so
- * Michael can look before it goes out; decisions are refused for drafts
- * by sitime-decide.js, not here.
+ * admin-side.
  */
 import { readState, readDecisions, TOKEN_RE } from './_lib/sitimeStore.mjs';
 
@@ -58,7 +56,7 @@ export default async function handler(req, res) {
     const { latest } = await readDecisions(token);
     return res.status(200).json({
       ok: true,
-      batch: { token, num: batch.num, name: batch.name, status: batch.status, sentAt: batch.sentAt || null },
+      batch: { token, num: batch.num, name: batch.name, status: batch.status },
       mock: state.mock || null,
       slots,
       decisions: latest,
