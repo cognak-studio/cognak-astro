@@ -102,7 +102,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="card rise tab" id="tab-handoff" hidden>
         <div class="group">
           <div class="card-head"><div class="group-title">Approved</div><div><button class="sbtn" id="export-handoff">Export CSV</button></div></div>
-          <div class="tablewrap"><table><thead><tr><th>Page · slot</th><th>Image</th><th>Source</th><th>Reference</th><th>License / note</th><th>Batch</th></tr></thead><tbody id="handoff-rows"></tbody></table></div>
+          <div class="tablewrap"><table><thead><tr><th>Page · slot · IDs</th><th>Image</th><th>Source</th><th>Adobe asset ID</th><th>License / note</th><th>Batch</th></tr></thead><tbody id="handoff-rows"></tbody></table></div>
         </div>
       </div>
 
@@ -361,6 +361,20 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pcard .ex img{ width:130px; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#EEE; }
     .adm .pcard .ex .mini{ max-width:22ch; }
 
+    /* ---- adding your own Adobe finds (no API needed) ---- */
+    .adm .addbox{ border:1px dashed var(--line-strong); border-radius:10px; padding:16px 18px; margin-bottom:22px; background:#FCFCFB; transition:border-color .12s var(--ease-standard), background .12s var(--ease-standard); }
+    .adm .addbox.drop{ border-color:var(--accent); border-style:solid; background:#F1F5F2; }
+    .adm .addbox .ab-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+    .adm .addbox .ab-input{ width:100%; box-sizing:border-box; font:inherit; font-size:.86rem; min-height:64px; resize:vertical; border:1px solid var(--line-strong); border-radius:8px; padding:10px 12px; background:#fff; outline:none; }
+    .adm .addbox .ab-input:focus{ border-color:var(--accent); }
+    .adm .addbox .ab-status{ display:block; margin-top:8px; }
+    .adm .cand.noprev{ border-style:dashed; background:#FAFAF8; display:flex; align-items:center; justify-content:center; min-height:200px; text-align:center; cursor:default; }
+    .adm .cand.noprev.drop{ border-style:solid; border-color:var(--accent); background:#F1F5F2; }
+    .adm .cand.noprev .np-body{ padding:16px; }
+    .adm .cand.noprev b{ display:block; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.06em; color:var(--ink); margin-bottom:8px; }
+    .adm .cand.noprev .mini{ display:block; line-height:1.45; }
+    .adm .cand.noprev .adobe{ margin-top:10px; padding:0; }
+
     /* ---- the picker lives INSIDE the row's drawer ---- */
     .adm .drawer .tgtbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .adm .drawer .tgtbar .lbl{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
@@ -399,7 +413,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let openSlots = new Set();   // slot ids whose inline detail drawer (brief, note) is open -- several at once now, so "Expand all" means something
     let railOpen = new Set();    // section names expanded in the left rail
     const pkWhich = {};          // slotId -> 'main' | 'backup': which tile the next click in that row's picker fills
-    let stockSlotId = null, stockQ = '', stockResults = [], stockBusy = false, stockErr = ''; // live Adobe Stock search state, reset when the picker switches to a different slot
+    let stockSlotId = null, stockQ = '', stockResults = [], stockBusy = false, stockErr = '';
+    let stockSearchOpen = false;   // the live API search is hidden until Adobe access exists; the paste/drop box is the everyday path
+    const addStatus = {};          // slotId -> the last 'n added' line; kept out here because addFinds re-renders the drawer it was written into // live Adobe Stock search state, reset when the picker switches to a different slot
     let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
@@ -554,10 +570,23 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.querySelector('[data-edit]').addEventListener('click', () => openBatchDialog(b));
       const del = el.querySelector('[data-del]'); if (del) del.addEventListener('click', () => deleteBatch(b));
     }
+    /* Ace's requirement: every exported row carries the SAME keys the rest of
+       the project uses -- page ID (PG-xxxx) and slot ID (IMG-xxxx) straight
+       from the review inventory -- plus the Adobe asset ID in its own column,
+       the decision, and when it was made. So a row drops into the tracker and
+       the licensing list without anyone re-keying it.
+       decided_by is deliberately not a person: SiTime review as ONE shared
+       link with no login was Pierce's call, so the tool has no per-person
+       attribution to report. The column is present and constant rather than
+       absent, so the shape is stable if that ever changes. */
+    const DECIDED_BY = 'SiTime (group)';
+    const isoAt = (ev) => (ev && ev.at) ? new Date(ev.at).toISOString() : '';
+    const assetId = (p) => (p && p.source === 'stock') ? (p.id || '') : '';
+    const refOf = (p) => !p ? '' : p.source === 'stock' ? (p.id ? 'https://stock.adobe.com/images/x/' + p.id : '') : (p.path || p.title || '');
     function exportBatchCsv(b) {
       const m = byId();
-      const rows = [['batch', 'page', 'section', 'url', 'slot', 'outcome', 'via', 'source', 'reference', 'image_url', 'note']];
-      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.page, s.section, s.url, s.name, o.outcome, o.which || '', p.source || '', p.source === 'stock' ? p.id : (p.path || p.title || ''), p.url || '', (o.ev && o.ev.note) || '']); });
+      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'note']];
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', (o.ev && o.ev.note) || '']); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
     function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
@@ -810,7 +839,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function openPicker(slotId, which) {
       const s = byId().get(slotId); if (!s) return;
       pkWhich[slotId] = which === 'backup' ? 'backup' : 'main';
-      srcTab = defaultSrcTab(s); libShown = 48; revealTile = null;
+      srcTab = defaultSrcTab(s); libShown = 48; revealTile = null; delete addStatus[slotId];
       openSlots.add(slotId);
       renderSlots();
       const el = document.querySelector('[data-detail="' + slotId + '"]');
@@ -843,6 +872,81 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     });
 
     /* ---------- drawer: the source picker ---------- */
+    /* ---------- adding Adobe finds without the API ----------
+       Adobe blocks server-side fetches of a stock page (403 from any
+       datacenter IP) and the comp filename carries a hash that cannot be
+       derived from the asset ID, so a pasted PAGE link can give us the ID but
+       never the picture. Everything here exists to get pixels and an ID out of
+       whatever gesture the person actually made: a dragged image, a pasted
+       image, a comp URL, or a list of page URLs. */
+    const isCompUrl = (u) => /ftcdn\.net\/jpg\//i.test(u || '');
+    const isStockPage = (u) => /stock\.adobe\.com/i.test(u || '');
+    function idFromAny(u) {
+      const t = String(u || '');
+      let m = t.match(/\/\d+_F_(\d+)_/); if (m) return m[1];              // 1000_F_<id>_hash.jpg
+      m = t.match(/[?&]asset_id=(\d{5,12})/i); if (m) return m[1];
+      if (isStockPage(t)) { m = t.match(/(\d{6,12})(?:[/?#]|$)/); if (m) return m[1]; }
+      if (/^\d{6,12}$/.test(t.trim())) return t.trim();
+      return '';
+    }
+    /* Pull every usable thing out of a drop or a paste. */
+    function harvestTransfer(dt) {
+      const out = [];
+      Array.from((dt && dt.files) || []).filter((f) => /^image\//.test(f.type)).forEach((f) => out.push({ file: f }));
+      const html = (dt && dt.getData) ? dt.getData('text/html') : '';
+      if (html) {
+        try {
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          doc.querySelectorAll('img').forEach((img) => {
+            const src = img.getAttribute('src') || '';
+            const a2 = img.closest('a'); const href = a2 ? a2.getAttribute('href') : '';
+            if (!/^https?:/i.test(src)) return;
+            out.push({ comp: src, id: idFromAny(src) || idFromAny(href), page: isStockPage(href) ? href : '' });
+          });
+        } catch (e) { /* not html we understand */ }
+      }
+      const text = (dt && dt.getData) ? (dt.getData('text/uri-list') || dt.getData('text/plain') || '') : '';
+      text.split(/\s+/).filter(Boolean).forEach((t) => {
+        if (isCompUrl(t)) out.push({ comp: t, id: idFromAny(t) });
+        else if (isStockPage(t)) out.push({ page: t, id: idFromAny(t) });
+        else if (/^\d{6,12}$/.test(t)) out.push({ id: t });
+      });
+      // one gesture often reports the same asset twice (html + uri-list)
+      const seen = new Set();
+      return out.filter((it) => { const k = it.file ? 'f:' + it.file.name + it.file.size : (it.comp || it.page || 'id:' + it.id); if (seen.has(k)) return false; seen.add(k); return true; });
+    }
+    async function addFinds(s, items, statusEl) {
+      if (!items.length) { addStatus[s.id] = 'Nothing usable in that. Copy the image itself, or paste an Adobe link.'; refreshDrawer(s.id); return; }
+      s.candidates = s.candidates || [];
+      let added = 0, filled = 0, dupes = 0, failed = 0;
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (statusEl) statusEl.textContent = 'Adding ' + (i + 1) + ' of ' + items.length + '…';
+        try {
+          let comp = it.comp || ''; const id = it.id || ''; const page = it.page || '';
+          if (it.file) {
+            // a dropped/pasted image is hosted by us -- a hotlink to whatever
+            // the browser handed over is not something to rely on
+            const web = await resize(it.file, 1400);
+            const key = await sha1('comp/' + it.file.name + '/' + it.file.size + '/' + (it.file.lastModified || 0));
+            comp = (await uploadBlob('sitime/comps/' + key + '.' + web.ext, web.blob)).url;
+          }
+          const dup = s.candidates.find((c) => (id && c.id === id) || (comp && c.comp === comp));
+          if (dup) { if (comp && !dup.comp) { dup.comp = comp; delete dup.needsPreview; dup.why = 'Added by COGNAK'; filled++; } else dupes++; continue; }
+          // a picture with no ID completes the oldest link-only card if there is one
+          if (comp && !id) {
+            const need = s.candidates.find((c) => !c.comp);
+            if (need) { need.comp = comp; delete need.needsPreview; need.why = 'Added by COGNAK'; filled++; continue; }
+          }
+          const c = { id: id, title: '', comp: comp, url: page || (id ? 'https://stock.adobe.com/images/x/' + id : ''), why: comp ? 'Added by COGNAK' : 'Link added — drag the image in to preview it', ai: false, manual: true };
+          if (!comp) c.needsPreview = true;
+          s.candidates.unshift(c); added++;
+        } catch (e) { failed++; console.error(e); }
+      }
+      mark();
+      addStatus[s.id] = [added ? added + ' added' : '', filled ? filled + ' preview' + (filled === 1 ? '' : 's') + ' filled' : '', dupes ? dupes + ' already here' : '', failed ? failed + ' failed (see console)' : ''].filter(Boolean).join(' · ') || 'Nothing new.';
+      renderSlots(); renderStats();
+    }
     function pickFrom(source, obj) {
       if (source === 'stock') return { source, id: obj.id, url: obj.comp, thumb: obj.comp, title: obj.title || '', manual: !!obj.manual };
       if (source === 'library') return { source, id: obj.id, url: obj.url, thumb: obj.thumb, title: obj.name, path: obj.path };
@@ -878,8 +982,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         (extra.adobe ? '<a class="adobe" href="' + esc(extra.adobe) + '" target="_blank" rel="noopener" data-stop="1">Open on Adobe Stock ↗</a>' : '') +
         '</div>';
     }
-    function removeCandidate(slot, url) {
-      slot.candidates = (slot.candidates || []).filter((c) => c.comp !== url);
+    function removeCandidate(slot, key) {
+      slot.candidates = (slot.candidates || []).filter((c) => (c.comp || c.id) !== key);
+      const url = key;
       if (slot.main && slot.main.url === url) slot.main = null;
       if (slot.backup && slot.backup.url === url) slot.backup = null;
       mark(); renderSlots(); renderStats();
@@ -930,18 +1035,31 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const allCands = s.candidates || [];
         const shownCands = allCands.filter((c) => !(fx.hideAi && c.ai));
         const hiddenCount = allCands.length - shownCands.length;
-        const cands = shownCands.map((c) => candCard(pickFrom('stock', c), s, { ai: c.ai, editorial: c.editorial, dims: c.dims, label: c.id, text: c.why || c.title, adobe: c.url }));
-        if (hiddenCount) cands.push('<div class="hint" style="grid-column:1/-1">' + hiddenCount + ' generative-AI result' + (hiddenCount === 1 ? '' : 's') + ' hidden — <a href="#" data-showai="1">show ' + (hiddenCount === 1 ? 'it' : 'them') + '</a></div>');
+        // a candidate with no comp is a link someone pasted: it has an ID and a
+        // link but no picture, because Adobe will not let us fetch one. It
+        // renders as a card you complete by dropping the image onto it.
+        const cands = shownCands.map((c) => c.comp
+          ? candCard(pickFrom('stock', c), s, { ai: c.ai, editorial: c.editorial, dims: c.dims, label: c.id, text: c.why || c.title, adobe: c.url })
+          : '<div class="cand noprev" data-needprev="' + esc(c.id || '') + '"><div class="np-body"><b>' + esc(c.id ? 'ID ' + c.id : 'Link') + '</b><span class="mini">No preview. Paste or drop the image on this card.</span>' + (c.url ? '<a class="adobe" href="' + esc(c.url) + '" target="_blank" rel="noopener" data-stop="1">Open on Adobe Stock \u2197</a>' : '') + '</div><button type="button" class="cand-x" data-remove-cand="' + esc(c.id || '') + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button></div>');
+        if (hiddenCount) cands.push('<div class="hint" style="grid-column:1/-1">' + hiddenCount + ' generative-AI result' + (hiddenCount === 1 ? '' : 's') + ' hidden \u2014 <a href="#" data-showai="1">show ' + (hiddenCount === 1 ? 'it' : 'them') + '</a></div>');
         const stockQuery = (s.terms && s.terms.length) ? s.terms.join(' ') : (s.prompt || s.name || s.page || '');
         const stockSearchUrl = 'https://stock.adobe.com/search?k=' + encodeURIComponent(stockQuery);
         const searchCards = stockResults.map((r, i) => {
           const already = allCands.some((c) => c.id === r.id);
-          return '<div class="cand' + (already ? ' added' : '') + '" data-srch-idx="' + i + '"><img loading="lazy" src="' + esc(r.thumb) + '">' + (already ? '<span class="tag">ADDED</span>' : '') + '<div class="cb"><b>' + esc(r.id) + (r.type ? ' · ' + esc(r.type) : '') + '</b>' + esc(r.creator ? 'by ' + r.creator : '') + '</div></div>';
+          return '<div class="cand' + (already ? ' added' : '') + '" data-srch-idx="' + i + '"><img loading="lazy" src="' + esc(r.thumb) + '">' + (already ? '<span class="tag">ADDED</span>' : '') + '<div class="cb"><b>' + esc(r.id) + (r.type ? ' \u00b7 ' + esc(r.type) : '') + '</b>' + esc(r.creator ? 'by ' + r.creator : '') + '</div></div>';
         }).join('');
-        return '<div class="stocksearch"><input class="txt" type="text" data-stockq="1" placeholder="Search Adobe Stock…" value="' + esc(stockQ) + '"><button type="button" class="sbtn p" data-stockgo="1" ' + (stockBusy ? 'disabled' : '') + '>' + (stockBusy ? 'Searching…' : 'Search') + '</button></div>' +
+        const addbox = '<div class="addbox" data-addbox="1">' +
+          '<div class="ab-head"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock \u2197</a>' +
+          '<span class="mini">Right-click a result \u2192 Copy image, then paste below. Dragging the image in works too, and so does pasting Adobe links, several at once.</span></div>' +
+          '<textarea class="ab-input" data-abtext="1" placeholder="Paste the image here, or paste Adobe links \u2014 one per line"></textarea>' +
+          '<div class="actions" style="margin-top:10px"><button type="button" class="sbtn p" data-abadd="1">Add</button>' +
+          '<button type="button" class="link" data-abtoggle="1">' + (stockSearchOpen ? 'Hide live API search' : 'Live API search') + '</button>' +
+          '<span class="ab-status mini" data-abstatus="1">' + esc(addStatus[s.id] || '') + '</span></div></div>';
+        const searchRow = !stockSearchOpen ? '' :
+          '<div class="stocksearch"><input class="txt" type="text" data-stockq="1" placeholder="Search Adobe Stock\u2026" value="' + esc(stockQ) + '"><button type="button" class="sbtn p" data-stockgo="1" ' + (stockBusy ? 'disabled' : '') + '>' + (stockBusy ? 'Searching\u2026' : 'Search') + '</button></div>' +
           (stockErr ? '<p class="hint" style="color:#B00020">' + esc(stockErr) + '</p>' : '') +
-          (stockResults.length ? '<div class="cands">' + searchCards + '</div><p class="mini" style="margin:2px 0 18px">Click a result to add it here and assign it.</p>' : '') +
-          '<div class="cands">' + cands.join('') + '<div class="up stock-add"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock ↗</a><span class="mini paste-link" data-paste="1" style="margin-top:8px">Paste a comp URL instead</span></div></div>';
+          (stockResults.length ? '<div class="cands">' + searchCards + '</div><p class="mini" style="margin:2px 0 18px">Click a result to add it here and assign it.</p>' : '');
+        return addbox + searchRow + '<div class="cands">' + cands.join('') + '</div>';
       }
       if (srcTab === 'library') {
         const groups = Array.from(new Set((S.library || []).map((l) => l.group))).sort();
@@ -970,7 +1088,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const full = nextEmpty === -1;
         return '<div class="up" style="margin-bottom:12px;aspect-ratio:auto;padding:14px"><button class="sbtn p" data-genall="1" ' + (busy || full ? 'disabled' : '') + '>' + (busy ? 'Generating…' : 'Generate one') + '</button><span class="mini" style="margin-left:10px">' + (full ? 'All five filled — re-roll any one with its ↻.' : 'One image per click. Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.') + '</span></div><div class="cands">' + cards.join('') + '</div>';
       }
-      return '<div class="cands"><label class="up" data-uplabel="1">Drop or choose an image<br><span class="mini">JPG or PNG — lands on the ' + targetOf(s) + '</span><input type="file" data-upfile="1" accept="image/*" hidden></label><span class="mini" data-upstatus="1"></span></div>';
+      return '<div class="cands"><label class="up" data-uplabel="1">Drop or choose images<br><span class="mini">JPG or PNG, as many as you like. Resized to 1200px and added to the SiTime library, so you can reuse one on another slot without uploading it again. The first lands on the ' + targetOf(s) + '.</span><input type="file" data-upfile="1" accept="image/*" multiple hidden></label><span class="mini" data-upstatus="1"></span></div>';
     }
     function wireSource(s, el) {
       el.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
@@ -985,6 +1103,46 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (!cc) { cc = { id: r.id, title: r.title || '', comp: r.comp, url: 'https://stock.adobe.com/images/x/' + r.id, why: r.creator ? 'by ' + r.creator + (r.type ? ' · ' + r.type : '') : 'Found via search', ai: false, manual: true }; s.candidates.unshift(cc); }
         assign(s, pickFrom('stock', cc));
       }));
+      /* The add box: drop an image on it, paste an image into it, or paste
+         Adobe links. One handler set, because the same harvest covers a
+         DataTransfer from a drop, a paste, or the textarea's own text. */
+      const box = el.querySelector('[data-addbox]');
+      if (box) {
+        const st = box.querySelector('[data-abstatus]');
+        const ta = box.querySelector('[data-abtext]');
+        const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
+        ['dragenter', 'dragover'].forEach((k) => box.addEventListener(k, (e) => { stop(e); box.classList.add('drop'); }));
+        ['dragleave', 'dragend'].forEach((k) => box.addEventListener(k, (e) => { stop(e); box.classList.remove('drop'); }));
+        box.addEventListener('drop', (e) => { stop(e); box.classList.remove('drop'); addFinds(s, harvestTransfer(e.dataTransfer), st); });
+        box.addEventListener('paste', (e) => {
+          const items = harvestTransfer(e.clipboardData);
+          if (!items.length) return;            // plain text that is not a link: leave it in the box
+          e.preventDefault(); if (ta) ta.value = '';
+          addFinds(s, items, st);
+        });
+        const add = box.querySelector('[data-abadd]');
+        if (add) add.addEventListener('click', () => {
+          const t = ta ? ta.value : '';
+          addFinds(s, harvestTransfer({ getData: (k) => (k === 'text/plain' ? t : '') }), st);
+          if (ta) ta.value = '';
+        });
+        if (ta && add) ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); add.click(); } });
+        const tg = box.querySelector('[data-abtoggle]');
+        if (tg) tg.addEventListener('click', () => { stockSearchOpen = !stockSearchOpen; refreshDrawer(s.id); });
+      }
+      /* A link-only card is its own drop target, so a pasted list of links can
+         be filled in afterwards by dropping each picture onto its card. */
+      el.querySelectorAll('[data-needprev]').forEach((card) => {
+        const stop = (e) => { e.preventDefault(); e.stopPropagation(); };
+        ['dragenter', 'dragover'].forEach((k) => card.addEventListener(k, (e) => { stop(e); card.classList.add('drop'); }));
+        ['dragleave', 'dragend'].forEach((k) => card.addEventListener(k, (e) => { stop(e); card.classList.remove('drop'); }));
+        card.addEventListener('drop', (e) => {
+          stop(e); card.classList.remove('drop');
+          const items = harvestTransfer(e.dataTransfer);
+          const it = items.find((x) => x.file || x.comp); if (!it) return;
+          addFinds(s, [Object.assign({}, it, { id: card.dataset.needprev || it.id })], null);
+        });
+      });
       const showAi = el.querySelector('[data-showai]'); if (showAi) showAi.addEventListener('click', (ev) => { ev.preventDefault(); fx.hideAi = false; $('f-hideai').checked = false; refreshDrawer(s.id); });
       const genAll = el.querySelector('[data-genall]'); if (genAll) genAll.addEventListener('click', () => {
         const gens = s.generated || [];
@@ -1005,7 +1163,40 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const lq = el.querySelector('[data-libq]'); if (lq) lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; refreshDrawer(s.id); const nq = document.querySelector('[data-detail="' + s.id + '"] [data-libq]'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } });
       el.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; refreshDrawer(s.id); }));
       const lm = el.querySelector('[data-libmore]'); if (lm) lm.addEventListener('click', () => { libShown += 48; refreshDrawer(s.id); });
-      const uf = el.querySelector('[data-upfile]'); if (uf) uf.addEventListener('change', async () => { const f = uf.files[0]; if (!f) return; const st = el.querySelector('[data-upstatus]'); st.textContent = 'Uploading…'; try { const r = await uploadBlob('sitime/uploads/' + s.id + '/' + f.name.replace(/[^\w.\-]+/g, '_'), f); assign(s, { source: 'upload', id: null, url: r.url, thumb: r.url, title: f.name }); } catch (e) { st.textContent = 'Upload failed: ' + (e.message || e); } });
+      /* Uploads go through the SAME resize the library indexer uses -- a raw
+         15MB library PNG used to go up whole and then get loaded whole in
+         every tile and on the reviewer's hero. They also land IN the library,
+         keyed by name+size+date, so the same image on a second slot is picked
+         rather than uploaded twice. The first file fills the current target;
+         a second fills the other tile if it is empty. */
+      const uf = el.querySelector('[data-upfile]'); if (uf) uf.addEventListener('change', async () => {
+        const files = Array.from(uf.files || []); if (!files.length) return;
+        const st = el.querySelector('[data-upstatus]');
+        S.library = S.library || [];
+        const picked = []; let failed = 0;
+        for (let i = 0; i < files.length; i++) {
+          const f = files[i];
+          if (st) st.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + '…';
+          try {
+            const id = await sha1('upload/' + f.name + '/' + f.size + '/' + (f.lastModified || 0));
+            let entry = S.library.find((l) => l.id === id);
+            if (!entry) {
+              const web = await resize(f, 1200); const th = await resize(f, 400);
+              const r1 = await uploadBlob('sitime/library/' + id + '.' + web.ext, web.blob);
+              const r2 = await uploadBlob('sitime/library/t/' + id + '.' + th.ext, th.blob);
+              entry = { id, path: f.name, name: f.name, group: 'Uploaded', tier: 'upload', url: r1.url, thumb: r2.url, w: web.w, h: web.h };
+              S.library.push(entry);
+            }
+            picked.push(entry);
+          } catch (e) { failed++; console.error(f.name, e); }
+        }
+        if (st) st.textContent = picked.length + ' uploaded' + (failed ? ', ' + failed + ' failed (see console)' : '') + '.';
+        mark();
+        if (!picked.length) { renderSlots(); return; }
+        assign(s, pickFrom('library', picked[0]));
+        if (picked[1] && !(s.main && s.backup)) assign(s, pickFrom('library', picked[1]));
+        renderSlots();
+      });
     }
 
     /* ---------- replacements ---------- */
@@ -1019,12 +1210,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* ---------- handoff ---------- */
     function renderHandoff() {
       const rows = S.slots.map((s) => ({ s, p: finalPick(s), b: batchOf(s) })).filter((x) => x.p);
-      $('handoff-rows').innerHTML = rows.map(({ s, p, b }) => '<tr><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></td><td>' + thumbCell(p) + '</td><td>' + esc(p.source) + '</td><td class="sub">' + esc(p.source === 'stock' ? 'Adobe Stock ' + (p.id || '') : p.source === 'library' ? p.path : p.title || '') + '</td><td><input class="txt" data-lic="' + s.id + '" value="' + esc(s.license && s.license.id || '') + '" placeholder="' + (p.source === 'stock' ? 'License #' : 'n/a') + '"></td><td class="mini">' + (b ? String(b.num).padStart(2, '0') : '') + '</td></tr>').join('') || '<tr><td colspan="6" class="hint">Nothing approved yet.</td></tr>';
+      $('handoff-rows').innerHTML = rows.map(({ s, p, b }) => '<tr><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div><div class="mini">' + esc((s.pageId || '') + ' · ' + s.id) + '</div></td><td>' + thumbCell(p) + '</td><td>' + esc(p.source) + '</td><td class="sub">' + (p.source === 'stock' ? (p.id ? '<a href="https://stock.adobe.com/images/x/' + esc(p.id) + '" target="_blank" rel="noopener">' + esc(p.id) + '</a>' : '—') : esc(p.source === 'library' ? p.path : p.title || '')) + '</td><td><input class="txt" data-lic="' + s.id + '" value="' + esc(s.license && s.license.id || '') + '" placeholder="' + (p.source === 'stock' ? 'License #' : 'n/a') + '"></td><td class="mini">' + (b ? String(b.num).padStart(2, '0') : '') + '</td></tr>').join('') || '<tr><td colspan="6" class="hint">Nothing approved yet.</td></tr>';
       $('handoff-rows').querySelectorAll('[data-lic]').forEach((i) => i.addEventListener('change', (e) => { const s = byId().get(i.dataset.lic); s.license = { id: e.target.value.trim(), at: new Date().toISOString() }; mark(); }));
     }
     $('export-handoff').addEventListener('click', () => {
-      const rows = [['page', 'section', 'url', 'slot', 'source', 'reference', 'image_url', 'license', 'batch']];
-      S.slots.forEach((s) => { const p = finalPick(s); if (!p) return; const b = batchOf(s); rows.push([s.page, s.section, s.url, s.name, p.source, p.source === 'stock' ? p.id : (p.path || p.title || ''), p.url, s.license && s.license.id || '', b ? String(b.num).padStart(2, '0') : '']); });
+      const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'license', 'batch']];
+      S.slots.forEach((s) => {
+        const p = finalPick(s); if (!p) return;
+        const b = batchOf(s); const o = b ? outcomeIn(s, b) : null; const ev = o && o.ev;
+        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? DECIDED_BY : '', p.source, assetId(p), refOf(p), p.url, (s.license && s.license.id) || '', b ? String(b.num).padStart(2, '0') : '']);
+      });
       downloadCsv('sitime-approved-images.csv', rows);
     });
 
@@ -1033,7 +1228,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function blobClient() { if (!_blob) _blob = import('https://esm.sh/@vercel/blob@1/client'); return _blob; }
     async function uploadBlob(pathname, fileOrBlob) { const mod = await blobClient(); return mod.upload(pathname, fileOrBlob, { access: 'public', handleUploadUrl: '/api/sitime-upload-token', contentType: fileOrBlob.type || 'image/jpeg' }); }
     async function sha1(str) { const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12); }
-    function resize(file, max) { return new Promise((resolve, reject) => { const img = new Image(); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => b ? resolve({ blob: b, w: img.width, h: img.height }) : reject(new Error('encode')), 'image/jpeg', 0.84); URL.revokeObjectURL(img.src); }; img.onerror = reject; img.src = URL.createObjectURL(file); }); }
+    /* A PNG is re-encoded as PNG, not JPEG: SiTime's product renders are
+       transparent PNGs and flattening them to JPEG puts a black box behind
+       every one. Everything else goes to JPEG at 0.84. */
+    function resize(file, max, type) { return new Promise((resolve, reject) => { const mime = type || (/png$/i.test(file.type || file.name || '') ? 'image/png' : 'image/jpeg'); const img = new Image(); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => b ? resolve({ blob: b, w: img.width, h: img.height, ext: mime === 'image/png' ? 'png' : 'jpg' }) : reject(new Error('encode')), mime, 0.84); URL.revokeObjectURL(img.src); }; img.onerror = reject; img.src = URL.createObjectURL(file); }); }
     function sourcedRows() {
       const rows = [];
       (S.slots || []).forEach((s) => { ['main', 'backup'].forEach((which) => { const p = s[which]; if (p && (p.source === 'stock' || p.source === 'upload')) rows.push({ s, which, p }); }); });
@@ -1068,8 +1266,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (!have.has(id)) {
           try {
             const web = await resize(f, 1200); const th = await resize(f, 400);
-            const r1 = await uploadBlob('sitime/library/' + id + '.jpg', web.blob);
-            const r2 = await uploadBlob('sitime/library/t/' + id + '.jpg', th.blob);
+            const r1 = await uploadBlob('sitime/library/' + id + '.' + web.ext, web.blob);
+            const r2 = await uploadBlob('sitime/library/t/' + id + '.' + th.ext, th.blob);
             const parts = rel.split('/'); const tier = /Digital-Web/.test(rel) ? 'Digital-Web' : 'product'; const group = parts[0] === 'by-Segment' || parts[0] === 'Thematic' ? parts[1] : parts[0];
             S.library.push({ id, path: rel, name: f.name, group, tier, url: r1.url, thumb: r2.url, w: web.w, h: web.h });
             have.add(id); added++;
