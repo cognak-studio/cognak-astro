@@ -13,7 +13,7 @@
  * key itself; it must be set as ADOBE_STOCK_API_KEY in this project's
  * Vercel env vars, same pattern as GEMINI_API_KEY.
  */
-import { requireAdmin } from './_lib/adminAuth.mjs';
+import { requireEditor } from './_lib/sitimeAuth.mjs';
 
 const SEARCH_URL = 'https://stock.adobe.io/Rest/Media/1/Search/Files';
 const RESULT_COLUMNS = [
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (requireAdmin(req, res)) return;
+  if (!(await requireEditor(req, res))) return;
 
   const apiKey = process.env.ADOBE_STOCK_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'ADOBE_STOCK_API_KEY is not set in this project’s Vercel env vars.' });

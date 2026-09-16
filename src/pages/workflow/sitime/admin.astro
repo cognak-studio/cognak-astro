@@ -36,7 +36,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <h1 class="headline"><em>SiTime</em> images. Internal.</h1>
     <p class="lede" id="lede">Assign a main and a backup to each slot, group slots into a batch, then open the batch on a call with SiTime and record their decisions. Decisions land here; anything denied lands in Replacements.</p>
 
-    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div><p class="hint">This page uses the admin session from <a href="/send">/send</a>. Sign in there, then reload this page.</p></div></div>
+    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div>
+      <p class="hint" id="gate-note">Team members: your name and the team passcode from Pierce.</p>
+      <div class="teamlogin"><input class="txt" id="tl-name" placeholder="Your name" autocomplete="name" /><input class="txt" id="tl-pass" type="password" placeholder="Team passcode" autocomplete="off" /><button class="sbtn p" id="tl-go">Sign in</button></div>
+      <p class="hint is-error" id="tl-err" hidden></p>
+      <p class="hint" style="margin-top:14px">COGNAK admin: sign in on <a href="/send">/send</a>, then reload this page.</p>
+    </div></div>
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
 
     <div id="app" hidden>
@@ -46,7 +51,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <a data-tab="replacements">Replacements<i id="n-repl">0</i></a>
         <a data-tab="handoff">Handoff<i id="n-handoff">0</i></a>
         <a data-tab="library">Library<i id="n-lib">0</i></a>
-        <span class="savestate" id="savestate"></span>
+        <span class="savestate" id="savestate"></span><span class="whoami" id="whoami"></span>
       </div>
 
       <div class="stats" id="stats"></div>
@@ -54,7 +59,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <!-- BATCHES -->
       <div class="card rise tab" id="tab-batches">
         <div class="group">
-          <div class="card-head"><div class="group-title">Batches</div><div><span class="mini" id="checked-hint"></span><button class="sbtn p" id="new-batch">New batch</button></div></div>
+          <div class="card-head"><div class="group-title">Batches</div><div><span class="mini" id="checked-hint"></span><button class="sbtn p admin-only" id="new-batch">New batch</button></div></div>
           <div id="batch-list"></div>
         </div>
         <div class="group" id="waiting-group">
@@ -84,7 +89,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div id="page-card"></div>
               <div class="card-head">
                 <span class="mini" id="pg-count"></span>
-                <div class="right"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
+                <div class="right"><span class="admin-only"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
               </div>
               <div class="srows" id="slot-rows"></div>
               <p class="hint pager-foot" id="slot-more"></p>
@@ -108,7 +113,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       <!-- LIBRARY -->
       <div class="card rise tab" id="tab-library" hidden>
-        <div class="group">
+        <div class="group admin-only">
           <div class="group-title">SiTime licensed library</div>
           <p class="hint" id="lib-status"></p>
           <p class="hint">Pick the <b>Image Mapping</b> folder from Drive. Only the Digital-Web folders and MEMS-Products are indexed (web-size copy plus a thumbnail per image); everything else stays where it is. Re-run any time SiTime adds files; already-indexed images are skipped.</p>
@@ -119,11 +124,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="card-head"><div class="group-title">Sourced from Stock / uploads</div><span class="mini" id="sourced-count"></span></div>
           <div class="queue" id="sourced-list"></div>
         </div>
-        <div class="group">
+        <div class="group admin-only">
+          <div class="group-title">Team access</div>
+          <div class="grid3"><label class="q"><span class="q-title">Team passcode</span><input class="txt" id="team-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end" id="team-hint">Lets Michael or Ace sign in here with their name to pick and upload images. They cannot make or delete batches, change passcodes, or reach anything outside this tool. Generated images are capped at 40 a day across the team. Changing it signs everyone out; blank turns team access off.</p></div>
+          <div class="actions"><button class="sbtn p" id="team-save">Set team passcode</button><span class="mini" id="team-status"></span></div>
+        </div>
+        <div class="group admin-only">
           <div class="group-title">Review link passcode</div>
           <div class="grid3"><label class="q"><span class="q-title">Passcode</span><input class="txt" id="review-pass" placeholder="silicon" /></label><p class="hint" style="grid-column:2/4;align-self:end">Asked once per browser session on every review link, on top of the link itself. Blank turns it off.</p></div>
         </div>
-        <div class="group">
+        <div class="group admin-only">
           <div class="group-title">Mock copy</div>
           <div class="grid3">
             <label class="q"><span class="q-title">Headline</span><input class="txt" id="mock-h1" /></label>
@@ -177,6 +187,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tabs a{ font-size:.92rem; padding:9px 16px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink); text-decoration:none; cursor:pointer; user-select:none; }
     .adm .tabs a.on{ background:#1A1A1A; color:#fff; border-color:#1A1A1A; }
     .adm .tabs a i{ font-style:normal; color:inherit; opacity:.6; margin-left:6px; font-family:'Diatype Mono', monospace; font-size:.75rem; }
+    .adm.team .admin-only{ display:none !important; }
+    .adm .whoami{ margin-left:14px; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+    .adm .whoami button{ font:inherit; background:none; border:0; padding:0; color:inherit; text-decoration:underline; cursor:pointer; letter-spacing:inherit; text-transform:inherit; }
+    .adm .teamlogin{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; max-width:620px; }
+    .adm .teamlogin .txt{ flex:1; min-width:160px; }
+    .adm .edited{ display:block; font-size:.72rem; color:var(--ink-soft); margin-top:2px; }
     .adm .savestate{ margin-left:auto; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:2rem; }
     .adm .stat{ background:#fff; border:1px solid #ECECE9; border-radius:10px; padding:16px 18px; }
@@ -406,6 +422,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   (function () {
     const $ = (id) => document.getElementById(id);
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+    const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
     const fmtDate = (iso) => iso ? new Date(iso + (iso.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
 
     async function api(path, opts) {
@@ -443,16 +460,73 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       await new Promise((res) => setTimeout(res, 400 * (tries + 1)));
       return verifySaved(savedAt, tries + 1);
     }
+    /* ---------- several editors: stamp, merge, retry ----------
+       `base` is the stored version this page last synced with. A save sends
+       it; if someone saved since, the server answers 409 with the newer
+       state, and rebase() folds that in: per slot (and batch, and library
+       image), whatever THIS page changed since base wins, everything else
+       takes the stored version. Objects are updated in place so open
+       drawers keep pointing at live slots. */
+    let base = null;
+    let me = { role: 'admin', name: 'Pierce' };
+    let curTab = 'batches';
+    const J = (o) => JSON.stringify(o === undefined ? null : o);
+    const clone = (o) => JSON.parse(JSON.stringify(o));
+    const slotKey = (o) => { if (!o) return 'null'; const c = Object.assign({}, o); delete c.edit; delete c.batch; return J(c); };
+    function replaceInPlace(t, src) { Object.keys(t).forEach((k) => delete t[k]); Object.assign(t, clone(src)); }
+    function stampEdits() {
+      const bm = new Map(((base && base.slots) || []).map((x) => [x.id, x]));
+      S.slots.forEach((x) => { if (slotKey(x) !== slotKey(bm.get(x.id))) x.edit = { by: me.name, at: Date.now() }; });
+    }
+    function rebase(server) {
+      const B = base || {};
+      const mergeList = (key, idOf) => {
+        const bm = new Map((B[key] || []).map((x) => [idOf(x), x]));
+        const lm = new Map((S[key] || []).map((x) => [idOf(x), x]));
+        const out = [];
+        (server[key] || []).forEach((sv) => {
+          const id = idOf(sv), l = lm.get(id), b = bm.get(id);
+          if (l && b && J(l) !== J(b)) out.push(l);           // changed here: ours
+          else if (!l && b) { /* deleted here */ }
+          else if (l) { replaceInPlace(l, sv); out.push(l); }  // untouched here: theirs
+          else out.push(clone(sv));                            // new there
+          lm.delete(id);
+        });
+        lm.forEach((l, id) => { if (!bm.has(id) || J(l) !== J(bm.get(id))) out.push(l); }); // new here, or changed here and deleted there
+        S[key] = out;
+      };
+      mergeList('slots', (x) => x.id);
+      mergeList('batches', (x) => x.token);
+      mergeList('library', (x) => x.id);
+      new Set(Object.keys(server).concat(Object.keys(S))).forEach((k) => {
+        if (['slots', 'batches', 'library', 'savedAt'].includes(k)) return;
+        if (J(S[k]) === J(B[k])) S[k] = clone(server[k]);
+      });
+      S.savedAt = server.savedAt;
+      base = clone(server);
+      _hay.clear();
+    }
+    function typing() { const a = document.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.closest('#app'); }
+    function rerender() { renderStats(); showTab(curTab); }
     async function save() {
       if (saving) { dirty = true; return; }
       saving = true; dirty = false; $('savestate').textContent = 'Saving…';
-      const r = await api('/api/sitime-state', { method: 'POST', body: { state: S } });
+      let r, sent, merged = false;
+      for (let tries = 0; tries < 4; tries++) {
+        stampEdits();
+        sent = JSON.stringify(S);
+        r = await api('/api/sitime-state', { method: 'POST', body: { state: JSON.parse(sent), baseSavedAt: (base && base.savedAt) || 0 } });
+        if (r.status !== 409 || !r.data || !r.data.state) break;
+        rebase(r.data.state); merged = true;
+      }
       if (r.ok && r.data && r.data.savedAt) {
+        base = JSON.parse(sent); base.savedAt = r.data.savedAt; S.savedAt = r.data.savedAt;
+        if (merged && !typing()) rerender();
         $('savestate').textContent = 'Verifying…';
         const ok = await verifySaved(r.data.savedAt);
-        $('savestate').textContent = ok ? 'Saved' : 'Saved (unverified — wait a moment before sharing the link)';
+        $('savestate').textContent = (ok ? 'Saved' : 'Saved (unverified — wait a moment before opening a batch)') + (merged ? ' · merged with another editor' : '');
       } else {
-        $('savestate').textContent = 'Save failed';
+        $('savestate').textContent = r.status === 401 ? 'Signed out — reload to sign in again' : 'Save failed';
       }
       saving = false;
       if (dirty) save();
@@ -528,6 +602,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     document.querySelectorAll('#tabs a').forEach((a) => a.addEventListener('click', () => showTab(a.dataset.tab)));
     function showTab(t) {
+      curTab = t;
       document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === t));
       ['batches', 'slots', 'replacements', 'handoff', 'library'].forEach((k) => { $('tab-' + k).hidden = k !== t; });
       $('stats').hidden = t !== 'batches';
@@ -570,7 +645,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="batchrow" data-b="' + b.token + '"><div><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
           '<div><span class="mini">' + (!decided ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
           '<div class="mini">' + (b.plannedFor ? fmtDate(b.plannedFor) : b.createdAt ? fmtDate(b.createdAt.slice(0, 10)) : '—') + '</div>' +
-          '<div class="acts">' + ICON('open', 'Show slots') + ICON('review', 'Open for review') + ICON('copy', 'Copy link') + ICON('csv', 'Export CSV') + ICON('delete', 'Delete batch') + '</div>' +
+          '<div class="acts">' + ICON('open', 'Show slots') + ICON('review', 'Open for review') + ICON('copy', 'Copy link') + ICON('csv', 'Export CSV') + (me.role === 'admin' ? ICON('delete', 'Delete batch') : '') + '</div>' +
           '<div class="bdetail" hidden style="grid-column:1/-1"></div></div>';
       });
       $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Call date</div><div></div></div>' : '<p class="hint">No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.</p>') + rows.join('');
@@ -598,10 +673,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function renderBatchDetail(b, el) {
       const m = byId();
-      el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (o.outcome === 'pending' ? 'queued' : o.outcome) + '"><i></i>' + (o.outcome === 'pending' ? 'Not yet decided' : STATUS_LABEL[o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (!o.ev ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
-        '<div class="actions"><button class="link" data-edit="1">Rename / reschedule</button><button class="link" data-del="1">Delete batch</button>' + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
+      el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (o.outcome === 'pending' ? 'queued' : o.outcome) + '"><i></i>' + (o.outcome === 'pending' ? 'Not yet decided' : STATUS_LABEL[o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (!o.ev && me.role === 'admin' ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
+        '<div class="actions">' + (me.role === 'admin' ? '<button class="link" data-edit="1">Rename / reschedule</button><button class="link" data-del="1">Delete batch</button>' : '') + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
       el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.rm); b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }));
-      el.querySelector('[data-edit]').addEventListener('click', () => openBatchDialog(b));
+      const ed = el.querySelector('[data-edit]'); if (ed) ed.addEventListener('click', () => openBatchDialog(b));
       const del = el.querySelector('[data-del]'); if (del) del.addEventListener('click', () => deleteBatch(b));
     }
     /* Ace's requirement: every exported row carries the SAME keys the rest of
@@ -780,7 +855,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const rows = shown.map((s) => {
         const st = status(s); const b = batchOf(s); const open = openSlots.has(s.id);
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
-          '<div class="mrow"><input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '><div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div></div>' +
+          '<div class="mrow">' + (me.role === 'admin' ? '<input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' : '<span></span>') + '<div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div>' + (s.edit ? '<span class="edited">' + esc(s.edit.by) + ' · ' + ago(s.edit.at) + '</span>' : '') + '</div>' +
           '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span>' +
           '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Brief and notes">' + ICONS.chevron + '</span></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
@@ -1293,6 +1368,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         mark(); renderLib(); renderSlots(); renderStats();
       }));
     }
+    $('team-save').addEventListener('click', async () => {
+      const pass = $('team-pass').value;
+      $('team-status').textContent = 'Saving…';
+      const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', pass } });
+      $('team-pass').value = '';
+      $('team-status').textContent = r.ok ? (r.data.teamOn ? 'Set. Anyone signed in with the old one is signed out.' : 'Team access is off.') : ((r.data && r.data.error) || 'Could not save.');
+    });
     $('review-pass').addEventListener('change', (e) => { S.reviewPass = e.target.value.trim(); mark(); });
     ['mock-h1', 'mock-p', 'mock-cta'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value }; mark(); }));
     $('lib-dir').addEventListener('change', async () => {
@@ -1321,19 +1403,53 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     });
 
     /* ---------- boot ---------- */
+    async function teamSignIn() {
+      $('tl-err').hidden = true;
+      const name = $('tl-name').value.trim();
+      if (!name) { $('tl-err').textContent = 'Add your name, so edits show who made them.'; $('tl-err').hidden = false; return; }
+      $('tl-go').disabled = true;
+      const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'login', name, pass: $('tl-pass').value } });
+      $('tl-go').disabled = false;
+      if (!r.ok) { $('tl-err').textContent = (r.data && r.data.error) || 'Could not sign in.'; $('tl-err').hidden = false; return; }
+      $('gate').hidden = true; $('loading').hidden = false; boot();
+    }
+    $('tl-go').addEventListener('click', teamSignIn);
+    $('tl-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') teamSignIn(); });
+    let booted = false;
     async function boot() {
       const r = await api('/api/sitime-state');
       $('loading').hidden = true;
-      if (r.status === 401) { $('gate').hidden = false; return; }
+      if (r.status === 401) { $('gate').hidden = false; $('tl-name').focus(); return; }
       if (!r.ok || !r.data) { $('gate').hidden = false; $('gate').querySelector('.hint').textContent = (r.data && r.data.error) || 'Could not load.'; return; }
       S = r.data.state; D = r.data.decisions || {};
       S.batches = S.batches || []; S.library = S.library || [];
+      base = clone(S);
+      me = r.data.me || me;
+      document.querySelector('.adm').classList.toggle('team', me.role !== 'admin');
+      if (me.role !== 'admin') {
+        $('lede').textContent = 'Pick a main and a backup for each slot. Your edits save as you go and show your name; Pierce builds the batches.';
+        $('whoami').innerHTML = esc(me.name) + ' · <button type="button" id="signout">Sign out</button>';
+        $('signout').addEventListener('click', async () => { await flush(); await api('/api/sitime-team', { method: 'POST', body: { action: 'logout' } }); location.reload(); });
+      }
+      if (booted) return; booted = true;
       $('app').hidden = false; $('savestate').textContent = r.data.seeded ? 'Seeded' : 'Saved';
-      renderStats(); renderFilters(); showTab('batches');
+      renderStats(); renderFilters(); showTab(me.role === 'admin' ? 'batches' : 'slots');
       // refresh decisions every 60s while the page is open
       // refresh decisions every 60s, and straight away when coming back from a review tab
-      const refreshDecisions = async () => { const rr = await api('/api/sitime-state'); if (rr.ok && rr.data) { D = rr.data.decisions || {}; renderStats(); if (!$('tab-batches').hidden) renderBatches(); } };
-      setInterval(refreshDecisions, 60000);
+      // and pull in other editors' saves (merged, never overwriting unsaved work here)
+      const refreshDecisions = async () => {
+        if (saving) return;
+        const rr = await api('/api/sitime-state');
+        if (!(rr.ok && rr.data)) return;
+        D = rr.data.decisions || {};
+        const sv = rr.data.state;
+        if (sv && sv.savedAt && sv.savedAt > ((base && base.savedAt) || 0) && !saving) {
+          rebase(sv);
+          if (!typing()) { rerender(); return; }
+        }
+        renderStats(); if (!$('tab-batches').hidden) renderBatches();
+      };
+      setInterval(refreshDecisions, 30000);
       document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshDecisions(); });
     }
     boot();

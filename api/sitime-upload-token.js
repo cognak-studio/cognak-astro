@@ -13,7 +13,7 @@
  * Nothing else. The function never sees the bytes.
  */
 import { handleUpload } from '@vercel/blob/client';
-import { requireAdmin } from './_lib/adminAuth.mjs';
+import { requireEditor } from './_lib/sitimeAuth.mjs';
 
 const MAX_BYTES = 60 * 1024 * 1024;
 const TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (requireAdmin(req, res)) return;
+  if (!(await requireEditor(req, res))) return;
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }

@@ -20,7 +20,7 @@
  * the "no hands, no light trails..." constraints are already baked in.
  */
 import { put } from '@vercel/blob';
-import { requireAdmin } from './_lib/adminAuth.mjs';
+import { requireEditor, teamGenerationsToday, logGeneration, TEAM_GEN_PER_DAY } from './_lib/sitimeAuth.mjs';
 
 const MODEL = 'gemini-2.5-flash-image';
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/' + MODEL + ':generateContent';
@@ -55,7 +55,8 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (requireAdmin(req, res)) return;
+  const who = await requireEditor(req, res);
+  if (!who) return;
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY is not set in this project’s Vercel env vars.' });
@@ -69,6 +70,11 @@ export default async function handler(req, res) {
   if (!/^[A-Z]{2,3}-\d{3,5}$/.test(slotId)) return res.status(400).json({ error: 'Unknown slot.' });
   if (!prompt) return res.status(400).json({ error: 'Write a brief first.' });
 
+  // Team members share a daily cap; it is COGNAK's Gemini bill.
+  if (who.role !== 'admin') {
+    const { n } = await teamGenerationsToday();
+    if (n + count > TEAM_GEN_PER_DAY) return res.status(429).json({ error: 'The team has used today’s ' + TEAM_GEN_PER_DAY + ' generated images. Ask Pierce, or try tomorrow.' });
+  }
   const fullPrompt = prompt + STYLE_SUFFIX;
 
   try {
@@ -80,6 +86,7 @@ export default async function handler(req, res) {
     }
     if (!ok.length) return res.status(502).json({ error: errors[0] || 'Generation failed.' });
 
+    if (who.role !== 'admin') { try { await logGeneration(who, ok.length); } catch (e) { console.error('gen log failed', e); } }
     const at = Date.now();
     const images = await Promise.all(ok.map(async (img, i) => {
       const ext = extFor(img.mimeType);
