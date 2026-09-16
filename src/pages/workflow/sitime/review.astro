@@ -97,6 +97,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
+    /* The sitewide focus ring is brand purple (custom.css), built for the dark
+       pages. This one is light, so the ring uses its own ink instead. */
+    .review a:focus-visible, .review button:focus-visible, .review input:focus-visible,
+    .review textarea:focus-visible, .review [tabindex]:focus-visible{ outline-color:#575049 !important; }
     @font-face{ font-family:'Onest'; src:url(/theme/assets/fonts/onest/Onest-300.ttf) format('truetype'); font-weight:300; font-style:normal; font-display:swap; }
     @font-face{ font-family:'Onest'; src:url(/theme/assets/fonts/onest/Onest-400.ttf) format('truetype'); font-weight:400; font-style:normal; font-display:swap; }
     @font-face{ font-family:'Onest'; src:url(/theme/assets/fonts/onest/Onest-500.ttf) format('truetype'); font-weight:500; font-style:normal; font-display:swap; }

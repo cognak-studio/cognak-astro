@@ -49,7 +49,9 @@ const TOOLS = [
        peer of /projects or /schedule -- so it takes ITS interior pages'
        graygreen (admin.astro / review.astro's --head / --accent), matching
        what's one click away instead of the sitewide purple. */
-    .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#4B584E; --accent:#86988A; --accent-rgb:134,152,138;
+    /* Focus ring follows this page's accent, not the sitewide brand purple. */
+    .wf a:focus-visible, .wf button:focus-visible, .wf [tabindex]:focus-visible{ outline-color:var(--head) !important; }
+    .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#575049; --accent:#9B948A; --accent-rgb:155,148,138;
       max-width:1040px; margin:0 auto; padding:190px 6vw 22vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .wf .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .wf .headline em{ font-style:normal; font-weight:500; color:var(--head); }

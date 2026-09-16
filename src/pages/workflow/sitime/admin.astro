@@ -150,7 +150,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     html, body { background-color:#F4F4F2 !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
     .adm label, .adm legend { display:block !important; }
-    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#86988A; --head:#4B584E; --deep:#171C18; --line:#E6E6E3; --line-strong:#CFCFCB;
+    /* The sitewide focus ring is the brand purple (#9F50FF, custom.css), which
+       is built for the dark pages. This page is light and carries its own
+       accent, so the ring follows it -- same move custom.css already makes for
+       .projects-archive and .privacy-template. */
+    .adm a:focus-visible, .adm button:focus-visible, .adm input:focus-visible,
+    .adm textarea:focus-visible, .adm select:focus-visible, .adm [tabindex]:focus-visible,
+    .adm dialog:focus-visible, .adm .sbtn:focus-visible{ outline-color:var(--head) !important; }
+    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#9B948A; --head:#575049; --deep:#1C1A17; --line:#E6E6E3; --line-strong:#CFCFCB;
       max-width:1560px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .adm .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .adm .headline em{ font-style:normal; font-weight:500; color:var(--head); }
@@ -189,7 +196,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm table{ width:100%; border-collapse:collapse; font-size:.92rem; }
     .adm th{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
     .adm td{ padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
-    .adm tr.sel td{ background:#F6F8F7; }
+    .adm tr.sel td{ background:#F7F6F3; }
     .adm tr.clickable{ cursor:pointer; }
     .adm .pg{ font-weight:500; }
     .adm .sub{ font-size:.8rem; color:var(--ink-soft); }
@@ -263,7 +270,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
     .adm .st i{ width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
-    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#86988A; } .adm .st.sent i{ background:#86988A; box-shadow:0 0 0 2px #DAE7DD; }
+    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#9B948A; } .adm .st.sent i{ background:#9B948A; box-shadow:0 0 0 2px #E3DED5; }
     .adm .st.approved i{ background:#9DFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
     .adm .st.unreviewed i{ background:#fff; border:1px solid #9A9A96; } .adm .st.kept i{ background:#9DFF00; border:1px solid #6EB300; opacity:.5; }
     .adm .mini{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.05em; color:var(--ink-soft); }
@@ -281,7 +288,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; }
     .adm .drawer .meta{ display:grid; grid-template-columns:1.5fr 1fr; gap:38px; font-size:.88rem; line-height:1.6; color:var(--ink-soft); margin:1.4rem 0 2rem; }
     .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:6px; }
-    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#4B584E; line-height:1.5; }
+    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.04em; color:#575049; line-height:1.5; }
     .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E6E6E3; border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
     .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; min-height:110px; cursor:default; color:var(--ink-soft); font-size:.78rem; background:#FAFAF8; border-style:dashed; }
     .adm .srctabs{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
@@ -342,8 +349,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rsec.open > button{ color:var(--ink); }
     .adm .rpages{ padding:0 0 8px 4px; }
     .adm .rpage{ display:block; width:100%; text-align:left; font:inherit; font-size:.86rem; line-height:1.4; color:var(--ink); background:none; border:0; border-left:2px solid transparent; padding:9px 10px; cursor:pointer; border-radius:0 6px 6px 0; }
-    .adm .rpage:hover{ background:#F6F8F7; }
-    .adm .rpage.on{ border-left-color:#1A1A1A; background:#F2F5F3; font-weight:500; }
+    .adm .rpage:hover{ background:#F7F6F3; }
+    .adm .rpage.on{ border-left-color:#1A1A1A; background:#F5F3EF; font-weight:500; }
     .adm .rpage i{ font-style:normal; font-family:'Diatype Mono', monospace; font-size:.66rem; color:var(--ink-soft); margin-left:6px; }
     .adm .rpage .dot{ display:inline-block; width:6px; height:6px; border-radius:50%; background:#C9C9C4; margin-right:6px; vertical-align:1px; }
     .adm .rpage .dot.done{ background:#9DFF00; border:1px solid #6EB300; }
@@ -363,13 +370,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     /* ---- adding your own Adobe finds (no API needed) ---- */
     .adm .addbox{ border:1px dashed var(--line-strong); border-radius:10px; padding:16px 18px; margin-bottom:22px; background:#FCFCFB; transition:border-color .12s var(--ease-standard), background .12s var(--ease-standard); }
-    .adm .addbox.drop{ border-color:var(--accent); border-style:solid; background:#F1F5F2; }
+    .adm .addbox.drop{ border-color:var(--accent); border-style:solid; background:#F4F2ED; }
     .adm .addbox .ab-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
     .adm .addbox .ab-input{ width:100%; box-sizing:border-box; font:inherit; font-size:.86rem; min-height:64px; resize:vertical; border:1px solid var(--line-strong); border-radius:8px; padding:10px 12px; background:#fff; outline:none; }
     .adm .addbox .ab-input:focus{ border-color:var(--accent); }
     .adm .addbox .ab-status{ display:block; margin-top:8px; }
     .adm .cand.noprev{ border-style:dashed; background:#FAFAF8; display:flex; align-items:center; justify-content:center; min-height:200px; text-align:center; cursor:default; }
-    .adm .cand.noprev.drop{ border-style:solid; border-color:var(--accent); background:#F1F5F2; }
+    .adm .cand.noprev.drop{ border-style:solid; border-color:var(--accent); background:#F4F2ED; }
     .adm .cand.noprev .np-body{ padding:16px; }
     .adm .cand.noprev b{ display:block; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.06em; color:var(--ink); margin-bottom:8px; }
     .adm .cand.noprev .mini{ display:block; line-height:1.45; }
@@ -385,7 +392,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .meta textarea.terms-edit{ width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
     .adm .cand .meta2{ display:flex; gap:6px; flex-wrap:wrap; padding:0 12px 10px; }
     .adm .cand .flag{ font-family:'Diatype Mono', monospace; font-size:.58rem; letter-spacing:.08em; text-transform:uppercase; padding:3px 6px; border-radius:999px; border:1px solid var(--line); color:var(--ink-soft); }
-    .adm .cand .flag.real{ color:#4B584E; border-color:#C9D6CC; }
+    .adm .cand .flag.real{ color:#575049; border-color:#D7D1C7; }
     .adm .cand .flag.ai{ background:#FFF3CD; color:#8A5A00; border-color:#F0E0AE; }
     .adm .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
     .adm .cand .adobe{ display:block; padding:0 12px 12px; font-size:.76rem; color:var(--head); text-decoration:underline; text-underline-offset:3px; }
