@@ -55,7 +55,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             <button type="button" class="pill" data-v="hold">Hold</button>
           </div>
           <div class="note" id="note" hidden>
-            <textarea id="note-text" placeholder="Optional. Anything COGNAK should know about this one."></textarea>
+            <textarea id="note-text" placeholder="Optional. What's wrong with it, or what to look for instead."></textarea>
             <div class="actions">
               <button type="button" class="btn" id="submit">Submit and continue <span aria-hidden="true">→</span></button>
               <button type="button" class="skip" id="skip">Skip for now</button>
@@ -67,7 +67,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
 
         <div class="stage-wrap">
-          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
+          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span><span class="which" id="which" role="group" aria-label="Image"><button type="button" data-w="main">Main</button><button type="button" data-w="backup">Backup</button></span></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
           <div class="stage" id="stage"><div class="st-inner">
             <div class="st-nav">
               <img class="mark" src="/media/sitime/logo.svg" alt="SiTime" />
@@ -168,9 +168,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .stage-head .label-line{ display:flex; align-items:center; gap:8px; }
     .review .stage-head .label, .review .stage-head .sep, .review .stage-head .count{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
     .review .arrows{ display:flex; gap:8px; }
+    .review .which{ display:inline-flex; margin-left:14px; border:1px solid var(--line-strong); border-radius:999px; padding:3px; gap:2px; }
+    .review .which button{ font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; border:0; background:none; color:var(--ink-soft); padding:6px 12px; border-radius:999px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; }
+    .review .which button.on{ background:var(--ink); color:#fff; }
+    .review .which button:disabled{ opacity:.35; cursor:default; }
+    .review .which i{ font-style:normal; font-size:.8rem; letter-spacing:0; }
+    .review .which i.approve{ color:#5A9E00; } .review .which i.deny{ color:#E5231B; } .review .which i.hold{ color:#E07000; }
+    .review .which button.on i.approve{ color:#9DFF00; } .review .which button.on i.deny{ color:#FF7070; } .review .which button.on i.hold{ color:#FFB24D; }
     .review .arrows button{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; font-size:14px; line-height:1; }
     .review .arrows button:disabled{ opacity:.32; cursor:default; }
-    .review .stage{ border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,.12); border:1px solid #E1E1DE; font-family:Onest, sans-serif; color:#1A1A1A; --sit:#BA0C2F; --scale:.5; height:calc(var(--scale) * 1000px); }
+    .review .stage{ border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,.12); border:1px solid #E1E1DE; font-family:Onest, sans-serif; color:#1A1A1A; --sit:#a4212d; --scale:.5; height:calc(var(--scale) * 1000px); }
     .review .st-inner{ width:1584px; transform:scale(var(--scale)); transform-origin:0 0; }
     .review .st-nav{ height:88px; display:flex; align-items:center; padding:0 84px; border-bottom:1px solid #E6E6E6; background:#fff; }
     .review .st-nav .mark{ height:30px; width:auto; display:block; }
@@ -235,21 +242,39 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     window.addEventListener('resize', fit);
 
     const token = getToken();
-    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null };
+    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {} };
     let pass = '';
     try { pass = sessionStorage.getItem('sitime-pass-' + token) || ''; } catch (e) {}
 
+    /* One rule for a slot's outcome, shared verbatim by admin.astro,
+       review.astro and sitimeStore.mjs. Either image can be decided at any
+       time (the reviewer can flip to the backup before denying the main):
+         - any approve wins; if both are approved, the newest one
+         - otherwise any hold wins, newest first
+         - denied only once every image is denied (main, and backup if any)
+         - otherwise pending, on the main unless the main is denied */
+    function resolveOutcome(m, b, hasBackup) {
+      const at = (e) => Number(e && e.at) || 0;
+      const evs = [m && { w: 'main', e: m }, hasBackup && b && { w: 'backup', e: b }].filter(Boolean);
+      const top = (d) => evs.filter((x) => x.e.decision === d).sort((x, y) => at(y.e) - at(x.e))[0];
+      const ap = top('approve'); if (ap) return { outcome: 'approved', which: ap.w, ev: ap.e };
+      const ho = top('hold'); if (ho) return { outcome: 'held', which: ho.w, ev: ho.e };
+      const mDen = !!(m && m.decision === 'deny');
+      const bDen = !hasBackup || !!(b && b.decision === 'deny');
+      const de = top('deny');
+      if (mDen && bDen) return { outcome: 'denied', which: de.w, ev: de.e };
+      return { outcome: 'pending', which: mDen ? 'backup' : 'main', ev: de ? de.e : null };
+    }
     function outcome(slot) {
       const d = state.decisions[slot.id] || {};
-      const m = d.main, b = d.backup;
-      if (!m) return { outcome: 'pending', which: 'main' };
-      if (m.decision === 'approve') return { outcome: 'approved', which: 'main' };
-      if (m.decision === 'hold') return { outcome: 'held', which: 'main' };
-      if (!slot.backup) return { outcome: 'denied', which: 'main' };
-      if (!b) return { outcome: 'pending', which: 'backup' };
-      if (b.decision === 'approve') return { outcome: 'approved', which: 'backup' };
-      if (b.decision === 'hold') return { outcome: 'held', which: 'backup' };
-      return { outcome: 'denied', which: 'backup' };
+      return resolveOutcome(d.main, d.backup, !!slot.backup);
+    }
+    /* Which image is on the stage. The reviewer can flip Main/Backup at any
+       time; otherwise it follows the outcome (a denied main hands over to the
+       backup in the same spot). */
+    function viewed(s) {
+      const v = state.view[s.id] || outcome(s).which || 'main';
+      return v === 'backup' && !(s.backup && s.backup.url) ? 'main' : v;
     }
 
     function firstPending(from) {
@@ -290,16 +315,23 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     function render() {
       const s = state.slots[state.i]; if (!s) return;
-      const o = outcome(s);
-      const which = o.outcome === 'pending' ? o.which : (o.which || 'main');
+      const which = viewed(s);
       const pick = which === 'backup' ? s.backup : s.main;
+      const d = state.decisions[s.id] || {};
       const done = state.slots.filter((x) => outcome(x).outcome !== 'pending').length;
 
       $('batch-label').textContent = 'Batch ' + String(state.batch.num || '').padStart(2, '0') + (state.batch.name ? ' · ' + state.batch.name : '');
       $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length;
       $('bar').style.width = Math.round((done / state.slots.length) * 100) + '%';
       $('slot-title').textContent = s.page + ' · ' + s.name;
-      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image, shown because the main was denied.' : (s.backup ? 'Main image. If you deny it, the backup appears in the same spot.' : 'Main image. No backup for this one.'));
+      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image.' : (s.backup ? 'Main image. The backup is one click away above the image, and appears on its own if the main is denied.' : 'Main image. No backup for this one.'));
+      const MARK = { approve: '✓', deny: '✕', hold: '◦' };
+      document.querySelectorAll('#which button').forEach((btn) => {
+        const w = btn.dataset.w; const ev = d[w];
+        btn.classList.toggle('on', w === which);
+        btn.disabled = w === 'backup' && !(s.backup && s.backup.url);
+        btn.innerHTML = (w === 'main' ? 'Main' : (btn.disabled ? 'No backup' : 'Backup')) + (ev ? ' <i class="' + ev.decision + '">' + MARK[ev.decision] + '</i>' : '');
+      });
       const heroUrl = (pick && pick.url) || '';
       $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
       $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
@@ -309,8 +341,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       document.querySelectorAll('#pills .pill').forEach((p) => p.classList.remove('on'));
       $('note').hidden = true; $('note-text').value = ''; $('err').hidden = true;
       state.pending = null;
-      const ev = (state.decisions[s.id] || {})[which];
-      if (o.outcome !== 'pending' && ev) {
+      const ev = d[which];
+      if (ev) {
         $('decided').hidden = false;
         $('decided').innerHTML = 'Decided: <b>' + ({ approve: 'Approved', deny: 'Denied', hold: 'Held' })[ev.decision] + '</b>' + (ev.note ? ' · “' + escapeHtml(ev.note) + '”' : '') + '. Choose again to change it.';
       } else { $('decided').hidden = true; }
@@ -318,7 +350,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       // Landed on the backup because the main was denied -- say so plainly,
       // with whatever note came with that denial, instead of the silent
       // hand-off reviewers were missing (subtitle alone was too easy to skim past).
-      const mainEv = (state.decisions[s.id] || {}).main;
+      const mainEv = d.main;
       if (which === 'backup' && mainEv && mainEv.decision === 'deny') {
         $('handoff').hidden = false;
         $('handoff').innerHTML = '<b>Main image denied' + (mainEv.note ? ':</b> “' + escapeHtml(mainEv.note) + '”' : '.</b>') + ' Reviewing the backup now.';
@@ -357,31 +389,44 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       window.scrollTo({ top: $('card').offsetTop - 120, behavior: REDUCE ? 'auto' : 'smooth' });
     }
 
+    document.querySelectorAll('#which button').forEach((btn) => btn.addEventListener('click', () => {
+      const s = state.slots[state.i]; if (!s || btn.disabled) return;
+      state.view[s.id] = btn.dataset.w; render();
+    }));
+
+    /* Approve saves on the click -- no note. Deny and hold open the note box. */
     document.querySelectorAll('#pills .pill').forEach((p) => p.addEventListener('click', () => {
       document.querySelectorAll('#pills .pill').forEach((x) => x.classList.remove('on'));
       p.classList.add('on');
       state.pending = p.dataset.v;
-      $('note').hidden = false; $('err').hidden = true;
+      $('err').hidden = true;
+      if (state.pending === 'approve') { $('note').hidden = true; $('note-text').value = ''; submit(); return; }
+      $('note').hidden = false;
       $('note-text').focus({ preventScroll: true });
     }));
 
-    $('submit').addEventListener('click', async () => {
-      if (!state.pending) return;
+    let busy = false;
+    async function submit() {
+      if (!state.pending || busy) return;
       const s = state.slots[state.i];
-      const o = outcome(s);
-      const which = o.outcome === 'pending' ? o.which : o.which;
-      const note = $('note-text').value.trim();
-      $('submit').disabled = true; $('saving').hidden = false; $('err').hidden = true;
-      const r = await api('/api/sitime-decide', { token, pass, slotId: s.id, which, decision: state.pending, note });
-      $('submit').disabled = false; $('saving').hidden = true;
+      const which = viewed(s);
+      const decision = state.pending;
+      const note = decision === 'approve' ? '' : $('note-text').value.trim();
+      busy = true; $('submit').disabled = true; $('saving').hidden = false; $('err').hidden = true;
+      if (decision === 'approve') { $('decided').hidden = false; $('decided').textContent = 'Saving…'; }
+      const r = await api('/api/sitime-decide', { token, pass, slotId: s.id, which, decision, note });
+      busy = false; $('submit').disabled = false; $('saving').hidden = true;
       if (!r.ok) {
+        $('note').hidden = false;
         $('err').textContent = (r.data && r.data.error) || 'Could not save that. Try again.'; $('err').hidden = false; return;
       }
       if (!state.decisions[s.id]) state.decisions[s.id] = {};
-      state.decisions[s.id][which] = { decision: state.pending, note, at: Date.now() };
+      state.decisions[s.id][which] = { decision, note, at: Date.now() };
+      delete state.view[s.id];   // let the stage follow the outcome again
       await resync();
       advance();
-    });
+    }
+    $('submit').addEventListener('click', submit);
     $('skip').addEventListener('click', () => { const j = firstPending(state.i + 1); if (j === -1 || j === state.i) { render(); return; } state.i = j; render(); });
     $('prev').addEventListener('click', () => { if (state.i > 0) { state.i--; render(); } });
     $('next').addEventListener('click', () => { if (state.i < state.slots.length - 1) { state.i++; render(); } });

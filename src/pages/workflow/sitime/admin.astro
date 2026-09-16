@@ -310,6 +310,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .up.stock-add{ cursor:default; }
     .adm .up .paste-link{ cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
     .adm .up .paste-link:hover{ color:var(--ink); }
+    .adm .uperr{ color:#C0231B; display:block; margin-top:8px; }
     .adm .batchrow{ display:grid; grid-template-columns:1.4fr 1.2fr 60px 110px 1.2fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:.92rem; }
     .adm .acts{ display:flex; gap:6px; justify-content:flex-end; }
     .adm .ibtn{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:background var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
@@ -469,17 +470,28 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* ---------- derived ---------- */
     const byId = () => new Map(S.slots.map((s) => [s.id, s]));
     function batchOf(slot) { return slot.batch ? S.batches.find((b) => b.token === slot.batch) : null; }
+    /* One rule for a slot's outcome, shared verbatim by admin.astro,
+       review.astro and sitimeStore.mjs. Either image can be decided at any
+       time (the reviewer can flip to the backup before denying the main):
+         - any approve wins; if both are approved, the newest one
+         - otherwise any hold wins, newest first
+         - denied only once every image is denied (main, and backup if any)
+         - otherwise pending, on the main unless the main is denied */
+    function resolveOutcome(m, b, hasBackup) {
+      const at = (e) => Number(e && e.at) || 0;
+      const evs = [m && { w: 'main', e: m }, hasBackup && b && { w: 'backup', e: b }].filter(Boolean);
+      const top = (d) => evs.filter((x) => x.e.decision === d).sort((x, y) => at(y.e) - at(x.e))[0];
+      const ap = top('approve'); if (ap) return { outcome: 'approved', which: ap.w, ev: ap.e };
+      const ho = top('hold'); if (ho) return { outcome: 'held', which: ho.w, ev: ho.e };
+      const mDen = !!(m && m.decision === 'deny');
+      const bDen = !hasBackup || !!(b && b.decision === 'deny');
+      const de = top('deny');
+      if (mDen && bDen) return { outcome: 'denied', which: de.w, ev: de.e };
+      return { outcome: 'pending', which: mDen ? 'backup' : 'main', ev: de ? de.e : null };
+    }
     function outcomeIn(slot, batch) {
       const d = batch && D[batch.token] && D[batch.token].latest && D[batch.token].latest[slot.id];
-      const m = d && d.main, b = d && d.backup;
-      if (!m) return { outcome: 'pending', which: null };
-      if (m.decision === 'approve') return { outcome: 'approved', which: 'main', ev: m };
-      if (m.decision === 'hold') return { outcome: 'held', which: 'main', ev: m };
-      if (!slot.backup) return { outcome: 'denied', which: 'main', ev: m };
-      if (!b) return { outcome: 'pending', which: 'backup', ev: m };
-      if (b.decision === 'approve') return { outcome: 'approved', which: 'backup', ev: b };
-      if (b.decision === 'hold') return { outcome: 'held', which: 'backup', ev: b };
-      return { outcome: 'denied', which: 'backup', ev: b };
+      return resolveOutcome(d && d.main, d && d.backup, !!slot.backup);
     }
     function status(slot) {
       const b = batchOf(slot);
@@ -1111,8 +1123,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const full = nextEmpty === -1;
         return '<div class="up" style="margin-bottom:12px;aspect-ratio:auto;padding:14px"><button class="sbtn p" data-genall="1" ' + (busy || full ? 'disabled' : '') + '>' + (busy ? 'Generating…' : 'Generate one') + '</button><span class="mini" style="margin-left:10px">' + (full ? 'All five filled — re-roll any one with its ↻.' : 'One image per click. Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.') + '</span></div><div class="cands">' + cards.join('') + '</div>';
       }
-      return '<div class="cands"><label class="up" data-uplabel="1">Drop or choose images<br><span class="mini">JPG or PNG, as many as you like. Resized to 1200px and added to the SiTime library, so you can reuse one on another slot without uploading it again. The first lands on the ' + targetOf(s) + '.</span><input type="file" data-upfile="1" accept="image/*" multiple hidden></label><span class="mini" data-upstatus="1"></span></div>';
+      return '<div class="cands"><label class="up" data-uplabel="1">Drop or choose images<br><span class="mini">JPG or PNG, as many as you like. Resized to 1200px and added to the SiTime library, so you can reuse one on another slot without uploading it again. The first lands on the ' + targetOf(s) + '.</span><input type="file" data-upfile="1" accept="image/*" multiple hidden></label><span class="mini' + (upStatus[s.id] && upStatus[s.id].err ? ' uperr' : '') + '" data-upstatus="1">' + esc((upStatus[s.id] && upStatus[s.id].text) || '') + '</span></div>';
     }
+    const upStatus = {};
     function wireSource(s, el) {
       el.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
       el.querySelectorAll('.cand .adobe').forEach((a) => a.addEventListener('click', (ev) => ev.stopPropagation()));
@@ -1194,9 +1207,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          a second fills the other tile if it is empty. */
       const uf = el.querySelector('[data-upfile]'); if (uf) uf.addEventListener('change', async () => {
         const files = Array.from(uf.files || []); if (!files.length) return;
+        delete upStatus[s.id];
         const st = el.querySelector('[data-upstatus]');
         S.library = S.library || [];
-        const picked = []; let failed = 0;
+        const picked = []; let failed = 0; let lastErr = '';
         for (let i = 0; i < files.length; i++) {
           const f = files[i];
           if (st) st.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + '…';
@@ -1211,11 +1225,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               S.library.push(entry);
             }
             picked.push(entry);
-          } catch (e) { failed++; console.error(f.name, e); }
+          } catch (e) { failed++; lastErr = f.name + ': ' + ((e && e.message) || e || 'unknown error'); console.error(f.name, e); }
         }
-        if (st) st.textContent = picked.length + ' uploaded' + (failed ? ', ' + failed + ' failed (see console)' : '') + '.';
+        /* The status lives outside the drawer: assign() re-renders it, which
+           used to wipe the message -- a failed upload looked like nothing
+           happened at all. */
+        upStatus[s.id] = { text: picked.length + ' uploaded' + (failed ? '. ' + failed + ' failed — ' + lastErr : '.'), err: !!failed };
+        uf.value = '';
         mark();
-        if (!picked.length) { renderSlots(); return; }
+        if (!picked.length) { refreshDrawer(s.id); return; }
         assign(s, pickFrom('library', picked[0]));
         if (picked[1] && !(s.main && s.backup)) assign(s, pickFrom('library', picked[1]));
         renderSlots();
@@ -1248,13 +1266,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     /* ---------- library indexer + mock copy ---------- */
     let _blob = null;
-    function blobClient() { if (!_blob) _blob = import('https://esm.sh/@vercel/blob@1/client'); return _blob; }
+    function blobClient() { if (!_blob) _blob = import('https://esm.sh/@vercel/blob@1/client').catch(() => { _blob = null; throw new Error('the uploader could not load (esm.sh)'); }); return _blob; }
     async function uploadBlob(pathname, fileOrBlob) { const mod = await blobClient(); return mod.upload(pathname, fileOrBlob, { access: 'public', handleUploadUrl: '/api/sitime-upload-token', contentType: fileOrBlob.type || 'image/jpeg' }); }
     async function sha1(str) { const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12); }
     /* A PNG is re-encoded as PNG, not JPEG: SiTime's product renders are
        transparent PNGs and flattening them to JPEG puts a black box behind
        every one. Everything else goes to JPEG at 0.84. */
-    function resize(file, max, type) { return new Promise((resolve, reject) => { const mime = type || (/png$/i.test(file.type || file.name || '') ? 'image/png' : 'image/jpeg'); const img = new Image(); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => b ? resolve({ blob: b, w: img.width, h: img.height, ext: mime === 'image/png' ? 'png' : 'jpg' }) : reject(new Error('encode')), mime, 0.84); URL.revokeObjectURL(img.src); }; img.onerror = reject; img.src = URL.createObjectURL(file); }); }
+    function resize(file, max, type) { return new Promise((resolve, reject) => { const mime = type || (/png$/i.test(file.type || file.name || '') ? 'image/png' : 'image/jpeg'); const img = new Image(); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => b ? resolve({ blob: b, w: img.width, h: img.height, ext: mime === 'image/png' ? 'png' : 'jpg' }) : reject(new Error('encode')), mime, 0.84); URL.revokeObjectURL(img.src); }; img.onerror = () => reject(new Error('the browser could not read this image — use JPG or PNG (HEIC, TIFF and PSD will not load)')); img.src = URL.createObjectURL(file); }); }
     function sourcedRows() {
       const rows = [];
       (S.slots || []).forEach((s) => { ['main', 'backup'].forEach((which) => { const p = s[which]; if (p && (p.source === 'stock' || p.source === 'upload')) rows.push({ s, which, p }); }); });

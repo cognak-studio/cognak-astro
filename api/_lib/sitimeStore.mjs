@@ -123,19 +123,31 @@ export async function readAllDecisions(tokens) {
   return out;
 }
 
-/**
- * Outcome of a slot inside a batch, from its reduced decisions.
- * 'approved' | 'denied' | 'held' | 'pending', plus which image won.
- */
-export function slotOutcome(latestForSlot) {
+/** Outcome of a slot inside a batch. Same rule as resolveOutcome() in
+ * admin.astro and review.astro -- keep the three in step. */
+export function slotOutcome(latestForSlot, hasBackup = true) {
   const m = latestForSlot && latestForSlot.main;
   const b = latestForSlot && latestForSlot.backup;
-  if (!m) return { outcome: 'pending', via: null };
-  if (m.decision === 'approve') return { outcome: 'approved', via: 'main' };
-  if (m.decision === 'hold') return { outcome: 'held', via: 'main' };
-  // main denied → the backup decides
-  if (!b) return { outcome: 'pending', via: 'backup' };
-  if (b.decision === 'approve') return { outcome: 'approved', via: 'backup' };
-  if (b.decision === 'hold') return { outcome: 'held', via: 'backup' };
-  return { outcome: 'denied', via: 'backup' };
+  const r = resolveOutcome(m, b, hasBackup);
+  return { outcome: r.outcome, via: r.which };
 }
+
+/* One rule for a slot's outcome, shared verbatim by admin.astro,
+     review.astro and sitimeStore.mjs. Either image can be decided at any
+     time (the reviewer can flip to the backup before denying the main):
+     - any approve wins; if both are approved, the newest one
+     - otherwise any hold wins, newest first
+     - denied only once every image is denied (main, and backup if any)
+     - otherwise pending, on the main unless the main is denied */
+  function resolveOutcome(m, b, hasBackup) {
+    const at = (e) => Number(e && e.at) || 0;
+    const evs = [m && { w: 'main', e: m }, hasBackup && b && { w: 'backup', e: b }].filter(Boolean);
+    const top = (d) => evs.filter((x) => x.e.decision === d).sort((x, y) => at(y.e) - at(x.e))[0];
+    const ap = top('approve'); if (ap) return { outcome: 'approved', which: ap.w, ev: ap.e };
+    const ho = top('hold'); if (ho) return { outcome: 'held', which: ho.w, ev: ho.e };
+    const mDen = !!(m && m.decision === 'deny');
+    const bDen = !hasBackup || !!(b && b.decision === 'deny');
+    const de = top('deny');
+    if (mDen && bDen) return { outcome: 'denied', which: de.w, ev: de.e };
+    return { outcome: 'pending', which: mDen ? 'backup' : 'main', ev: de ? de.e : null };
+  }

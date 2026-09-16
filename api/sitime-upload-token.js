@@ -5,6 +5,8 @@
  *   sitime/library/<id>.jpg, sitime/library/t/<id>.jpg
  *     SiTime's own licensed library, pushed from the admin page's "Index the
  *     library" step (web-size copy + thumbnail per image).
+ *   sitime/comps/<key>.jpg
+ *     Adobe comps dropped or pasted into the Stock tab's add box.
  *   sitime/uploads/<slotId>/<name>
  *     Generated or hand-picked images Pierce drops onto a slot.
  *
@@ -31,7 +33,7 @@ export default async function handler(req, res) {
       body,
       request: req,
       onBeforeGenerateToken: async (pathname) => {
-        if (!pathname.startsWith('sitime/library/') && !pathname.startsWith('sitime/uploads/')) {
+        if (!/^sitime\/(library|uploads|comps)\//.test(pathname)) {
           throw new Error('Invalid upload path.');
         }
         return {
