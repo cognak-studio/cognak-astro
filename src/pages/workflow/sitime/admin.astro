@@ -89,7 +89,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div id="page-card"></div>
               <div class="card-head">
                 <span class="mini" id="pg-count"></span>
-                <div class="right"><span class="admin-only"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
+                <div class="right"><span class="admin-only selbar"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
               </div>
               <div class="srows" id="slot-rows"></div>
               <p class="hint pager-foot" id="slot-more"></p>
@@ -201,6 +201,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .stat.warn b{ color:#D94A00; }
     .adm .card-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:1.4rem; flex-wrap:wrap; }
     .adm .card-head .right{ display:flex; align-items:center; gap:12px; }
+    .adm .selbar{ display:inline-flex; align-items:center; gap:12px; }
     .adm .search{ font:inherit; font-size:.9rem; padding:8px 12px; border:1px solid var(--line-strong); border-radius:999px; background:#fff; width:220px; outline:none; }
     .adm .filters{ display:flex; gap:8px; flex-wrap:wrap; }
     .adm .sbtn{ font:inherit; font-size:.85rem; font-weight:500; padding:8px 14px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; white-space:nowrap; }
