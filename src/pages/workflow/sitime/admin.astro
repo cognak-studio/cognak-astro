@@ -286,10 +286,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:.85rem; white-space:nowrap; }
-    .adm .st i{ width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
+    .adm .st i{ position:relative; width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
     .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#9B948A; }
-    .adm .st.approved i{ background:#9DFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
-    .adm .st.unreviewed i{ background:#fff; border:1px solid #9A9A96; } .adm .st.kept i{ background:#9DFF00; border:1px solid #6EB300; opacity:.5; }
+    .adm .st.approved i{ background:#AAFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
+    /* A finished batch is the one thing worth catching the eye across a long
+       list, so only THAT dot gets the sitewide availability-dot blip ring
+       (.avail-dot in custom.css). Scoped to .batchrow on purpose -- the slot
+       rows reuse .st, and eight pulsing chips at once is noise, not signal. */
+    .adm .batchrow .st.approved i::after{ content:''; position:absolute; inset:-1px; border-radius:50%;
+      border:1px solid #6EB300; opacity:0; animation:adm-dot-blip 2.5s ease-out infinite; }
+    @keyframes adm-dot-blip{ 0%{ transform:scale(1); opacity:.8; } 100%{ transform:scale(2.8); opacity:0; } }
+    @media (prefers-reduced-motion:reduce){ .adm .batchrow .st.approved i::after{ animation:none; } }
+    .adm .st.unreviewed i{ background:#fff; border:1px solid #9A9A96; } .adm .st.kept i{ background:#AAFF00; border:1px solid #6EB300; opacity:.5; }
     .adm .mini{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.05em; color:var(--ink-soft); }
     .adm .mini b{ font-weight:400; color:var(--ink); margin-right:10px; }
     .adm .mini .a{ color:#5A9E00; } .adm .mini .d{ color:#E5231B; } .adm .mini .h{ color:#E07000; }

@@ -130,7 +130,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
     .review .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; display:flex; align-items:center; gap:14px; }
     .review .group-title .bar{ flex:1; height:2px; background:var(--line); border-radius:2px; overflow:hidden; max-width:260px; margin-left:auto; }
-    .review .group-title .bar i{ display:block; height:100%; width:0; background:var(--accent); transition:width .3s var(--ease-standard); }
+    .review .group-title .bar i{ display:block; height:100%; width:6px; background:var(--accent); transition:width .3s var(--ease-standard); }
     .review .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
     .review .q-sub{ display:block; font-size:.88rem; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:60ch; }
     .review .hint{ font-size:.92rem; color:var(--ink-soft); margin:0; }
@@ -147,18 +147,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .pill[data-v=deny]{ --fill:#FF1E1E; --stroke:#FF7070; --on-ink:#fff; --glow:255,30,30; }
 
     /* The sitewide availability dot (.avail-dot in custom.css), re-declared here
-       so the reviewer page does not depend on a class it does not carry. Same
-       4.5px dot and same 2.5s blip ring; the color is the pill's own signal —
-       acid green to approve, orange to hold, red to deny. Once a pill is ON its
-       fill IS that color, so the dot flips to the pill's on-ink to stay visible. */
+       so the reviewer page does not depend on a class it does not carry. It does
+       NOT pulse: three pulsing dots side by side is the page nagging for a
+       decision. The blip ring is spent on the finished-batch dot in admin.
+       Color is the pill's own signal, acid green approve, orange hold, red deny.
+       Once a pill is ON its fill IS that color, so the dot flips to on-ink. */
     .review .pill .dot{ position:relative; display:inline-block; width:4.5px; height:4.5px; border-radius:50%;
       background:currentColor; color:var(--fill); flex-shrink:0; }
-    .review .pill .dot::after{ content:''; position:absolute; inset:0; border-radius:50%; border:1px solid currentColor;
-      opacity:0; animation:review-dot-blip 2.5s ease-out infinite; }
-    @keyframes review-dot-blip{ 0%{ transform:scale(1); opacity:.8; } 100%{ transform:scale(2.8); opacity:0; } }
     @media (hover:hover){ .review .pill:hover .dot{ color:var(--on-ink); } }
     .review .pill.on .dot{ color:var(--on-ink); }
-    @media (prefers-reduced-motion:reduce){ .review .pill .dot::after{ animation:none; } }
     @media (hover:hover){ .review .pill:hover{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); } }
     .review .pill.on{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); }
     .review .note{ margin-top:14px; }
@@ -336,7 +333,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       $('batch-label').textContent = 'Batch ' + String(state.batch.num || '').padStart(2, '0') + (state.batch.name ? ' · ' + state.batch.name : '');
       $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length;
-      $('bar').style.width = Math.round((done / state.slots.length) * 100) + '%';
+      /* max(6px, …) is the /brief rail's rule: at zero decided the fill is still
+         a visible nub, so an untouched batch reads as "at the start" rather than
+         as an empty rule with nothing in it. */
+      $('bar').style.width = 'max(6px, ' + Math.round((done / state.slots.length) * 100) + '%)';
       $('slot-title').textContent = s.page + ' · ' + s.name;
       $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image.' : (s.backup ? 'Main image. The backup is one click away above the image, and appears on its own if the main is denied.' : 'Main image. No backup for this one.'));
       const MARK = { approve: '✓', deny: '✕', hold: '◦' };
