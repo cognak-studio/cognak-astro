@@ -365,6 +365,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rsec > button:hover{ color:var(--ink); }
     .adm .rsec > button b{ margin-left:auto; font-weight:400; opacity:.7; }
     .adm .rsec.open > button{ color:var(--ink); }
+    .adm .rsec > button.sel{ color:var(--ink); background:#F5F3EF; }
+    .adm .rsec > button.sel b{ opacity:1; }
     .adm .rpages{ padding:0 0 8px 4px; }
     .adm .rpage{ display:block; width:100%; text-align:left; font:inherit; font-size:.86rem; line-height:1.4; color:var(--ink); background:none; border:0; border-left:2px solid transparent; padding:9px 10px; cursor:pointer; border-radius:0 6px 6px 0; }
     .adm .rpage:hover{ background:#F7F6F3; }
@@ -758,14 +760,20 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const q = search.toLowerCase();
       return S.slots.filter((s) => (!fx.pri || s.priority === fx.pri)
         && (!fx.status || status(s) === fx.status)
-        && (!fx.section || s.section === fx.section)
         && (!fx.rec || (s.rec || '').toUpperCase().startsWith(fx.rec))
         && (!fx.hideReuse || s.priority !== 'Reuse')
         && (!q || haystack(s).includes(q)));
     }
+    const secOf = (s) => s.section || '(unmapped)';
+    /* Three scopes, narrowest first: a page picked in the rail, else a section
+       header picked in the rail, else the whole site. fx.section is NOT applied
+       in preFiltered() on purpose -- the rail builds itself from that, and a
+       rail showing only the section you already picked is no longer a rail. */
     function filtered() {
       const base = preFiltered();
-      return fx.page ? base.filter((s) => s.pageId === fx.page) : base;
+      if (fx.page) return base.filter((s) => s.pageId === fx.page);
+      if (fx.section) return base.filter((s) => secOf(s) === fx.section);
+      return base;
     }
     /* ---------- left rail: sections → pages ---------- */
     /* The dot beside a page in the rail. An EX- slot arrives with its migrated
@@ -786,7 +794,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         pages.get(s.pageId).push(s);
       });
       // keep the section holding the selected page open without a click
-      if (fx.page) { const s0 = S.slots.find((x) => x.pageId === fx.page); if (s0) railOpen.add(s0.section || '(unmapped)'); }
+      if (fx.page) { const s0 = S.slots.find((x) => x.pageId === fx.page); if (s0) railOpen.add(secOf(s0)); }
       const html = Array.from(secs.keys()).sort().map((sec) => {
         const pages = secs.get(sec);
         const n = Array.from(pages.values()).reduce((a, b) => a + b.length, 0);
@@ -795,14 +803,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           const p = pageById().get(pid);
           return '<button class="rpage ' + (fx.page === pid ? 'on' : '') + '" data-page="' + esc(pid) + '"><span class="dot ' + pageProgress(slots) + '"></span>' + esc((p && p.name) || slots[0].page) + '<i>' + slots.length + '</i></button>';
         }).join('') + '</div>' : '';
-        return '<div class="rsec ' + (open ? 'open' : '') + '"><button data-sec="' + esc(sec) + '">' + esc(sec === '(unmapped)' ? 'Unsectioned' : sec) + '<b>' + n + '</b></button>' + inner + '</div>';
+        return '<div class="rsec ' + (open ? 'open' : '') + '"><button class="' + (fx.section === sec && !fx.page ? 'sel' : '') + '" data-sec="' + esc(sec) + '">' + esc(sec === '(unmapped)' ? 'Unsectioned' : sec) + '<b>' + n + '</b></button>' + inner + '</div>';
       }).join('');
       $('rail').innerHTML = html || '<p class="hint">Nothing matches.</p>';
       $('rail-count').textContent = list.length + ' slots';
+      /* Clicking a section header shows that whole section on the right and
+         opens its page list. Clicking the one already showing puts it back to
+         the whole site and collapses it -- same toggle shape as a page row. */
       $('rail').querySelectorAll('[data-sec]').forEach((b) => b.addEventListener('click', () => {
         const sec = b.dataset.sec;
-        railOpen.has(sec) ? railOpen.delete(sec) : railOpen.add(sec);
-        renderRail();
+        if (fx.section === sec && !fx.page) { fx.section = ''; railOpen.delete(sec); }
+        else { fx.section = sec; fx.page = ''; railOpen.add(sec); }
+        pageIdx = 0; openSlots.clear(); renderSlots();
       }));
       $('rail').querySelectorAll('[data-page]').forEach((b) => b.addEventListener('click', () => {
         fx.page = fx.page === b.dataset.page ? '' : b.dataset.page;
@@ -967,7 +979,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('pg-prev').addEventListener('click', () => { if (pageIdx > 0) { pageIdx--; renderSlots(); } });
     $('pg-next').addEventListener('click', () => { if ((pageIdx + 1) * PAGE < filtered().length) { pageIdx++; renderSlots(); } });
     $('search').addEventListener('input', (e) => { search = e.target.value; pageIdx = 0; renderSlots(); });
-    $('rail-clear').addEventListener('click', () => { fx.page = ''; pageIdx = 0; openSlots.clear(); renderSlots(); });
+    $('rail-clear').addEventListener('click', () => { fx.page = ''; fx.section = ''; pageIdx = 0; openSlots.clear(); renderSlots(); });
     $('expand-all').addEventListener('click', () => {
       const vis = visibleSlots();
       const allOpen = vis.length && vis.every((s) => openSlots.has(s.id));
