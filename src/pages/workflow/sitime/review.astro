@@ -50,9 +50,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <span class="q-sub" id="slot-sub"></span>
           <p class="handoff" id="handoff" hidden></p>
           <div class="pills" id="pills" role="group" aria-label="Decision">
-            <button type="button" class="pill" data-v="approve">Approve</button>
-            <button type="button" class="pill" data-v="deny">Deny</button>
-            <button type="button" class="pill" data-v="hold">Hold</button>
+            <button type="button" class="pill" data-v="approve"><span class="dot" aria-hidden="true"></span>Approve</button>
+            <button type="button" class="pill" data-v="deny"><span class="dot" aria-hidden="true"></span>Deny</button>
+            <button type="button" class="pill" data-v="hold"><span class="dot" aria-hidden="true"></span>Hold</button>
           </div>
           <div class="note" id="note" hidden>
             <textarea id="note-text" placeholder="Optional. What's wrong with it, or what to look for instead."></textarea>
@@ -118,7 +118,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review [hidden]{ display:none !important; }
 
     .review{ --bg:#F4F4F2; --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B;
-      --accent:#86988A; --accent-rgb:134,152,138; --head:#4B584E; --deep:#171C18;
+      --accent:#9B948A; --accent-rgb:155,148,138; --head:#575049; --deep:#1C1A17;
       --line:#E6E6E3; --line-strong:#CFCFCB; --ok:#5A9E00; --err:#E5231B;
       max-width:1040px; margin:0 auto; padding:190px 6vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .review .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
@@ -140,11 +140,25 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .txt:focus{ border-color:var(--accent); }
     .review .field{ margin-bottom:2rem; }
     .review .pills{ display:flex; gap:10px; flex-wrap:wrap; margin-top:1.1rem; }
-    .review .pill{ font:inherit; display:inline-flex; align-items:center; border:1px solid var(--line-strong); border-radius:999px; padding:12px 24px; font-size:.95rem; font-weight:500; color:var(--ink); background:none; cursor:pointer;
+    .review .pill{ font:inherit; display:inline-flex; align-items:center; gap:10px; border:1px solid var(--line-strong); border-radius:999px; padding:12px 24px; font-size:.95rem; font-weight:500; color:var(--ink); background:none; cursor:pointer;
       transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), box-shadow var(--dur-s) var(--ease-standard); }
-    .review .pill[data-v=approve]{ --fill:#9DFF00; --stroke:#D9FF66; --on-ink:#152400; --glow:157,255,0; }
+    .review .pill[data-v=approve]{ --fill:#AAFF00; --stroke:#D9FF66; --on-ink:#152400; --glow:170,255,0; }
     .review .pill[data-v=hold]{ --fill:#FF7A00; --stroke:#FFB24D; --on-ink:#2A1200; --glow:255,122,0; }
     .review .pill[data-v=deny]{ --fill:#FF1E1E; --stroke:#FF7070; --on-ink:#fff; --glow:255,30,30; }
+
+    /* The sitewide availability dot (.avail-dot in custom.css), re-declared here
+       so the reviewer page does not depend on a class it does not carry. Same
+       4.5px dot and same 2.5s blip ring; the color is the pill's own signal —
+       acid green to approve, orange to hold, red to deny. Once a pill is ON its
+       fill IS that color, so the dot flips to the pill's on-ink to stay visible. */
+    .review .pill .dot{ position:relative; display:inline-block; width:4.5px; height:4.5px; border-radius:50%;
+      background:currentColor; color:var(--fill); flex-shrink:0; }
+    .review .pill .dot::after{ content:''; position:absolute; inset:0; border-radius:50%; border:1px solid currentColor;
+      opacity:0; animation:review-dot-blip 2.5s ease-out infinite; }
+    @keyframes review-dot-blip{ 0%{ transform:scale(1); opacity:.8; } 100%{ transform:scale(2.8); opacity:0; } }
+    @media (hover:hover){ .review .pill:hover .dot{ color:var(--on-ink); } }
+    .review .pill.on .dot{ color:var(--on-ink); }
+    @media (prefers-reduced-motion:reduce){ .review .pill .dot::after{ animation:none; } }
     @media (hover:hover){ .review .pill:hover{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); } }
     .review .pill.on{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); }
     .review .note{ margin-top:14px; }
