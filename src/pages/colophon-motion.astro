@@ -63,17 +63,17 @@ function curvePath(p: number[]) {
    hand-written table - if this survives, it should read the custom
    properties at runtime instead. */
 const PAGES = [
-  { name: 'Home',       ground: '#17151A', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' },
-  { name: 'Studio',     ground: '#17151A', sel: '#FFB2E4', selInk: '#17151A', ink: '#F4F4EE' },
-  { name: 'Projects',   ground: '#EAE5F2', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
-  { name: 'Project',    ground: '#FFFFFF', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
-  { name: 'Brief',      ground: '#140E07', sel: '#EF9146', selInk: '#2A2010', ink: '#F4F4EE' },
-  { name: 'Send',       ground: '#090C0B', sel: '#8FC2F2', selInk: '#090C0B', ink: '#F4F4EE' },
-  { name: 'Tools',      ground: '#17151A', sel: '#B47CFF', selInk: '#17151A', ink: '#F4F4EE' },
-  { name: 'Schedule',   ground: '#17151A', sel: '#9F50FF', selInk: '#1B1424', ink: '#F4F4EE' },
-  { name: 'Privacy',    ground: '#F1D6EA', sel: '#4A2840', selInk: '#F1D6EA', ink: '#3A313B' },
-  { name: 'Colophon',   ground: '#0E06D2', sel: '#AAFF00', selInk: '#0E06D2', ink: '#F4F4EE' },
-  { name: '404',        ground: '#6F6F6F', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' }
+  { key: 'home', name: 'Home',       ground: '#17151A', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' },
+  { key: 'studio', name: 'Studio',     ground: '#17151A', sel: '#FFB2E4', selInk: '#17151A', ink: '#F4F4EE' },
+  { key: 'projects', name: 'Projects',   ground: '#EAE5F2', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
+  { key: 'project', name: 'Project',    ground: '#FFFFFF', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
+  { key: 'brief', name: 'Brief',      ground: '#140E07', sel: '#EF9146', selInk: '#2A2010', ink: '#F4F4EE' },
+  { key: 'send', name: 'Send',       ground: '#090C0B', sel: '#8FC2F2', selInk: '#090C0B', ink: '#F4F4EE' },
+  { key: 'tools', name: 'Tools',      ground: '#17151A', sel: '#B47CFF', selInk: '#17151A', ink: '#F4F4EE' },
+  { key: 'schedule', name: 'Schedule',   ground: '#17151A', sel: '#9F50FF', selInk: '#1B1424', ink: '#F4F4EE' },
+  { key: 'privacy', name: 'Privacy',    ground: '#F1D6EA', sel: '#4A2840', selInk: '#F1D6EA', ink: '#3A313B' },
+  { key: 'colophon', name: 'Colophon',   ground: '#0E06D2', sel: '#AAFF00', selInk: '#0E06D2', ink: '#F4F4EE' },
+  { key: '404', name: '404',        ground: '#6F6F6F', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' }
 ];
 
 function lum(hex) {
@@ -128,20 +128,27 @@ const WEIGHTS = [
     <h2 class="cm-h2" id="cm-colour">Colour</h2>
     <div id="cm-colour-sec">
 
-    <p class="cm-sub">Eleven pages, each with its own ground and its own highlight. Drag across any row — the text selects in that page's real <code>::selection</code> pair.</p>
+    <p class="cm-sub">One decision per page — what is this page's ground — and the ink, the nav, the scrollbar and the highlight all follow from it by rule. Eleven pages, one function, run eleven times.</p>
 
-    <ul class="cm-pal">
+    <p class="cm-wear-lead">Wear a page.</p>
+
+    <ul class="cm-wear">
       {PAGES.map((pg) => (
-        <li class="cm-pg" style={'--g:' + pg.ground + ';--i:' + pg.ink + ';--s:' + pg.sel + ';--si:' + pg.selInk}>
-          <span class="cm-pg-name">{pg.name}</span>
-          <span class="cm-pg-swatch"><span class="cm-pg-sel"></span></span>
-          <span class="cm-pg-demo">Select this line.</span>
-          <span class="cm-pg-hex">{pg.ground} &nbsp;·&nbsp; {pg.sel}</span>
+        <li>
+          <button
+            type="button"
+            class="cm-wear-btn"
+            style={'--a:' + pg.sel}
+            data-key={pg.key}
+            data-ground={pg.ground}
+            data-ink={pg.ink}
+            data-accent={pg.sel}
+          >{pg.name}</button>
         </li>
       ))}
     </ul>
 
-    <p class="cm-aside">The green is the default, not the rule. It holds home and the 404 and yields wherever a page has its own voice — on <span class="cm-w">/projects</span> because it was illegible on the lavender, on <span class="cm-w">/studio</span> because a lone green dot on a page that speaks pink reads as imported.</p>
+    <p class="cm-wear-hint">Nothing here is a swatch. Choosing a page sets this one's <code>data-page</code> and lets the site's own stylesheet do the rest — the ground, the nav, the scrollbar, the highlight. Click again, or press Escape, to come back.</p>
 
     </div>
 
@@ -209,7 +216,9 @@ const WEIGHTS = [
       </li>
     </ul>
 
-    <p class="cm-body">There is no type scale, and this is the part of the system that isn't finished. A count, taken from the stylesheets that ship:</p>
+    <p class="cm-body">There is no type scale here, and that is a decision rather than an omission. A scale is a promise that every page you have not built yet will want one of eleven sizes. It never holds — the work outruns the system, and what you actually get is a ladder plus a quietly growing pile of exceptions. Headlines on this site are sized to the page they sit on, because the pages have different jobs, and flattening them onto shared steps would make a worse site, not a tidier one.</p>
+
+    <p class="cm-body">Restraint earns its place in exactly one register: the small band where labels, captions and body copy live. Nobody is expressing anything at 13.6px versus 13.76px. Counted across the stylesheets that ship:</p>
 
     <ul class="cm-facts">
       {TYPE_FACTS.map(([k, v]) => (
@@ -217,7 +226,9 @@ const WEIGHTS = [
       ))}
     </ul>
 
-    <p class="cm-body">Forty-four distinct sizes inside a ten-pixel band is not expressive range, it's thirteen years of typing a number slightly smaller than the one next to it. The display sizes are the opposite — those vary per page because the pages have different jobs, and a scale that flattened them would be a worse site. So the fix is a named scale for the small band and no scale at all above it. Core and exceptions, not a ladder.</p>
+    <p class="cm-body">Forty-four distinct sizes inside a ten-pixel band is not range. It is thirteen years of reaching for a number slightly smaller than the one beside it, and the eye cannot tell the difference anyway. That band gets named steps. Above it, nothing — a headline answers to its page.</p>
+
+    <p class="cm-aside">Core and exceptions. Most systems get this backwards: they discipline the display type, where the variation is doing work, and leave the small sizes to drift, where it isn't.</p>
 
     </div>
 
@@ -254,7 +265,17 @@ const WEIGHTS = [
   </section></main>
 
   <style is:inline>
-    html, body { background-color: #0E06D2 !important; }
+    :root {
+      --wear-bg: #0E06D2;
+      --wear-ink: #f4f4ee;
+      --wear-accent: #b6ff2e;
+      --wear-dim: #a9abbd;
+      --wear-nav: rgba(7, 0, 172, 0.80);
+    }
+    html, body {
+      background-color: var(--wear-bg) !important;
+      transition: background-color var(--dur-2xl) var(--ease-standard);
+    }
 
     /* ---- scroll-driven anatomy canvas -------------------------------------
        Same drawing vocabulary as the glyph canvas on /colophon: faint contour
@@ -279,12 +300,12 @@ const WEIGHTS = [
       font-size: 0.72rem;
       line-height: 1.6;
       letter-spacing: 0.04em;
-      color: #a9abbd;
+      color: var(--wear-dim);
       opacity: 0;
       transition: opacity var(--dur-l) var(--ease-standard);
     }
     #cm-plate .p-line { display: block; white-space: nowrap; }
-    #cm-plate .p-name { color: #b6ff2e; }
+    #cm-plate .p-name { color: var(--wear-accent); }
     /* Below 900px the canvas centres behind the text column, where a caption
        would land on the copy - same call as the glyph caption on /colophon. */
     @media (max-width: 900px) { #cm-plate { display: none; } }
@@ -292,7 +313,7 @@ const WEIGHTS = [
     #cognak-main { position: relative; z-index: 1; overflow-x: clip; }
 
     .home-bottom-bar.inner-page-nav.colophon-nav {
-      background: rgba(7, 0, 172, 0.80) !important;
+      background: var(--wear-nav) !important;
     }
     .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
     .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-location,
@@ -315,8 +336,9 @@ const WEIGHTS = [
       max-width: 930px;
       margin: 0 auto;
       padding: 190px 6vw 22vh;
-      color: #f4f4ee;
+      color: var(--wear-ink);
       font-family: 'Diatype Variable', sans-serif;
+      transition: color var(--dur-2xl) var(--ease-standard);
     }
     @media (max-width: 720px) { .cm { padding-top: 100px; } }
     @media (min-width: 900px) {
@@ -328,7 +350,7 @@ const WEIGHTS = [
       font-size: 0.72rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #a9abbd;
+      color: var(--wear-dim);
       margin: 0 0 1.6rem;
     }
 
@@ -340,18 +362,18 @@ const WEIGHTS = [
       margin: 0 0 2.2rem;
       max-width: 17ch;
     }
-    .cm-headline em { font-style: normal; font-weight: 500; color: #b6ff2e; }
+    .cm-headline em { font-style: normal; font-weight: 500; color: var(--wear-accent); }
 
     .cm-intro { max-width: 58ch; margin-bottom: 5.5rem; }
     .cm-intro p { font-size: 1.05rem; line-height: 1.6; margin: 0 0 1rem; }
-    .cm-note { color: #a9abbd; font-size: 0.92rem !important; }
+    .cm-note { color: var(--wear-dim); font-size: 0.92rem !important; }
 
     .cm-h2 {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #b6ff2e;
+      color: var(--wear-accent);
       font-weight: 400;
       margin: 0 0 2rem;
       padding-bottom: 0.7rem;
@@ -359,7 +381,7 @@ const WEIGHTS = [
     }
 
     .cm-sub {
-      color: #a9abbd;
+      color: var(--wear-dim);
       font-size: 0.92rem;
       line-height: 1.55;
       max-width: 58ch;
@@ -389,7 +411,7 @@ const WEIGHTS = [
     @media (hover: hover) {
       .cm-trigger:hover { background: rgba(255,255,255,0.035); }
     }
-    .cm-trigger:focus-visible { outline: 2px solid #b6ff2e; outline-offset: 2px; }
+    .cm-trigger:focus-visible { outline: 2px solid var(--wear-accent); outline-offset: 2px; }
 
     .cm-graph { display: block; }
     .cm-graph svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -403,14 +425,14 @@ const WEIGHTS = [
       display: block;
       font-family: 'Diatype Mono', monospace;
       font-size: 0.88rem;
-      color: #b6ff2e;
+      color: var(--wear-accent);
       letter-spacing: 0.01em;
     }
     .cm-value {
       display: block;
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
-      color: #a9abbd;
+      color: var(--wear-dim);
       margin-top: 0.3rem;
     }
     .cm-use {
@@ -461,7 +483,7 @@ const WEIGHTS = [
       display: block;
       height: 100%;
       width: 100%;
-      background: #b6ff2e;
+      background: var(--wear-accent);
       transform: scaleX(0);
       transform-origin: left center;
     }
@@ -472,10 +494,10 @@ const WEIGHTS = [
     .cm-ms {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
-      color: #a9abbd;
+      color: var(--wear-dim);
       text-align: right;
     }
-    .cm-dur .cm-use { margin-top: 0; font-size: 0.82rem; color: #a9abbd; }
+    .cm-dur .cm-use { margin-top: 0; font-size: 0.82rem; color: var(--wear-dim); }
 
     @media (max-width: 720px) {
       .cm-trigger { grid-template-columns: 92px 1fr; gap: 1.2rem; }
@@ -491,48 +513,85 @@ const WEIGHTS = [
       max-width: 54ch;
       font-size: 0.92rem;
       line-height: 1.6;
-      color: #a9abbd;
+      color: var(--wear-dim);
       margin: 0 0 5.5rem;
     }
-    .cm-w { color: #b6ff2e; font-family: 'Diatype Mono', monospace; font-size: 0.86em; }
+    .cm-w { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: 0.86em; }
     .cm-h3 {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #a9abbd;
+      color: var(--wear-dim);
       font-weight: 400;
       margin: 0 0 1.6rem;
     }
 
-    /* ---- colour: each row rendered IN its own scheme -----------------------
-       The whole argument of this section is that the highlight is per page,
-       so the demo line has to carry that page's real ::selection pair. CSS
-       cannot scope ::selection to a subtree by variable, so each row gets its
-       own rule emitted from the same data - and -moz-selection stays a
-       separate rule, since one unknown pseudo-element invalidates the list. */
-    .cm-pal { list-style: none; margin: 0 0 2.4rem; padding: 0; }
-    .cm-pg {
-      display: grid;
-      grid-template-columns: 110px 46px 1fr auto;
-      gap: 1.4rem;
-      align-items: center;
-      padding: 0.95rem 1.1rem;
-      background: var(--g);
-      color: var(--i);
-      border-bottom: 1px solid rgba(255,255,255,0.10);
+    /* ---- colour: the page wears a scheme rather than listing one ---------
+       Everything below reads --wear-*, which default to the colophon's own
+       klein blue and only change when someone picks a page. The blue is
+       deliberately NOT one of the eleven: it is the page's resting form, the
+       thing you come back to. */
+    .cm-wear-lead {
+      font-size: clamp(22px, 2.6vw, 32px);
+      font-weight: 500;
+      letter-spacing: -0.015em;
+      margin: 0 0 1.6rem;
     }
-    .cm-pg-name { font-size: 0.88rem; }
-    .cm-pg-swatch { display: block; height: 14px; background: var(--s); }
-    .cm-pg-demo { font-size: 0.92rem; opacity: 0.85; }
-    .cm-pg-hex {
+    .cm-wear {
+      list-style: none;
+      margin: 0 0 2rem;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.8rem;
+    }
+    .cm-wear-btn {
+      background: none;
+      border: 0;
+      padding: 0.25rem 0;
+      font: inherit;
+      font-size: clamp(20px, 2.4vw, 30px);
+      font-weight: 500;
+      letter-spacing: -0.015em;
+      color: var(--a);
+      cursor: pointer;
+      position: relative;
+      transition: opacity var(--dur-m) var(--ease-standard);
+    }
+    /* The underline is the only hover affordance - the colour is already
+       doing the work, and a background or box would fight eleven accents. */
+    .cm-wear-btn::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform var(--dur-m) var(--ease-standard);
+    }
+    @media (hover: hover) {
+      .cm-wear-btn:hover::after { transform: scaleX(1); }
+    }
+    .cm-wear-btn:focus-visible { outline: 2px solid var(--a); outline-offset: 4px; }
+    .cm-wear-btn.is-worn::after { transform: scaleX(1); }
+    body.is-wearing .cm-wear-btn:not(.is-worn) { opacity: 0.6; }
+
+    .cm-wear-hint {
+      max-width: 56ch;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--wear-dim);
+      margin: 0 0 5.5rem;
+    }
+    .cm-wear-hint code {
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.68rem;
-      opacity: 0.55;
-      white-space: nowrap;
+      font-size: 0.86em;
+      color: var(--wear-accent);
     }
-    .cm-pg ::selection      { background: var(--s); color: var(--si); }
-    .cm-pg ::-moz-selection { background: var(--s); color: var(--si); }
 
     /* ---- type ---- */
     .cm-weights { list-style: none; margin: 0 0 3rem; padding: 0; }
@@ -553,7 +612,7 @@ const WEIGHTS = [
       font-size: 0.72rem;
       font-weight: 400;
       letter-spacing: 0.06em;
-      color: #a9abbd;
+      color: var(--wear-dim);
       white-space: nowrap;
     }
     .cm-facts { list-style: none; margin: 0 0 2rem; padding: 0; max-width: 460px; }
@@ -566,7 +625,7 @@ const WEIGHTS = [
       font-size: 0.88rem;
     }
     .cm-fact-k { color: #e2e2ea; }
-    .cm-fact-v { font-family: 'Diatype Mono', monospace; color: #b6ff2e; }
+    .cm-fact-v { font-family: 'Diatype Mono', monospace; color: var(--wear-accent); }
 
     /* ---- voice ---- */
     .cm-rules {
@@ -591,7 +650,7 @@ const WEIGHTS = [
       top: 0.95rem;
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
-      color: #b6ff2e;
+      color: var(--wear-accent);
     }
 
     /* ---- outside ---- */
@@ -604,7 +663,7 @@ const WEIGHTS = [
       border-bottom: 1px solid rgba(255,255,255,0.07);
       font-size: 0.92rem;
     }
-    .cm-o-n { color: #b6ff2e; font-family: 'Diatype Mono', monospace; font-size: 0.78rem; }
+    .cm-o-n { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: 0.78rem; }
     .cm-o-d { color: #e2e2ea; }
 
     @media (max-width: 720px) {
@@ -924,8 +983,29 @@ const WEIGHTS = [
         while (arr.length > n) { arr.pop(); }
       }
 
+      /* Read the wear variables rather than hardcoding the colophon's own
+         ink and green, so the anatomy layer repaints with everything else.
+         Cached per frame - getComputedStyle in a rAF loop is not free. */
+      function inkRGB() {
+        var cs = getComputedStyle(document.documentElement);
+        return {
+          ink: cs.getPropertyValue('--wear-ink').trim() || '#f4f4ee',
+          accent: cs.getPropertyValue('--wear-accent').trim() || '#b6ff2e'
+        };
+      }
+      function withAlpha(col, a) {
+        if (col.charAt(0) === '#') {
+          var r = parseInt(col.substr(1, 2), 16),
+              g = parseInt(col.substr(3, 2), 16),
+              bl = parseInt(col.substr(5, 2), 16);
+          return 'rgba(' + r + ',' + g + ',' + bl + ',' + a + ')';
+        }
+        return col.replace(/^rgb\(/, 'rgba(').replace(/\)$/, ',' + a + ')');
+      }
+
       function draw() {
         var b = box();
+        var C = inkRGB();
         function X(u) { return b.x + u * b.s; }
         function Y(v) { return b.y + (1 - v) * b.s; }
 
@@ -935,7 +1015,7 @@ const WEIGHTS = [
         ctx.beginPath();
         ctx.moveTo(X(cur.pts[0][0]), Y(cur.pts[0][1]));
         for (var i = 1; i < cur.pts.length; i++) { ctx.lineTo(X(cur.pts[i][0]), Y(cur.pts[i][1])); }
-        ctx.strokeStyle = 'rgba(244,244,238,' + (0.16 + 0.10 * fade) + ')';
+        ctx.strokeStyle = withAlpha(C.ink, 0.16 + 0.10 * fade);
         ctx.lineWidth = 1;
         ctx.stroke();
 
@@ -945,16 +1025,16 @@ const WEIGHTS = [
           ctx.beginPath();
           ctx.moveTo(X(h[0][0]), Y(h[0][1]));
           ctx.lineTo(X(h[1][0]), Y(h[1][1]));
-          ctx.strokeStyle = 'rgba(170,255,0,' + (0.10 + 0.12 * fade) + ')';
+          ctx.strokeStyle = withAlpha(C.accent, 0.10 + 0.12 * fade);
           ctx.stroke();
           ctx.beginPath();
           ctx.arc(X(h[1][0]), Y(h[1][1]), 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(170,255,0,' + (0.14 + 0.16 * fade) + ')';
+          ctx.fillStyle = withAlpha(C.accent, 0.14 + 0.16 * fade);
           ctx.fill();
         });
 
         /* anchors */
-        ctx.fillStyle = 'rgba(244,244,238,' + (0.20 + 0.18 * fade) + ')';
+        ctx.fillStyle = withAlpha(C.ink, 0.20 + 0.18 * fade);
         cur.nodes.forEach(function (n) {
           ctx.fillRect(X(n[0]) - 3, Y(n[1]) - 3, 6, 6);
         });
@@ -1009,6 +1089,167 @@ const WEIGHTS = [
       window.addEventListener('resize', resize);
       window.addEventListener('pageshow', boot);
       boot();
+    })();
+  </script>
+
+  <script is:inline>
+    /* ---------------------------------------------------------------------
+       "Wear a page".
+
+       This does not simulate anything. It sets body[data-page] to the chosen
+       page and paints the ground, and every other per-page rule the site
+       already has - the ::selection pair, the scrollbar thumb, the nav
+       variant, color-scheme - resolves on its own. Which makes the control
+       an audit as much as a demo: anything that fails to repaint is a
+       hardcoded colour that should have been a token.
+
+       Nothing runs on its own. The klein blue is the resting form and is
+       deliberately not one of the eleven.
+       --------------------------------------------------------------------- */
+    (function () {
+      var btns = Array.prototype.slice.call(document.querySelectorAll('.cm-wear-btn'));
+      if (!btns.length) { return; }
+      var root = document.documentElement;
+      var body = document.body;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      var HOME = {
+        page: 'colophon',
+        bg: '#0E06D2', ink: '#f4f4ee', accent: '#b6ff2e',
+        dim: '#a9abbd', nav: 'rgba(7, 0, 172, 0.80)',
+        sb: 'rgba(255, 255, 255, 0.15)', scheme: 'dark'
+      };
+      var worn = null;
+
+      function rgb(hex) {
+        return [1, 3, 5].map(function (i) { return parseInt(hex.substr(i, 2), 16); });
+      }
+      function lum(hex) {
+        var v = rgb(hex).map(function (c) {
+          c = c / 255;
+          return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+      }
+      function mix(hex, toward, amt) {
+        var a = rgb(hex), b = rgb(toward);
+        return 'rgb(' + a.map(function (c, i) {
+          return Math.round(c + (b[i] - c) * amt);
+        }).join(',') + ')';
+      }
+
+      /* The nav is the ground, pulled down; the scrollbar is the page's own
+         ink at 15% - the same two rules the site uses, applied here rather
+         than a second table of values to keep in sync. */
+      function scheme(g, ink, accent) {
+        var dark = lum(g) < 0.35;
+        return {
+          bg: g,
+          ink: ink,
+          accent: accent,
+          dim: mix(ink, g, 0.42),
+          nav: mix(g, '#000000', 0.28),
+          sb: dark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(23, 21, 26, 0.15)',
+          scheme: dark ? 'dark' : 'light'
+        };
+      }
+
+      /* Each name is set in its own page's accent - but an accent was chosen
+         against ITS ground, not against whatever ground is currently worn.
+         Privacy's plum on klein blue, or the acid green on the pale pink,
+         both vanish. So the accent is lifted toward the current ink until it
+         clears 4.0:1, which is the same rule the site already applies to its
+         selection pairs rather than a second set of hand-picked values. */
+      function contrast(a, b) {
+        var la = lum(a), lb = lum(b);
+        return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+      }
+      function legible(accent, ground) {
+        if (contrast(accent, ground) >= 4.0) { return accent; }
+        var toward = lum(ground) < 0.35 ? '#FFFFFF' : '#000000';
+        var a = rgb(accent), t = rgb(toward), i, f, hex;
+        for (i = 1; i <= 10; i++) {
+          f = i / 10;
+          hex = '#' + a.map(function (c, n) {
+            var v = Math.round(c + (t[n] - c) * f);
+            return ('0' + v.toString(16)).slice(-2);
+          }).join('');
+          if (contrast(hex, ground) >= 4.0) { return hex; }
+        }
+        return toward;
+      }
+
+      function relight(ground) {
+        btns.forEach(function (b) {
+          b.style.setProperty('--a', legible(b.getAttribute('data-accent'), ground));
+        });
+      }
+
+      function paint(s, key) {
+        root.style.setProperty('--wear-bg', s.bg);
+        root.style.setProperty('--wear-ink', s.ink);
+        root.style.setProperty('--wear-accent', s.accent);
+        root.style.setProperty('--wear-dim', s.dim);
+        root.style.setProperty('--wear-nav', s.nav);
+        root.style.setProperty('--sb-thumb', s.sb);
+        root.style.colorScheme = s.scheme;
+        body.setAttribute('data-page', key);
+        relight(s.bg);
+      }
+
+      function setUrl(key) {
+        if (!window.history || !window.history.replaceState) { return; }
+        var u = new URL(window.location.href);
+        if (key) { u.searchParams.set('wear', key); } else { u.searchParams.delete('wear'); }
+        window.history.replaceState(null, '', u.toString());
+      }
+
+      function unwear() {
+        worn = null;
+        paint(HOME, HOME.page);
+        body.classList.remove('is-wearing');
+        btns.forEach(function (b) { b.classList.remove('is-worn'); });
+        setUrl(null);
+      }
+
+      function wear(btn) {
+        var key = btn.getAttribute('data-key');
+        if (worn === key) { unwear(); return; }
+        worn = key;
+        paint(
+          scheme(
+            btn.getAttribute('data-ground'),
+            btn.getAttribute('data-ink'),
+            btn.getAttribute('data-accent')
+          ),
+          key
+        );
+        body.classList.add('is-wearing');
+        btns.forEach(function (b) { b.classList.toggle('is-worn', b === btn); });
+        setUrl(key);
+      }
+
+      relight(HOME.bg);
+
+      btns.forEach(function (b) {
+        b.addEventListener('click', function () { wear(b); });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && worn) { unwear(); }
+      });
+
+      if (reduce) {
+        var st = document.createElement('style');
+        st.textContent = 'html, body, .cm { transition: none !important; }';
+        document.head.appendChild(st);
+      }
+
+      /* A worn state is shareable: /colophon?wear=studio lands dressed. */
+      var want = new URL(window.location.href).searchParams.get('wear');
+      if (want) {
+        var match = btns.filter(function (b) { return b.getAttribute('data-key') === want; })[0];
+        if (match) { wear(match); }
+      }
     })();
   </script>
 </BaseLayout>
