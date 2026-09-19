@@ -141,71 +141,26 @@ const WEIGHTS = [
 
     <p class="cm-sub">One decision per page — what is this page's ground — and the ink, the nav, the scrollbar and the highlight all follow from it by rule. Eleven pages, one function, run eleven times.</p>
 
-    <p class="cm-wear-lead">Wear a page.</p>
-
     <figure class="cm-ladder-wrap">
-      <svg
-        class="cm-ladder"
-        id="cm-ladder"
-        viewBox="0 0 1000 160"
-        role="slider"
-        tabindex="0"
-        aria-label="Wear a page — the site's grounds, darkest to lightest"
-        aria-valuemin="0"
-        aria-valuemax={LADDER.length - 1}
-        aria-valuenow="0"
-      >
+      <svg class="cm-ladder" viewBox="0 0 1000 160" role="img"
+           aria-label="The site's eleven page grounds ordered darkest to lightest. Six sit together at the dark end, the 404 grey stands alone in the middle, and two light pages plus white sit at the top.">
         <line class="cm-l-axis" x1="40" y1="145" x2="960" y2="145" />
-        <polyline
-          class="cm-l-path"
-          points={LADDER.map((pg, i) => LX(i) + ',' + LY(pg.l)).join(' ')}
-        />
+        <polyline class="cm-l-path" points={LADDER.map((pg, i) => LX(i) + ',' + LY(pg.l)).join(' ')} />
         {LADDER.map((pg, i) => (
-          <g class="cm-l-node" data-key={pg.key} data-i={i}>
+          <g class="cm-l-node">
             <line class="cm-l-stem" x1={LX(i)} y1={LY(pg.l)} x2={LX(i)} y2="145" />
-            <rect
-              class="cm-l-chip"
-              x={LX(i) - 9}
-              y={LY(pg.l) - 9}
-              width="18"
-              height="18"
-              fill={pg.ground}
-            />
-            <rect class="cm-l-hit" x={LX(i) - 46} y="0" width="92" height="160" />
+            <rect class="cm-l-chip" x={LX(i) - 9} y={LY(pg.l) - 9} width="18" height="18" fill={pg.ground} />
           </g>
         ))}
-        <g class="cm-l-handle" id="cm-l-handle">
-          <line class="cm-l-handle-stem" x1="0" y1="0" x2="0" y2="145" />
-          <circle class="cm-l-handle-dot" cx="0" cy="0" r="6" />
-        </g>
       </svg>
-
       <figcaption class="cm-ladder-cap">
-        <span class="cm-l-name" id="cm-l-name">Colophon</span>
-        <span class="cm-l-meta" id="cm-l-meta">resting</span>
+        <span class="cm-l-meta">Eleven pages by relative luminance, darkest to lightest</span>
       </figcaption>
     </figure>
 
-    <p class="cm-wear-hint">Darkest to lightest, left to right. Drag the handle, click a ground, or use the arrow keys — the colophon repaints into that page. Escape comes back. Nothing here is a swatch: choosing a page sets this one's <code>data-page</code> and the site's own stylesheet does the rest.</p>
+    <p class="cm-body">Eleven pages, eight grounds — four of them the same near-black. Six sit stacked at the dark end, the 404's grey stands on its own in the middle, and the two light pages plus the white project template are the whole of the top. The shape is the palette. The hex values are only how it gets written down.</p>
 
-    <details class="cm-alt">
-      <summary>The same eleven, as a list</summary>
-      <ul class="cm-wear">
-      {PAGES.map((pg) => (
-        <li>
-          <button
-            type="button"
-            class="cm-wear-btn"
-            style={'--a:' + pg.sel}
-            data-key={pg.key}
-            data-ground={pg.ground}
-            data-ink={pg.ink}
-            data-accent={pg.sel}
-          >{pg.name}</button>
-        </li>
-      ))}
-      </ul>
-    </details>
+    <p class="cm-aside">The green is the default rather than the rule. It holds the homepage and the 404, and yields wherever a page has a voice of its own.</p>
 
     </div>
 
@@ -589,82 +544,20 @@ const WEIGHTS = [
        klein blue and only change when someone picks a page. The blue is
        deliberately NOT one of the eleven: it is the page's resting form, the
        thing you come back to. */
-    .cm-wear-lead {
-      font-size: clamp(22px, 2.6vw, 32px);
-      font-weight: 500;
-      letter-spacing: -0.015em;
-      margin: 0 0 1.6rem;
-    }
-    .cm-wear {
-      list-style: none;
-      margin: 0 0 2rem;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem 1.8rem;
-    }
-    .cm-wear-btn {
-      background: none;
-      border: 0;
-      padding: 0.25rem 0;
-      font: inherit;
-      font-size: clamp(20px, 2.4vw, 30px);
-      font-weight: 500;
-      letter-spacing: -0.015em;
-      color: var(--a);
-      cursor: pointer;
-      position: relative;
-      transition: opacity var(--dur-m) var(--ease-standard);
-    }
-    /* The underline is the only hover affordance - the colour is already
-       doing the work, and a background or box would fight eleven accents. */
-    .cm-wear-btn::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 2px;
-      background: currentColor;
-      transform: scaleX(0);
-      transform-origin: left center;
-      transition: transform var(--dur-m) var(--ease-standard);
-    }
-    @media (hover: hover) {
-      .cm-wear-btn:hover::after { transform: scaleX(1); }
-    }
-    .cm-wear-btn:focus-visible { outline: 2px solid var(--a); outline-offset: 4px; }
-    .cm-wear-btn.is-worn::after { transform: scaleX(1); }
-    body.is-wearing .cm-wear-btn:not(.is-worn) { opacity: 0.6; }
 
-    .cm-wear-hint {
-      max-width: 60ch;
-      font-size: 0.92rem;
-      line-height: 1.6;
-      color: var(--wear-dim);
-      margin: 0 0 2rem;
-    }
-    .cm-wear-hint code {
-      font-family: 'Diatype Mono', monospace;
-      font-size: 0.86em;
-      color: var(--wear-accent);
-    }
 
 
     /* ---- the ladder ------------------------------------------------------
        The eleven grounds, ordered by relative luminance, doubling as the
        control. The shape is the point: the site is overwhelmingly dark, with
        two light pages and the 404's grey sitting on its own in the middle. */
-    .cm-ladder-wrap { margin: 0 0 1.4rem; padding: 0; }
+    .cm-ladder-wrap { margin: 0 0 2rem; padding: 0; }
     .cm-ladder {
       display: block;
       width: 100%;
       height: auto;
       overflow: visible;
-      cursor: ew-resize;
-      touch-action: none;
     }
-    .cm-ladder:focus-visible { outline: 2px solid var(--wear-accent); outline-offset: 8px; }
     .cm-l-axis {
       stroke: var(--wear-ink);
       stroke-opacity: 0.22;
@@ -693,32 +586,8 @@ const WEIGHTS = [
       vector-effect: non-scaling-stroke;
       transition: stroke-opacity var(--dur-m) var(--ease-standard);
     }
-    .cm-l-hit { fill: transparent; cursor: pointer; }
-    .cm-l-node.is-on .cm-l-chip { stroke: var(--wear-accent); stroke-opacity: 1; }
-    @media (hover: hover) {
-      .cm-l-node:hover .cm-l-chip { stroke-opacity: 0.9; }
-    }
-    .cm-l-handle-stem {
-      stroke: var(--wear-accent);
-      stroke-opacity: 0.55;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
-    }
-    .cm-l-handle-dot { fill: var(--wear-accent); }
-    .cm-l-handle { pointer-events: none; }
 
-    .cm-ladder-cap {
-      display: flex;
-      align-items: baseline;
-      gap: 1.1rem;
-      margin: 0.4rem 0 0;
-    }
-    .cm-l-name {
-      font-size: clamp(24px, 3vw, 38px);
-      font-weight: 500;
-      letter-spacing: -0.02em;
-      color: var(--wear-accent);
-    }
+    .cm-ladder-cap { margin: 0.6rem 0 0; }
     .cm-l-meta {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.72rem;
@@ -726,19 +595,6 @@ const WEIGHTS = [
       color: var(--wear-dim);
     }
 
-    /* The name row survives as a disclosure so the two can be judged against
-       each other. It goes when the ladder is settled. */
-    .cm-alt { margin: 0 0 5.5rem; }
-    .cm-alt summary {
-      font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--wear-dim);
-      cursor: pointer;
-      padding: 0.6rem 0;
-    }
-    .cm-alt[open] summary { margin-bottom: 1rem; }
 
     /* ---- type ---- */
     .cm-weights { list-style: none; margin: 0 0 3rem; padding: 0; }
@@ -1239,291 +1095,4 @@ const WEIGHTS = [
     })();
   </script>
 
-  <script is:inline>
-    /* ---------------------------------------------------------------------
-       "Wear a page".
-
-       This does not simulate anything. It sets body[data-page] to the chosen
-       page and paints the ground, and every other per-page rule the site
-       already has - the ::selection pair, the scrollbar thumb, the nav
-       variant, color-scheme - resolves on its own. Which makes the control
-       an audit as much as a demo: anything that fails to repaint is a
-       hardcoded colour that should have been a token.
-
-       Nothing runs on its own. The klein blue is the resting form and is
-       deliberately not one of the eleven.
-       --------------------------------------------------------------------- */
-    (function () {
-      var btns = Array.prototype.slice.call(document.querySelectorAll('.cm-wear-btn'));
-      if (!btns.length) { return; }
-      var root = document.documentElement;
-      var body = document.body;
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      var ladderReset = function () {};
-      var ladderSync = function () {};
-      function byKey(k) {
-        return btns.filter(function (b) { return b.getAttribute('data-key') === k; })[0];
-      }
-
-      var HOME = {
-        page: 'colophon',
-        bg: '#0E06D2', ink: '#f4f4ee', accent: '#b6ff2e',
-        dim: '#a9abbd', nav: 'rgba(7, 0, 172, 0.80)',
-        sb: 'rgba(255, 255, 255, 0.15)', scheme: 'dark'
-      };
-      var worn = null;
-
-      function rgb(hex) {
-        return [1, 3, 5].map(function (i) { return parseInt(hex.substr(i, 2), 16); });
-      }
-      function lum(hex) {
-        var v = rgb(hex).map(function (c) {
-          c = c / 255;
-          return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-        });
-        return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
-      }
-      function mix(hex, toward, amt) {
-        var a = rgb(hex), b = rgb(toward);
-        return 'rgb(' + a.map(function (c, i) {
-          return Math.round(c + (b[i] - c) * amt);
-        }).join(',') + ')';
-      }
-
-      /* The nav is the ground, pulled down; the scrollbar is the page's own
-         ink at 15% - the same two rules the site uses, applied here rather
-         than a second table of values to keep in sync. */
-      function scheme(g, ink, accent) {
-        var dark = lum(g) < 0.35;
-        return {
-          bg: g,
-          ink: ink,
-          accent: accent,
-          dim: mix(ink, g, 0.42),
-          nav: mix(g, '#000000', 0.28),
-          sb: dark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(23, 21, 26, 0.15)',
-          scheme: dark ? 'dark' : 'light'
-        };
-      }
-
-      /* Each name is set in its own page's accent - but an accent was chosen
-         against ITS ground, not against whatever ground is currently worn.
-         Privacy's plum on klein blue, or the acid green on the pale pink,
-         both vanish. So the accent is lifted toward the current ink until it
-         clears 4.0:1, which is the same rule the site already applies to its
-         selection pairs rather than a second set of hand-picked values. */
-      function contrast(a, b) {
-        var la = lum(a), lb = lum(b);
-        return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
-      }
-      function legible(accent, ground) {
-        if (contrast(accent, ground) >= 4.0) { return accent; }
-        var toward = lum(ground) < 0.35 ? '#FFFFFF' : '#000000';
-        var a = rgb(accent), t = rgb(toward), i, f, hex;
-        for (i = 1; i <= 10; i++) {
-          f = i / 10;
-          hex = '#' + a.map(function (c, n) {
-            var v = Math.round(c + (t[n] - c) * f);
-            return ('0' + v.toString(16)).slice(-2);
-          }).join('');
-          if (contrast(hex, ground) >= 4.0) { return hex; }
-        }
-        return toward;
-      }
-
-      function relight(ground) {
-        btns.forEach(function (b) {
-          b.style.setProperty('--a', legible(b.getAttribute('data-accent'), ground));
-        });
-      }
-
-      function paint(s, key) {
-        root.style.setProperty('--wear-bg', s.bg);
-        root.style.setProperty('--wear-ink', s.ink);
-        root.style.setProperty('--wear-accent', s.accent);
-        root.style.setProperty('--wear-dim', s.dim);
-        root.style.setProperty('--wear-nav', s.nav);
-        root.style.setProperty('--sb-thumb', s.sb);
-        root.style.colorScheme = s.scheme;
-        body.setAttribute('data-page', key);
-        relight(s.bg);
-      }
-
-      function setUrl(key) {
-        if (!window.history || !window.history.replaceState) { return; }
-        var u = new URL(window.location.href);
-        if (key) { u.searchParams.set('wear', key); } else { u.searchParams.delete('wear'); }
-        window.history.replaceState(null, '', u.toString());
-      }
-
-      function unwear() {
-        worn = null;
-        paint(HOME, HOME.page);
-        body.classList.remove('is-wearing');
-        btns.forEach(function (b) { b.classList.remove('is-worn'); });
-        setUrl(null);
-        ladderReset();
-      }
-
-      function wearKey(btn) {
-        var key = btn.getAttribute('data-key');
-        worn = key;
-        paint(
-          scheme(
-            btn.getAttribute('data-ground'),
-            btn.getAttribute('data-ink'),
-            btn.getAttribute('data-accent')
-          ),
-          key
-        );
-        body.classList.add('is-wearing');
-        btns.forEach(function (b) { b.classList.toggle('is-worn', b === btn); });
-        setUrl(key);
-        ladderSync(key);
-      }
-
-      function wear(btn) {
-        if (worn === btn.getAttribute('data-key')) { unwear(); return; }
-        wearKey(btn);
-      }
-
-
-      /* ---- the ladder --------------------------------------------------
-         Eleven grounds ordered darkest to lightest, doubling as the control.
-         Drag, click a ground, or arrow-key along it. The handle is the only
-         thing that moves on its own, and only because a finger moved it -
-         which is what --ease-drag exists for. */
-      var svg = document.getElementById('cm-ladder');
-      if (svg) {
-        var nodes = Array.prototype.slice.call(svg.querySelectorAll('.cm-l-node'));
-        var handle = document.getElementById('cm-l-handle');
-        var hStem = handle.querySelector('.cm-l-handle-stem');
-        var hDot = handle.querySelector('.cm-l-handle-dot');
-        var nameEl = document.getElementById('cm-l-name');
-        var metaEl = document.getElementById('cm-l-meta');
-        var dragging = false;
-        var at = -1;
-
-        var pts = nodes.map(function (g) {
-          var chip = g.querySelector('.cm-l-chip');
-          return {
-            key: g.getAttribute('data-key'),
-            x: parseFloat(chip.getAttribute('x')) + 9,
-            y: parseFloat(chip.getAttribute('y')) + 9,
-            node: g
-          };
-        });
-
-        handle.style.transition = reduce
-          ? 'none'
-          : 'transform var(--dur-m) var(--ease-drag)';
-
-        function placeHandle(i) {
-          var p = pts[i];
-          hStem.setAttribute('x1', p.x); hStem.setAttribute('x2', p.x);
-          hStem.setAttribute('y1', p.y);
-          hDot.setAttribute('cx', p.x); hDot.setAttribute('cy', p.y);
-        }
-
-        function label(i, resting) {
-          var btn = byKey(pts[i].key);
-          nameEl.textContent = btn ? btn.textContent : pts[i].key;
-          metaEl.textContent = resting
-            ? 'resting'
-            : btn.getAttribute('data-ground').toUpperCase();
-          svg.setAttribute('aria-valuenow', String(i));
-          svg.setAttribute('aria-valuetext', nameEl.textContent);
-        }
-
-        function go(i) {
-          i = Math.max(0, Math.min(pts.length - 1, i));
-          if (i === at) { return; }
-          at = i;
-          placeHandle(i);
-          nodes.forEach(function (g, n) { g.classList.toggle('is-on', n === i); });
-          var btn = byKey(pts[i].key);
-          if (btn) { wearKey(btn); }
-          label(i, false);
-        }
-
-        /* Nearest node to the pointer, in the SVG's own coordinate space so
-           it survives the viewBox scaling at any column width. */
-        function indexAt(clientX) {
-          var r = svg.getBoundingClientRect();
-          var x = ((clientX - r.left) / r.width) * 1000;
-          var best = 0, bd = Infinity;
-          pts.forEach(function (p, i) {
-            var d = Math.abs(p.x - x);
-            if (d < bd) { bd = d; best = i; }
-          });
-          return best;
-        }
-
-        svg.addEventListener('pointerdown', function (e) {
-          dragging = true;
-          svg.setPointerCapture(e.pointerId);
-          go(indexAt(e.clientX));
-        });
-        svg.addEventListener('pointermove', function (e) {
-          if (dragging) { go(indexAt(e.clientX)); }
-        });
-        function stop(e) {
-          if (!dragging) { return; }
-          dragging = false;
-          try { svg.releasePointerCapture(e.pointerId); } catch (err) {}
-        }
-        svg.addEventListener('pointerup', stop);
-        svg.addEventListener('pointercancel', stop);
-
-        svg.addEventListener('keydown', function (e) {
-          if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); go(at + 1); }
-          else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); go(at - 1); }
-          else if (e.key === 'Home') { e.preventDefault(); go(0); }
-          else if (e.key === 'End') { e.preventDefault(); go(pts.length - 1); }
-        });
-
-        /* Escape and the list both clear the worn state; the ladder has to
-           follow, or the handle sits on a page the site is no longer wearing. */
-        ladderReset = function () {
-          at = -1;
-          nodes.forEach(function (g) { g.classList.remove('is-on'); });
-          var home = pts.map(function (p) { return p.key; }).indexOf('colophon');
-          placeHandle(home < 0 ? 0 : home);
-          label(home < 0 ? 0 : home, true);
-        };
-        ladderSync = function (key) {
-          var i = pts.map(function (p) { return p.key; }).indexOf(key);
-          if (i < 0 || i === at) { return; }
-          at = i;
-          placeHandle(i);
-          nodes.forEach(function (g, n) { g.classList.toggle('is-on', n === i); });
-          label(i, false);
-        };
-        ladderReset();
-      }
-
-      relight(HOME.bg);
-
-      btns.forEach(function (b) {
-        b.addEventListener('click', function () { wear(b); });
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && worn) { unwear(); }
-      });
-
-      if (reduce) {
-        var st = document.createElement('style');
-        st.textContent = 'html, body, .cm { transition: none !important; }';
-        document.head.appendChild(st);
-      }
-
-      /* A worn state is shareable: /colophon?wear=studio lands dressed. */
-      var want = new URL(window.location.href).searchParams.get('wear');
-      if (want) {
-        var match = btns.filter(function (b) { return b.getAttribute('data-key') === want; })[0];
-        if (match) { wear(match); }
-      }
-    })();
-  </script>
 </BaseLayout>

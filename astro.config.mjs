@@ -42,6 +42,9 @@ export default defineConfig({
         // /colophon is noindex in BaseLayout, so keep it out of the sitemap
         // too — a noindex URL listed in a sitemap is a mixed signal.
         if (/\/colophon\/?$/.test(page)) return false;
+        // /dev/* are internal tools, noindex; /colophon-motion is a prototype.
+        if (/\/dev\//.test(page)) return false;
+        if (/\/colophon-motion\/?$/.test(page)) return false;
         // Drop noindex project pages from the sitemap (match live SEO).
         const m = page.match(/\/projects\/([^/]+)\/?$/);
         if (m && NOINDEX.has(m[1])) return false;

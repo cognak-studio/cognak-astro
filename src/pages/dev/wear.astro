@@ -1,0 +1,190 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+/* /dev/wear — internal audit tool, not a public page.
+
+   Sets body[data-page] to each page in turn and paints that page's ground,
+   then leaves the site's own stylesheet to resolve everything else: the
+   ::selection pair, the scrollbar thumb, the nav variant, color-scheme.
+
+   The point is not the preview. It is that anything which FAILS to repaint
+   is a hardcoded colour that should have been a token — so this is the
+   fastest way to check a new page, or a refactor, against the tint system.
+   Run it, walk the ladder, and look for what stays klein blue. */
+
+const PAGES = [
+  { key: 'home',     name: 'Home',     ground: '#17151A', ink: '#F4F4EE', sel: '#AAFF00' },
+  { key: 'studio',   name: 'Studio',   ground: '#17151A', ink: '#F4F4EE', sel: '#FFB2E4' },
+  { key: 'projects', name: 'Projects', ground: '#EAE5F2', ink: '#3A313B', sel: '#9647F0' },
+  { key: 'project',  name: 'Project',  ground: '#FFFFFF', ink: '#3A313B', sel: '#9647F0' },
+  { key: 'brief',    name: 'Brief',    ground: '#140E07', ink: '#F4F4EE', sel: '#EF9146' },
+  { key: 'send',     name: 'Send',     ground: '#090C0B', ink: '#F4F4EE', sel: '#8FC2F2' },
+  { key: 'receive',  name: 'Receive',  ground: '#090C0B', ink: '#F4F4EE', sel: '#8FC2F2' },
+  { key: 'tools',    name: 'Tools',    ground: '#17151A', ink: '#F4F4EE', sel: '#B47CFF' },
+  { key: 'schedule', name: 'Schedule', ground: '#17151A', ink: '#F4F4EE', sel: '#9F50FF' },
+  { key: 'privacy',  name: 'Privacy',  ground: '#F1D6EA', ink: '#3A313B', sel: '#4A2840' },
+  { key: 'colophon', name: 'Colophon', ground: '#0E06D2', ink: '#F4F4EE', sel: '#AAFF00' },
+  { key: '404',      name: '404',      ground: '#6F6F6F', ink: '#F4F4EE', sel: '#AAFF00' }
+];
+
+/* A short specimen of the things that are supposed to follow the ground, so
+   a failure is visible without hunting around the page. */
+const PROBES = [
+  ['Body text', 'The quick brown fox jumps over the lazy dog.'],
+  ['Selection', 'Drag across this line to check the highlight pair.'],
+  ['Link',      'An inline link, resting and hovered.'],
+  ['Mono',      'cubic-bezier(0.4, 0, 0.2, 1)']
+];
+---
+<BaseLayout
+  page="colophon"
+  title="dev / wear – COGNAK"
+  description="Internal: per-page tint audit."
+  noindex={true}
+  pageBg="#0E06D2"
+>
+  <main id="cognak-main"><section class="dw">
+
+    <p class="dw-eyebrow">dev / wear &nbsp;·&nbsp; internal</p>
+    <h1 class="dw-h1">Tint audit</h1>
+    <p class="dw-lead">Each button sets <code>data-page</code> and paints the ground. Everything else — selection, scrollbar, nav, <code>color-scheme</code> — is resolved by the site's own CSS. <strong>Look for what does not change.</strong> Anything still klein blue is hardcoded.</p>
+
+    <ul class="dw-row">
+      {PAGES.map((pg) => (
+        <li>
+          <button
+            type="button"
+            class="dw-btn"
+            data-key={pg.key}
+            data-ground={pg.ground}
+            data-ink={pg.ink}
+            data-accent={pg.sel}
+          >{pg.name}</button>
+        </li>
+      ))}
+      <li><button type="button" class="dw-btn dw-reset" id="dw-reset">reset</button></li>
+    </ul>
+
+    <p class="dw-now" id="dw-now">resting — colophon</p>
+
+    <dl class="dw-probes">
+      {PROBES.map(([k, v]) => (
+        <>
+          <dt>{k}</dt>
+          <dd>{k === 'Link' ? <a href="#0">{v}</a> : v}</dd>
+        </>
+      ))}
+      <dt>Scrollbar</dt>
+      <dd class="dw-scroll"><div>Nested scroller — the custom bar takes the page's ink at 15%.<br/>Scroll me.<br/><br/><br/><br/>End.</div></dd>
+    </dl>
+
+  </section></main>
+
+  <style is:inline>
+    :root { --dw-bg: #0E06D2; --dw-ink: #f4f4ee; --dw-accent: #b6ff2e; }
+    html, body { background-color: var(--dw-bg) !important; transition: background-color .4s ease; }
+    .dw {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 190px 6vw 22vh;
+      color: var(--dw-ink);
+      font-family: 'Diatype Variable', sans-serif;
+      transition: color .4s ease;
+    }
+    .dw-eyebrow {
+      font-family: 'Diatype Mono', monospace;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .6;
+      margin: 0 0 1rem;
+    }
+    .dw-h1 { font-size: 34px; font-weight: 500; margin: 0 0 1rem; letter-spacing: -.02em; }
+    .dw-lead { max-width: 60ch; font-size: .95rem; line-height: 1.6; margin: 0 0 2rem; opacity: .9; }
+    .dw-lead code, .dw-probes code { font-family: 'Diatype Mono', monospace; color: var(--dw-accent); }
+    .dw-row { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+    .dw-btn {
+      font: inherit;
+      font-size: .82rem;
+      padding: .4rem .7rem;
+      background: none;
+      color: inherit;
+      border: 1px solid currentColor;
+      border-radius: 2px;
+      opacity: .6;
+      cursor: pointer;
+    }
+    .dw-btn:hover, .dw-btn.is-on { opacity: 1; border-color: var(--dw-accent); color: var(--dw-accent); }
+    .dw-reset { border-style: dashed; }
+    .dw-now {
+      font-family: 'Diatype Mono', monospace;
+      font-size: .72rem;
+      opacity: .6;
+      margin: 0 0 2.4rem;
+    }
+    .dw-probes { margin: 0; display: grid; grid-template-columns: 120px 1fr; gap: .8rem 1.4rem; }
+    .dw-probes dt { font-family: 'Diatype Mono', monospace; font-size: .7rem; opacity: .55; padding-top: .2rem; }
+    .dw-probes dd { margin: 0; font-size: .95rem; line-height: 1.5; }
+    .dw-scroll div {
+      max-height: 84px;
+      overflow: auto;
+      border: 1px solid currentColor;
+      border-color: color-mix(in srgb, currentColor 30%, transparent);
+      padding: .6rem;
+      font-size: .85rem;
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var root = document.documentElement, body = document.body;
+      var btns = Array.prototype.slice.call(document.querySelectorAll('.dw-btn'));
+      var now = document.getElementById('dw-now');
+      var reset = document.getElementById('dw-reset');
+
+      function rgbOf(h) { return [1, 3, 5].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }
+      function lum(h) {
+        var v = rgbOf(h).map(function (c) {
+          c = c / 255;
+          return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+      }
+
+      function apply(key, ground, ink, accent, label) {
+        root.style.setProperty('--dw-bg', ground);
+        root.style.setProperty('--dw-ink', ink);
+        root.style.setProperty('--dw-accent', accent);
+        root.style.setProperty(
+          '--sb-thumb',
+          lum(ground) < 0.35 ? 'rgba(255,255,255,0.15)' : 'rgba(23,21,26,0.15)'
+        );
+        root.style.colorScheme = lum(ground) < 0.35 ? 'dark' : 'light';
+        body.setAttribute('data-page', key);
+        now.textContent = label;
+      }
+
+      btns.forEach(function (b) {
+        if (b === reset) { return; }
+        b.addEventListener('click', function () {
+          btns.forEach(function (o) { o.classList.toggle('is-on', o === b); });
+          apply(
+            b.getAttribute('data-key'),
+            b.getAttribute('data-ground'),
+            b.getAttribute('data-ink'),
+            b.getAttribute('data-accent'),
+            'wearing — ' + b.getAttribute('data-key') + ' · ' + b.getAttribute('data-ground')
+          );
+        });
+      });
+
+      reset.addEventListener('click', function () {
+        btns.forEach(function (o) { o.classList.remove('is-on'); });
+        apply('colophon', '#0E06D2', '#f4f4ee', '#b6ff2e', 'resting — colophon');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { reset.click(); }
+      });
+    })();
+  </script>
+</BaseLayout>
