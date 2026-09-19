@@ -1,0 +1,1014 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+/* PROTOTYPE — the motion section of an extended /colophon.
+   Standalone so it can be looked at without touching the live page.
+   Delete or fold into colophon.astro once the treatment is settled. */
+
+const EASINGS = [
+  {
+    token: '--ease-standard',
+    value: 'cubic-bezier(0.4, 0, 0.2, 1)',
+    p: [0.4, 0, 0.2, 1],
+    note: 'The default. Nav hovers, link underlines, every colour change.'
+  },
+  {
+    token: '--ease-out-expo',
+    value: 'cubic-bezier(0.16, 1, 0.3, 1)',
+    p: [0.16, 1, 0.3, 1],
+    note: 'Arrivals. Content entering the frame, panels opening.'
+  },
+  {
+    token: '--ease-drag',
+    value: 'cubic-bezier(0.1, 0.75, 0.25, 1)',
+    p: [0.1, 0.75, 0.25, 1],
+    note: 'Anything that followed a finger and has to settle without a bounce.'
+  },
+  {
+    token: '--ease-overshoot',
+    value: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    p: [0.34, 1.56, 0.64, 1],
+    note: 'Passes its mark and comes back. Used sparingly, on confirmations.'
+  },
+  {
+    token: '--ease-press',
+    value: 'cubic-bezier(0.2, 0.7, 0.3, 1)',
+    p: [0.2, 0.7, 0.3, 1],
+    note: 'The short trip a button makes under a cursor.'
+  }
+];
+
+const DURATIONS = [
+  { token: '--dur-xs',  ms: 150, note: 'Tap feedback' },
+  { token: '--dur-s',   ms: 200, note: 'The base' },
+  { token: '--dur-sm',  ms: 250, note: '' },
+  { token: '--dur-m',   ms: 300, note: 'Most hovers' },
+  { token: '--dur-l',   ms: 400, note: '' },
+  { token: '--dur-xl',  ms: 500, note: '' },
+  { token: '--dur-2xl', ms: 600, note: 'Entrances, reveals' }
+];
+
+/* Plot the curve as an SVG path in a 100x100 box, y inverted so progress
+   runs upward. Control points can exceed the box (overshoot) — the SVG
+   is not clipped, and the padding in the wrapper accounts for it. */
+function curvePath(p: number[]) {
+  const x1 = p[0] * 100, y1 = 100 - p[1] * 100;
+  const x2 = p[2] * 100, y2 = 100 - p[3] * 100;
+  return 'M0,100 C' + x1 + ',' + y1 + ' ' + x2 + ',' + y2 + ' 100,0';
+}
+
+/* The per-page tint system, read off the values that actually ship:
+   pageBg props on each page template, and the body[data-page] ::selection
+   block in custom.css. Kept as data so the section can't drift from a
+   hand-written table - if this survives, it should read the custom
+   properties at runtime instead. */
+const PAGES = [
+  { name: 'Home',       ground: '#17151A', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' },
+  { name: 'Studio',     ground: '#17151A', sel: '#FFB2E4', selInk: '#17151A', ink: '#F4F4EE' },
+  { name: 'Projects',   ground: '#EAE5F2', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
+  { name: 'Project',    ground: '#FFFFFF', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
+  { name: 'Brief',      ground: '#140E07', sel: '#EF9146', selInk: '#2A2010', ink: '#F4F4EE' },
+  { name: 'Send',       ground: '#090C0B', sel: '#8FC2F2', selInk: '#090C0B', ink: '#F4F4EE' },
+  { name: 'Tools',      ground: '#17151A', sel: '#B47CFF', selInk: '#17151A', ink: '#F4F4EE' },
+  { name: 'Schedule',   ground: '#17151A', sel: '#9F50FF', selInk: '#1B1424', ink: '#F4F4EE' },
+  { name: 'Privacy',    ground: '#F1D6EA', sel: '#4A2840', selInk: '#F1D6EA', ink: '#3A313B' },
+  { name: 'Colophon',   ground: '#0E06D2', sel: '#AAFF00', selInk: '#0E06D2', ink: '#F4F4EE' },
+  { name: '404',        ground: '#6F6F6F', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' }
+];
+
+function lum(hex) {
+  const v = [1, 3, 5].map(i => parseInt(hex.substr(i, 2), 16) / 255)
+    .map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+}
+const PAGE_LUM = PAGES.map(p => ({ name: p.name, l: lum(p.ground) }));
+
+/* Measured 2026-09-18 across src/ and public/js: 380 declarations, 96 as
+   written, 79 once whitespace and leading zeros are normalised. Of the 55
+   fixed sizes, 44 fall between 8px and 18px. */
+const TYPE_FACTS = [
+  ['Declarations', '380'],
+  ['Distinct, as written', '96'],
+  ['Distinct, normalised', '79'],
+  ['Fixed (px / rem)', '55'],
+  ['Fluid (clamp, em)', '24'],
+  ['Fixed sizes between 8px and 18px', '44']
+];
+const SIZES = [[6.5, 1], [8, 1], [8.32, 3], [8.96, 3], [9.28, 1], [9.92, 8], [10, 7], [10.24, 4], [10.56, 10], [10.88, 9], [11, 6], [11.2, 5], [11.52, 31], [11.84, 6], [12, 11], [12.16, 4], [12.48, 6], [12.8, 9], [13, 10], [13.12, 7], [13.44, 5], [13.6, 12], [13.76, 4], [14, 13], [14.08, 17], [14.4, 12], [14.72, 14], [15, 10], [15.04, 5], [15.2, 9], [15.36, 2], [15.68, 3], [16, 22], [16.32, 2], [16.8, 12], [16.96, 1], [17, 4], [17.28, 6], [17.6, 2], [18, 3], [18.4, 2], [20, 2], [20.8, 1], [22, 4], [24, 4], [25.6, 1], [28, 1], [30.4, 1], [35.2, 1], [40, 2], [70, 1], [72, 1]];
+const WEIGHTS = [
+  { w: 400, n: 'Regular' },
+  { w: 500, n: 'Medium' },
+  { w: 700, n: 'Bold' }
+];
+---
+<BaseLayout
+  page="colophon"
+  title="Motion – COGNAK"
+  description="Prototype: the motion section of an extended colophon."
+  ogUrl="https://cognak.com/colophon-motion/"
+  noindex={true}
+  pageBg="#0E06D2"
+>
+  <canvas id="cm-anatomy" aria-hidden="true"></canvas>
+  <div id="cm-plate" aria-hidden="true"></div>
+
+  <main id="cognak-main"><section class="cm">
+
+    <script type="application/json" id="cm-lums" set:html={JSON.stringify(PAGE_LUM)}></script>
+    <script type="application/json" id="cm-sizes" set:html={JSON.stringify(SIZES)}></script>
+
+    <p class="cm-eyebrow">Colophon &nbsp;/&nbsp; System</p>
+
+    <h1 class="cm-headline">A colophon names the paper and the press. This is <em>the rest of it</em>.</h1>
+
+    <div class="cm-intro">
+      <p>Eleven grounds, five curves, seven durations, one typeface. Nothing below is a picture of the system — every value on this page is read from the stylesheet that ships, so the page cannot describe a site it no longer matches.</p>
+    </div>
+
+    <h2 class="cm-h2" id="cm-colour">Colour</h2>
+    <div id="cm-colour-sec">
+
+    <p class="cm-sub">Eleven pages, each with its own ground and its own highlight. Drag across any row — the text selects in that page's real <code>::selection</code> pair.</p>
+
+    <ul class="cm-pal">
+      {PAGES.map((pg) => (
+        <li class="cm-pg" style={'--g:' + pg.ground + ';--i:' + pg.ink + ';--s:' + pg.sel + ';--si:' + pg.selInk}>
+          <span class="cm-pg-name">{pg.name}</span>
+          <span class="cm-pg-swatch"><span class="cm-pg-sel"></span></span>
+          <span class="cm-pg-demo">Select this line.</span>
+          <span class="cm-pg-hex">{pg.ground} &nbsp;·&nbsp; {pg.sel}</span>
+        </li>
+      ))}
+    </ul>
+
+    <p class="cm-aside">The green is the default, not the rule. It holds home and the 404 and yields wherever a page has its own voice — on <span class="cm-w">/projects</span> because it was illegible on the lavender, on <span class="cm-w">/studio</span> because a lone green dot on a page that speaks pink reads as imported.</p>
+
+    </div>
+
+    <h2 class="cm-h2" id="cm-motion">Motion</h2>
+
+    <p class="cm-sub">The dot plots real elapsed time across the bottom against eased progress up the side, so it traces the curve at the speed the curve actually runs. The square travels on the same clock.</p>
+
+    <h3 class="cm-h3">Curves</h3>
+
+    <ul class="cm-curves">
+      {EASINGS.map((e) => (
+        <li class="cm-row" data-ease={e.value} data-p={e.p.join(',')}>
+          <button class="cm-trigger" type="button" aria-label={'Play ' + e.token}>
+            <span class="cm-graph">
+              <svg viewBox="-6 -6 112 112" aria-hidden="true">
+                <line class="cm-axis" x1="0" y1="100" x2="100" y2="100" />
+                <line class="cm-axis" x1="0" y1="0" x2="0" y2="100" />
+                <line class="cm-guide" x1="0" y1="0" x2="100" y2="0" />
+                <line class="cm-guide" x1="100" y1="0" x2="100" y2="100" />
+                <path class="cm-curve" d={curvePath(e.p)} />
+                <circle class="cm-dot" cx="0" cy="100" r="4.5" />
+              </svg>
+            </span>
+            <span class="cm-meta">
+              <span class="cm-token">{e.token}</span>
+              <span class="cm-value">{e.value}</span>
+              <span class="cm-use">{e.note}</span>
+              <span class="cm-track"><span class="cm-car"></span></span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+
+    <h3 class="cm-h3">Durations</h3>
+
+    <p class="cm-sub">All seven, fired together, so the intervals read against each other.</p>
+
+    <ul class="cm-durs" id="cm-durs">
+      {DURATIONS.map((d) => (
+        <li class="cm-dur" style={'--d:' + d.ms + 'ms; --w:' + Math.round(d.ms / 600 * 100) + '%'}>
+          <span class="cm-token">{d.token}</span>
+          <span class="cm-bar"><span class="cm-fill"></span></span>
+          <span class="cm-ms">{d.ms}ms</span>
+          <span class="cm-use">{d.note}</span>
+        </li>
+      ))}
+    </ul>
+
+    <h2 class="cm-h2" id="cm-type">Type</h2>
+    <div id="cm-type-sec">
+
+    <p class="cm-sub">ABC Diatype, drawn by Dinamo, self-hosted as woff2 in three weights and a mono. No CDN sees your visit.</p>
+
+    <ul class="cm-weights">
+      {WEIGHTS.map((w) => (
+        <li class="cm-weight" style={'--fw:' + w.w}>
+          <span class="cm-weight-spec">{w.w} &nbsp; {w.n}</span>
+          <span class="cm-weight-set">Handled by hand</span>
+        </li>
+      ))}
+      <li class="cm-weight cm-weight-mono">
+        <span class="cm-weight-spec">400 &nbsp; Mono</span>
+        <span class="cm-weight-set">cubic-bezier(0.4, 0, 0.2, 1)</span>
+      </li>
+    </ul>
+
+    <p class="cm-body">There is no type scale, and this is the part of the system that isn't finished. A count, taken from the stylesheets that ship:</p>
+
+    <ul class="cm-facts">
+      {TYPE_FACTS.map(([k, v]) => (
+        <li class="cm-fact"><span class="cm-fact-k">{k}</span><span class="cm-fact-v">{v}</span></li>
+      ))}
+    </ul>
+
+    <p class="cm-body">Forty-four distinct sizes inside a ten-pixel band is not expressive range, it's thirteen years of typing a number slightly smaller than the one next to it. The display sizes are the opposite — those vary per page because the pages have different jobs, and a scale that flattened them would be a worse site. So the fix is a named scale for the small band and no scale at all above it. Core and exceptions, not a ladder.</p>
+
+    </div>
+
+    <h2 class="cm-h2" id="cm-voice">Voice</h2>
+
+    <p class="cm-sub">The rules the copy on this site is written against.</p>
+
+    <ol class="cm-rules">
+      <li>One paragraph. Name the work, list the range in a short series, stop.</li>
+      <li>Scale is implied by what's listed, never asserted with adjectives.</li>
+      <li>No sensory image standing in for a claim. No closing thesis statement.</li>
+      <li>When in doubt, match the shortest entry on the site, not the longest.</li>
+      <li>Nothing romantic, abstract, or sales-inflected. Declarative, or cut it.</li>
+    </ol>
+
+    <p class="cm-aside">Written down because it is the part of a brand that drifts first and the part almost nobody publishes.</p>
+
+    <h2 class="cm-h2" id="cm-outside">Outside the system</h2>
+
+    <p class="cm-sub">What the tokens deliberately do not reach.</p>
+
+    <ul class="cm-outside">
+      <li><span class="cm-o-n">Homepage ground</span><span class="cm-o-d">A WebGL field, not a colour token.</span></li>
+      <li><span class="cm-o-n">Character sweep</span><span class="cm-o-d">Per-letter timing, authored against the text it runs on.</span></li>
+      <li><span class="cm-o-n">Scroll choreography</span><span class="cm-o-d">Page-specific. Shares the easings, nothing else.</span></li>
+      <li><span class="cm-o-n">Living backgrounds</span><span class="cm-o-d">The glyph anatomy here, the baseline grid on /privacy-policy.</span></li>
+      <li><span class="cm-o-n">Project hero video</span><span class="cm-o-d">Cut per project. A convention, not a component.</span></li>
+    </ul>
+
+    <p class="cm-aside">A system that marks its own edge is describing something real. One claiming to cover everything is describing an intention.</p>
+
+    <p class="cm-sign">Five curves is the entire claim. A brand book can print the numbers; it cannot show you what 0.34,&nbsp;1.56 feels like, which is the only part that matters.</p>
+
+  </section></main>
+
+  <style is:inline>
+    html, body { background-color: #0E06D2 !important; }
+
+    /* ---- scroll-driven anatomy canvas -------------------------------------
+       Same drawing vocabulary as the glyph canvas on /colophon: faint contour
+       stroke, white node squares on the anchors, acid-green handle lines out
+       to the control points. Here the contour being dissected is the easing
+       curve rather than a letter, which is the point - a type designer's
+       curve and a CSS easing curve are the same object.
+       Fixed, behind everything, and it never contributes layout. */
+    #cm-anatomy {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    #cm-plate {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      line-height: 1.6;
+      letter-spacing: 0.04em;
+      color: #a9abbd;
+      opacity: 0;
+      transition: opacity var(--dur-l) var(--ease-standard);
+    }
+    #cm-plate .p-line { display: block; white-space: nowrap; }
+    #cm-plate .p-name { color: #b6ff2e; }
+    /* Below 900px the canvas centres behind the text column, where a caption
+       would land on the copy - same call as the glyph caption on /colophon. */
+    @media (max-width: 900px) { #cm-plate { display: none; } }
+
+    #cognak-main { position: relative; z-index: 1; overflow-x: clip; }
+
+    .home-bottom-bar.inner-page-nav.colophon-nav {
+      background: rgba(7, 0, 172, 0.80) !important;
+    }
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-location,
+    .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a,
+    .home-bottom-bar.inner-page-nav.colophon-nav .pulse-dot {
+      color: #ffffff !important;
+    }
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
+    .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a {
+      transition: color var(--dur-s) var(--ease-standard);
+    }
+    @media (hover: hover) {
+      .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email:hover,
+      .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a:hover {
+        color: #A9C4FF !important;
+      }
+    }
+
+    .cm {
+      max-width: 930px;
+      margin: 0 auto;
+      padding: 190px 6vw 22vh;
+      color: #f4f4ee;
+      font-family: 'Diatype Variable', sans-serif;
+    }
+    @media (max-width: 720px) { .cm { padding-top: 100px; } }
+    @media (min-width: 900px) {
+      .cm { margin-left: clamp(48px, 11vw, 210px); margin-right: auto; }
+    }
+
+    .cm-eyebrow {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a9abbd;
+      margin: 0 0 1.6rem;
+    }
+
+    .cm-headline {
+      font-size: clamp(30px, 4.6vw, 54px);
+      font-weight: 500;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      margin: 0 0 2.2rem;
+      max-width: 17ch;
+    }
+    .cm-headline em { font-style: normal; font-weight: 500; color: #b6ff2e; }
+
+    .cm-intro { max-width: 58ch; margin-bottom: 5.5rem; }
+    .cm-intro p { font-size: 1.05rem; line-height: 1.6; margin: 0 0 1rem; }
+    .cm-note { color: #a9abbd; font-size: 0.92rem !important; }
+
+    .cm-h2 {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #b6ff2e;
+      font-weight: 400;
+      margin: 0 0 2rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .cm-sub {
+      color: #a9abbd;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      max-width: 58ch;
+      margin: -1rem 0 2.4rem;
+    }
+
+    /* ---- curves ---- */
+    .cm-curves { list-style: none; margin: 0 0 6rem; padding: 0; }
+    .cm-row { border-bottom: 1px solid rgba(255,255,255,0.09); }
+    .cm-row:last-child { border-bottom: 0; }
+
+    .cm-trigger {
+      display: grid;
+      grid-template-columns: 132px 1fr;
+      gap: 2.2rem;
+      align-items: center;
+      width: 100%;
+      padding: 1.8rem 0.6rem 1.8rem 0;
+      background: none;
+      border: 0;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      transition: background var(--dur-m) var(--ease-standard);
+    }
+    @media (hover: hover) {
+      .cm-trigger:hover { background: rgba(255,255,255,0.035); }
+    }
+    .cm-trigger:focus-visible { outline: 2px solid #b6ff2e; outline-offset: 2px; }
+
+    .cm-graph { display: block; }
+    .cm-graph svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .cm-axis  { stroke: rgba(255,255,255,0.30); stroke-width: 1; }
+    .cm-guide { stroke: rgba(255,255,255,0.10); stroke-width: 1; stroke-dasharray: 2 3; }
+    .cm-curve { fill: none; stroke: #f4f4ee; stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .cm-dot   { fill: #b6ff2e; }
+
+    .cm-meta { display: block; min-width: 0; }
+    .cm-token {
+      display: block;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.88rem;
+      color: #b6ff2e;
+      letter-spacing: 0.01em;
+    }
+    .cm-value {
+      display: block;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      color: #a9abbd;
+      margin-top: 0.3rem;
+    }
+    .cm-use {
+      display: block;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #e2e2ea;
+      margin-top: 0.6rem;
+      max-width: 44ch;
+    }
+
+    .cm-track {
+      display: block;
+      position: relative;
+      height: 2px;
+      margin-top: 1.4rem;
+      background: rgba(255,255,255,0.12);
+      max-width: 340px;
+    }
+    .cm-car {
+      position: absolute;
+      top: -4px;
+      left: 0;
+      width: 10px;
+      height: 10px;
+      background: #f4f4ee;
+      transform: translateX(0);
+    }
+    .cm-row.is-running .cm-car { transform: translateX(calc(340px - 10px)); }
+
+    /* ---- durations ---- */
+    .cm-durs { list-style: none; margin: 0 0 5rem; padding: 0; }
+    .cm-dur {
+      display: grid;
+      grid-template-columns: 110px 1fr 64px 1fr;
+      gap: 1.4rem;
+      align-items: center;
+      padding: 0.85rem 0;
+    }
+    .cm-bar {
+      display: block;
+      height: 3px;
+      width: var(--w);
+      background: rgba(255,255,255,0.12);
+      overflow: hidden;
+    }
+    .cm-fill {
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: #b6ff2e;
+      transform: scaleX(0);
+      transform-origin: left center;
+    }
+    .cm-durs.is-running .cm-fill {
+      transform: scaleX(1);
+      transition: transform var(--d) var(--ease-standard);
+    }
+    .cm-ms {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      color: #a9abbd;
+      text-align: right;
+    }
+    .cm-dur .cm-use { margin-top: 0; font-size: 0.82rem; color: #a9abbd; }
+
+    @media (max-width: 720px) {
+      .cm-trigger { grid-template-columns: 92px 1fr; gap: 1.2rem; }
+      .cm-dur { grid-template-columns: 96px 1fr 58px; }
+      .cm-dur .cm-use { display: none; }
+      .cm-track { max-width: 100%; }
+    }
+
+
+    /* ---- shared prose ---- */
+    .cm-body { max-width: 56ch; font-size: 1rem; line-height: 1.6; margin: 0 0 1.6rem; }
+    .cm-aside {
+      max-width: 54ch;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: #a9abbd;
+      margin: 0 0 5.5rem;
+    }
+    .cm-w { color: #b6ff2e; font-family: 'Diatype Mono', monospace; font-size: 0.86em; }
+    .cm-h3 {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #a9abbd;
+      font-weight: 400;
+      margin: 0 0 1.6rem;
+    }
+
+    /* ---- colour: each row rendered IN its own scheme -----------------------
+       The whole argument of this section is that the highlight is per page,
+       so the demo line has to carry that page's real ::selection pair. CSS
+       cannot scope ::selection to a subtree by variable, so each row gets its
+       own rule emitted from the same data - and -moz-selection stays a
+       separate rule, since one unknown pseudo-element invalidates the list. */
+    .cm-pal { list-style: none; margin: 0 0 2.4rem; padding: 0; }
+    .cm-pg {
+      display: grid;
+      grid-template-columns: 110px 46px 1fr auto;
+      gap: 1.4rem;
+      align-items: center;
+      padding: 0.95rem 1.1rem;
+      background: var(--g);
+      color: var(--i);
+      border-bottom: 1px solid rgba(255,255,255,0.10);
+    }
+    .cm-pg-name { font-size: 0.88rem; }
+    .cm-pg-swatch { display: block; height: 14px; background: var(--s); }
+    .cm-pg-demo { font-size: 0.92rem; opacity: 0.85; }
+    .cm-pg-hex {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.68rem;
+      opacity: 0.55;
+      white-space: nowrap;
+    }
+    .cm-pg ::selection      { background: var(--s); color: var(--si); }
+    .cm-pg ::-moz-selection { background: var(--s); color: var(--si); }
+
+    /* ---- type ---- */
+    .cm-weights { list-style: none; margin: 0 0 3rem; padding: 0; }
+    .cm-weight {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 2rem;
+      padding: 1.1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.09);
+      font-weight: var(--fw, 400);
+      font-size: clamp(20px, 2.6vw, 34px);
+      letter-spacing: -0.01em;
+    }
+    .cm-weight-mono { font-family: 'Diatype Mono', monospace; font-size: clamp(15px, 1.8vw, 22px); }
+    .cm-weight-spec {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: #a9abbd;
+      white-space: nowrap;
+    }
+    .cm-facts { list-style: none; margin: 0 0 2rem; padding: 0; max-width: 460px; }
+    .cm-fact {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      font-size: 0.88rem;
+    }
+    .cm-fact-k { color: #e2e2ea; }
+    .cm-fact-v { font-family: 'Diatype Mono', monospace; color: #b6ff2e; }
+
+    /* ---- voice ---- */
+    .cm-rules {
+      max-width: 58ch;
+      margin: 0 0 1.6rem;
+      padding: 0;
+      list-style: none;
+      counter-reset: r;
+    }
+    .cm-rules li {
+      counter-increment: r;
+      position: relative;
+      padding: 0.75rem 0 0.75rem 3rem;
+      font-size: 1rem;
+      line-height: 1.55;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .cm-rules li::before {
+      content: counter(r, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 0.95rem;
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.72rem;
+      color: #b6ff2e;
+    }
+
+    /* ---- outside ---- */
+    .cm-outside { list-style: none; margin: 0 0 1.6rem; padding: 0; max-width: 620px; }
+    .cm-outside li {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 1.4rem;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      font-size: 0.92rem;
+    }
+    .cm-o-n { color: #b6ff2e; font-family: 'Diatype Mono', monospace; font-size: 0.78rem; }
+    .cm-o-d { color: #e2e2ea; }
+
+    @media (max-width: 720px) {
+      .cm-pg { grid-template-columns: 78px 28px 1fr; }
+      .cm-pg-hex { display: none; }
+      .cm-outside li { grid-template-columns: 1fr; gap: 0.3rem; }
+      .cm-weight { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+    }
+
+    .cm-sign {
+      max-width: 52ch;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #e2e2ea;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.14);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cm-car, .cm-fill { transition: none !important; }
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var SPAN = 900; /* how long a demo run takes, independent of the token */
+
+      /* Solve a cubic-bezier easing for y at a given x (time), the same way a
+         browser does: Newton-Raphson on x, bisection as the fallback. */
+      function bez(p) {
+        var x1 = p[0], y1 = p[1], x2 = p[2], y2 = p[3];
+        function cx(t) { var u = 1 - t; return 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t; }
+        function cy(t) { var u = 1 - t; return 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t; }
+        function dx(t) { var u = 1 - t; return 3 * u * u * x1 + 6 * u * t * (x2 - x1) + 3 * t * t * (1 - x2); }
+        return function (x) {
+          if (x <= 0) return 0;
+          if (x >= 1) return 1;
+          var t = x, i, d, s;
+          for (i = 0; i < 8; i++) {
+            d = cx(t) - x;
+            if (Math.abs(d) < 1e-5) return cy(t);
+            s = dx(t);
+            if (Math.abs(s) < 1e-6) break;
+            t -= d / s;
+          }
+          var lo = 0, hi = 1;
+          t = x;
+          for (i = 0; i < 24; i++) {
+            if (cx(t) > x) { hi = t; } else { lo = t; }
+            t = (lo + hi) / 2;
+          }
+          return cy(t);
+        };
+      }
+
+      var rows = Array.prototype.slice.call(document.querySelectorAll('.cm-row'));
+
+      rows.forEach(function (row) {
+        var dot = row.querySelector('.cm-dot');
+        var car = row.querySelector('.cm-car');
+        var ease = row.getAttribute('data-ease');
+        var p = row.getAttribute('data-p').split(',').map(Number);
+        var solve = bez(p);
+        var raf = 0;
+
+        car.style.transitionProperty = 'transform';
+        car.style.transitionTimingFunction = ease;
+        car.style.transitionDuration = SPAN + 'ms';
+
+        function play() {
+          if (reduce) { dot.setAttribute('cx', '100'); dot.setAttribute('cy', '0'); return; }
+          cancelAnimationFrame(raf);
+          row.classList.remove('is-running');
+          /* force a style flush so the transition restarts from zero */
+          void row.offsetWidth;
+          row.classList.add('is-running');
+
+          var start = performance.now();
+          function frame(now) {
+            var x = Math.min(1, Math.max(0, (now - start) / SPAN));
+            var y = solve(x);
+            dot.setAttribute('cx', String(x * 100));
+            dot.setAttribute('cy', String(100 - y * 100));
+            if (x < 1) { raf = requestAnimationFrame(frame); }
+          }
+          raf = requestAnimationFrame(frame);
+        }
+
+        function reset() {
+          cancelAnimationFrame(raf);
+          row.classList.remove('is-running');
+          dot.setAttribute('cx', '0');
+          dot.setAttribute('cy', '100');
+        }
+
+        row.addEventListener('mouseenter', play);
+        row.addEventListener('mouseleave', reset);
+        row.querySelector('.cm-trigger').addEventListener('click', play);
+        row.querySelector('.cm-trigger').addEventListener('blur', reset);
+      });
+
+      /* Durations: fire all seven together when the block scrolls in, and
+         again on click, so the intervals are compared rather than described. */
+      var durs = document.getElementById('cm-durs');
+      if (durs) {
+        var fire = function () {
+          durs.classList.remove('is-running');
+          void durs.offsetWidth;
+          durs.classList.add('is-running');
+        };
+        durs.addEventListener('click', fire);
+        if (!reduce && 'IntersectionObserver' in window) {
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) { if (en.isIntersecting) { fire(); } });
+          }, { threshold: 0.4 });
+          io.observe(durs);
+        } else {
+          durs.classList.add('is-running');
+        }
+      }
+    })();
+  </script>
+
+  <script is:inline>
+    /* ---------------------------------------------------------------------
+       Scroll-driven anatomy canvas.
+
+       Every state the canvas can hold is expressed the same way - a contour
+       of N sampled points, plus anchor nodes and handle pairs - so moving
+       between states is a straight per-point lerp, exactly as the glyph
+       morph on /colophon interpolates between two letters. Scroll position
+       picks the target; the drawing never runs on a timer.
+
+       States: the intro holds --ease-standard faintly; the curves section
+       holds whichever row is hovered, or nearest the viewport middle; the
+       durations section flattens the curve into its own timeline, the seven
+       nodes landing at x proportional to milliseconds.
+       --------------------------------------------------------------------- */
+    (function () {
+      var cv = document.getElementById('cm-anatomy');
+      var plate = document.getElementById('cm-plate');
+      if (!cv) { return; }
+      var ctx = cv.getContext('2d');
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      var N = 160;           /* samples per contour - fixed, so states morph 1:1 */
+      var dpr = 1, vw = 0, vh = 0;
+
+      function sampleBezier(p) {
+        var x1 = p[0], y1 = p[1], x2 = p[2], y2 = p[3], out = [], i, t, u;
+        for (i = 0; i < N; i++) {
+          t = i / (N - 1); u = 1 - t;
+          out.push([
+            3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t,
+            3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t
+          ]);
+        }
+        return out;
+      }
+
+      /* A flat baseline, sampled to the same N, so the curve can collapse
+         into the durations timeline without a cut. */
+      function baseline() {
+        var out = [], i;
+        for (i = 0; i < N; i++) { out.push([i / (N - 1), 0.5]); }
+        return out;
+      }
+
+      var states = [];
+      var rows = Array.prototype.slice.call(document.querySelectorAll('.cm-row'));
+      rows.forEach(function (row) {
+        var p = row.getAttribute('data-p').split(',').map(Number);
+        states.push({
+          el: row,
+          pts: sampleBezier(p),
+          nodes: [[0, 0], [1, 1]],
+          handles: [[[0, 0], [p[0], p[1]]], [[1, 1], [p[2], p[3]]]],
+          name: row.querySelector('.cm-token').textContent,
+          sub: row.querySelector('.cm-value').textContent
+        });
+      });
+
+      /* Grounds as a tone ladder: x is page order, y is relative luminance.
+         The site runs dark with three light exceptions, and the shape says so
+         faster than eleven hex values do. */
+      var LUMS = JSON.parse(document.getElementById('cm-lums').textContent);
+      function ladder() {
+        var out = [], i, t, seg, f;
+        for (i = 0; i < N; i++) {
+          t = i / (N - 1) * (LUMS.length - 1);
+          seg = Math.min(Math.floor(t), LUMS.length - 2);
+          f = t - seg;
+          out.push([i / (N - 1), LUMS[seg].l + (LUMS[seg + 1].l - LUMS[seg].l) * f]);
+        }
+        return out;
+      }
+      var colourState = {
+        el: document.getElementById('cm-colour-sec'),
+        pts: ladder(),
+        nodes: LUMS.map(function (g, i) { return [i / (LUMS.length - 1), g.l]; }),
+        handles: [],
+        name: '11 grounds',
+        sub: 'relative luminance'
+      };
+
+      /* Every fixed font-size on the site: x is size, y is how often it is
+         used. The cluster on the left IS the finding. */
+      var SIZES = JSON.parse(document.getElementById('cm-sizes').textContent);
+      var maxUse = Math.max.apply(null, SIZES.map(function (q) { return q[1]; }));
+      var typeState = {
+        el: document.getElementById('cm-type-sec'),
+        pts: baseline(),
+        nodes: SIZES.map(function (q) { return [Math.min(q[0] / 72, 1), 0.08 + (q[1] / maxUse) * 0.8]; }),
+        handles: [],
+        name: '55 fixed sizes',
+        sub: '44 of them under 18px'
+      };
+
+      var durEl = document.getElementById('cm-durs');
+      var durNodes = Array.prototype.slice.call(document.querySelectorAll('.cm-dur'))
+        .map(function (li) {
+          var ms = parseInt(li.style.getPropertyValue('--d'), 10);
+          return [ms / 600, 0.5];
+        });
+      var durState = {
+        el: durEl,
+        pts: baseline(),
+        nodes: durNodes,
+        handles: [],
+        name: '7 durations',
+        sub: '150ms - 600ms'
+      };
+
+      var idle = states.length ? states[0] : null;
+      if (!idle) { return; }
+
+      /* current = what is drawn this frame; it chases target */
+      var cur = {
+        pts: idle.pts.map(function (q) { return [q[0], q[1]]; }),
+        nodes: idle.nodes.map(function (q) { return [q[0], q[1]]; }),
+        handles: JSON.parse(JSON.stringify(idle.handles))
+      };
+      var target = idle, targetLabel = '', hovered = null, fade = 0;
+
+      rows.forEach(function (row, i) {
+        row.addEventListener('mouseenter', function () { hovered = states[i]; });
+        row.addEventListener('mouseleave', function () { hovered = null; });
+      });
+
+      function pickTarget() {
+        if (hovered) { return { st: hovered, vis: 1 }; }
+        var mid = window.innerHeight * 0.5, best = null, bestD = Infinity, vis = 0;
+        function consider(st) {
+          if (!st.el) { return; }
+          var r = st.el.getBoundingClientRect();
+          if (r.bottom < 0 || r.top > window.innerHeight) { return; }
+          var d = Math.abs(r.top + r.height / 2 - mid);
+          if (d < bestD) { bestD = d; best = st; }
+        }
+        states.forEach(consider);
+        if (durEl) { consider(durState); }
+        if (colourState.el) { consider(colourState); }
+        if (typeState.el) { consider(typeState); }
+        if (!best) { return { st: idle, vis: 0 }; }
+        /* fade the plate in only while the section is genuinely the subject */
+        vis = bestD < window.innerHeight * 0.42 ? 1 : 0;
+        return { st: best, vis: vis };
+      }
+
+      function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        vw = window.innerWidth; vh = window.innerHeight;
+        cv.width = Math.round(vw * dpr);
+        cv.height = Math.round(vh * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      /* Box geometry: locked to the right of the text column on desktop, the
+         same measurement /colophon uses so the artwork can't drift away from
+         the copy as the viewport grows. Centred behind the text below 900. */
+      function box() {
+        var size = Math.min(vh * 0.42, 420);
+        var cx, cy = vh * 0.5;
+        if (vw >= 900) {
+          var col = document.querySelector('.cm');
+          var right = col ? col.getBoundingClientRect().right : vw * 0.6;
+          /* Size to the gutter that actually exists rather than clamping the
+             centre - clamping the centre and then subtracting half the width
+             pushed the right edge of the box off-screen by half its size.
+             Below ~200px the gutter is not worth drawing into, so the artwork
+             falls back to sitting behind the column as it does on mobile. */
+          var gutter = vw - right - 88;
+          size = Math.min(size, Math.max(gutter, 0));
+          if (size < 200) {
+            size = Math.min(vh * 0.42, 420);
+            cx = vw * 0.5 - size / 2;
+          } else {
+            cx = right + 44;
+          }
+        } else {
+          cx = vw * 0.5 - size / 2;
+        }
+        return { x: cx, y: cy - size / 2, s: size };
+      }
+
+      function lerpInto(a, b, k) {
+        var i;
+        for (i = 0; i < a.length; i++) {
+          a[i][0] += (b[i][0] - a[i][0]) * k;
+          a[i][1] += (b[i][1] - a[i][1]) * k;
+        }
+      }
+
+      function matchLen(arr, n, seed) {
+        while (arr.length < n) { arr.push([seed[0], seed[1]]); }
+        while (arr.length > n) { arr.pop(); }
+      }
+
+      function draw() {
+        var b = box();
+        function X(u) { return b.x + u * b.s; }
+        function Y(v) { return b.y + (1 - v) * b.s; }
+
+        ctx.clearRect(0, 0, vw, vh);
+
+        /* contour */
+        ctx.beginPath();
+        ctx.moveTo(X(cur.pts[0][0]), Y(cur.pts[0][1]));
+        for (var i = 1; i < cur.pts.length; i++) { ctx.lineTo(X(cur.pts[i][0]), Y(cur.pts[i][1])); }
+        ctx.strokeStyle = 'rgba(244,244,238,' + (0.16 + 0.10 * fade) + ')';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        /* handles, in the green the glyph plate uses for the same job */
+        ctx.lineWidth = 1;
+        cur.handles.forEach(function (h) {
+          ctx.beginPath();
+          ctx.moveTo(X(h[0][0]), Y(h[0][1]));
+          ctx.lineTo(X(h[1][0]), Y(h[1][1]));
+          ctx.strokeStyle = 'rgba(170,255,0,' + (0.10 + 0.12 * fade) + ')';
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(X(h[1][0]), Y(h[1][1]), 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(170,255,0,' + (0.14 + 0.16 * fade) + ')';
+          ctx.fill();
+        });
+
+        /* anchors */
+        ctx.fillStyle = 'rgba(244,244,238,' + (0.20 + 0.18 * fade) + ')';
+        cur.nodes.forEach(function (n) {
+          ctx.fillRect(X(n[0]) - 3, Y(n[1]) - 3, 6, 6);
+        });
+      }
+
+      function positionPlate(label) {
+        if (!plate || vw < 900) { return; }
+        var b = box();
+        plate.style.left = Math.round(b.x) + 'px';
+        plate.style.top = Math.round(b.y + b.s + 18) + 'px';
+        if (plate.dataset.label !== label) {
+          plate.dataset.label = label;
+          plate.innerHTML = label;
+        }
+      }
+
+      var raf = 0;
+      function frame() {
+        var pick = pickTarget();
+        var st = pick.st;
+        if (st !== target) { target = st; }
+        var k = reduce ? 1 : 0.09;
+
+        matchLen(cur.nodes, target.nodes.length, cur.nodes[cur.nodes.length - 1] || [0.5, 0.5]);
+        while (cur.handles.length < target.handles.length) {
+          cur.handles.push([[0.5, 0.5], [0.5, 0.5]]);
+        }
+        while (cur.handles.length > target.handles.length) { cur.handles.pop(); }
+
+        lerpInto(cur.pts, target.pts, k);
+        lerpInto(cur.nodes, target.nodes, k);
+        for (var h = 0; h < cur.handles.length; h++) {
+          lerpInto(cur.handles[h], target.handles[h], k);
+        }
+        fade += (pick.vis - fade) * (reduce ? 1 : 0.08);
+
+        draw();
+        positionPlate(
+          '<span class="p-line p-name">' + target.name + '</span>' +
+          '<span class="p-line">' + target.sub + '</span>'
+        );
+        if (plate) { plate.style.opacity = String(fade * 0.9); }
+        raf = requestAnimationFrame(frame);
+      }
+
+      function boot() {
+        cancelAnimationFrame(raf);
+        resize();
+        raf = requestAnimationFrame(frame);
+      }
+
+      window.addEventListener('resize', resize);
+      window.addEventListener('pageshow', boot);
+      boot();
+    })();
+  </script>
+</BaseLayout>

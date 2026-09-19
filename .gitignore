@@ -22,3 +22,6 @@ yarn-error.log*
 .idea/
 .vercel
 .nfp-proofs/
+
+# staging area for files pending deletion - never part of a commit
+_to_delete/
