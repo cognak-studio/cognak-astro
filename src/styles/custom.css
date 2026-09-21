@@ -1983,9 +1983,10 @@ html.home-scrolled #cognak-cookie {
    changes width. Timed to the arrow's 300ms on the same curve, so the words,
    the color and the arrow land as one move.
 
-   The resting line is authored as .stagger-word spans (not left for the
-   splitter), so the scroll-enter reveal still runs word by word. Without
-   :has() support the hover changes nothing up here and the old hover stands. */
+   Neither line is a direct text node of the heading, so the word splitter
+   leaves them alone: the line is simply there on load, like "projects" beside
+   it, instead of staggering in. Without :has() support the hover changes
+   nothing up here and the old hover stands. */
 .hp-hl {
     display: inline-block;
     position: relative;
