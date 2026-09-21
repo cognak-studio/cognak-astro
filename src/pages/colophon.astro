@@ -103,16 +103,34 @@ const LY = (l: number) => 132 - ((l - L_MIN) / (L_MAX - L_MIN)) * 112;
 
 const SIZES = [[9, 8], [10, 29], [11.52, 58], [12, 28], [13, 33], [14, 59], [15, 44], [16, 29], [17, 23], [18, 7]];
 const SCALE = [
-  { t: '--fs-18', px: '18px' },
-  { t: '--fs-17', px: '17px' },
-  { t: '--fs-16', px: '16px' },
-  { t: '--fs-15', px: '15px' },
-  { t: '--fs-14', px: '14px' },
-  { t: '--fs-13', px: '13px' },
-  { t: '--fs-12', px: '12px' },
-  { t: '--fs-11', px: '11.52px' },
-  { t: '--fs-10', px: '10px' },
-  { t: '--fs-9',  px: '9px' }
+  { t: '--fs-18', px: '18px', ex: [
+    { s: 'Nothing you type here leaves the browser.', c: 'r', tag: 'Regular' },
+    { s: 'Package shape', c: 'm', tag: 'Medium' } ] },
+  { t: '--fs-17', px: '17px', ex: [
+    { s: 'The idea, the audience, the way it should feel.', c: 'r', tag: 'Regular' },
+    { s: 'Choose UPC, ITF-14, QR code', c: 'm', tag: 'Medium' } ] },
+  { t: '--fs-16', px: '16px', ex: [
+    { s: 'Enter the numbers from your lab report.', c: 'r', tag: 'Regular' },
+    { s: 'Nutrition Facts', c: 'm', tag: 'Medium' } ] },
+  { t: '--fs-15', px: '15px', ex: [
+    { s: 'Identity, logo, art direction & guidelines', c: 'r', tag: 'Regular' } ] },
+  { t: '--fs-14', px: '14px', ex: [
+    { s: 'Four for now, but let us know if you’d like another.', c: 'r', tag: 'Regular' } ] },
+  { t: '--fs-13', px: '13px', ex: [
+    { s: 'Structure, dielines, print-ready & renders', c: 'r', tag: 'Regular' },
+    { s: 'cubic-bezier(0.4, 0, 0.2, 1)', c: 'mo', tag: 'Mono' } ] },
+  { t: '--fs-12', px: '12px', ex: [
+    { s: 'Built to the GS1 spec.', c: 'r', tag: 'Regular' },
+    { s: 'Previewing Brief · #140E07', c: 'mo', tag: 'Mono' } ] },
+  { t: '--fs-11', px: '11.52px', ex: [
+    { s: 'Typeface', c: 'mc', tag: 'Mono caps' },
+    { s: '04 / 07 · lowercase n', c: 'mo', tag: 'Mono' } ] },
+  { t: '--fs-10', px: '10px', ex: [
+    { s: '4 min', c: 'mc', tag: 'Mono caps' },
+    { s: '1000 upm · 1 contour', c: 'mo', tag: 'Mono' } ] },
+  { t: '--fs-9', px: '9px', ex: [
+    { s: 'PDF', c: 'mc', tag: 'Mono caps' },
+    { s: '01', c: 'mo', tag: 'Mono' } ] }
 ];
 const WEIGHTS = [
   { w: 400, n: 'Regular' },
@@ -291,7 +309,14 @@ const WEIGHTS = [
       {SCALE.map((r) => (
         <li class="cm-spec">
           <span class="cm-spec-k">{r.t}<br />{r.px}</span>
-          <span class="cm-spec-v" style={'font-size:var(' + r.t + ')'}>Handled by hand, set in ABC Diatype</span>
+          <span class="cm-spec-v cm-spec-row">
+            {r.ex.map((e) => (
+              <span class="cm-ex">
+                <span class={'cm-ex-s cm-ex-' + e.c} style={'font-size:var(' + r.t + ')'}>{e.s}</span>
+                <span class="cm-ex-tag">{e.tag}</span>
+              </span>
+            ))}
+          </span>
         </li>
       ))}
     </ul>
@@ -605,8 +630,8 @@ const WEIGHTS = [
       font-size: var(--fs-13);
       line-height: 1.5;
       color: #e8e8de;
-      border-top: 1px solid rgba(244,244,238,0.28);
-      border-bottom: 1px solid rgba(244,244,238,0.28);
+      border-top: 1px solid color-mix(in srgb, var(--wear-ink) 28%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 28%, transparent);
       padding: 2rem 0;
       margin: 2.6rem 0 !important;
       max-width: 620px;
@@ -1278,7 +1303,7 @@ const WEIGHTS = [
       font-weight: 400;
       margin: 0 0 2rem;
       padding-bottom: 0.7rem;
-      border-bottom: 1px solid rgba(255,255,255,0.14);
+      border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 14%, transparent);
     }
 
     .cm-sub {
@@ -1291,7 +1316,7 @@ const WEIGHTS = [
 
     /* ---- curves ---- */
     .cm-curves { list-style: none; margin: 0 0 6rem; padding: 0; }
-    .cm-row { border-bottom: 1px solid rgba(255,255,255,0.09); }
+    .cm-row { border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 9%, transparent); }
     .cm-row:last-child { border-bottom: 0; }
 
     .cm-trigger {
@@ -1310,16 +1335,16 @@ const WEIGHTS = [
       transition: background var(--dur-m) var(--ease-standard);
     }
     @media (hover: hover) {
-      .cm-trigger:hover { background: rgba(255,255,255,0.035); }
+      .cm-trigger:hover { background: color-mix(in srgb, var(--wear-ink) 3.5%, transparent); }
     }
     .cm-trigger:focus-visible { outline: 2px solid var(--wear-accent); outline-offset: 2px; }
 
     .cm-graph { display: block; }
     .cm-graph svg { display: block; width: 100%; height: auto; overflow: visible; }
-    .cm-axis  { stroke: rgba(255,255,255,0.30); stroke-width: 1; }
-    .cm-guide { stroke: rgba(255,255,255,0.10); stroke-width: 1; stroke-dasharray: 2 3; }
-    .cm-curve { fill: none; stroke: #f4f4ee; stroke-width: 2; vector-effect: non-scaling-stroke; }
-    .cm-dot   { fill: #b6ff2e; }
+    .cm-axis  { stroke: color-mix(in srgb, var(--wear-ink) 30%, transparent); stroke-width: 1; }
+    .cm-guide { stroke: color-mix(in srgb, var(--wear-ink) 10%, transparent); stroke-width: 1; stroke-dasharray: 2 3; }
+    .cm-curve { fill: none; stroke: var(--wear-ink); stroke-width: 2; vector-effect: non-scaling-stroke; }
+    .cm-dot   { fill: var(--wear-accent); }
 
     .cm-meta { display: block; min-width: 0; }
     .cm-token {
@@ -1340,7 +1365,7 @@ const WEIGHTS = [
       display: block;
       font-size: var(--fs-15);
       line-height: 1.5;
-      color: #e2e2ea;
+      color: var(--wear-ink);
       margin-top: 0.6rem;
       max-width: 44ch;
     }
@@ -1350,7 +1375,7 @@ const WEIGHTS = [
       position: relative;
       height: 2px;
       margin-top: 1.4rem;
-      background: rgba(255,255,255,0.12);
+      background: color-mix(in srgb, var(--wear-ink) 12%, transparent);
       max-width: 340px;
     }
     .cm-car {
@@ -1359,7 +1384,7 @@ const WEIGHTS = [
       left: 0;
       width: 10px;
       height: 10px;
-      background: #f4f4ee;
+      background: var(--wear-ink);
       transform: translateX(0);
     }
     .cm-row.is-running .cm-car { transform: translateX(calc(340px - 10px)); }
@@ -1377,7 +1402,7 @@ const WEIGHTS = [
       display: block;
       height: 3px;
       width: var(--w);
-      background: rgba(255,255,255,0.12);
+      background: color-mix(in srgb, var(--wear-ink) 12%, transparent);
       overflow: hidden;
     }
     .cm-fill {
@@ -1557,6 +1582,23 @@ const WEIGHTS = [
       .cm-spec { grid-template-columns: 1fr; gap: 0.3rem; }
     }
 
+
+    /* each size shown in the treatments it actually gets on the site */
+    .cm-spec-row { display: flex; flex-wrap: wrap; gap: 0.6rem 2.6rem; align-items: baseline; }
+    .cm-ex { display: inline-flex; flex-direction: column; gap: 0.35rem; }
+    .cm-ex-s { line-height: 1.25; }
+    .cm-ex-r  { font-weight: 400; }
+    .cm-ex-m  { font-weight: 500; }
+    .cm-ex-mo { font-family: 'Diatype Mono', monospace; }
+    .cm-ex-mc { font-family: 'Diatype Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+    .cm-ex-tag {
+      font-family: 'Diatype Mono', monospace;
+      font-size: var(--fs-9);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--wear-dim);
+    }
+
     /* ---- type ---- */
     .cm-weights { list-style: none; margin: 0 0 3rem; padding: 0; }
     .cm-weight {
@@ -1565,7 +1607,7 @@ const WEIGHTS = [
       align-items: baseline;
       gap: 2rem;
       padding: 1.1rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.09);
+      border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 9%, transparent);
       font-weight: var(--fw, 400);
       font-size: clamp(20px, 2.6vw, 34px);
       letter-spacing: -0.01em;
@@ -1594,7 +1636,7 @@ const WEIGHTS = [
       padding: 0.75rem 0 0.75rem 3rem;
       font-size: var(--fs-16);
       line-height: 1.55;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 7%, transparent);
     }
     .cm-rules li::before {
       content: counter(r, decimal-leading-zero);
@@ -1613,11 +1655,11 @@ const WEIGHTS = [
       grid-template-columns: 190px 1fr;
       gap: 1.4rem;
       padding: 0.8rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
+      border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 7%, transparent);
       font-size: var(--fs-15);
     }
     .cm-o-n { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: var(--fs-12); }
-    .cm-o-d { color: #e2e2ea; }
+    .cm-o-d { color: var(--wear-ink); }
 
     @media (max-width: 720px) {
       .cm-pg { grid-template-columns: 78px 28px 1fr; }
