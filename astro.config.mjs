@@ -39,10 +39,9 @@ export default defineConfig({
         // now footer-linked and indexable, so it belongs in the sitemap.)
         if (/\/(send|receive)\/?$/.test(page)) return false;
         if (/\/workflow\//.test(page)) return false; // internal client tools, noindex
-        // /colophon is noindex in BaseLayout, so keep it out of the sitemap
-        // too — a noindex URL listed in a sitemap is a mixed signal.
-        if (/\/colophon\/?$/.test(page)) return false;
-        // /dev/* are internal tools, noindex; /colophon-motion is a prototype.
+        // /colophon is footer-linked and indexable (noindex dropped 2026-09-21),
+        // so it stays in the sitemap. /colophon-motion below was its prototype.
+        // /dev/* are internal tools, noindex.
         if (/\/dev\//.test(page)) return false;
         if (/\/colophon-motion\/?$/.test(page)) return false;
         // Drop noindex project pages from the sitemap (match live SEO).

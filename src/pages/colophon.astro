@@ -1613,7 +1613,9 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       font-family: 'Diatype Mono', monospace;
       color: var(--wear-dim);
     }
-    .colophon-sha { font-size: var(--fs-13); letter-spacing: 0.02em; }
+    /* Nested inside a spec value, so the row rule (.colophon-spec span's
+       border-bottom) would otherwise draw under it too. */
+    .colophon-sha { font-size: var(--fs-13); letter-spacing: 0.02em; border: 0 !important; padding: 0 !important; }
     .cm-h3 {
       font-family: 'Diatype Mono', monospace;
       font-size: var(--fs-11);
