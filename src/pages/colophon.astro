@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 
-/* Colophons traditionally date themselves — a printed one names the day the
+/* Colophons traditionally date themselves, a printed one names the day the
    type was set. This resolves at BUILD time, not request time, so it names the
    day this deploy was cut and then stays put until the next one, which is the
    honest reading of "when was this set". Vercel builds in UTC, so a late-night
@@ -18,7 +18,7 @@ const EASINGS = [
     token: '--ease-standard',
     value: 'cubic-bezier(0.4, 0, 0.2, 1)',
     p: [0.4, 0, 0.2, 1],
-    note: 'The default. Nav hovers, link underlines, every colour change.'
+    note: 'The default. Nav hovers, link underlines, every color change.'
   },
   {
     token: '--ease-out-expo',
@@ -57,7 +57,7 @@ const DURATIONS = [
 ];
 
 /* Plot the curve as an SVG path in a 100x100 box, y inverted so progress
-   runs upward. Control points can exceed the box (overshoot) — the SVG
+   runs upward. Control points can exceed the box (overshoot), the SVG
    is not clipped, and the padding in the wrapper accounts for it. */
 function curvePath(p: number[]) {
   const x1 = p[0] * 100, y1 = 100 - p[1] * 100;
@@ -149,7 +149,7 @@ const WEIGHTS = [
   <canvas id="colophon-anatomy" aria-hidden="true"></canvas>
   {/* Specimen-plate label for the glyph on the canvas. Positioned in JS from
       the same layout() the canvas draws with, and fed real measurements taken
-      off the outline data — not decoration pretending to be data. Decorative
+      off the outline data, not decoration pretending to be data. Decorative
       in the a11y sense though (it labels artwork, and the artwork itself is
       aria-hidden), hence hidden from AT. */}
   <div id="glyph-caption" aria-hidden="true"></div>
@@ -190,10 +190,10 @@ const WEIGHTS = [
       <p>Eleven grounds, five curves, seven durations, one typeface. Every value below is read from the stylesheet that ships.</p>
     </div>
 
-    <h2 class="cm-h2" id="cm-colour">Colour</h2>
-    <div id="cm-colour-sec">
+    <h2 class="cm-h2" id="cm-color">Color</h2>
+    <div id="cm-color-sec">
 
-    <p class="cm-sub">One decision per page — what is this page's ground — and the ink, the nav, the scrollbar and the highlight all follow from it by rule. Eleven pages, one function, run eleven times.</p>
+    <p class="cm-sub">Each page makes one decision: its ground. The ink, the nav, the scrollbar and the highlight all follow from it by rule. Eleven pages, one function, run eleven times.</p>
 
     <figure class="cm-ladder-wrap">
       <svg class="cm-ladder" id="cm-ladder" viewBox="0 0 1000 180"
@@ -226,7 +226,7 @@ const WEIGHTS = [
       </figcaption>
     </figure>
 
-    <p class="cm-body">Eleven pages, eight grounds — four of them the same near-black. Six sit stacked at the dark end, the 404's grey stands on its own in the middle, and the two light pages plus the white project template are the whole of the top. The shape is the palette. The hex values are only how it gets written down.</p>
+    <p class="cm-body">Eleven pages, eight grounds. Four of them are the same near-black. Six sit stacked at the dark end, the 404's gray stands on its own in the middle, and the two light pages plus the white project template are the whole of the top. The shape is the palette. The hex values are only how it gets written down.</p>
 
     <p class="cm-aside">The green is the default rather than the rule. It holds the homepage and the 404, and yields wherever a page has a voice of its own.</p>
 
@@ -342,7 +342,7 @@ const WEIGHTS = [
     <p class="cm-sub">What the tokens deliberately do not reach.</p>
 
     <ul class="cm-outside">
-      <li><span class="cm-o-n">Homepage ground</span><span class="cm-o-d">A WebGL field, not a colour token.</span></li>
+      <li><span class="cm-o-n">Homepage ground</span><span class="cm-o-d">A WebGL field, not a color token.</span></li>
       <li><span class="cm-o-n">Character sweep</span><span class="cm-o-d">Per-letter timing, authored against the text it runs on.</span></li>
       <li><span class="cm-o-n">Scroll choreography</span><span class="cm-o-d">Page-specific. Shares the easings, nothing else.</span></li>
       <li><span class="cm-o-n">Living backgrounds</span><span class="cm-o-d">The glyph anatomy here, the baseline grid on /privacy-policy.</span></li>
@@ -363,12 +363,12 @@ const WEIGHTS = [
     #colophon-anatomy {
       /* Explicit width/height are required here: <canvas> is a replaced
          element, so with NO CSS width/height at all it falls back to its
-         own drawing-buffer size as its intrinsic dimensions — and this
+         own drawing-buffer size as its intrinsic dimensions, and this
          canvas's width/height attributes are set in JS to
          innerWidth*dpr / innerHeight*dpr (see resize() below), so at
          devicePixelRatio 2 that's exactly 2x the viewport, badly
          overflowing. (Confirmed via a live DOM measurement 2026-07-27:
-         canvasRect came back 2354x2626 against a 1177 viewport — exactly
+         canvasRect came back 2354x2626 against a 1177 viewport, exactly
          2x.) Using 100% instead of the old 100vw/100vh avoids the
          separate "100vw includes the scrollbar track" overflow bug while
          still sizing correctly, since inset:0 already anchors all four
@@ -382,7 +382,7 @@ const WEIGHTS = [
     }
     /* ---- glyph caption ---------------------------------------------------
        Sits at z-index 0 with the canvas, BELOW #cognak-main, because it's part
-       of the artwork layer — if the text column ever reaches it, the text wins.
+       of the artwork layer, if the text column ever reaches it, the text wins.
        Hidden below 900px: that's the same breakpoint where layout() stops
        locking the glyph beside the text column and centers it behind the copy,
        where a caption would land straight on the body text. */
@@ -399,7 +399,7 @@ const WEIGHTS = [
     }
     /* Two short lines rather than one long one, so the block stays narrow
        enough to tuck into the gutter below-right of the glyph. Each line is
-       nowrap and the container is sized by the longer of the two — no
+       nowrap and the container is sized by the longer of the two, no
        max-width, so there's no ragged wrapping to babysit if a glyph name
        or a measurement ever gets longer. */
     #glyph-caption .gc-line { display: block; white-space: nowrap; }
@@ -414,12 +414,12 @@ const WEIGHTS = [
       z-index: 1;
       /* .colophon-headline intentionally runs wide via a negative
          margin-right (see its own comment: "let it run wider to the
-         right, toward the C") — but a negative margin on a normal
+         right, toward the C"), but a negative margin on a normal
          in-flow block genuinely widens the document's scrollable area
          (width:auto solves as containing-block-width - margins, and
          with both margins negative that ADDS width), it doesn't just
          shift the box visually. Because .colophon's left offset/padding
-         are vw-based, that overflow grows with viewport width — exactly
+         are vw-based, that overflow grows with viewport width, exactly
          the "breaks past the iPad breakpoint, gets larger" behavior
          Pierce reported (confirmed via live DOM measurement 2026-07-27:
          document scrollWidth genuinely exceeded clientWidth, growing
@@ -440,7 +440,7 @@ const WEIGHTS = [
     .home-bottom-bar.inner-page-nav.colophon-nav .pulse-dot {
       color: #ffffff !important;
     }
-    /* Nav links dip to a light periwinkle on hover — reads as a clear state
+    /* Nav links dip to a light periwinkle on hover, reads as a clear state
        change against the klein-blue bar without leaving the page's palette.
        The inner-page-nav base sets transition:none on the email, so re-enable
        a color transition here for both. */
@@ -459,7 +459,7 @@ const WEIGHTS = [
       max-width: 930px;
       margin: 0 auto;
       /* Fixed 190px (not vh-based) so the headline text lands at 274px under
-         the 84px nav clearance — the shared header position across
+         the 84px nav clearance, the shared header position across
          projects/studio/privacy/colophon/brief. */
       padding: 190px 6vw 22vh;
       color: var(--wear-ink);
@@ -546,7 +546,7 @@ const WEIGHTS = [
       max-width: 58ch;
     }
     /* Body links used to be the one dead interaction on the page: green text,
-       a static underline, no :hover and no transition — while .colophon-spec a
+       a static underline, no :hover and no transition, while .colophon-spec a
        twelve lines down had both. On a page whose whole audience is people who
        mouse over type to see what it does, that was the wrong link to leave
        inert. The resting underline is now held back to 45% so the hover has
@@ -554,7 +554,7 @@ const WEIGHTS = [
        toward the baseline, goes full green) while the text color holds steady.
        decoration-color/-thickness and underline-offset are all animatable, so
        this needs no wrapper spans. Curve is the site's expo
-       (0.16,1,0.3,1) — the one the founder portrait and studio reel use;
+       (0.16,1,0.3,1), the one the founder portrait and studio reel use;
        inline here until the motion tokens land in custom.css. */
     .colophon-body a {
       color: var(--wear-accent);
@@ -575,12 +575,12 @@ const WEIGHTS = [
       text-underline-offset: var(--link-offset-hover);
     }
 
-    /* Off-site credits announce themselves with a mono arrow — the site's
+    /* Off-site credits announce themselves with a mono arrow, the site's
        label voice, and the same glyph family as the spec block's type. Scoped
        to [target="_blank"] so the hello@cognak.com mailto in .colophon-sign
        doesn't get one: that link isn't leaving the site, it's opening a mail
        client, and marking it as external would be a small lie.
-       Deliberately NOT applied to the spec block — five of its six rows are
+       Deliberately NOT applied to the spec block, five of its six rows are
        external, and an arrow on nearly every line of a block that tight reads
        as noise rather than signal. The spec rows keep their color-shift hover.
        Note .colophon-spec is a CHILD of .colophon-body, so the descendant
@@ -590,7 +590,7 @@ const WEIGHTS = [
        link text: display:inline-block on the ::after below creates a line-break
        opportunity in front of it, and "Dinamo ↗" sitting at a line end was
        enough to trigger it. Safe to apply here because every external link in
-       this page's prose is a single word (Dinamo, Astro, Lenis, Vercel) —
+       this page's prose is a single word (Dinamo, Astro, Lenis, Vercel) , 
        revisit if a multi-word external link ever gets added. */
     .colophon-body p:not(.colophon-spec) a[target="_blank"] { white-space: nowrap; }
     .colophon-body p:not(.colophon-spec) a[target="_blank"]::after {
@@ -661,14 +661,14 @@ const WEIGHTS = [
     /* ---- print ------------------------------------------------------------
        A colophon is exactly the page a type nerd prints, and the screen page
        prints appallingly by default: klein blue flooding the sheet, an
-       invisible canvas eating a page, and — worst — mostly BLANK, because the
+       invisible canvas eating a page, and, worst, mostly BLANK, because the
        word-stagger reveal leaves .stagger-word at opacity 0 until its
        IntersectionObserver fires, and content below the fold never has. So the
        reveal guards below aren't polish; without them the printout is empty
        past the first screen.
 
        Everything ornamental goes (canvas, glyph caption, fixed nav), the page
-       inverts to ink on paper, and link destinations get spelled out — a
+       inverts to ink on paper, and link destinations get spelled out, a
        printed credit that just says "Dinamo" with no URL is a dead end. */
     @media print {
       @page { margin: 18mm; }
@@ -677,7 +677,7 @@ const WEIGHTS = [
         background: #ffffff !important;
         color: #111111 !important;
       }
-      /* The site footer is navigation (email, socials, back-to-top) — all of
+      /* The site footer is navigation (email, socials, back-to-top), all of
          it dead on paper, and it was printing as a third block under the
          sign-off. The sign-off already carries the address. */
       #colophon-anatomy,
@@ -687,7 +687,7 @@ const WEIGHTS = [
 
       /* Our own colophon line, printed only. The browser draws its own
          header/footer (date, title, URL, page count) in a UA font that CSS
-         cannot reach or restyle — that furniture is turned off from the print
+         cannot reach or restyle, that furniture is turned off from the print
          dialog's More settings, not from here. This is the replacement: the
          same information that's worth keeping, set in the page's own mono. */
       .colophon-body::after {
@@ -704,7 +704,7 @@ const WEIGHTS = [
       }
 
       /* The screen layout hangs the column off a big top pad and a vw-based
-         indent, and clips overflow for the headline's negative margin — none
+         indent, and clips overflow for the headline's negative margin, none
          of which means anything on paper. */
       #cognak-main { overflow: visible !important; }
       .colophon {
@@ -752,7 +752,7 @@ const WEIGHTS = [
         text-decoration-color: #111111 !important;
         text-decoration-thickness: 1px !important;
       }
-      /* The screen arrow is meaningless on paper — the URL replaces it.
+      /* The screen arrow is meaningless on paper, the URL replaces it.
          !important on `content` rather than a longer selector: the arrow rule
          is scoped to p:not(.colophon-spec) and would otherwise out-specify
          this and swallow the URL on exactly the prose links that need it. */
@@ -822,7 +822,7 @@ const WEIGHTS = [
       var N = glyphs[order[0]][0].length;
 
       // The text column ('.colophon') so the glyph can be locked to its right
-      // edge on desktop instead of a fixed % of viewport width — at very wide
+      // edge on desktop instead of a fixed % of viewport width, at very wide
       // viewports, vw*0.74 kept sliding the glyph further from the (max-width,
       // left-anchored) text column, opening up a growing gap. Measured fresh
       // on every resize; horizontal position doesn't change with scroll (only
@@ -850,7 +850,7 @@ const WEIGHTS = [
 
          Contour counts are real: each glyph pads its unused slots with a
          degenerate contour (every point identical) so all entries share the
-         same NC, and those padding contours are what gets filtered here —
+         same NC, and those padding contours are what gets filtered here , 
          which is why o/g/a report 2, the smiley reports 3, and c/n/k report 1.
          Height is that glyph's own bbox in font units, NOT the shared
          DATA.meta box (which spans k's ascender to g's descender and would
@@ -894,7 +894,7 @@ const WEIGHTS = [
                '</span>';
       });
 
-      /* Anchored to the SHARED bbox (DATA.meta), not the current glyph's own —
+      /* Anchored to the SHARED bbox (DATA.meta), not the current glyph's own , 
          a per-glyph anchor would make the label hop every time the morph
          resolved. The plate label holds still; the specimen moves.
 
@@ -905,13 +905,13 @@ const WEIGHTS = [
          label would land on the headline).
 
          Vertically it is bottom-anchored against the MEASURED height of the
-         fixed bottom nav rather than a guessed offset — the nav is
+         fixed bottom nav rather than a guessed offset, the nav is
          position:fixed at z-index 100, and the glyph's own bottom edge lands
          at roughly 0.93vh, i.e. already behind it. NAV_CLEAR is the breathing
          room above the bar; raise it if the label still reads as crowded.
 
          Both axes clamp to the viewport, and the left clamp wins if the two
-         fight on a narrow desktop — acceptable, since at z-index 0 the text
+         fight on a narrow desktop, acceptable, since at z-index 0 the text
          always renders over the label rather than under it. */
       var NAV_CLEAR = 44; // px of air between the caption and the bottom nav
       function navHeight() {
@@ -943,7 +943,7 @@ const WEIGHTS = [
           caption.innerHTML = CAPTIONS[which];
           positionCaption();
         }
-        /* Dips to 0.15 at the midpoint and recovers — one sine hump across the
+        /* Dips to 0.15 at the midpoint and recovers, one sine hump across the
            morph, flat at full through the hold. */
         var dip = m > 0 ? 1 - 0.85 * Math.sin(Math.PI * m) : 1;
         caption.style.opacity = (dip * fadeMul).toFixed(3);
@@ -961,7 +961,7 @@ const WEIGHTS = [
         // Clamped so the glyph never fully leaves the viewport on the
         // narrower end of the desktop breakpoint (it's a faint z-index:0
         // background behind the text either way, so slight overlap there is
-        // fine — matches how it already briefly overlapped near vw~900 before).
+        // fine, matches how it already briefly overlapped near vw~900 before).
         // Shifted 300px further left (Pierce's call) from the locked position.
         var cx = vw > 900 ? Math.min(contentRight + GAP + gw / 2, vw - 24) - 300 : vw * 0.5;
         var cy = vh * 0.52;
@@ -974,7 +974,7 @@ const WEIGHTS = [
 
       function px(p, L) { return { x: p[0] * L.scale + L.ox, y: -p[1] * L.scale + L.oy }; }
 
-      // HOLD is the pause between morphs — shortened so letters cycle through
+      // HOLD is the pause between morphs, shortened so letters cycle through
       // sooner; MORPH (the morph itself) is untouched, its pace was already right.
       var HOLD = 3200, MORPH = 2400;
       function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
@@ -988,7 +988,7 @@ const WEIGHTS = [
       }
 
       /* The outline is bone white for the six letters and tints toward the
-         signal green for the ":)" — the page's hidden joke, which until now
+         signal green for the ":)", the page's hidden joke, which until now
          drew identically to every other frame and so read as just another
          shape in the cycle. `tint` is 0..1 (the `smile` value in frame()), so
          the color arrives WITH the morph rather than snapping on at the end:
@@ -1033,8 +1033,8 @@ const WEIGHTS = [
 
       // Solid fill for the glyph, drawn once across every contour as a single
       // evenodd path (so outer shapes stay solid, real holes like o/g/a's
-      // counters stay cut out, and the degenerate padding contours — zero
-      // area — contribute nothing). A fill using the exact page-background
+      // counters stay cut out, and the degenerate padding contours, zero
+      // area, contribute nothing). A fill using the exact page-background
       // blue would be invisible at any opacity (alpha-blending a color with
       // itself is a no-op), so this is a lightened tint of that blue instead:
       // #0E06D2 mixed 45% toward white, at 10% opacity as requested.
@@ -1057,7 +1057,7 @@ const WEIGHTS = [
          little, so the area under your cursor reads like a live bezier editor.
 
          ptrX/ptrY are lerped toward the real cursor (ptrTX/ptrTY) rather than
-         tracking it exactly — the light drags a frame or two behind, which
+         tracking it exactly, the light drags a frame or two behind, which
          reads as illumination instead of a hit-test. ptrS is a separate 0..1
          strength so the glow retreats smoothly when the pointer leaves the
          window rather than freezing lit wherever it exited.
@@ -1066,9 +1066,9 @@ const WEIGHTS = [
          the effect never arms, so there's no phantom hotspot parked wherever
          the last tap landed. Under reduced motion the rAF loop renders exactly
          one frame, so responding to the pointer would mean re-rendering on
-         every mousemove — precisely what that mode is asking us not to do. */
+         every mousemove, precisely what that mode is asking us not to do. */
       var HOVERABLE = window.matchMedia('(hover: hover)').matches && !reduced;
-      var PROX_R = 190;    // px — radius of influence
+      var PROX_R = 190;    // px, radius of influence
       var PROX_GAIN = 1.8; // alpha multiplier at dead center is 1 + this
       var ptrTX = -9999, ptrTY = -9999;  // raw cursor target
       var ptrX = -9999, ptrY = -9999;    // lerped influence point
@@ -1120,11 +1120,11 @@ const WEIGHTS = [
              here is the one-line way to make the lit area steady. */
           var prox = proximity(p.x, p.y);
           var boost = 1 + PROX_GAIN * prox;
-          // Handles extend with proximity — the geometry tell, not just alpha.
+          // Handles extend with proximity, the geometry tell, not just alpha.
           var h = 16 + 4 * prox;
 
           // Green handles kept at their existing brightness (not part of the
-          // "10% more visible" bump below — only the white outline/nodes are).
+          // "10% more visible" bump below, only the white outline/nodes are).
           ctx.strokeStyle = 'rgba(' + SIGNAL.join(',') + ',' + (0.12 * pulse * fadeMul * boost) + ')';
           ctx.lineWidth = 1;
           ctx.beginPath();
@@ -1143,13 +1143,13 @@ const WEIGHTS = [
         }
       }
 
-      // How many contours to draw simultaneously per glyph — derived from the
+      // How many contours to draw simultaneously per glyph, derived from the
       // data rather than hardcoded, since the ":)" combo needs 3 (two colon
       // dots + the paren) while every letter pads its unused slots with a
       // degenerate (invisible) contour to match.
       var NC = glyphs[order[0]].length;
 
-      var INTRO_FADE = 900; // ms — first paint eases in so the artwork gets noticed, not popped
+      var INTRO_FADE = 900; // ms, first paint eases in so the artwork gets noticed, not popped
       var start = performance.now();
       var rafId = null;
       function frame(now) {
@@ -1180,7 +1180,7 @@ const WEIGHTS = [
 
         /* How much of the ":)" is on screen this frame: 1 while it holds,
            and t / 1-t through the morphs on either side of it. Reading BOTH
-           endpoints is what makes it work in both directions — k into smile
+           endpoints is what makes it work in both directions, k into smile
            (next is the smile, so it rises with t) and smile into c (idx is
            the smile, so it falls with t). */
         var smile = (order[idx] === ':)' ? 1 - t : 0) + (order[next] === ':)' ? t : 0);
@@ -1196,9 +1196,9 @@ const WEIGHTS = [
 
       // (Re)starts the loop from a clean state: re-measures the canvas and
       // kicks off the first frame. Run on initial load AND on every
-      // 'pageshow' — a back/forward-cache restore, or this site's sitewide
+      // 'pageshow', a back/forward-cache restore, or this site's sitewide
       // cross-document view-transition (@view-transition{navigation:auto} in
-      // custom.css — the "record" link is this page's only entry point, so
+      // custom.css, the "record" link is this page's only entry point, so
       // essentially every visit arrives through it), can leave the rAF loop
       // stalled or the canvas bitmap blank even though the DOM looks
       // untouched. That's what was making the artwork miss on some loads;
@@ -1263,7 +1263,7 @@ const WEIGHTS = [
     }
     #cm-plate .p-line { display: block; white-space: nowrap; }
     #cm-plate .p-name { color: var(--wear-accent); }
-    /* Below 900px the canvas centres behind the text column, where a caption
+    /* Below 900px the canvas centers behind the text column, where a caption
        would land on the copy - same call as the glyph caption on /colophon. */
     @media (max-width: 900px) { #cm-plate { display: none; } }
 
@@ -1475,7 +1475,7 @@ const WEIGHTS = [
       margin: 0 0 1.6rem;
     }
 
-    /* ---- colour: the page wears a scheme rather than listing one ---------
+    /* ---- color: the page wears a scheme rather than listing one ---------
        Everything below reads --wear-*, which default to the colophon's own
        klein blue and only change when someone picks a page. The blue is
        deliberately NOT one of the eleven: it is the page's resting form, the
@@ -1486,7 +1486,7 @@ const WEIGHTS = [
     /* ---- the ladder ------------------------------------------------------
        The eleven grounds, ordered by relative luminance, doubling as the
        control. The shape is the point: the site is overwhelmingly dark, with
-       two light pages and the 404's grey sitting on its own in the middle. */
+       two light pages and the 404's gray sitting on its own in the middle. */
     .cm-ladder-wrap { margin: 0 0 2rem; padding: 0; }
     .cm-ladder {
       display: block;
@@ -1884,7 +1884,7 @@ const WEIGHTS = [
       };
 
       /* Accents by hue. The inline ladder already plots the grounds by
-         lightness; this plots the other axis - the eleven highlight colours
+         lightness; this plots the other axis - the eleven highlight colors
          placed round a circle at their hue, red at the top, clockwise.
          Pages sharing an accent step inward rather than stacking on one
          point, so the count reads: four violets, three greens. The point for
@@ -1922,7 +1922,7 @@ const WEIGHTS = [
         return out;
       }
       var wheelState = {
-        el: document.getElementById('cm-colour-sec'),
+        el: document.getElementById('cm-color-sec'),
         pts: ring(),
         nodes: wheelNodes,
         handles: wheelNodes.map(function (n) { return [[0.5, 0.5], [n[0], n[1]]]; }),
@@ -1992,7 +1992,7 @@ const WEIGHTS = [
 
       /* Box geometry: locked to the right of the text column on desktop, the
          same measurement /colophon uses so the artwork can't drift away from
-         the copy as the viewport grows. Centred behind the text below 900. */
+         the copy as the viewport grows. Centerd behind the text below 900. */
       function box() {
         var size = Math.min(vh * 0.42, 420);
         var cx, cy = vh * 0.5;
@@ -2000,7 +2000,7 @@ const WEIGHTS = [
           var col = document.querySelector('.cm');
           var right = col ? col.getBoundingClientRect().right : vw * 0.6;
           /* Size to the gutter that actually exists rather than clamping the
-             centre - clamping the centre and then subtracting half the width
+             center - clamping the center and then subtracting half the width
              pushed the right edge of the box off-screen by half its size.
              Below ~200px the gutter is not worth drawing into, so the artwork
              falls back to sitting behind the column as it does on mobile. */

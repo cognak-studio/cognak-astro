@@ -573,11 +573,11 @@ label {
    rgba(23,21,26,·) scrims across the site need the triple. Same convention as
    the existing --orange-rgb. */
 :root {
-    /* Type scale - the small band only (labels, captions, body copy, UI).
-       Everything above 18px is sized to its page and deliberately not on a
-       scale; clamp() headlines stay as they are. Introduced 2026-09-21,
-       replacing 44 distinct fixed sizes between 8 and 18px. --fs-11 keeps
-       the site's mono label size (.72rem = 11.52px) exactly. */
+    /* Type scale for the small band only (labels, captions, body copy, UI).
+       Sizes above 18px, including the shared page headline clamp(), sit
+       outside it. Introduced 2026-09-21, replacing 44 distinct fixed sizes
+       between 8 and 18px. --fs-11 keeps the site's mono label size
+       (.72rem = 11.52px) exactly. */
     --fs-9: .5625rem;
     --fs-10: .625rem;
     --fs-11: .72rem;

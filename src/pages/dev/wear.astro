@@ -1,14 +1,14 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-/* /dev/wear — internal audit tool, not a public page.
+/* /dev/wear, internal audit tool, not a public page.
 
    Sets body[data-page] to each page in turn and paints that page's ground,
    then leaves the site's own stylesheet to resolve everything else: the
    ::selection pair, the scrollbar thumb, the nav variant, color-scheme.
 
    The point is not the preview. It is that anything which FAILS to repaint
-   is a hardcoded colour that should have been a token — so this is the
+   is a hardcoded color that should have been a token, so this is the
    fastest way to check a new page, or a refactor, against the tint system.
    Run it, walk the ladder, and look for what stays klein blue. */
 
@@ -47,7 +47,7 @@ const PROBES = [
 
     <p class="dw-eyebrow">dev / wear &nbsp;·&nbsp; internal</p>
     <h1 class="dw-h1">Tint audit</h1>
-    <p class="dw-lead">Each button sets <code>data-page</code> and paints the ground. Everything else — selection, scrollbar, nav, <code>color-scheme</code> — is resolved by the site's own CSS. <strong>Look for what does not change.</strong> Anything still klein blue is hardcoded.</p>
+    <p class="dw-lead">Each button sets <code>data-page</code> and paints the ground. The site's own CSS resolves everything else: selection, scrollbar, nav and <code>color-scheme</code>. <strong>Look for what does not change.</strong> Anything still klein blue is hardcoded.</p>
 
     <ul class="dw-row">
       {PAGES.map((pg) => (
@@ -65,7 +65,7 @@ const PROBES = [
       <li><button type="button" class="dw-btn dw-reset" id="dw-reset">reset</button></li>
     </ul>
 
-    <p class="dw-now" id="dw-now">resting — colophon</p>
+    <p class="dw-now" id="dw-now">resting: colophon</p>
 
     <dl class="dw-probes">
       {PROBES.map(([k, v]) => (
@@ -75,7 +75,7 @@ const PROBES = [
         </>
       ))}
       <dt>Scrollbar</dt>
-      <dd class="dw-scroll"><div>Nested scroller — the custom bar takes the page's ink at 15%.<br/>Scroll me.<br/><br/><br/><br/>End.</div></dd>
+      <dd class="dw-scroll"><div>Nested scroller. The custom bar takes the page's ink at 15%.<br/>Scroll me.<br/><br/><br/><br/>End.</div></dd>
     </dl>
 
   </section></main>
@@ -192,14 +192,14 @@ const PROBES = [
             b.getAttribute('data-ground'),
             b.getAttribute('data-ink'),
             b.getAttribute('data-accent'),
-            'wearing — ' + b.getAttribute('data-key') + ' · ' + b.getAttribute('data-ground')
+            'wearing: ' + b.getAttribute('data-key') + ' · ' + b.getAttribute('data-ground')
           );
         });
       });
 
       reset.addEventListener('click', function () {
         btns.forEach(function (o) { o.classList.remove('is-on'); });
-        apply('colophon', '#0E06D2', '#f4f4ee', '#b6ff2e', 'resting — colophon');
+        apply('colophon', '#0E06D2', '#f4f4ee', '#b6ff2e', 'resting: colophon');
         root.style.setProperty('--dw-nav', 'rgba(7, 0, 172, 0.80)');
       });
       document.addEventListener('keydown', function (e) {
