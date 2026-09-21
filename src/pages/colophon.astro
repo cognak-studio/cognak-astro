@@ -1628,8 +1628,6 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       margin: 0 0 5.5rem;
     }
     .cm-w { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: 0.86em; }
-    .cm-body-last { margin-bottom: 5.5rem; }
-    .cm-rules, .cm-outside { margin-bottom: 5.5rem; }
     .cm-body code {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.88em;
@@ -1974,7 +1972,23 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
     }
 
 
-    .colophon { padding-bottom: 7vh; }
+    /* ---- one vertical rhythm ------------------------------------------------
+       Every section ends the same distance before the next heading. The
+       trailing element of each section carries it, whatever that element is
+       (a figure, a list, a paragraph). Declared here, after every per-section
+       rule, so none of those can override it. */
+    .colophon, .cm { --cm-gap: 5.5rem; }
+    .colophon { padding-bottom: 0; }
+    .colophon-spec { margin-bottom: var(--cm-gap) !important; }
+    .cm-intro,
+    .cm-aside,
+    .cm-curves,
+    .cm-durs,
+    .cm-body-last,
+    .cm-band,
+    .cm-rules,
+    .cm-outside { margin-bottom: var(--cm-gap); }
+    @media (max-width: 720px) { .colophon, .cm { --cm-gap: 4rem; } }
     #colophon-anatomy, #cm-anatomy { transition: opacity var(--dur-2xl) var(--ease-standard); }
     body.in-system #colophon-anatomy,
     body.in-system #glyph-caption { opacity: 0 !important; }
