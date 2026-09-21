@@ -403,7 +403,7 @@ const WEIGHTS = [
        max-width, so there's no ragged wrapping to babysit if a glyph name
        or a measurement ever gets longer. */
     #glyph-caption .gc-line { display: block; white-space: nowrap; }
-    #glyph-caption .gc-name { color: var(--signal-green); }
+    #glyph-caption .gc-name { color: var(--wear-accent); }
     #glyph-caption .gc-sep { opacity: 0.45; padding: 0 0.5em; }
     @media (max-width: 900px) {
       #glyph-caption { display: none; }
@@ -518,7 +518,7 @@ const WEIGHTS = [
       line-height: 1.1;
       letter-spacing: -0.02em;
       margin: 0 0 3.2rem;
-      color: #f6f6f0;
+      color: var(--wear-ink);
       /* Header text sized to the projects (1100) / studio (1300) band. */
       max-width: 1200px;
     }
@@ -531,7 +531,7 @@ const WEIGHTS = [
     .colophon-headline em {
       font-style: normal;
       font-weight: 500;
-      color: var(--signal-green);
+      color: var(--wear-accent);
     }
     /* Match the projects/studio headline scale on mobile (they drop to
        clamp(24px,7vw,42px) at ≤720px; colophon had no override, read smaller). */
@@ -541,7 +541,7 @@ const WEIGHTS = [
     .colophon-body p {
       font-size: var(--fs-17);
       line-height: 1.7;
-      color: #e8e8de;
+      color: var(--wear-ink);
       margin: 0 0 1.6rem;
       max-width: 58ch;
     }
@@ -557,9 +557,9 @@ const WEIGHTS = [
        (0.16,1,0.3,1) — the one the founder portrait and studio reel use;
        inline here until the motion tokens land in custom.css. */
     .colophon-body a {
-      color: var(--signal-green);
+      color: var(--wear-accent);
       text-decoration: underline;
-      text-decoration-color: rgba(var(--signal-green-rgb), 0.45);
+      text-decoration-color: color-mix(in srgb, var(--wear-accent) 45%, transparent);
       text-underline-offset: var(--link-offset);
       text-decoration-thickness: 1px;
       /* colophon runs the fullest version of the body-link system: it also
@@ -570,7 +570,7 @@ const WEIGHTS = [
     }
     .colophon-body a:hover,
     .colophon-body a:focus-visible {
-      text-decoration-color: var(--signal-green);
+      text-decoration-color: var(--wear-accent);
       text-decoration-thickness: var(--link-thickness-hover);
       text-underline-offset: var(--link-offset-hover);
     }
@@ -615,11 +615,11 @@ const WEIGHTS = [
       .colophon-body p:not(.colophon-spec) a[target="_blank"]::after { transition: none; }
       .colophon-body p:not(.colophon-spec) a[target="_blank"]:hover::after { transform: none; }
     }
-    .colophon-body strong { color: #ffffff; font-weight: 500; }
+    .colophon-body strong { color: var(--wear-ink); font-weight: 500; }
     .colophon-body code {
       font-family: 'Diatype Mono', monospace;
       font-size: 0.88em;
-      color: var(--signal-green);
+      color: var(--wear-accent);
     }
     .colophon-spec {
       display: grid;
@@ -629,7 +629,7 @@ const WEIGHTS = [
       font-family: 'Diatype Mono', monospace;
       font-size: var(--fs-13);
       line-height: 1.5;
-      color: #e8e8de;
+      color: var(--wear-ink);
       border-top: 1px solid color-mix(in srgb, var(--wear-ink) 28%, transparent);
       border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 28%, transparent);
       padding: 2rem 0;
@@ -641,7 +641,7 @@ const WEIGHTS = [
       text-decoration: none;
       transition: color var(--dur-sm) var(--ease-standard);
     }
-    .colophon-spec a:hover { color: var(--signal-green); }
+    .colophon-spec a:hover { color: var(--wear-accent); }
     .colophon-spec span:nth-child(odd) {
       color: var(--wear-dim);
       text-transform: uppercase;
@@ -650,7 +650,7 @@ const WEIGHTS = [
     }
     .colophon-sign {
       font-size: var(--fs-16) !important;
-      color: #c7c9d8 !important;
+      color: var(--wear-ink) !important;
     }
     @media (max-width: 600px) {
       .colophon-spec { grid-template-columns: 1fr; gap: 0.15rem; }
@@ -996,6 +996,27 @@ const WEIGHTS = [
          the smile, which is what makes it feel found rather than announced. */
       var INK = [244, 244, 238];
       var SIGNAL = [170, 255, 0];
+      var BG = [14, 6, 210];
+      /* The glyph follows whichever page the colophon is wearing: outline and
+         nodes in that page's ink, handles in its accent, fill a tint of its
+         ground pulled 45% toward the ink - the same recipe the blue uses
+         (#0E06D2 toward bone white gives the original rgb(117,113,223)). */
+      function hexRGB(v, fb) {
+        v = (v || '').trim();
+        if (/^#[0-9a-f]{6}$/i.test(v)) {
+          return [parseInt(v.substr(1, 2), 16), parseInt(v.substr(3, 2), 16), parseInt(v.substr(5, 2), 16)];
+        }
+        var m = v.match(/rgba?\(([^)]+)\)/);
+        if (m) { return m[1].split(',').slice(0, 3).map(function (n) { return Math.round(parseFloat(n)); }); }
+        return fb;
+      }
+      function readScheme() {
+        var cs = getComputedStyle(document.documentElement);
+        INK = hexRGB(cs.getPropertyValue('--wear-ink'), [244, 244, 238]);
+        SIGNAL = hexRGB(cs.getPropertyValue('--wear-accent'), [170, 255, 0]);
+        BG = hexRGB(cs.getPropertyValue('--wear-bg'), [14, 6, 210]);
+        FILL = 'rgba(' + BG.map(function (c, i) { return Math.round(c + (INK[i] - c) * 0.45); }).join(',') + ',';
+      }
       function drawContour(pts, alpha, tint) {
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
@@ -1104,20 +1125,20 @@ const WEIGHTS = [
 
           // Green handles kept at their existing brightness (not part of the
           // "10% more visible" bump below — only the white outline/nodes are).
-          ctx.strokeStyle = 'rgba(170,255,0,' + (0.12 * pulse * fadeMul * boost) + ')';
+          ctx.strokeStyle = 'rgba(' + SIGNAL.join(',') + ',' + (0.12 * pulse * fadeMul * boost) + ')';
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(p.x - dx * h, p.y - dy * h);
           ctx.lineTo(p.x + dx * h, p.y + dy * h);
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(170,255,0,' + (0.17 * pulse * fadeMul * boost) + ')';
+          ctx.fillStyle = 'rgba(' + SIGNAL.join(',') + ',' + (0.17 * pulse * fadeMul * boost) + ')';
           ctx.beginPath();
           ctx.arc(p.x - dx * h, p.y - dy * h, 2, 0, 6.2832);
           ctx.arc(p.x + dx * h, p.y + dy * h, 2, 0, 6.2832);
           ctx.fill();
 
-          ctx.fillStyle = 'rgba(244,244,238,' + (0.22 * pulse * fadeMul * boost) + ')';
+          ctx.fillStyle = 'rgba(' + INK.join(',') + ',' + (0.22 * pulse * fadeMul * boost) + ')';
           ctx.fillRect(p.x - 2.5, p.y - 2.5, 5, 5);
         }
       }
@@ -1132,6 +1153,7 @@ const WEIGHTS = [
       var start = performance.now();
       var rafId = null;
       function frame(now) {
+        readScheme();
         var L = layout();
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, vw, vh);
