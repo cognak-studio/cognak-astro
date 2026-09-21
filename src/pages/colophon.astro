@@ -1,5 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import fs from 'node:fs';
+import path from 'node:path';
+/* Vite inlines these as strings at build time, so the read is real and the
+   page still has nothing to do at request time. */
+import css from '../styles/custom.css?raw';
+const PAGE_SRC = import.meta.glob('../pages/**/*.astro', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const ALL_SRC = import.meta.glob(['../**/*.astro', '../**/*.css', '../**/*.js', '../**/*.ts'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 
 /* Colophons traditionally date themselves, a printed one names the day the
    type was set. This resolves at BUILD time, not request time, so it names the
@@ -7,54 +14,62 @@ import BaseLayout from '../layouts/BaseLayout.astro';
    honest reading of "when was this set". Vercel builds in UTC, so a late-night
    Los Angeles deploy dates as the following day; that's a day's drift on a
    date whose whole job is to be approximate. */
-const buildDate = new Date().toLocaleDateString('en-GB', {
-  day: 'numeric', month: 'long', year: 'numeric'
+const buildDate = new Date().toLocaleDateString('en-US', {
+  month: 'long', day: 'numeric', year: 'numeric'
+});
+/* The edition mark. Vercel exposes the commit that built the page; a local
+   build has none and prints only the date. */
+const buildSha = (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7);
+
+/* ---- everything below is READ, not typed -----------------------------------
+   The page claims every value on it comes from the stylesheet that ships. That
+   is only true if the page reads the stylesheet, so it does: custom.css is
+   opened at build time and the tokens are pulled out of it. A token that goes
+   missing throws and fails the build, which is the right failure. A stale
+   number printed on a page about not having stale numbers would be worse. */
+
+function token(name: string): string {
+  const m = css.match(new RegExp('^\\s*' + name + ':\\s*([^;]+);', 'm'));
+  if (!m) { throw new Error('colophon: ' + name + ' is not in custom.css'); }
+  let v = m[1].trim();
+  const ref = v.match(/^var\((--[\w-]+)\)$/);
+  if (ref) { v = token(ref[1]); }
+  return v;
+}
+function bezier(v: string): number[] {
+  const m = v.match(/cubic-bezier\(([^)]+)\)/);
+  if (!m) { throw new Error('colophon: not a cubic-bezier: ' + v); }
+  return m[1].split(',').map(s => parseFloat(s));
+}
+function ms(v: string): number { return parseFloat(v); }
+function remPx(v: string): number {
+  return v.endsWith('rem') ? parseFloat(v) * 16 : parseFloat(v);
+}
+function fmtPx(n: number): string {
+  return (Math.round(n * 100) / 100) + 'px';
+}
+
+/* The notes are the only hand-written part: what each curve is for. */
+const EASING_NOTES = {
+  '--ease-standard':  'The default. Nav hovers, link underlines, every color change.',
+  '--ease-out-expo':  'Arrivals. Content entering the frame, panels opening.',
+  '--ease-drag':      'Anything that followed a finger and has to settle without a bounce.',
+  '--ease-overshoot': 'Passes its mark and comes back. Used sparingly, on confirmations.',
+  '--ease-press':     'The short trip a button makes under a cursor.'
+};
+const EASINGS = Object.keys(EASING_NOTES).map((t) => {
+  const value = token(t);
+  return { token: t, value, p: bezier(value), note: EASING_NOTES[t] };
 });
 
-
-
-const EASINGS = [
-  {
-    token: '--ease-standard',
-    value: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    p: [0.4, 0, 0.2, 1],
-    note: 'The default. Nav hovers, link underlines, every color change.'
-  },
-  {
-    token: '--ease-out-expo',
-    value: 'cubic-bezier(0.16, 1, 0.3, 1)',
-    p: [0.16, 1, 0.3, 1],
-    note: 'Arrivals. Content entering the frame, panels opening.'
-  },
-  {
-    token: '--ease-drag',
-    value: 'cubic-bezier(0.1, 0.75, 0.25, 1)',
-    p: [0.1, 0.75, 0.25, 1],
-    note: 'Anything that followed a finger and has to settle without a bounce.'
-  },
-  {
-    token: '--ease-overshoot',
-    value: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-    p: [0.34, 1.56, 0.64, 1],
-    note: 'Passes its mark and comes back. Used sparingly, on confirmations.'
-  },
-  {
-    token: '--ease-press',
-    value: 'cubic-bezier(0.2, 0.7, 0.3, 1)',
-    p: [0.2, 0.7, 0.3, 1],
-    note: 'The short trip a button makes under a cursor.'
-  }
-];
-
-const DURATIONS = [
-  { token: '--dur-xs',  ms: 150, note: 'Tap feedback' },
-  { token: '--dur-s',   ms: 200, note: 'The base' },
-  { token: '--dur-sm',  ms: 250, note: '' },
-  { token: '--dur-m',   ms: 300, note: 'Most hovers' },
-  { token: '--dur-l',   ms: 400, note: '' },
-  { token: '--dur-xl',  ms: 500, note: '' },
-  { token: '--dur-2xl', ms: 600, note: 'Entrances, reveals' }
-];
+const DURATION_NOTES = {
+  '--dur-xs': 'Tap feedback', '--dur-s': 'The base', '--dur-sm': '',
+  '--dur-m': 'Most hovers', '--dur-l': '', '--dur-xl': '', '--dur-2xl': 'Entrances, reveals'
+};
+const DURATIONS = Object.keys(DURATION_NOTES).map((t) => ({
+  token: t, ms: ms(token(t)), note: DURATION_NOTES[t]
+}));
+const DUR_MAX = Math.max(...DURATIONS.map(d => d.ms));
 
 /* Plot the curve as an SVG path in a 100x100 box, y inverted so progress
    runs upward. Control points can exceed the box (overshoot), the SVG
@@ -65,30 +80,91 @@ function curvePath(p: number[]) {
   return 'M0,100 C' + x1 + ',' + y1 + ' ' + x2 + ',' + y2 + ' 100,0';
 }
 
-/* The per-page tint system, read off the values that actually ship:
-   pageBg props on each page template, and the body[data-page] ::selection
-   block in custom.css. Kept as data so the section can't drift from a
-   hand-written table - if this survives, it should read the custom
-   properties at runtime instead. */
-const PAGES = [
-  { key: 'home', name: 'Home',       ground: '#17151A', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' },
-  { key: 'studio', name: 'Studio',     ground: '#17151A', sel: '#FFB2E4', selInk: '#17151A', ink: '#F4F4EE' },
-  { key: 'projects', name: 'Projects',   ground: '#EAE5F2', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
-  { key: 'project', name: 'Project Detail',    ground: '#FFFFFF', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
-  { key: 'brief', name: 'Brief',      ground: '#140E07', sel: '#EF9146', selInk: '#2A2010', ink: '#F4F4EE' },
-  { key: 'send', name: 'Send',       ground: '#090C0B', sel: '#8FC2F2', selInk: '#090C0B', ink: '#F4F4EE' },
-  { key: 'tools', name: 'Tools',      ground: '#17151A', sel: '#B47CFF', selInk: '#17151A', ink: '#F4F4EE' },
-  { key: 'schedule', name: 'Schedule',   ground: '#17151A', sel: '#9F50FF', selInk: '#1B1424', ink: '#F4F4EE' },
-  { key: 'privacy', name: 'Privacy',    ground: '#F1D6EA', sel: '#4A2840', selInk: '#F1D6EA', ink: '#3A313B' },
-  { key: 'colophon', name: 'Colophon',   ground: '#0E06D2', sel: '#AAFF00', selInk: '#0E06D2', ink: '#F4F4EE' },
-  { key: '404', name: '404',        ground: '#6F6F6F', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' }
-];
+/* ---- grounds -----------------------------------------------------------
+   Each page's ground is the pageBg it hands BaseLayout, read out of the page
+   file itself. Two pages pass none: home paints its ground from CSS and the
+   project template resolves to white (BaseLayout keeps the same two
+   fallbacks). The highlight comes from the body[data-page] ::selection block
+   in custom.css. The ink is the site's rule, not a list: light on a dark
+   ground, dark on a light one. */
+const COLOPHON_BG = '#0E06D2';
+const PAGE_FILES = {
+  home: 'pages/index.astro',
+  studio: 'pages/studio.astro',
+  projects: 'pages/projects/index.astro',
+  project: 'pages/projects/[slug].astro',
+  brief: 'pages/brief.astro',
+  send: 'pages/send.astro',
+  tools: 'pages/tools/index.astro',
+  schedule: 'pages/schedule.astro',
+  privacy: 'pages/privacy-policy.astro',
+  '404': 'pages/404.astro'
+};
+const PAGE_NAMES = {
+  home: 'Home', studio: 'Studio', projects: 'Projects', project: 'Project Detail',
+  brief: 'Brief', send: 'Send', tools: 'Tools', schedule: 'Schedule',
+  privacy: 'Privacy', colophon: 'Colophon', '404': '404'
+};
+const BG_FALLBACK = { home: '#17151A', project: '#FFFFFF' };
 
-function lum(hex) {
+function groundOf(key: string): string {
+  if (key === 'colophon') { return COLOPHON_BG; }
+  /* Vite normalizes glob keys relative to this file, so match on the tail. */
+  const rest = '/' + PAGE_FILES[key].replace(/^pages\//, '');
+  const hit = Object.keys(PAGE_SRC).find(k => k.endsWith(rest));
+  if (!hit) { throw new Error('colophon: cannot read ' + PAGE_FILES[key]); }
+  const file = PAGE_SRC[hit];
+  const m = file.match(/pageBg="(#[0-9a-fA-F]{6})"/);
+  if (m) { return m[1].toUpperCase(); }
+  if (BG_FALLBACK[key]) { return BG_FALLBACK[key]; }
+  throw new Error('colophon: no pageBg in ' + PAGE_FILES[key]);
+}
+function selectionOf(key: string): { sel: string, selInk: string } {
+  /* A selector list may name several pages before one block; match the
+     block whose selector list contains this page. */
+  const re = /((?:body\[data-page="[\w-]+"\]\s*::selection\s*,?\s*)+)\{([^}]*)\}/g;
+  let m;
+  while ((m = re.exec(css))) {
+    if (m[1].indexOf('data-page="' + key + '"') === -1) { continue; }
+    const bg = m[2].match(/background:\s*([^;]+);/);
+    const fg = m[2].match(/color:\s*([^;]+);/);
+    if (!bg || !fg) { break; }
+    const resolve = (v: string) => {
+      const ref = v.trim().match(/^var\((--[\w-]+)\)$/);
+      return (ref ? token(ref[1]) : v.trim()).toUpperCase();
+    };
+    return { sel: resolve(bg[1]), selInk: resolve(fg[1]) };
+  }
+  /* No block of its own: the page takes the site default (home and 404 do). */
+  const d = css.match(/^::selection\s*\{([^}]*)\}/m);
+  const bg = d && d[1].match(/background:\s*([^;]+);/);
+  const fg = d && d[1].match(/color:\s*([^;]+);/);
+  if (!bg || !fg) { throw new Error('colophon: no ::selection rule for ' + key + ' in custom.css'); }
+  const resolve = (v: string) => {
+    const ref = v.trim().match(/^var\((--[\w-]+)\)$/);
+    return (ref ? token(ref[1]) : v.trim()).toUpperCase();
+  };
+  return { sel: resolve(bg[1]), selInk: resolve(fg[1]) };
+}
+
+function lum(hex: string) {
   const v = [1, 3, 5].map(i => parseInt(hex.substr(i, 2), 16) / 255)
     .map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
   return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
 }
+function contrast(a: string, b: string) {
+  const la = lum(a), lb = lum(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+const INK_DARK_GROUND = '#F4F4EE';
+const INK_LIGHT_GROUND = '#3A313B';
+
+const PAGES = Object.keys(PAGE_NAMES).map((key) => {
+  const ground = groundOf(key);
+  const { sel, selInk } = selectionOf(key);
+  const ink = lum(ground) < 0.35 ? INK_DARK_GROUND : INK_LIGHT_GROUND;
+  return { key, name: PAGE_NAMES[key], ground, sel, selInk, ink, cr: contrast(ground, ink) };
+});
 
 /* The control is ordered by how dark the page is, not alphabetically and not
    by nav order. That ordering is the finding: eleven pages, eight distinct
@@ -101,32 +177,57 @@ const L_MAX = LADDER[LADDER.length - 1].l;
 const LX = (i: number) => 40 + i * (920 / (LADDER.length - 1));
 const LY = (l: number) => 132 - ((l - L_MIN) / (L_MAX - L_MIN)) * 112;
 
-const SIZES = [[9, 8], [10, 29], [11.52, 58], [12, 28], [13, 33], [14, 59], [15, 44], [16, 29], [17, 23], [18, 7]];
-const SCALE = [
-  { t: '--fs-18', px: '18px',    uses: 'Regular · Medium',  s: 'Nothing you type here leaves the browser.', c: 'r' },
-  { t: '--fs-17', px: '17px',    uses: 'Regular · Medium',  s: 'The idea, the audience, the way it should feel.', c: 'r' },
-  { t: '--fs-16', px: '16px',    uses: 'Regular · Medium',  s: 'Enter the numbers from your lab report.', c: 'r' },
-  { t: '--fs-15', px: '15px',    uses: 'Regular',           s: 'Identity, logo, art direction & guidelines', c: 'r' },
-  { t: '--fs-14', px: '14px',    uses: 'Regular',           s: 'Four for now, but let us know if you’d like another.', c: 'r' },
-  { t: '--fs-13', px: '13px',    uses: 'Regular · Mono',    s: 'Structure, dielines, print-ready & renders', c: 'r' },
-  { t: '--fs-12', px: '12px',    uses: 'Regular · Mono',    s: 'Built to the GS1 spec.', c: 'r' },
-  { t: '--fs-11', px: '11.52px', uses: 'Mono caps · Mono',  s: 'Typeface', c: 'mc' },
-  { t: '--fs-10', px: '10px',    uses: 'Mono caps · Mono',  s: '4 min', c: 'mc' },
-  { t: '--fs-9',  px: '9px',     uses: 'Mono · Mono caps',  s: '01', c: 'mo' }
+const GROUND_COUNTS = PAGES.reduce((acc, p) => { acc[p.ground] = (acc[p.ground] || 0) + 1; return acc; }, {} as Record<string, number>);
+const N_GROUNDS = Object.keys(GROUND_COUNTS).length;
+const N_SHARED = Math.max(...Object.values(GROUND_COUNTS));
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const word = (n: number) => WORDS[n] || String(n);
+const Word = (n: number) => { const w = word(n); return w.charAt(0).toUpperCase() + w.slice(1); };
+
+/* ---- type ----------------------------------------------------------------
+   The ten sizes come from the tokens. How often each one is used is counted
+   across src/ at build time (every var(--fs-N) in a template, stylesheet or
+   script), which is what the canvas in the Type section plots. */
+const SRC_TEXT = Object.values(ALL_SRC).join('\n');
+
+const SCALE_META = [
+  { t: '--fs-18', uses: 'Regular · Medium',  s: 'Nothing you type here leaves the browser.', c: 'r' },
+  { t: '--fs-17', uses: 'Regular · Medium',  s: 'The idea, the audience, the way it should feel.', c: 'r' },
+  { t: '--fs-16', uses: 'Regular · Medium',  s: 'Enter the numbers from your lab report.', c: 'r' },
+  { t: '--fs-15', uses: 'Regular',           s: 'Identity, logo, art direction & guidelines', c: 'r' },
+  { t: '--fs-14', uses: 'Regular',           s: 'Four for now, but let us know if you’d like another.', c: 'r' },
+  { t: '--fs-13', uses: 'Regular · Mono',    s: 'Structure, dielines, print-ready & renders', c: 'r' },
+  { t: '--fs-12', uses: 'Regular · Mono',    s: 'Built to the GS1 spec.', c: 'r' },
+  { t: '--fs-11', uses: 'Mono caps · Mono',  s: 'Typeface', c: 'mc' },
+  { t: '--fs-10', uses: 'Mono caps · Mono',  s: '4 min', c: 'mc' },
+  { t: '--fs-9',  uses: 'Mono · Mono caps',  s: '01', c: 'mo' }
 ];
+const SCALE = SCALE_META.map((r) => {
+  const pxN = remPx(token(r.t));
+  const count = (SRC_TEXT.match(new RegExp('var\\(' + r.t + '\\)', 'g')) || []).length;
+  return { ...r, px: fmtPx(pxN), pxN, count };
+});
+const SIZES = SCALE.slice().reverse().map(r => [r.pxN, r.count]);
+
 const WEIGHTS = [
-  { w: 400, n: 'Regular', t: 'Set by a person' },
-  { w: 500, n: 'Medium',  t: 'Checked by eye' },
-  { w: 700, n: 'Bold',    t: 'Made by hand' }
+  { w: 400, n: 'Regular', t: 'Set by a person', file: 'ABCDiatype-Regular.woff2' },
+  { w: 500, n: 'Medium',  t: 'Checked by eye',  file: 'ABCDiatype-Medium.woff2' },
+  { w: 700, n: 'Bold',    t: 'Made by hand',    file: 'ABCDiatype-Bold.woff2' }
 ];
+const MONO_FILE = 'ABCDiatypeMono-Regular.woff2';
+/* The one real filesystem read: woff2 sizes. Astro builds from the project
+   root, on Vercel and locally, so cwd is the anchor. */
+const FONT_DIR = path.resolve(process.cwd(), 'public/theme/assets/fonts/diatype');
+const kb = (file: string) => Math.round(fs.statSync(path.join(FONT_DIR, file)).size / 1024);
+const FONT_KB = WEIGHTS.map(w => kb(w.file)).concat(kb(MONO_FILE));
+const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
 ---
 <BaseLayout
   page="colophon"
   title="Colophon – COGNAK"
   description="A note on how this site is set: the type, the tools, the hands."
   ogUrl="https://cognak.com/colophon/"
-  noindex={true}
-  pageBg="#0E06D2"
+  pageBg={COLOPHON_BG}
 >
   <canvas id="colophon-anatomy" aria-hidden="true"></canvas>
   {/* Specimen-plate label for the glyph on the canvas. Positioned in JS from
@@ -155,7 +256,7 @@ const WEIGHTS = [
         <span>Motion</span><span><a href="https://lenis.darkroom.engineering" target="_blank" rel="noopener">Lenis</a> smooth scroll, <a href="https://www.unicorn.studio" target="_blank" rel="noopener">UnicornStudio</a>, custom canvas</span>
         <span>Served from</span><span><a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a></span>
         <span>Made in</span><span>Los Angeles, California</span>
-        <span>Set</span><span>{buildDate}</span>
+        <span>Set</span><span>{buildDate}{buildSha && <span class="colophon-sha"> · {buildSha}</span>}</span>
       </p>
 
     </div>
@@ -170,17 +271,17 @@ const WEIGHTS = [
 
 
     <div class="cm-intro">
-      <p>Eleven grounds, five curves, seven durations, one typeface. Every value below is read from the stylesheet that ships.</p>
+      <p>{Word(N_GROUNDS)} grounds, {word(EASINGS.length)} curves, {word(DURATIONS.length)} durations, one typeface. Every value below is read from the stylesheet that ships, at build time, by this page.</p>
     </div>
 
     <h2 class="cm-h2" id="cm-color">Color</h2>
     <div id="cm-color-sec">
 
-    <p class="cm-sub">Each page makes one decision: its ground. The ink, the nav, the scrollbar and the highlight all follow from it by rule. Eleven pages, one function, run eleven times.</p>
+    <p class="cm-sub">Each page makes one decision: its ground. The ink, the nav, the scrollbar and the highlight all follow from it by rule. {Word(PAGES.length)} pages, one function, run {word(PAGES.length)} times.</p>
 
     <figure class="cm-ladder-wrap">
       <svg class="cm-ladder" id="cm-ladder" viewBox="0 0 1000 180"
-           aria-label="The site's eleven page grounds, darkest to lightest. Each one can be worn.">
+           aria-label={"The site's " + word(PAGES.length) + " page grounds, darkest to lightest. Each one can be worn."}>
         <line class="cm-l-axis" x1="40" y1="165" x2="960" y2="165" />
         <polyline class="cm-l-path" points={LADDER.map((pg, i) => LX(i) + ',' + (LY(pg.l) + 20)).join(' ')} />
         {LADDER.map((pg, i) => (
@@ -195,6 +296,7 @@ const WEIGHTS = [
             data-ground={pg.ground}
             data-ink={pg.ink}
             data-accent={pg.sel}
+            data-cr={pg.cr.toFixed(1)}
             style={'--cx:' + LX(i) + 'px;--cy:' + (LY(pg.l) + 20) + 'px'}
           >
             <line class="cm-l-stem" x1={LX(i)} y1={LY(pg.l) + 20} x2={LX(i)} y2="165" />
@@ -205,11 +307,28 @@ const WEIGHTS = [
         ))}
       </svg>
       <figcaption class="cm-ladder-cap">
-        <span class="cm-l-meta" id="cm-l-meta">Eleven pages by relative luminance, darkest to lightest. Click one to wear it.</span>
+        <span class="cm-l-meta" id="cm-l-meta">{Word(PAGES.length)} pages by relative luminance, darkest to lightest. Click one to wear it.</span>
       </figcaption>
+      <div class="cm-l-chips" aria-label="Wear a page">
+        {LADDER.map((pg) => (
+          <button
+            type="button"
+            class="cm-l-node cm-l-chip-btn"
+            aria-label={'Wear ' + pg.name}
+            aria-pressed="false"
+            data-key={pg.key}
+            data-name={pg.name}
+            data-ground={pg.ground}
+            data-ink={pg.ink}
+            data-accent={pg.sel}
+            data-cr={pg.cr.toFixed(1)}
+            style={'--g:' + pg.ground}
+          ><span class="cm-l-chip-dot"></span></button>
+        ))}
+      </div>
     </figure>
 
-    <p class="cm-body">Eleven pages, eight grounds. Four of them are the same near-black. Six sit stacked at the dark end, the 404's gray stands on its own in the middle, and the two light pages plus the white project template are the whole of the top. The shape is the palette. The hex values are only how it gets written down.</p>
+    <p class="cm-body">{Word(PAGES.length)} pages, {word(N_GROUNDS)} grounds. {Word(N_SHARED)} of them are the same near-black. Six sit stacked at the dark end, the 404's gray stands on its own in the middle, and the two light pages plus the white project template are the whole of the top.</p>
 
     <p class="cm-aside">The green is the default rather than the rule. It holds the homepage and the 404, and yields wherever a page has a voice of its own.</p>
 
@@ -252,7 +371,7 @@ const WEIGHTS = [
 
     <ul class="cm-durs" id="cm-durs">
       {DURATIONS.map((d) => (
-        <li class="cm-dur" style={'--d:' + d.ms + 'ms; --w:' + Math.round(d.ms / 600 * 100) + '%'}>
+        <li class="cm-dur" style={'--d:' + d.ms + 'ms; --w:' + Math.round(d.ms / DUR_MAX * 100) + '%'}>
           <span class="cm-token">{d.token}</span>
           <span class="cm-bar"><span class="cm-fill"></span></span>
           <span class="cm-ms">{d.ms}ms</span>
@@ -261,23 +380,27 @@ const WEIGHTS = [
       ))}
     </ul>
 
+    <p class="cm-body cm-body-last">Under <code>prefers-reduced-motion</code> none of this runs. The glyph holds one frame, the curves show their end state, and the reveals arrive at once.</p>
+
     <h2 class="cm-h2" id="cm-type">Type</h2>
     <div id="cm-type-sec">
 
-    <p class="cm-sub">ABC Diatype, drawn by Dinamo, self-hosted as woff2 in three weights and a mono. No CDN sees your visit.</p>
+    <p class="cm-sub">ABC Diatype, drawn by Dinamo, self-hosted as woff2 in three weights and a mono, {FONT_TOTAL_KB} KB in all. No CDN sees your visit.</p>
 
     <ul class="cm-weights">
-      {WEIGHTS.map((w) => (
+      {WEIGHTS.map((w, i) => (
         <li class="cm-weight" style={'--fw:' + w.w}>
-          <span class="cm-weight-spec">{w.w} &nbsp; {w.n}</span>
+          <span class="cm-weight-spec">{w.w} &nbsp; {w.n} &nbsp; <span class="cm-weight-kb">{FONT_KB[i]} KB</span></span>
           <span class="cm-weight-set">{w.t}</span>
         </li>
       ))}
       <li class="cm-weight cm-weight-mono">
-        <span class="cm-weight-spec">400 &nbsp; Mono</span>
+        <span class="cm-weight-spec">400 &nbsp; Mono &nbsp; <span class="cm-weight-kb">{FONT_KB[3]} KB</span></span>
         <span class="cm-weight-set">cubic-bezier(0.4, 0, 0.2, 1)</span>
       </li>
     </ul>
+
+    <p class="cm-body">One OpenType feature is asked for by name: tabular figures on the project count in the Home and Projects headlines, so the number holds its width while it ticks up. Everything else is the face as Dinamo drew it. No stylistic sets, no alternates.</p>
 
     <p class="cm-body">Every page headline is the same size: 62px on a wide screen, down to 27px on a phone. Project titles are the one exception, a step larger.</p>
 
@@ -286,12 +409,12 @@ const WEIGHTS = [
       <span class="cm-spec-v cm-spec-headline">Built by people</span>
     </div>
 
-    <p class="cm-body">Everything under 18px uses ten named sizes.</p>
+    <p class="cm-body">Everything under 18px uses {word(SCALE.length)} named sizes. The count on each row is how many times the source reaches for it.</p>
 
     <ul class="cm-scale">
       {SCALE.map((r) => (
         <li class="cm-spec">
-          <span class="cm-spec-k">{r.t} · {r.px}<br /><span class="cm-spec-uses">{r.uses}</span></span>
+          <span class="cm-spec-k">{r.t} · {r.px}<br /><span class="cm-spec-uses">{r.uses} · ×{r.count}</span></span>
           <span class="cm-spec-v">
             <span class={'cm-ex-s cm-ex-' + r.c} style={'font-size:var(' + r.t + ')'}>{r.s}</span>
           </span>
@@ -313,8 +436,6 @@ const WEIGHTS = [
       <li>Nothing romantic, abstract, or sales-inflected. Declarative, or cut it.</li>
     </ol>
 
-    <p class="cm-aside">Written down because it is the part of a brand that drifts first and the part almost nobody publishes.</p>
-
     <h2 class="cm-h2" id="cm-outside">Outside the system</h2>
 
     <p class="cm-sub">What the tokens deliberately do not reach.</p>
@@ -326,8 +447,6 @@ const WEIGHTS = [
       <li><span class="cm-o-n">Living backgrounds</span><span class="cm-o-d">The glyph anatomy here, the baseline grid on /privacy-policy.</span></li>
       <li><span class="cm-o-n">Project hero video</span><span class="cm-o-d">Cut per project. A convention, not a component.</span></li>
     </ul>
-
-    <p class="cm-aside">A system that marks its own edge is describing something real. One claiming to cover everything is describing an intention.</p>
 
     <div class="colophon-body">
       <p class="colophon-sign">No page builders. No templates. Built by hand at COGNAK. If you care about this sort of thing, so do we: <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
@@ -668,7 +787,7 @@ const WEIGHTS = [
          cannot reach or restyle, that furniture is turned off from the print
          dialog's More settings, not from here. This is the replacement: the
          same information that's worth keeping, set in the page's own mono. */
-      .colophon-body::after {
+      .cm .colophon-body::after {
         content: 'cognak.com/colophon';
         display: block;
         margin-top: 18pt;
@@ -755,6 +874,46 @@ const WEIGHTS = [
       }
       .colophon-spec span:nth-child(odd) { color: #555555 !important; }
       .colophon-sign { color: #333333 !important; break-inside: avoid; }
+
+      /* ---- the system sections on paper ----------------------------------
+         Everything in them reads --wear-*, so re-pointing the four variables
+         at ink on paper recolors the lot: curves, ladder, specimens, rules.
+         !important here beats the inline values the wear script sets on
+         :root, so a page printed while wearing Studio still prints in ink.
+         The blanket opacity/transform guard does double duty: it forces the
+         scroll reveals on (same problem as above) and it leaves every
+         demonstration at its end state, so the duration bars print full and
+         the ladder labels print visible. */
+      :root {
+        --wear-bg: #ffffff !important;
+        --wear-ink: #111111 !important;
+        --wear-accent: #111111 !important;
+        --wear-dim: #555555 !important;
+      }
+      #cm-anatomy,
+      #cm-plate,
+      .cm-l-chips,
+      .cm-ladder-cap,
+      .cm-track { display: none !important; }
+      .cm {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        color: #111111 !important;
+      }
+      .cm, .cm * {
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+        transition: none !important;
+      }
+      .cm-h2 { break-after: avoid; margin-top: 18pt; }
+      .cm-row, .cm-dur, .cm-spec, .cm-weight, .cm-rules li, .cm-outside li,
+      .cm-ladder-wrap, .cm-intro, .cm .colophon-body { break-inside: avoid; }
+      .cm-trigger { padding: 8pt 0 !important; }
+      .cm-l-dot, .cm-l-hit { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .cm-l-dot { stroke-opacity: 1 !important; }
+      .cm-body, .cm-sub, .cm-intro p { max-width: 68ch !important; }
     }
   </style>
 
@@ -1443,6 +1602,18 @@ const WEIGHTS = [
       margin: 0 0 5.5rem;
     }
     .cm-w { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: 0.86em; }
+    .cm-body-last { margin-bottom: 5.5rem; }
+    .cm-rules, .cm-outside { margin-bottom: 5.5rem; }
+    .cm-body code {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 0.88em;
+      color: var(--wear-accent);
+    }
+    .colophon-sha, .cm-weight-kb {
+      font-family: 'Diatype Mono', monospace;
+      color: var(--wear-dim);
+    }
+    .colophon-sha { font-size: var(--fs-13); letter-spacing: 0.02em; }
     .cm-h3 {
       font-family: 'Diatype Mono', monospace;
       font-size: var(--fs-11);
@@ -1549,6 +1720,48 @@ const WEIGHTS = [
     .cm-l-node.is-on .cm-l-dot { transform: scale(1.35); stroke: var(--wear-accent); stroke-opacity: 1; stroke-width: 2; }
     .cm-l-node.is-on .cm-l-label { opacity: 1; fill: var(--wear-accent); }
     html, body, .cm { transition-property: background-color, color; }
+
+    /* ---- ladder on a phone ------------------------------------------------
+       At 390px the SVG scales to about a third, which puts each hit circle
+       under 20px across and the six near-blacks a thumb apart. The drawing
+       stays as the picture; the control becomes a row of 40px chips in the
+       same order, driven by the same script (both sets carry .cm-l-node). */
+    .cm-l-chips { display: none; }
+    @media (max-width: 720px) {
+      .cm-ladder .cm-l-node { pointer-events: none; }
+      .cm-l-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 1.2rem 0 0;
+      }
+      .cm-l-chip-btn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 0;
+        background: none;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .cm-l-chip-dot {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--g);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--wear-ink) 50%, transparent);
+        transition: transform var(--dur-m) var(--ease-overshoot), box-shadow var(--dur-m) var(--ease-standard);
+      }
+      .cm-l-chip-btn.is-on .cm-l-chip-dot,
+      .cm-l-chip-btn:focus-visible .cm-l-chip-dot {
+        transform: scale(1.3);
+        box-shadow: 0 0 0 2px var(--wear-accent);
+      }
+      .cm-l-chip-btn:focus-visible { outline: none; }
+    }
 
 
     /* ---- type specimen: each claim set at its actual size ---------------- */
@@ -2220,8 +2433,9 @@ const WEIGHTS = [
       }
 
       function mark(n) {
+        var key = n ? n.getAttribute('data-key') : null;
         nodes.forEach(function (o) {
-          var on = o === n;
+          var on = key !== null && o.getAttribute('data-key') === key;
           o.classList.toggle('is-on', on);
           o.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
@@ -2245,7 +2459,7 @@ const WEIGHTS = [
         mark(n);
         if (meta) {
           meta.textContent = (previewing ? 'Previewing ' : 'Wearing ') + n.getAttribute('data-name') + ' · ' +
-            n.getAttribute('data-ground').toUpperCase() +
+            n.getAttribute('data-ground').toUpperCase() + ' · ink ' + n.getAttribute('data-cr') + ':1' +
             (previewing ? '. Click to keep it.' : '. Click it again, or press Escape, to come back.');
         }
       }
