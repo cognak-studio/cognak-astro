@@ -115,9 +115,9 @@ const SCALE = [
   { t: '--fs-9',  px: '9px',     uses: 'Mono · Mono caps',  s: '01', c: 'mo' }
 ];
 const WEIGHTS = [
-  { w: 400, n: 'Regular' },
-  { w: 500, n: 'Medium' },
-  { w: 700, n: 'Bold' }
+  { w: 400, n: 'Regular', t: 'Set by a person' },
+  { w: 500, n: 'Medium',  t: 'Checked by eye' },
+  { w: 700, n: 'Bold',    t: 'Made by hand' }
 ];
 ---
 <BaseLayout
@@ -270,7 +270,7 @@ const WEIGHTS = [
       {WEIGHTS.map((w) => (
         <li class="cm-weight" style={'--fw:' + w.w}>
           <span class="cm-weight-spec">{w.w} &nbsp; {w.n}</span>
-          <span class="cm-weight-set">Handled by hand</span>
+          <span class="cm-weight-set">{w.t}</span>
         </li>
       ))}
       <li class="cm-weight cm-weight-mono">
@@ -283,7 +283,7 @@ const WEIGHTS = [
 
     <div class="cm-spec cm-spec-head">
       <span class="cm-spec-k">Headline · 27–62px<br /><span class="cm-spec-uses">Medium</span></span>
-      <span class="cm-spec-v cm-spec-headline">Handled by hand</span>
+      <span class="cm-spec-v cm-spec-headline">Built by people</span>
     </div>
 
     <p class="cm-body">Everything under 18px uses ten named sizes.</p>
