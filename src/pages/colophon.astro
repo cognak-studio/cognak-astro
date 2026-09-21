@@ -145,7 +145,6 @@ const WEIGHTS = [
         <span>Set</span><span>{buildDate}</span>
       </p>
 
-      <p class="colophon-sign">No page builders. No templates. Built by hand at COGNAK. If you care about this sort of thing, so do we: <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
     </div>
 
   </section>
@@ -156,10 +155,9 @@ const WEIGHTS = [
 
     <p class="cm-eyebrow">System</p>
 
-    <h2 class="cm-headline">A colophon names the paper and the press. This is <em>the rest of it</em>.</h2>
 
     <div class="cm-intro">
-      <p>Eleven grounds, five curves, seven durations, one typeface. Nothing below is a picture of the system — every value on this page is read from the stylesheet that ships, so the page cannot describe a site it no longer matches.</p>
+      <p>Eleven grounds, five curves, seven durations, one typeface. Every value below is read from the stylesheet that ships.</p>
     </div>
 
     <h2 class="cm-h2" id="cm-colour">Colour</h2>
@@ -302,7 +300,9 @@ const WEIGHTS = [
 
     <p class="cm-aside">A system that marks its own edge is describing something real. One claiming to cover everything is describing an intention.</p>
 
-    <p class="cm-sign">Five curves is the entire claim. A brand book can print the numbers; it cannot show you what 0.34,&nbsp;1.56 feels like, which is the only part that matters.</p>
+    <div class="colophon-body">
+      <p class="colophon-sign">No page builders. No templates. Built by hand at COGNAK. If you care about this sort of thing, so do we: <a href="mailto:hello@cognak.com">hello@cognak.com</a>.</p>
+    </div>
 
   </section></main>
 
@@ -1238,15 +1238,6 @@ const WEIGHTS = [
       margin: 0 0 1.6rem;
     }
 
-    .cm-headline {
-      font-size: clamp(30px, 4.6vw, 54px);
-      font-weight: 500;
-      line-height: 1.08;
-      letter-spacing: -0.02em;
-      margin: 0 0 2.2rem;
-      max-width: 17ch;
-    }
-    .cm-headline em { font-style: normal; font-weight: 500; color: var(--wear-accent); }
 
     .cm-intro { max-width: 58ch; margin-bottom: 5.5rem; }
     .cm-intro p { font-size: var(--fs-17); line-height: 1.6; margin: 0 0 1rem; }
@@ -1577,14 +1568,6 @@ const WEIGHTS = [
       .cm-weight { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
     }
 
-    .cm-sign {
-      max-width: 52ch;
-      font-size: var(--fs-16);
-      line-height: 1.6;
-      color: #e2e2ea;
-      padding-top: 2rem;
-      border-top: 1px solid rgba(255,255,255,0.14);
-    }
 
     @media (prefers-reduced-motion: reduce) {
       .cm-car, .cm-fill { transition: none !important; }
@@ -1598,7 +1581,8 @@ const WEIGHTS = [
        the system sections arrive. First pass - the join is still to tweak. */
     .colophon { color: var(--wear-ink); transition: color var(--dur-2xl) var(--ease-standard); }
     .cm.cm-merged { padding-top: 0; }
-    .colophon { padding-bottom: 14vh; }
+
+    .colophon { padding-bottom: 7vh; }
     #colophon-anatomy, #cm-anatomy { transition: opacity var(--dur-2xl) var(--ease-standard); }
     body.in-system #colophon-anatomy,
     body.in-system #glyph-caption { opacity: 0 !important; }
