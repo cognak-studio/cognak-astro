@@ -190,17 +190,13 @@ const Word = (n: number) => { const w = word(n); return w.charAt(0).toUpperCase(
    script), which is what the canvas in the Type section plots. */
 const SRC_TEXT = Object.values(ALL_SRC).join('\n');
 
+/* c = the treatment each size mostly gets on the site: r sans regular,
+   mc mono caps, mo mono. */
 const SCALE_META = [
-  { t: '--fs-18', uses: 'Regular · Medium',  s: 'Nothing you type here leaves the browser.', c: 'r' },
-  { t: '--fs-17', uses: 'Regular · Medium',  s: 'The idea, the audience, the way it should feel.', c: 'r' },
-  { t: '--fs-16', uses: 'Regular · Medium',  s: 'Enter the numbers from your lab report.', c: 'r' },
-  { t: '--fs-15', uses: 'Regular',           s: 'Identity, logo, art direction & guidelines', c: 'r' },
-  { t: '--fs-14', uses: 'Regular',           s: 'Four for now, but let us know if you’d like another.', c: 'r' },
-  { t: '--fs-13', uses: 'Regular · Mono',    s: 'Structure, dielines, print-ready & renders', c: 'r' },
-  { t: '--fs-12', uses: 'Regular · Mono',    s: 'Built to the GS1 spec.', c: 'r' },
-  { t: '--fs-11', uses: 'Mono caps · Mono',  s: 'Typeface', c: 'mc' },
-  { t: '--fs-10', uses: 'Mono caps · Mono',  s: '4 min', c: 'mc' },
-  { t: '--fs-9',  uses: 'Mono · Mono caps',  s: '01', c: 'mo' }
+  { t: '--fs-18', c: 'r' }, { t: '--fs-17', c: 'r' }, { t: '--fs-16', c: 'r' },
+  { t: '--fs-15', c: 'r' }, { t: '--fs-14', c: 'r' }, { t: '--fs-13', c: 'r' },
+  { t: '--fs-12', c: 'r' }, { t: '--fs-11', c: 'mc' }, { t: '--fs-10', c: 'mc' },
+  { t: '--fs-9',  c: 'mo' }
 ];
 const SCALE = SCALE_META.map((r) => {
   const pxN = remPx(token(r.t));
@@ -369,16 +365,20 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
 
     <p class="cm-sub">All seven, fired together, so the intervals read against each other.</p>
 
-    <ul class="cm-durs" id="cm-durs">
-      {DURATIONS.map((d) => (
-        <li class="cm-dur" style={'--d:' + d.ms + 'ms; --w:' + Math.round(d.ms / DUR_MAX * 100) + '%'}>
-          <span class="cm-token">{d.token}</span>
-          <span class="cm-bar"><span class="cm-fill"></span></span>
-          <span class="cm-ms">{d.ms}ms</span>
-          <span class="cm-use">{d.note}</span>
-        </li>
-      ))}
-    </ul>
+    <figure class="cm-durs cm-tl" id="cm-durs" data-max={DUR_MAX} aria-label={'The ' + word(DURATIONS.length) + ' durations, ' + DURATIONS[0].ms + ' to ' + DUR_MAX + ' milliseconds, on one line.'}>
+      <div class="cm-tl-track">
+        {DURATIONS.map((d, i) => (
+          <span class={'cm-tl-tick' + (i % 2 ? ' is-down' : '') + (i === DURATIONS.length - 1 ? ' is-last' : '')} style={'--d:' + d.ms + 'ms; --x:' + (d.ms / DUR_MAX * 100) + '%'}>
+            <span class="cm-tl-dot"></span>
+            <span class="cm-tl-lab">
+              <span class="cm-token">{d.token}</span>
+              <span class="cm-ms">{d.ms}ms</span>
+              {d.note && <span class="cm-ms cm-tl-note">{d.note}</span>}
+            </span>
+          </span>
+        ))}
+      </div>
+    </figure>
 
     <p class="cm-body cm-body-last">Under <code>prefers-reduced-motion</code> none of this runs. The glyph holds one frame, the curves show their end state, and the reveals arrive at once.</p>
 
@@ -409,18 +409,16 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       <span class="cm-spec-v cm-spec-headline">Built by people</span>
     </div>
 
-    <p class="cm-body">Everything under 18px uses {word(SCALE.length)} named sizes. The count on each row is how many times the source reaches for it.</p>
+    <p class="cm-body">Everything under 18px uses {word(SCALE.length)} named sizes. The number under each is how many times the source reaches for it.</p>
 
-    <ul class="cm-scale">
-      {SCALE.map((r) => (
-        <li class="cm-spec">
-          <span class="cm-spec-k">{r.t} · {r.px}<br /><span class="cm-spec-uses">{r.uses} · ×{r.count}</span></span>
-          <span class="cm-spec-v">
-            <span class={'cm-ex-s cm-ex-' + r.c} style={'font-size:var(' + r.t + ')'}>{r.s}</span>
-          </span>
-        </li>
+    <figure class="cm-band" aria-label={'The ' + word(SCALE.length) + ' sizes, ' + SCALE[SCALE.length - 1].px + ' to ' + SCALE[0].px + ', set side by side.'}>
+      {SCALE.slice().reverse().map((r) => (
+        <span class="cm-band-i">
+          <span class={'cm-band-w cm-ex-' + r.c} style={'font-size:var(' + r.t + ')'}>cognak</span>
+          <span class="cm-band-k">{r.px.replace('px', '')}<span class="cm-band-n">×{r.count}</span></span>
+        </span>
       ))}
-    </ul>
+    </figure>
 
     </div>
 
@@ -908,8 +906,8 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
         transition: none !important;
       }
       .cm-h2 { break-after: avoid; margin-top: 18pt; }
-      .cm-row, .cm-dur, .cm-spec, .cm-weight, .cm-rules li, .cm-outside li,
-      .cm-ladder-wrap, .cm-intro, .cm .colophon-body { break-inside: avoid; }
+      .cm-row, .cm-spec, .cm-weight, .cm-rules li, .cm-outside li,
+      .cm-ladder-wrap, .cm-intro, .cm-durs, .cm-band, .cm .colophon-body { break-inside: avoid; }
       .cm-trigger { padding: 8pt 0 !important; }
       .cm-l-dot, .cm-l-hit { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
       .cm-l-dot { stroke-opacity: 1 !important; }
@@ -1548,47 +1546,75 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
     }
     .cm-row.is-running .cm-car { transform: translateX(calc(340px - 10px)); }
 
-    /* ---- durations ---- */
-    .cm-durs { list-style: none; margin: 0 0 5rem; padding: 0; }
-    .cm-dur {
-      display: grid;
-      grid-template-columns: 110px 1fr 64px 1fr;
-      gap: 1.4rem;
-      align-items: center;
-      padding: 0.85rem 0;
+    /* ---- durations: one line -------------------------------------------
+       All seven on a single axis, 0 to the longest. Seven dots leave the
+       origin together and each stops at its own tick, linear, so what you
+       see is the intervals between them and nothing else. Labels alternate
+       above and below the line so the four short ones don't collide. */
+    .cm-durs { margin: 0 0 5rem; padding: 0; max-width: 620px; cursor: pointer; }
+    .cm-tl-track { position: relative; height: 120px; }
+    .cm-tl-track::before {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 1px;
+      background: color-mix(in srgb, var(--wear-ink) 22%, transparent);
     }
-    .cm-bar {
-      display: block;
-      height: 3px;
-      width: var(--w);
-      background: color-mix(in srgb, var(--wear-ink) 12%, transparent);
-      overflow: hidden;
+    .cm-tl-tick {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: var(--x);
+      height: 0;
     }
-    .cm-fill {
-      display: block;
-      height: 100%;
-      width: 100%;
+    .cm-tl-tick::after {
+      content: '';
+      position: absolute;
+      left: 100%;
+      top: -6px;
+      width: 1px;
+      height: 12px;
+      background: color-mix(in srgb, var(--wear-ink) 45%, transparent);
+    }
+    .cm-tl-dot {
+      position: absolute;
+      left: 0;
+      top: -4px;
+      width: 8px;
+      height: 8px;
+      margin-left: -4px;
       background: var(--wear-accent);
-      transform: scaleX(0);
-      transform-origin: left center;
     }
-    .cm-durs.is-running .cm-fill {
-      transform: scaleX(1);
-      transition: transform var(--d) var(--ease-standard);
+    .cm-durs.is-running .cm-tl-dot {
+      left: 100%;
+      transition: left var(--d) linear;
     }
+    .cm-tl-lab {
+      position: absolute;
+      left: 100%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      text-align: center;
+      white-space: nowrap;
+      line-height: 1.5;
+    }
+    .cm-tl-tick.is-down .cm-tl-lab { bottom: auto; top: 16px; }
+    .cm-tl-tick.is-last .cm-tl-lab { transform: translateX(-100%); text-align: right; }
+    .cm-tl-lab .cm-token { font-size: var(--fs-12); }
     .cm-ms {
+      display: block;
       font-family: 'Diatype Mono', monospace;
-      font-size: var(--fs-11);
+      font-size: var(--fs-10);
       color: var(--wear-dim);
-      text-align: right;
     }
-    .cm-dur .cm-use { margin-top: 0; font-size: var(--fs-13); color: var(--wear-dim); }
 
     @media (max-width: 720px) {
       .cm-trigger { grid-template-columns: 92px 1fr; gap: 1.2rem; }
-      .cm-dur { grid-template-columns: 96px 1fr 58px; }
-      .cm-dur .cm-use { display: none; }
       .cm-track { max-width: 100%; }
+      .cm-tl-lab .cm-token { font-size: var(--fs-10); }
+      .cm-ms { font-size: var(--fs-9); }
+      /* the notes collide at phone width; the token and the number carry it */
+      .cm-tl-note { display: none; }
     }
 
 
@@ -1766,7 +1792,31 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
     }
 
 
-    /* ---- type specimen: each claim set at its actual size ---------------- */
+    /* ---- type: the ten sizes on one baseline ------------------------------
+       The same word at every step, smallest first, sharing a baseline so the
+       scale reads as one object. Each carries its size and its use count. */
+    .cm-band {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 1.4rem 1.6rem;
+      margin: 0 0 4.5rem;
+      padding: 1.2rem 0 1.4rem;
+      border-top: 1px solid color-mix(in srgb, var(--wear-ink) 12%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 12%, transparent);
+    }
+    .cm-band-i { display: inline-flex; flex-direction: column; align-items: flex-start; }
+    .cm-band-w { line-height: 1; color: var(--wear-ink); }
+    .cm-band-k {
+      margin-top: 0.55rem;
+      font-family: 'Diatype Mono', monospace;
+      font-size: var(--fs-9);
+      letter-spacing: 0.04em;
+      color: var(--wear-dim);
+      white-space: nowrap;
+    }
+    .cm-band-n { margin-left: 0.5em; color: var(--wear-accent); }
+
     .cm-scale { list-style: none; margin: 0 0 4.5rem; padding: 0; }
     .cm-spec {
       display: grid;
@@ -1877,7 +1927,7 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
 
 
     @media (prefers-reduced-motion: reduce) {
-      .cm-car, .cm-fill { transition: none !important; }
+      .cm-car, .cm-tl-dot { transition: none !important; }
     }
   </style>
   <style is:inline>
@@ -2152,10 +2202,11 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       };
 
       var durEl = document.getElementById('cm-durs');
-      var durNodes = Array.prototype.slice.call(document.querySelectorAll('.cm-dur'))
-        .map(function (li) {
-          var ms = parseInt(li.style.getPropertyValue('--d'), 10);
-          return [ms / 600, 0.5];
+      var durMax = durEl ? parseInt(durEl.getAttribute('data-max'), 10) || 600 : 600;
+      var durNodes = Array.prototype.slice.call(document.querySelectorAll('.cm-tl-tick'))
+        .map(function (el) {
+          var ms = parseInt(el.style.getPropertyValue('--d'), 10);
+          return [ms / durMax, 0.5];
         });
       var durState = {
         el: durEl,
