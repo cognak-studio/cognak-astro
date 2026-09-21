@@ -66,7 +66,7 @@ const PAGES = [
   { key: 'home', name: 'Home',       ground: '#17151A', sel: '#AAFF00', selInk: '#000000', ink: '#F4F4EE' },
   { key: 'studio', name: 'Studio',     ground: '#17151A', sel: '#FFB2E4', selInk: '#17151A', ink: '#F4F4EE' },
   { key: 'projects', name: 'Projects',   ground: '#EAE5F2', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
-  { key: 'project', name: 'Project',    ground: '#FFFFFF', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
+  { key: 'project', name: 'Project Detail',    ground: '#FFFFFF', sel: '#9647F0', selInk: '#FFFFFF', ink: '#3A313B' },
   { key: 'brief', name: 'Brief',      ground: '#140E07', sel: '#EF9146', selInk: '#2A2010', ink: '#F4F4EE' },
   { key: 'send', name: 'Send',       ground: '#090C0B', sel: '#8FC2F2', selInk: '#090C0B', ink: '#F4F4EE' },
   { key: 'tools', name: 'Tools',      ground: '#17151A', sel: '#B47CFF', selInk: '#17151A', ink: '#F4F4EE' },
@@ -161,7 +161,7 @@ const WEIGHTS = [
             <line class="cm-l-stem" x1={LX(i)} y1={LY(pg.l) + 20} x2={LX(i)} y2="165" />
             <circle class="cm-l-hit" cx={LX(i)} cy={LY(pg.l) + 20} r="26" />
             <circle class="cm-l-dot" cx={LX(i)} cy={LY(pg.l) + 20} r="10" fill={pg.ground} />
-            <text class="cm-l-label" x={LX(i)} y={LY(pg.l) + 20 - 22} text-anchor="middle">{pg.name}</text>
+            <text class="cm-l-label" x={LX(i)} y={LY(pg.l) + 20 - 22} text-anchor={i === 0 ? 'start' : i === LADDER.length - 1 ? 'end' : 'middle'}>{pg.name}</text>
           </g>
         ))}
       </svg>
@@ -343,7 +343,7 @@ const WEIGHTS = [
     .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-location,
     .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a,
     .home-bottom-bar.inner-page-nav.colophon-nav .pulse-dot {
-      color: #ffffff !important;
+      color: var(--wear-nav-ink, #ffffff) !important;
     }
     .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
     .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a {
@@ -614,6 +614,8 @@ const WEIGHTS = [
        thing you can press; a square reads as data. The hit area is far
        larger than the dot so the six stacked near-blacks stay easy to aim. */
     .cm-l-node { cursor: pointer; outline: none; }
+    svg .cm-l-node:focus,
+    svg .cm-l-node:focus-visible { outline: none !important; }
     .cm-l-hit { fill: transparent; }
     .cm-l-dot {
       stroke: var(--wear-ink);
@@ -1160,7 +1162,11 @@ const WEIGHTS = [
         root.style.setProperty('--wear-ink', ink);
         root.style.setProperty('--wear-accent', contrast(accent, g) >= 3 ? accent : ink);
         root.style.setProperty('--wear-dim', mix(ink, g, 0.42));
-        root.style.setProperty('--wear-nav', mix(g, '#000000', 0.28));
+        /* Light pages don't darken their ground for the nav - they use the
+           site's default frosted bar (Projects, Project Detail, Privacy all
+           do), with the page's ink on it. Dark pages pull the ground down. */
+        root.style.setProperty('--wear-nav', dark ? mix(g, '#000000', 0.28) : 'rgba(247, 241, 255, 0.75)');
+        root.style.setProperty('--wear-nav-ink', dark ? '#ffffff' : ink);
         root.style.setProperty('--sb-thumb', dark ? 'rgba(255,255,255,0.15)' : 'rgba(23,21,26,0.15)');
         root.style.colorScheme = dark ? 'dark' : 'light';
         body.setAttribute('data-page', key);
@@ -1174,14 +1180,46 @@ const WEIGHTS = [
         } catch (e) {}
       }
 
-      function rest() {
-        worn = null;
-        ['--wear-bg', '--wear-ink', '--wear-accent', '--wear-dim', '--wear-nav', '--sb-thumb']
+      function clearVars() {
+        ['--wear-bg', '--wear-ink', '--wear-accent', '--wear-dim', '--wear-nav', '--wear-nav-ink', '--sb-thumb']
           .forEach(function (v) { root.style.removeProperty(v); });
         root.style.colorScheme = '';
         body.setAttribute('data-page', 'colophon');
-        nodes.forEach(function (n) { n.classList.remove('is-on'); n.setAttribute('aria-pressed', 'false'); });
-        if (meta) { meta.textContent = restMeta; }
+      }
+
+      function mark(n) {
+        nodes.forEach(function (o) {
+          var on = o === n;
+          o.classList.toggle('is-on', on);
+          o.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+      }
+
+      function nodeFor(key) {
+        return nodes.filter(function (o) { return o.getAttribute('data-key') === key; })[0] || null;
+      }
+
+      /* show() paints a node without committing to it - used by hover.
+         Passing null shows the committed state again. */
+      function show(n, previewing) {
+        if (!n || n.getAttribute('data-key') === 'colophon') {
+          clearVars();
+          mark(null);
+          if (meta) { meta.textContent = restMeta; }
+          return;
+        }
+        paint(n.getAttribute('data-ground'), n.getAttribute('data-ink'), n.getAttribute('data-accent'), n.getAttribute('data-key'));
+        mark(n);
+        if (meta) {
+          meta.textContent = (previewing ? 'Previewing ' : 'Wearing ') + n.getAttribute('data-name') + ' · ' +
+            n.getAttribute('data-ground').toUpperCase() +
+            (previewing ? '. Click to keep it.' : '. Click it again, or press Escape, to come back.');
+        }
+      }
+
+      function rest() {
+        worn = null;
+        show(null);
         setUrl(null);
       }
 
@@ -1189,17 +1227,21 @@ const WEIGHTS = [
         var key = n.getAttribute('data-key');
         if (worn === key || key === 'colophon') { rest(); return; }
         worn = key;
-        paint(n.getAttribute('data-ground'), n.getAttribute('data-ink'), n.getAttribute('data-accent'), key);
-        nodes.forEach(function (o) {
-          var on = o === n;
-          o.classList.toggle('is-on', on);
-          o.setAttribute('aria-pressed', on ? 'true' : 'false');
-        });
-        if (meta) {
-          meta.textContent = 'Wearing ' + n.getAttribute('data-name') + ' · ' +
-            n.getAttribute('data-ground').toUpperCase() + '. Click it again, or press Escape, to come back.';
-        }
+        show(n, false);
         setUrl(key);
+      }
+
+      /* Hover previews; leaving the drawing returns to whatever was clicked.
+         Listening on the svg rather than each node means sweeping across the
+         ramp moves smoothly from page to page instead of flashing home in
+         the gaps between circles. */
+      var svgEl = document.getElementById('cm-ladder');
+      var canHover = window.matchMedia('(hover: hover)').matches;
+      if (svgEl && canHover) {
+        nodes.forEach(function (n) {
+          n.addEventListener('mouseenter', function () { show(n, n.getAttribute('data-key') !== worn); });
+        });
+        svgEl.addEventListener('mouseleave', function () { show(nodeFor(worn), false); });
       }
 
       nodes.forEach(function (n) {
