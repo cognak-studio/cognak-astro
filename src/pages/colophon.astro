@@ -1185,7 +1185,7 @@ const WEIGHTS = [
            the smile, so it falls with t). */
         var smile = (order[idx] === ':)' ? 1 - t : 0) + (order[next] === ':)' ? t : 0);
 
-        drawFill(contoursForFrame, 0.10 * fadeMul);
+        drawFill(contoursForFrame, 0.05 * fadeMul);
         for (var c2 = 0; c2 < NC; c2++) {
           var pts = contoursForFrame[c2];
           drawContour(pts, 0.12 * fadeMul, smile);
