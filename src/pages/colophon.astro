@@ -102,6 +102,18 @@ const LX = (i: number) => 40 + i * (920 / (LADDER.length - 1));
 const LY = (l: number) => 132 - ((l - L_MIN) / (L_MAX - L_MIN)) * 112;
 
 const SIZES = [[9, 8], [10, 29], [11.52, 58], [12, 28], [13, 33], [14, 59], [15, 44], [16, 29], [17, 23], [18, 7]];
+const SCALE = [
+  { t: '--fs-18', px: '18px' },
+  { t: '--fs-17', px: '17px' },
+  { t: '--fs-16', px: '16px' },
+  { t: '--fs-15', px: '15px' },
+  { t: '--fs-14', px: '14px' },
+  { t: '--fs-13', px: '13px' },
+  { t: '--fs-12', px: '12px' },
+  { t: '--fs-11', px: '11.52px' },
+  { t: '--fs-10', px: '10px' },
+  { t: '--fs-9',  px: '9px' }
+];
 const WEIGHTS = [
   { w: 400, n: 'Regular' },
   { w: 500, n: 'Medium' },
@@ -268,7 +280,21 @@ const WEIGHTS = [
 
     <p class="cm-body">Every page headline is the same size: 62px on a wide screen, down to 27px on a phone. Project titles are the one exception, a step larger.</p>
 
+    <div class="cm-spec cm-spec-head">
+      <span class="cm-spec-k">Headline<br />27–62px</span>
+      <span class="cm-spec-v cm-spec-headline">Handled by hand</span>
+    </div>
+
     <p class="cm-body">Everything under 18px uses ten named sizes.</p>
+
+    <ul class="cm-scale">
+      {SCALE.map((r) => (
+        <li class="cm-spec">
+          <span class="cm-spec-k">{r.t}<br />{r.px}</span>
+          <span class="cm-spec-v" style={'font-size:var(' + r.t + ')'}>Handled by hand, set in ABC Diatype</span>
+        </li>
+      ))}
+    </ul>
 
     </div>
 
@@ -1498,6 +1524,38 @@ const WEIGHTS = [
     .cm-l-node.is-on .cm-l-dot { transform: scale(1.35); stroke: var(--wear-accent); stroke-opacity: 1; stroke-width: 2; }
     .cm-l-node.is-on .cm-l-label { opacity: 1; fill: var(--wear-accent); }
     html, body, .cm { transition-property: background-color, color; }
+
+
+    /* ---- type specimen: each claim set at its actual size ---------------- */
+    .cm-scale { list-style: none; margin: 0 0 4.5rem; padding: 0; }
+    .cm-spec {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 1.6rem;
+      align-items: baseline;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--wear-ink) 12%, transparent);
+    }
+    .cm-spec-head { margin: 0 0 3.5rem; padding: 1.2rem 0 1.6rem; }
+    .cm-spec-k {
+      font-family: 'Diatype Mono', monospace;
+      font-size: var(--fs-11);
+      line-height: 1.5;
+      letter-spacing: 0.04em;
+      color: var(--wear-dim);
+    }
+    .cm-spec-v { color: var(--wear-ink); line-height: 1.3; min-width: 0; }
+    /* the same rule every page headline uses, so this can't drift from them */
+    .cm-spec-headline {
+      font-size: clamp(20px, 5.5vw, 62px);
+      font-weight: 500;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    @media (max-width: 720px) {
+      .cm-spec-headline { font-size: clamp(24px, 7vw, 42px); }
+      .cm-spec { grid-template-columns: 1fr; gap: 0.3rem; }
+    }
 
     /* ---- type ---- */
     .cm-weights { list-style: none; margin: 0 0 3rem; padding: 0; }
