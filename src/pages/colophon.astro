@@ -1662,7 +1662,8 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
     .cm-deck-wrap { margin: 0 0 2rem; padding: 0; }
     .cm-deck {
       display: flex;
-      height: 190px;
+      height: 150px;
+      max-width: 620px;
       gap: 1px;
       background: color-mix(in srgb, var(--wear-ink) 22%, transparent);
       border: 1px solid color-mix(in srgb, var(--wear-ink) 22%, transparent);
@@ -1685,20 +1686,20 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       transition: flex 450ms var(--ease-out-expo);
     }
     .cm-md:focus-visible,
-    .cm-md.is-on { flex: 4 1 0; }
-    @media (hover: hover) { .cm-md:hover { flex: 4 1 0; } }
+    .cm-md.is-on { flex: 4.6 1 0; }
+    @media (hover: hover) { .cm-md:hover { flex: 4.6 1 0; } }
     .cm-md-nav { position: absolute; left: 0; right: 0; top: 0; height: 22px; background: var(--cn); }
     .cm-md-nav::before,
     .cm-md-nav::after { content: ''; position: absolute; top: 10px; height: 2px; background: var(--cni); opacity: 0.85; }
     .cm-md-nav::before { left: 12px; width: 26px; }
     .cm-md-nav::after { right: 12px; width: 40px; }
     .cm-md-ln { position: absolute; left: 12px; height: 2px; background: var(--ci); opacity: 0.55; }
-    .cm-md-ln1 { top: 48px; height: 4px; width: 92px; opacity: 0.95; }
-    .cm-md-ln2 { top: 62px; width: 128px; }
-    .cm-md-ln3 { top: 69px; width: 118px; }
-    .cm-md-ln4 { top: 76px; width: 104px; }
-    .cm-md-sel { position: absolute; left: 12px; top: 62px; width: 44px; height: 2px; background: var(--ca); }
-    .cm-md-sq { position: absolute; left: 12px; top: 96px; width: 8px; height: 8px; background: var(--ca); }
+    .cm-md-ln1 { top: 40px; height: 4px; width: 92px; opacity: 0.95; }
+    .cm-md-ln2 { top: 54px; width: 128px; }
+    .cm-md-ln3 { top: 61px; width: 118px; }
+    .cm-md-ln4 { top: 68px; width: 104px; }
+    .cm-md-sel { position: absolute; left: 12px; top: 54px; width: 44px; height: 2px; background: var(--ca); }
+    .cm-md-sq { position: absolute; left: 12px; top: 86px; width: 8px; height: 8px; background: var(--ca); }
     .cm-md-tag {
       position: absolute;
       left: 12px;
@@ -1727,7 +1728,7 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       pointer-events: none;
     }
     @media (max-width: 720px) {
-      .cm-deck { height: 140px; }
+      .cm-deck { height: 120px; }
       .cm-md-tag { display: none; }
     }
 
