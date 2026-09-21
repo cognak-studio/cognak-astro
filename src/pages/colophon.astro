@@ -172,10 +172,17 @@ const PAGES = Object.keys(PAGE_NAMES).map((key) => {
 const LADDER = PAGES
   .map(p => ({ ...p, l: lum(p.ground) }))
   .sort((a, b) => a.l - b.l);
-const L_MIN = LADDER[0].l;
-const L_MAX = LADDER[LADDER.length - 1].l;
-const LX = (i: number) => 40 + i * (920 / (LADDER.length - 1));
-const LY = (l: number) => 132 - ((l - L_MIN) / (L_MAX - L_MIN)) * 112;
+/* The nav each ground gets, by the same rule the wear script applies at
+   runtime: dark grounds pull their own color down, light grounds take the
+   site's frosted bar with the page's ink on it. */
+function mixHex(h: string, t: string, k: number) {
+  const a = [1, 3, 5].map(i => parseInt(h.substr(i, 2), 16));
+  const b = [1, 3, 5].map(i => parseInt(t.substr(i, 2), 16));
+  return 'rgb(' + a.map((c, i) => Math.round(c + (b[i] - c) * k)).join(',') + ')';
+}
+const navOf = (pg) => (pg.l < 0.35 ? mixHex(pg.ground, '#000000', 0.28) : 'rgba(247,241,255,0.75)');
+const navInkOf = (pg) => (pg.l < 0.35 ? '#ffffff' : pg.ink);
+const markOf = (pg) => (contrast(pg.sel, pg.ground) >= 3 ? pg.sel : pg.ink);
 
 const GROUND_COUNTS = PAGES.reduce((acc, p) => { acc[p.ground] = (acc[p.ground] || 0) + 1; return acc; }, {} as Record<string, number>);
 const N_GROUNDS = Object.keys(GROUND_COUNTS).length;
@@ -275,41 +282,17 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
 
     <p class="cm-sub">Each page makes one decision: its ground. The ink, the nav, the scrollbar and the highlight all follow from it by rule. {Word(PAGES.length)} pages, one function, run {word(PAGES.length)} times.</p>
 
-    <figure class="cm-ladder-wrap">
-      <svg class="cm-ladder" id="cm-ladder" viewBox="0 0 1000 180"
-           aria-label={"The site's " + word(PAGES.length) + " page grounds, darkest to lightest. Each one can be worn."}>
-        <line class="cm-l-axis" x1="40" y1="165" x2="960" y2="165" />
-        <polyline class="cm-l-path" points={LADDER.map((pg, i) => LX(i) + ',' + (LY(pg.l) + 20)).join(' ')} />
-        {LADDER.map((pg, i) => (
-          <g
-            class="cm-l-node"
-            role="button"
-            tabindex="0"
-            aria-label={'Wear ' + pg.name}
-            aria-pressed="false"
-            data-key={pg.key}
-            data-name={pg.name}
-            data-ground={pg.ground}
-            data-ink={pg.ink}
-            data-accent={pg.sel}
-            data-cr={pg.cr.toFixed(1)}
-            style={'--cx:' + LX(i) + 'px;--cy:' + (LY(pg.l) + 20) + 'px'}
-          >
-            <line class="cm-l-stem" x1={LX(i)} y1={LY(pg.l) + 20} x2={LX(i)} y2="165" />
-            <circle class="cm-l-hit" cx={LX(i)} cy={LY(pg.l) + 20} r="26" />
-            <circle class="cm-l-dot" cx={LX(i)} cy={LY(pg.l) + 20} r="10" fill={pg.ground} />
-            <text class="cm-l-label" x={LX(i)} y={LY(pg.l) + 20 - 22} text-anchor={i === 0 ? 'start' : i === LADDER.length - 1 ? 'end' : 'middle'}>{pg.name}</text>
-          </g>
-        ))}
-      </svg>
-      <figcaption class="cm-ladder-cap">
-        <span class="cm-l-meta" id="cm-l-meta">{Word(PAGES.length)} pages by relative luminance, darkest to lightest. Click one to wear it.</span>
-      </figcaption>
-      <div class="cm-l-chips" aria-label="Wear a page">
+    <figure class="cm-deck-wrap">
+      {/* Eleven pages in miniature, edge to edge, darkest first. At rest each
+          shows a sliver of itself: ground, nav, the left edge of its text and
+          its highlight. Hover or focus widens one; click wears it. Every
+          color on a card is derived from the ground by the site's own rules,
+          so the cards show the derivation before anything is clicked. */}
+      <div class="cm-deck" id="cm-ladder" role="group" aria-label={word(PAGES.length) + ' pages in miniature, darkest to lightest. Each one can be worn.'}>
         {LADDER.map((pg) => (
           <button
             type="button"
-            class="cm-l-node cm-l-chip-btn"
+            class="cm-l-node cm-md"
             aria-label={'Wear ' + pg.name}
             aria-pressed="false"
             data-key={pg.key}
@@ -318,13 +301,25 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
             data-ink={pg.ink}
             data-accent={pg.sel}
             data-cr={pg.cr.toFixed(1)}
-            style={'--g:' + pg.ground}
-          ><span class="cm-l-chip-dot"></span></button>
+            style={'--c:' + pg.ground + ';--ci:' + pg.ink + ';--ca:' + markOf(pg) + ';--cn:' + navOf(pg) + ';--cni:' + navInkOf(pg)}
+          >
+            <span class="cm-md-nav" aria-hidden="true"></span>
+            <span class="cm-md-ln cm-md-ln1" aria-hidden="true"></span>
+            <span class="cm-md-ln cm-md-ln2" aria-hidden="true"></span>
+            <span class="cm-md-sel" aria-hidden="true"></span>
+            <span class="cm-md-ln cm-md-ln3" aria-hidden="true"></span>
+            <span class="cm-md-ln cm-md-ln4" aria-hidden="true"></span>
+            <span class="cm-md-sq" aria-hidden="true"></span>
+            <span class="cm-md-tag" aria-hidden="true">{pg.name}<small>{pg.ground}</small></span>
+          </button>
         ))}
       </div>
+      <figcaption class="cm-ladder-cap">
+        <span class="cm-l-meta" id="cm-l-meta">{Word(PAGES.length)} pages by relative luminance, darkest to lightest. Click one to wear it.</span>
+      </figcaption>
     </figure>
 
-    <p class="cm-body">{Word(PAGES.length)} pages, {word(N_GROUNDS)} grounds. {Word(N_SHARED)} of them are the same near-black. Six sit stacked at the dark end, the 404's gray stands on its own in the middle, and the two light pages plus the white project template are the whole of the top.</p>
+    <p class="cm-body">{Word(PAGES.length)} pages, {word(N_GROUNDS)} grounds. {Word(N_SHARED)} of them are the same near-black. Six sit stacked at the dark end, the 404's gray stands on its own in the middle, and the two light pages plus the white project template are the light end.</p>
 
     <p class="cm-aside">The green is the default rather than the rule. It holds the homepage and the 404, and yields wherever a page has a voice of its own.</p>
 
@@ -890,7 +885,6 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       }
       #cm-anatomy,
       #cm-plate,
-      .cm-l-chips,
       .cm-ladder-cap,
       .cm-track { display: none !important; }
       .cm {
@@ -907,10 +901,11 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       }
       .cm-h2 { break-after: avoid; margin-top: 18pt; }
       .cm-row, .cm-spec, .cm-weight, .cm-rules li, .cm-outside li,
-      .cm-ladder-wrap, .cm-intro, .cm-durs, .cm-band, .cm .colophon-body { break-inside: avoid; }
+      .cm-deck-wrap, .cm-intro, .cm-durs, .cm-band, .cm .colophon-body { break-inside: avoid; }
       .cm-trigger { padding: 8pt 0 !important; }
-      .cm-l-dot, .cm-l-hit { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-      .cm-l-dot { stroke-opacity: 1 !important; }
+      .cm-md, .cm-md * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .cm-md { flex: 1 1 0 !important; }
+      .cm-md-tag { display: none !important; }
       .cm-body, .cm-sub, .cm-intro p { max-width: 68ch !important; }
     }
   </style>
@@ -1658,44 +1653,82 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
 
 
 
-    /* ---- the ladder ------------------------------------------------------
-       The eleven grounds, ordered by relative luminance, doubling as the
-       control. The shape is the point: the site is overwhelmingly dark, with
-       two light pages and the 404's gray sitting on its own in the middle. */
-    .cm-ladder-wrap { margin: 0 0 2rem; padding: 0; }
-    .cm-ladder {
-      display: block;
-      width: 100%;
-      height: auto;
-      overflow: visible;
+    /* ---- the deck --------------------------------------------------------
+       The eleven grounds, ordered by relative luminance, as pages in
+       miniature set edge to edge. Each card paints its own ground, nav, ink
+       and highlight from custom properties written at build, so what the
+       strip shows is the rule applied eleven times. Hover or focus widens a
+       card; the worn one stays wide. */
+    .cm-deck-wrap { margin: 0 0 2rem; padding: 0; }
+    .cm-deck {
+      display: flex;
+      height: 190px;
+      gap: 1px;
+      background: color-mix(in srgb, var(--wear-ink) 22%, transparent);
+      border: 1px solid color-mix(in srgb, var(--wear-ink) 22%, transparent);
+      transition: background-color var(--dur-2xl) var(--ease-standard), border-color var(--dur-2xl) var(--ease-standard);
     }
-    .cm-l-axis {
-      stroke: var(--wear-ink);
-      stroke-opacity: 0.22;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
+    .cm-md {
+      flex: 1 1 0;
+      min-width: 0;
+      position: relative;
+      overflow: hidden;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+      background: var(--c);
+      outline: none;
+      text-align: left;
+      font: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: flex 450ms var(--ease-out-expo);
     }
-    .cm-l-path {
-      fill: none;
-      stroke: var(--wear-ink);
-      stroke-opacity: 0.30;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
+    .cm-md:focus-visible,
+    .cm-md.is-on { flex: 4 1 0; }
+    @media (hover: hover) { .cm-md:hover { flex: 4 1 0; } }
+    .cm-md-nav { position: absolute; left: 0; right: 0; top: 0; height: 22px; background: var(--cn); }
+    .cm-md-nav::before,
+    .cm-md-nav::after { content: ''; position: absolute; top: 10px; height: 2px; background: var(--cni); opacity: 0.85; }
+    .cm-md-nav::before { left: 12px; width: 26px; }
+    .cm-md-nav::after { right: 12px; width: 40px; }
+    .cm-md-ln { position: absolute; left: 12px; height: 2px; background: var(--ci); opacity: 0.55; }
+    .cm-md-ln1 { top: 48px; height: 4px; width: 92px; opacity: 0.95; }
+    .cm-md-ln2 { top: 62px; width: 128px; }
+    .cm-md-ln3 { top: 69px; width: 118px; }
+    .cm-md-ln4 { top: 76px; width: 104px; }
+    .cm-md-sel { position: absolute; left: 12px; top: 62px; width: 44px; height: 2px; background: var(--ca); }
+    .cm-md-sq { position: absolute; left: 12px; top: 96px; width: 8px; height: 8px; background: var(--ca); }
+    .cm-md-tag {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      white-space: nowrap;
+      font-family: 'Diatype Mono', monospace;
+      font-size: var(--fs-11);
+      letter-spacing: 0.08em;
+      color: var(--ci);
+      opacity: 0;
+      transition: opacity var(--dur-sm) var(--ease-standard) 100ms;
     }
-    .cm-l-stem {
-      stroke: var(--wear-ink);
-      stroke-opacity: 0.14;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
+    .cm-md-tag small { font-size: var(--fs-10); opacity: 0.6; }
+    .cm-md:focus-visible .cm-md-tag,
+    .cm-md.is-on .cm-md-tag { opacity: 1; }
+    @media (hover: hover) { .cm-md:hover .cm-md-tag { opacity: 1; } }
+    .cm-md.is-on::after,
+    .cm-md:focus-visible::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 0 2px var(--wear-accent);
+      pointer-events: none;
     }
-    /* A hairline keeps the near-blacks visible against a near-black ground -
-       four of the eleven are #17151A, and without it they disappear. */
-    .cm-l-chip {
-      stroke: var(--wear-ink);
-      stroke-opacity: 0.45;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
-      transition: stroke-opacity var(--dur-m) var(--ease-standard);
+    @media (max-width: 720px) {
+      .cm-deck { height: 140px; }
+      .cm-md-tag { display: none; }
     }
 
     .cm-ladder-cap { margin: 0.6rem 0 0; }
@@ -1705,89 +1738,7 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       letter-spacing: 0.06em;
       color: var(--wear-dim);
     }
-
-
-
-    /* ---- ladder: each ground is a button --------------------------------
-       Circles rather than squares because a circle on a chart reads as a
-       thing you can press; a square reads as data. The hit area is far
-       larger than the dot so the six stacked near-blacks stay easy to aim. */
-    .cm-l-node { cursor: pointer; outline: none; }
-    svg .cm-l-node:focus,
-    svg .cm-l-node:focus-visible { outline: none !important; }
-    .cm-l-hit { fill: transparent; }
-    .cm-l-dot {
-      stroke: var(--wear-ink);
-      stroke-opacity: 0.5;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
-      transform-box: fill-box;
-      transform-origin: center;
-      transition:
-        transform var(--dur-m) var(--ease-overshoot),
-        stroke var(--dur-m) var(--ease-standard),
-        stroke-opacity var(--dur-m) var(--ease-standard);
-    }
-    .cm-l-label {
-      font-family: 'Diatype Mono', monospace;
-      font-size: var(--fs-13);
-      letter-spacing: 0.04em;
-      fill: var(--wear-ink);
-      opacity: 0;
-      transition: opacity var(--dur-s) var(--ease-standard);
-      pointer-events: none;
-    }
-    @media (hover: hover) {
-      .cm-l-node:hover .cm-l-dot { transform: scale(1.35); stroke-opacity: 1; }
-      .cm-l-node:hover .cm-l-label { opacity: 0.85; }
-    }
-    .cm-l-node:focus-visible .cm-l-dot { transform: scale(1.35); stroke: var(--wear-accent); stroke-opacity: 1; stroke-width: 2; }
-    .cm-l-node:focus-visible .cm-l-label { opacity: 1; }
-    .cm-l-node.is-on .cm-l-dot { transform: scale(1.35); stroke: var(--wear-accent); stroke-opacity: 1; stroke-width: 2; }
-    .cm-l-node.is-on .cm-l-label { opacity: 1; fill: var(--wear-accent); }
     html, body, .cm { transition-property: background-color, color; }
-
-    /* ---- ladder on a phone ------------------------------------------------
-       At 390px the SVG scales to about a third, which puts each hit circle
-       under 20px across and the six near-blacks a thumb apart. The drawing
-       stays as the picture; the control becomes a row of 40px chips in the
-       same order, driven by the same script (both sets carry .cm-l-node). */
-    .cm-l-chips { display: none; }
-    @media (max-width: 720px) {
-      .cm-ladder .cm-l-node { pointer-events: none; }
-      .cm-l-chips {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin: 1.2rem 0 0;
-      }
-      .cm-l-chip-btn {
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        border: 0;
-        background: none;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .cm-l-chip-dot {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: var(--g);
-        box-shadow: 0 0 0 1px color-mix(in srgb, var(--wear-ink) 50%, transparent);
-        transition: transform var(--dur-m) var(--ease-overshoot), box-shadow var(--dur-m) var(--ease-standard);
-      }
-      .cm-l-chip-btn.is-on .cm-l-chip-dot,
-      .cm-l-chip-btn:focus-visible .cm-l-chip-dot {
-        transform: scale(1.3);
-        box-shadow: 0 0 0 2px var(--wear-accent);
-      }
-      .cm-l-chip-btn:focus-visible { outline: none; }
-    }
 
 
     /* ---- type: the ten sizes on one baseline ------------------------------
