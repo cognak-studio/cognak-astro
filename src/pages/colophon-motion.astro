@@ -81,7 +81,6 @@ function lum(hex) {
     .map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
   return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
 }
-const PAGE_LUM = PAGES.map(p => ({ name: p.name, l: lum(p.ground) }));
 
 /* The control is ordered by how dark the page is, not alphabetically and not
    by nav order. That ordering is the finding: eleven pages, eight distinct
@@ -125,7 +124,6 @@ const WEIGHTS = [
 
   <main id="cognak-main"><section class="cm">
 
-    <script type="application/json" id="cm-lums" set:html={JSON.stringify(PAGE_LUM)}></script>
     <script type="application/json" id="cm-sizes" set:html={JSON.stringify(SIZES)}></script>
 
     <p class="cm-eyebrow">Colophon &nbsp;/&nbsp; System</p>
@@ -142,19 +140,33 @@ const WEIGHTS = [
     <p class="cm-sub">One decision per page — what is this page's ground — and the ink, the nav, the scrollbar and the highlight all follow from it by rule. Eleven pages, one function, run eleven times.</p>
 
     <figure class="cm-ladder-wrap">
-      <svg class="cm-ladder" viewBox="0 0 1000 160" role="img"
-           aria-label="The site's eleven page grounds ordered darkest to lightest. Six sit together at the dark end, the 404 grey stands alone in the middle, and two light pages plus white sit at the top.">
-        <line class="cm-l-axis" x1="40" y1="145" x2="960" y2="145" />
-        <polyline class="cm-l-path" points={LADDER.map((pg, i) => LX(i) + ',' + LY(pg.l)).join(' ')} />
+      <svg class="cm-ladder" id="cm-ladder" viewBox="0 0 1000 180"
+           aria-label="The site's eleven page grounds, darkest to lightest. Each one can be worn.">
+        <line class="cm-l-axis" x1="40" y1="165" x2="960" y2="165" />
+        <polyline class="cm-l-path" points={LADDER.map((pg, i) => LX(i) + ',' + (LY(pg.l) + 20)).join(' ')} />
         {LADDER.map((pg, i) => (
-          <g class="cm-l-node">
-            <line class="cm-l-stem" x1={LX(i)} y1={LY(pg.l)} x2={LX(i)} y2="145" />
-            <rect class="cm-l-chip" x={LX(i) - 9} y={LY(pg.l) - 9} width="18" height="18" fill={pg.ground} />
+          <g
+            class="cm-l-node"
+            role="button"
+            tabindex="0"
+            aria-label={'Wear ' + pg.name}
+            aria-pressed="false"
+            data-key={pg.key}
+            data-name={pg.name}
+            data-ground={pg.ground}
+            data-ink={pg.ink}
+            data-accent={pg.sel}
+            style={'--cx:' + LX(i) + 'px;--cy:' + (LY(pg.l) + 20) + 'px'}
+          >
+            <line class="cm-l-stem" x1={LX(i)} y1={LY(pg.l) + 20} x2={LX(i)} y2="165" />
+            <circle class="cm-l-hit" cx={LX(i)} cy={LY(pg.l) + 20} r="26" />
+            <circle class="cm-l-dot" cx={LX(i)} cy={LY(pg.l) + 20} r="10" fill={pg.ground} />
+            <text class="cm-l-label" x={LX(i)} y={LY(pg.l) + 20 - 22} text-anchor="middle">{pg.name}</text>
           </g>
         ))}
       </svg>
       <figcaption class="cm-ladder-cap">
-        <span class="cm-l-meta">Eleven pages by relative luminance, darkest to lightest</span>
+        <span class="cm-l-meta" id="cm-l-meta">Eleven pages by relative luminance, darkest to lightest. Click one to wear it.</span>
       </figcaption>
     </figure>
 
@@ -596,6 +608,44 @@ const WEIGHTS = [
     }
 
 
+
+    /* ---- ladder: each ground is a button --------------------------------
+       Circles rather than squares because a circle on a chart reads as a
+       thing you can press; a square reads as data. The hit area is far
+       larger than the dot so the six stacked near-blacks stay easy to aim. */
+    .cm-l-node { cursor: pointer; outline: none; }
+    .cm-l-hit { fill: transparent; }
+    .cm-l-dot {
+      stroke: var(--wear-ink);
+      stroke-opacity: 0.5;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+      transform-box: fill-box;
+      transform-origin: center;
+      transition:
+        transform var(--dur-m) var(--ease-overshoot),
+        stroke var(--dur-m) var(--ease-standard),
+        stroke-opacity var(--dur-m) var(--ease-standard);
+    }
+    .cm-l-label {
+      font-family: 'Diatype Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      fill: var(--wear-ink);
+      opacity: 0;
+      transition: opacity var(--dur-s) var(--ease-standard);
+      pointer-events: none;
+    }
+    @media (hover: hover) {
+      .cm-l-node:hover .cm-l-dot { transform: scale(1.35); stroke-opacity: 1; }
+      .cm-l-node:hover .cm-l-label { opacity: 0.85; }
+    }
+    .cm-l-node:focus-visible .cm-l-dot { transform: scale(1.35); stroke: var(--wear-accent); stroke-opacity: 1; stroke-width: 2; }
+    .cm-l-node:focus-visible .cm-l-label { opacity: 1; }
+    .cm-l-node.is-on .cm-l-dot { transform: scale(1.35); stroke: var(--wear-accent); stroke-opacity: 1; stroke-width: 2; }
+    .cm-l-node.is-on .cm-l-label { opacity: 1; fill: var(--wear-accent); }
+    html, body, .cm { transition-property: background-color, color; }
+
     /* ---- type ---- */
     .cm-weights { list-style: none; margin: 0 0 3rem; padding: 0; }
     .cm-weight {
@@ -850,29 +900,6 @@ const WEIGHTS = [
         });
       });
 
-      /* Grounds as a tone ladder: x is page order, y is relative luminance.
-         The site runs dark with three light exceptions, and the shape says so
-         faster than eleven hex values do. */
-      var LUMS = JSON.parse(document.getElementById('cm-lums').textContent);
-      function ladder() {
-        var out = [], i, t, seg, f;
-        for (i = 0; i < N; i++) {
-          t = i / (N - 1) * (LUMS.length - 1);
-          seg = Math.min(Math.floor(t), LUMS.length - 2);
-          f = t - seg;
-          out.push([i / (N - 1), LUMS[seg].l + (LUMS[seg + 1].l - LUMS[seg].l) * f]);
-        }
-        return out;
-      }
-      var colourState = {
-        el: document.getElementById('cm-colour-sec'),
-        pts: ladder(),
-        nodes: LUMS.map(function (g, i) { return [i / (LUMS.length - 1), g.l]; }),
-        handles: [],
-        name: '11 grounds',
-        sub: 'relative luminance'
-      };
-
       /* Every fixed font-size on the site: x is size, y is how often it is
          used. The cluster on the left IS the finding. */
       var SIZES = JSON.parse(document.getElementById('cm-sizes').textContent);
@@ -929,7 +956,6 @@ const WEIGHTS = [
         }
         states.forEach(consider);
         if (durEl) { consider(durState); }
-        if (colourState.el) { consider(colourState); }
         if (typeState.el) { consider(typeState); }
         if (!best) { return { st: idle, vis: 0 }; }
         /* fade the plate in only while the section is genuinely the subject */
@@ -1095,4 +1121,103 @@ const WEIGHTS = [
     })();
   </script>
 
+
+  <script is:inline>
+    /* Ladder as control. Clicking a ground sets body[data-page] and paints
+       the ground; the site's own per-page rules resolve the rest. Nothing
+       runs on its own. Click the worn one again, or press Escape, to return
+       to the colophon's own blue. */
+    (function () {
+      var nodes = Array.prototype.slice.call(document.querySelectorAll('.cm-l-node'));
+      if (!nodes.length) { return; }
+      var root = document.documentElement, body = document.body;
+      var meta = document.getElementById('cm-l-meta');
+      var restMeta = meta ? meta.textContent : '';
+      var worn = null;
+
+      function rgb(h) { return [1, 3, 5].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }
+      function lum(h) {
+        var v = rgb(h).map(function (c) {
+          c = c / 255;
+          return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+      }
+      function mix(h, t, a) {
+        var x = rgb(h), y = rgb(t);
+        return 'rgb(' + x.map(function (c, i) { return Math.round(c + (y[i] - c) * a); }).join(',') + ')';
+      }
+      /* ::selection's accent is chosen against its own ground; lift it only
+         if it fails there, which none currently do - this is a guard. */
+      function contrast(a, b) {
+        var la = lum(a), lb = lum(b);
+        return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+      }
+
+      function paint(g, ink, accent, key) {
+        var dark = lum(g) < 0.35;
+        root.style.setProperty('--wear-bg', g);
+        root.style.setProperty('--wear-ink', ink);
+        root.style.setProperty('--wear-accent', contrast(accent, g) >= 3 ? accent : ink);
+        root.style.setProperty('--wear-dim', mix(ink, g, 0.42));
+        root.style.setProperty('--wear-nav', mix(g, '#000000', 0.28));
+        root.style.setProperty('--sb-thumb', dark ? 'rgba(255,255,255,0.15)' : 'rgba(23,21,26,0.15)');
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        body.setAttribute('data-page', key);
+      }
+
+      function setUrl(key) {
+        try {
+          var u = new URL(location.href);
+          if (key) { u.searchParams.set('wear', key); } else { u.searchParams.delete('wear'); }
+          history.replaceState(null, '', u.toString());
+        } catch (e) {}
+      }
+
+      function rest() {
+        worn = null;
+        ['--wear-bg', '--wear-ink', '--wear-accent', '--wear-dim', '--wear-nav', '--sb-thumb']
+          .forEach(function (v) { root.style.removeProperty(v); });
+        root.style.colorScheme = '';
+        body.setAttribute('data-page', 'colophon');
+        nodes.forEach(function (n) { n.classList.remove('is-on'); n.setAttribute('aria-pressed', 'false'); });
+        if (meta) { meta.textContent = restMeta; }
+        setUrl(null);
+      }
+
+      function wear(n) {
+        var key = n.getAttribute('data-key');
+        if (worn === key || key === 'colophon') { rest(); return; }
+        worn = key;
+        paint(n.getAttribute('data-ground'), n.getAttribute('data-ink'), n.getAttribute('data-accent'), key);
+        nodes.forEach(function (o) {
+          var on = o === n;
+          o.classList.toggle('is-on', on);
+          o.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        if (meta) {
+          meta.textContent = 'Wearing ' + n.getAttribute('data-name') + ' · ' +
+            n.getAttribute('data-ground').toUpperCase() + '. Click it again, or press Escape, to come back.';
+        }
+        setUrl(key);
+      }
+
+      nodes.forEach(function (n) {
+        n.addEventListener('click', function () { wear(n); });
+        n.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); wear(n); }
+        });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && worn) { rest(); }
+      });
+
+      var want = null;
+      try { want = new URL(location.href).searchParams.get('wear'); } catch (e) {}
+      if (want) {
+        var m = nodes.filter(function (n) { return n.getAttribute('data-key') === want; })[0];
+        if (m) { wear(m); }
+      }
+    })();
+  </script>
 </BaseLayout>
