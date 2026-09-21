@@ -224,6 +224,17 @@ const FONT_DIR = path.resolve(process.cwd(), 'public/theme/assets/fonts/diatype'
 const kb = (file: string) => Math.round(fs.statSync(path.join(FONT_DIR, file)).size / 1024);
 const FONT_KB = WEIGHTS.map(w => kb(w.file)).concat(kb(MONO_FILE));
 const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
+
+/* ---- the build itself, read from package.json --------------------------
+   How many packages the site depends on, and which Astro actually built it
+   (the installed version, falling back to the declared range if
+   node_modules isn't where it should be). */
+import pkg from '../../package.json';
+const DEP_COUNT = Object.keys(pkg.dependencies || {}).length;
+let astroVersion = String(pkg.dependencies.astro || '').replace(/^[\^~]/, '');
+try {
+  astroVersion = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), 'node_modules/astro/package.json'), 'utf8')).version;
+} catch (e) { /* declared range stands */ }
 ---
 <BaseLayout
   page="colophon"
@@ -251,9 +262,12 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
       <h2 class="cm-h2 colophon-h2">Credits</h2>
       <p class="colophon-spec">
         <span>Typeface</span><span>ABC Diatype &amp; ABC Diatype Mono, by <a href="https://abcdinamo.com/typefaces/diatype" target="_blank" rel="noopener">Dinamo</a></span>
-        <span>Built with</span><span><a href="https://astro.build" target="_blank" rel="noopener">Astro</a>, hand-written HTML/CSS/JS, WebGL</span>
+        <span>Built with</span><span><a href="https://astro.build" target="_blank" rel="noopener">Astro</a> {astroVersion}, hand-written HTML/CSS/JS, WebGL</span>
+        <span>Rendered</span><span>Once, at build. Every page is a file. No CMS, no database.</span>
+        <span>Depends on</span><span>{Word(DEP_COUNT)} packages. Three reach the browser: Lenis, UnicornStudio, Vercel's analytics.</span>
         <span>Motion</span><span><a href="https://lenis.darkroom.engineering" target="_blank" rel="noopener">Lenis</a> smooth scroll, <a href="https://www.unicorn.studio" target="_blank" rel="noopener">UnicornStudio</a>, custom canvas</span>
         <span>Served from</span><span><a href="https://vercel.com" target="_blank" rel="noopener">Vercel</a></span>
+        <span>Before this</span><span>WordPress, retired June 2026.</span>
         <span>Made in</span><span>Los Angeles, California</span>
         <span>Set</span><span>{buildDate}{buildSha && <span class="colophon-sha"> · {buildSha}</span>}</span>
       </p>
@@ -2553,7 +2567,12 @@ const FONT_TOTAL_KB = FONT_KB.reduce((a, b) => a + b, 0);
         cursor.style.setProperty('--temp-pill-fg', n.getAttribute('data-sel-ink'));
         cursor.classList.remove('is-link', 'is-home', 'is-project', 'is-view-projects', 'is-next', 'is-temp-hot');
         cursor.classList.add('is-founder', 'is-temp', 'is-wear');
-        label.textContent = n.getAttribute('data-key') === worn ? 'Take it off' : 'Wear this theme';
+        /* The blue card is the resting state, never "worn": over it the click
+           either returns to blue (something else is on) or does nothing. */
+        var key = n.getAttribute('data-key');
+        label.textContent = key === 'colophon'
+          ? (worn ? 'Take it off' : 'Already on')
+          : (key === worn ? 'Take it off' : 'Wear this theme');
       }
       function pillOff() {
         var cursor = document.getElementById('cognak-cursor');
