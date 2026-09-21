@@ -915,6 +915,54 @@ const WEIGHTS = [
         sub: '44 of them under 18px'
       };
 
+      /* Accents by hue. The inline ladder already plots the grounds by
+         lightness; this plots the other axis - the eleven highlight colours
+         placed round a circle at their hue, red at the top, clockwise.
+         Pages sharing an accent step inward rather than stacking on one
+         point, so the count reads: four violets, three greens. The point for
+         whichever page is hovered or worn in the ladder is ringed. */
+      function hueOf(hex) {
+        var r = parseInt(hex.substr(1, 2), 16) / 255,
+            g = parseInt(hex.substr(3, 2), 16) / 255,
+            bl = parseInt(hex.substr(5, 2), 16) / 255;
+        var mx = Math.max(r, g, bl), mn = Math.min(r, g, bl), d = mx - mn, h = 0;
+        if (d === 0) { return 0; }
+        if (mx === r) { h = ((g - bl) / d) % 6; }
+        else if (mx === g) { h = (bl - r) / d + 2; }
+        else { h = (r - g) / d + 4; }
+        h *= 60;
+        return h < 0 ? h + 360 : h;
+      }
+      var wheelKeys = [], wheelNodes = [], seen = {};
+      Array.prototype.slice.call(document.querySelectorAll('.cm-l-node')).forEach(function (el) {
+        var acc = (el.getAttribute('data-accent') || '').toUpperCase();
+        if (!acc) { return; }
+        /* near-identical violets share a band, so bucket hue to 12 degrees */
+        var hue = hueOf(acc), band = Math.round(hue / 12);
+        var k = seen[band] = (seen[band] || 0) + 1;
+        var rad = 0.42 - (k - 1) * 0.07;
+        var th = hue * Math.PI / 180;
+        wheelKeys.push(el.getAttribute('data-key'));
+        wheelNodes.push([0.5 + rad * Math.sin(th), 0.5 + rad * Math.cos(th)]);
+      });
+      function ring() {
+        var out = [], i, t;
+        for (i = 0; i < N; i++) {
+          t = i / (N - 1) * Math.PI * 2;
+          out.push([0.5 + 0.42 * Math.sin(t), 0.5 + 0.42 * Math.cos(t)]);
+        }
+        return out;
+      }
+      var wheelState = {
+        el: document.getElementById('cm-colour-sec'),
+        pts: ring(),
+        nodes: wheelNodes,
+        handles: wheelNodes.map(function (n) { return [[0.5, 0.5], [n[0], n[1]]]; }),
+        keys: wheelKeys,
+        name: '11 highlights',
+        sub: 'by hue'
+      };
+
       var durEl = document.getElementById('cm-durs');
       var durNodes = Array.prototype.slice.call(document.querySelectorAll('.cm-dur'))
         .map(function (li) {
@@ -958,6 +1006,7 @@ const WEIGHTS = [
         }
         states.forEach(consider);
         if (durEl) { consider(durState); }
+        if (wheelState.el && wheelNodes.length) { consider(wheelState); }
         if (typeState.el) { consider(typeState); }
         if (!best) { return { st: idle, vis: 0 }; }
         /* fade the plate in only while the section is genuinely the subject */
@@ -1069,6 +1118,18 @@ const WEIGHTS = [
         cur.nodes.forEach(function (n) {
           ctx.fillRect(X(n[0]) - 3, Y(n[1]) - 3, 6, 6);
         });
+
+        /* the ladder's hovered or worn page, ringed on the wheel */
+        if (target === wheelState && window.__cmHot) {
+          var hi = wheelState.keys.indexOf(window.__cmHot);
+          if (hi > -1 && cur.nodes[hi]) {
+            ctx.beginPath();
+            ctx.arc(X(cur.nodes[hi][0]), Y(cur.nodes[hi][1]), 9, 0, Math.PI * 2);
+            ctx.strokeStyle = withAlpha(C.accent, 0.9);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+          }
+        }
       }
 
       function positionPlate(label) {
@@ -1202,6 +1263,7 @@ const WEIGHTS = [
       /* show() paints a node without committing to it - used by hover.
          Passing null shows the committed state again. */
       function show(n, previewing) {
+        window.__cmHot = n ? n.getAttribute('data-key') : null;
         if (!n || n.getAttribute('data-key') === 'colophon') {
           clearVars();
           mark(null);
