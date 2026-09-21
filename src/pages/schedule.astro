@@ -232,7 +232,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
     letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
   .schedule .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
-  .schedule .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch;
+  .schedule .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch;
     margin:0 0 3.4rem 40px; }
   @media (max-width:720px){
     .schedule .headline{ font-size:clamp(24px,7vw,42px); }
@@ -252,20 +252,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
   .schedule .group:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
   .schedule .group[hidden]{ display:none; }
-  .schedule .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
+  .schedule .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em;
     text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; }
 
   .schedule .field{ margin-bottom:2rem; }
   .schedule .field:last-child{ margin-bottom:0; }
   .schedule .q{ display:block; margin-bottom:.85rem; padding:0; }
-  .schedule .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
-  .schedule .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:54ch; }
+  .schedule .q-title{ display:block; font-size:var(--fs-17); font-weight:500; line-height:1.3; color:var(--ink); }
+  .schedule .q-sub{ display:block; font-size:var(--fs-14); font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:54ch; }
 
   /* ---------------------------------------------------------- inputs --- */
   .schedule .txt{
     width:100%; box-sizing:border-box; margin:0; resize:vertical;
     background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
-    color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
+    color:var(--ink); font-family:inherit; font-size:var(--fs-16); line-height:1.5; padding:14px 16px;
     transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none; }
   .schedule .txt::placeholder{ color:var(--placeholder); }
   .schedule .txt:focus{ border-color:var(--accent); background:var(--field-focus); color:var(--ink); }
@@ -279,7 +279,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   /* ----------------------------------------------------------- pills --- */
   .schedule .pills{ display:flex; flex-wrap:wrap; gap:10px; }
   .schedule .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
-    border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
+    border-radius:999px; padding:10px 18px; font-size:var(--fs-15); color:var(--ink); background:var(--field);
     transition:transform var(--dur-xs) var(--ease-press), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
   .schedule .pill:hover{ border-color:var(--ink); }
   .schedule .pill:active{ transform:scale(.96); }
@@ -288,7 +288,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   /* ---------------------------------------------------- calendar picker --- */
   .schedule .days-wrap{ min-height:60px; }
-  .schedule .sched-loading, .schedule .sched-empty{ font-size:.92rem; color:var(--ink-soft); padding:.4rem 0; }
+  .schedule .sched-loading, .schedule .sched-empty{ font-size:var(--fs-15); color:var(--ink-soft); padding:.4rem 0; }
   .schedule .sched-empty a{ color:var(--accent-soft); text-decoration:underline; text-underline-offset:var(--link-offset); }
   .schedule .sched-retry{ background:none; border:none; padding:0; margin-left:.4em; color:var(--accent-soft);
     text-decoration:underline; text-underline-offset:var(--link-offset); cursor:pointer; font:inherit; }
@@ -315,7 +315,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .cal-col{ min-width:0; }
 
   .schedule .cal-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; }
-  .schedule .cal-month-label{ font-size:.92rem; font-weight:500; color:var(--ink); }
+  .schedule .cal-month-label{ font-size:var(--fs-15); font-weight:500; color:var(--ink); }
   .schedule .cal-nav-btn{ display:inline-flex; align-items:center; justify-content:center;
     width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong);
     background:var(--field); color:var(--ink); cursor:pointer; padding:0;
@@ -326,12 +326,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .cal-nav-btn svg{ display:block; }
 
   .schedule .cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
-    font-family:'Diatype Mono', monospace; font-size:.64rem; letter-spacing:.1em; text-transform:uppercase;
+    font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.1em; text-transform:uppercase;
     color:var(--ink-soft); text-align:center; margin-bottom:.5rem; }
 
   .schedule .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
   .schedule .cal-day{ position:relative; aspect-ratio:1; display:flex; align-items:center; justify-content:center;
-    font-family:inherit; font-size:.88rem; color:var(--placeholder); background:none; border:1px solid transparent;
+    font-family:inherit; font-size:var(--fs-14); color:var(--placeholder); background:none; border:1px solid transparent;
     border-radius:8px; padding:0; cursor:default; -webkit-appearance:none; appearance:none;
     transition:border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
   .schedule .cal-day.is-blank{ visibility:hidden; }
@@ -371,7 +371,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
      meaning before anyone hovers a day. Static, not tier-driven; built
      in renderCalendar() right under the grid. */
   .schedule .cal-legend{ display:flex; align-items:center; gap:7px; margin-top:1.6rem;
-    font-family:'Diatype Mono', monospace; font-size:.62rem; letter-spacing:.14em; text-transform:uppercase;
+    font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase;
     color:var(--placeholder); }
   .schedule .cal-legend-gauge{ position:relative; width:3px; height:12px; border-radius:2px;
     background:var(--line-strong); flex:0 0 auto; overflow:hidden; }
@@ -383,12 +383,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   .schedule .times-col{ border-left:1px solid var(--line); padding-left:1.8rem; }
   @keyframes schedTimesIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
-  .schedule .cal-day-label{ font-size:.88rem; font-weight:500; color:var(--ink); margin-bottom:.8rem;
+  .schedule .cal-day-label{ font-size:var(--fs-14); font-weight:500; color:var(--ink); margin-bottom:.8rem;
     animation:schedTimesIn .32s var(--ease-standard) both; }
-  .schedule .cal-day-note{ font-size:.76rem; color:var(--placeholder); margin:-.5rem 0 .8rem;
+  .schedule .cal-day-note{ font-size:var(--fs-12); color:var(--placeholder); margin:-.5rem 0 .8rem;
     animation:schedTimesIn .32s var(--ease-standard) .03s both; }
   .schedule .sched-slots{ display:flex; flex-direction:column; gap:8px; }
-  .schedule .sched-slot{ font-family:inherit; font-size:.9rem; color:var(--ink); background:var(--field);
+  .schedule .sched-slot{ font-family:inherit; font-size:var(--fs-14); color:var(--ink); background:var(--field);
     border:1px solid var(--line-strong); border-radius:8px; padding:9px 14px; cursor:pointer; text-align:center;
     animation:schedTimesIn .3s var(--ease-standard) both;
     transition:transform var(--dur-xs) var(--ease-press), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
@@ -403,16 +403,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .schedule .times-col:empty{ display:none; }
   }
 
-  .schedule .selected-slot-banner{ margin:0 0 1.6rem; font-size:.96rem; color:var(--accent-soft); }
+  .schedule .selected-slot-banner{ margin:0 0 1.6rem; font-size:var(--fs-15); color:var(--accent-soft); }
   .schedule .selected-slot-banner:empty{ display:none; }
 
-  .schedule .note{ margin:1.2rem 0 0; font-size:.88rem; line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
+  .schedule .note{ margin:1.2rem 0 0; font-size:var(--fs-14); line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
   .schedule .note.is-error{ color:var(--err); }
   .schedule .note.is-ok{ color:var(--ok); }
 
   /* --------------------------------------------------------- actions --- */
   .schedule .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem; }
-  .schedule .btn{ font-family:inherit; font-size:1rem; font-weight:500; cursor:pointer;
+  .schedule .btn{ font-family:inherit; font-size:var(--fs-16); font-weight:500; cursor:pointer;
     display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
     border-radius:999px; padding:14px 28px; background:none; color:var(--ink);
     border:1px solid var(--line-strong); text-decoration:none;
@@ -423,7 +423,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .btn:disabled{ opacity:.32; cursor:not-allowed; }
   .schedule .btn-ghost{ opacity:.85; }
 
-  .schedule .tfoot{ margin:2.6rem 0 0; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
+  .schedule .tfoot{ margin:2.6rem 0 0; font-size:var(--fs-13); line-height:1.7; color:var(--placeholder); }
   .schedule .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset);
     text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
   @media (hover:hover){ .schedule .tfoot a:hover{ color:var(--accent); } }
@@ -443,7 +443,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
      to the calendar/duration picker and re-runs loadAvailability(), so
      the slot just booked no longer shows as open. */
   .schedule .schedule-backlink{ position:absolute; top:2px; left:0; display:flex; align-items:center;
-    gap:.5rem; background:none; border:none; padding:0; margin:0; font:inherit; font-size:.85rem;
+    gap:.5rem; background:none; border:none; padding:0; margin:0; font:inherit; font-size:var(--fs-14);
     color:var(--ink-soft); cursor:pointer; text-align:left;
     transition:color var(--dur-s) var(--ease-standard); }
   .schedule .schedule-backlink::before{ content:""; position:absolute; inset:-12px -10px; }
@@ -455,9 +455,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   @keyframes schedConfirmIn{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
   .schedule .confirmed-title{ font-size:1.6rem; font-weight:500; margin:0 0 .8rem; color:var(--ink);
     animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .55s both; }
-  .schedule .confirmed-when{ font-size:1.1rem; color:var(--accent-soft); margin:0 0 1.2rem;
+  .schedule .confirmed-when{ font-size:var(--fs-18); color:var(--accent-soft); margin:0 0 1.2rem;
     animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .65s both; }
-  .schedule .confirmed-sub{ font-size:.95rem; line-height:1.55; color:var(--ink-soft); max-width:46ch;
+  .schedule .confirmed-sub{ font-size:var(--fs-15); line-height:1.55; color:var(--ink-soft); max-width:46ch;
     margin:0 auto 2.2rem; animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .75s both; }
   .schedule .confirmed-actions{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
     animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .85s both; }

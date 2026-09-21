@@ -84,7 +84,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
       z-index: 0;
       pointer-events: none;
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       line-height: 1.6;
       letter-spacing: 0.04em;
       color: #a9abbd;
@@ -232,7 +232,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
       .colophon-headline { font-size: clamp(24px, 7vw, 42px); }
     }
     .colophon-body p {
-      font-size: 1.06rem;
+      font-size: var(--fs-17);
       line-height: 1.7;
       color: #e8e8de;
       margin: 0 0 1.6rem;
@@ -320,7 +320,7 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
       align-items: baseline;
       gap: 0.55rem 2rem;
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.82rem;
+      font-size: var(--fs-13);
       line-height: 1.5;
       color: #e8e8de;
       border-top: 1px solid rgba(244,244,238,0.28);
@@ -339,10 +339,10 @@ const buildDate = new Date().toLocaleDateString('en-GB', {
       color: #a9abbd;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
     }
     .colophon-sign {
-      font-size: 0.98rem !important;
+      font-size: var(--fs-16) !important;
       color: #c7c9d8 !important;
     }
     @media (max-width: 600px) {

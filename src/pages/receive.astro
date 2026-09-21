@@ -91,7 +91,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .receive .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
-    .receive .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:56ch; margin:0 0 3.4rem 0; }
+    .receive .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:56ch; margin:0 0 3.4rem 0; }
     /* Round profile pictures set INTO the lede sentence — the COGNAK mark
        before "COGNAK" and the client's saved photo (from /send's address
        book, snapshotted into the manifest) before their name, so the line
@@ -112,7 +112,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transform:translateY(-1px);
       margin:0 .45rem 0 .12rem; background:rgba(143,194,242,.14); color:var(--accent-soft);
       border:1px solid var(--line-strong);
-      font-family:'Diatype Mono', monospace; font-size:.56rem; letter-spacing:.04em; }
+      font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.04em; }
     .receive .lavatar img{ width:100%; height:100%; object-fit:cover; display:block; }
     @media (max-width:720px){ .receive .headline{ font-size:clamp(24px,7vw,42px); } }
     html.js .receive-headline, html.js .receive-lede{ opacity:0; }
@@ -134,16 +134,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
     @media (max-width:600px){ .receive .dcard{ padding:24px 20px 22px; } }
 
-    .receive .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
+    .receive .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em;
       text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.6rem; }
     .receive .field{ margin-bottom:0; }
     .receive .q{ display:block; margin-bottom:.85rem; padding:0; }
-    .receive .q-title{ display:block; font-size:1.02rem; font-weight:500; line-height:1.3; color:var(--ink); }
+    .receive .q-title{ display:block; font-size:var(--fs-16); font-weight:500; line-height:1.3; color:var(--ink); }
 
     .receive .txt{
       width:100%; box-sizing:border-box; margin:0;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
-      color:var(--ink); font-family:inherit; font-size:1.1rem; letter-spacing:.08em; line-height:1.5; padding:14px 16px;
+      color:var(--ink); font-family:inherit; font-size:var(--fs-18); letter-spacing:.08em; line-height:1.5; padding:14px 16px;
       transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none; }
 
     /* Typed text was going illegible: WebKit paints autofilled fields with its
@@ -172,11 +172,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .txt.is-error{ border-color:var(--err); }
     .receive a:focus-visible, .receive button:focus-visible, .receive input:focus-visible{ outline-color:var(--accent) !important; }
 
-    .receive .note{ margin:.7rem 0 0; font-size:.84rem; line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
+    .receive .note{ margin:.7rem 0 0; font-size:var(--fs-13); line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
     .receive .note.is-error{ color:var(--err); }
 
     .receive .actions{ margin-top:1.6rem; }
-    .receive .btn{ font-family:inherit; font-size:.98rem; font-weight:500; cursor:pointer;
+    .receive .btn{ font-family:inherit; font-size:var(--fs-16); font-weight:500; cursor:pointer;
       display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
       border-radius:999px; padding:14px 26px; background:none; color:var(--ink);
       border:1px solid var(--line-strong);
@@ -236,7 +236,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .receive .frow-thumb img,
     .receive .frow-thumb video{ width:100%; height:100%; object-fit:cover; display:block; }
     .receive .frow-thumb.is-plain{ border-style:dashed; }
-    .receive .frow-thumb .tp{ font-family:'Diatype Mono', monospace; font-size:.5rem;
+    .receive .frow-thumb .tp{ font-family:'Diatype Mono', monospace; font-size:var(--fs-9);
       letter-spacing:.06em; color:var(--placeholder); }
     /* Play glyph over the video poster frame — the still alone reads as an
        image, and "is this the reel or a frame grab" is exactly the guess
@@ -249,8 +249,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* line-height matters here: reset.css sets `font:inherit` on these
        elements, and with overflow:hidden a tight line box clips descenders —
        "Dark Yak.png" lost the tail of its g. 1.5 gives the box room. */
-    .receive .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.5; font-size:.96rem; }
-    .receive .frow-size{ color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:.8rem; flex:0 0 auto; }
+    .receive .frow-name{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.5; font-size:var(--fs-15); }
+    .receive .frow-size{ color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:var(--fs-13); flex:0 0 auto; }
     .receive .frow-dl{ flex:0 0 auto; text-decoration:none; }
     /* Downloaded rows step back rather than light up — done is quieter than
        to-do, so what's left unread is what stands out in a long list. */
@@ -259,7 +259,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* Expiry, told to the client rather than only to Pierce. Sits under the
        list as a quiet note, not a warning — until it's genuinely urgent, at
        which point it takes the error colour. */
-    .receive .expiry-note{ margin:1.2rem 0 0; font-size:.8rem; line-height:1.75;
+    .receive .expiry-note{ margin:1.2rem 0 0; font-size:var(--fs-13); line-height:1.75;
       color:var(--ink-soft); font-family:'Diatype Mono', monospace; }
     /* Download All — shown above the list (right under the title) when there
        are 3+ files. Divider sits on the bottom edge so the button reads as
@@ -320,9 +320,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .pvcard .pv-media video{ max-width:100%; max-height:100%; width:auto; height:auto;
       object-fit:contain; display:block; }
     .pvcard .pv-media iframe{ width:100%; height:100%; border:0; background:#fff; }
-    .pvcard .pv-msg{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.04em;
+    .pvcard .pv-msg{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.04em;
       color:#829C98; text-align:center; line-height:1.9; padding:0 14px; }
-    .pvcard .pv-meta{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.04em;
+    .pvcard .pv-meta{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.04em;
       color:#829C98; padding:9px 5px 3px; display:flex; justify-content:space-between; gap:10px; }
     .pvcard .pv-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#BED0CD; }
     .pvcard .pv-size{ flex:0 0 auto; }

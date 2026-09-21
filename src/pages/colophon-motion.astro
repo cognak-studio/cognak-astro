@@ -93,18 +93,7 @@ const L_MAX = LADDER[LADDER.length - 1].l;
 const LX = (i: number) => 40 + i * (920 / (LADDER.length - 1));
 const LY = (l: number) => 132 - ((l - L_MIN) / (L_MAX - L_MIN)) * 112;
 
-/* Measured 2026-09-18 across src/ and public/js: 380 declarations, 96 as
-   written, 79 once whitespace and leading zeros are normalised. Of the 55
-   fixed sizes, 44 fall between 8px and 18px. */
-const TYPE_FACTS = [
-  ['Declarations', '380'],
-  ['Distinct, as written', '96'],
-  ['Distinct, normalised', '79'],
-  ['Fixed (px / rem)', '55'],
-  ['Fluid (clamp, em)', '24'],
-  ['Fixed sizes between 8px and 18px', '44']
-];
-const SIZES = [[6.5, 1], [8, 1], [8.32, 3], [8.96, 3], [9.28, 1], [9.92, 8], [10, 7], [10.24, 4], [10.56, 10], [10.88, 9], [11, 6], [11.2, 5], [11.52, 31], [11.84, 6], [12, 11], [12.16, 4], [12.48, 6], [12.8, 9], [13, 10], [13.12, 7], [13.44, 5], [13.6, 12], [13.76, 4], [14, 13], [14.08, 17], [14.4, 12], [14.72, 14], [15, 10], [15.04, 5], [15.2, 9], [15.36, 2], [15.68, 3], [16, 22], [16.32, 2], [16.8, 12], [16.96, 1], [17, 4], [17.28, 6], [17.6, 2], [18, 3], [18.4, 2], [20, 2], [20.8, 1], [22, 4], [24, 4], [25.6, 1], [28, 1], [30.4, 1], [35.2, 1], [40, 2], [70, 1], [72, 1]];
+const SIZES = [[9, 8], [10, 29], [11.52, 58], [12, 28], [13, 33], [14, 59], [15, 44], [16, 29], [17, 23], [18, 7]];
 const WEIGHTS = [
   { w: 400, n: 'Regular' },
   { w: 500, n: 'Medium' },
@@ -240,19 +229,9 @@ const WEIGHTS = [
       </li>
     </ul>
 
-    <p class="cm-body">There is no type scale here, and that is a decision rather than an omission. A scale is a promise that every page you have not built yet will want one of eleven sizes. It never holds — the work outruns the system, and what you actually get is a ladder plus a quietly growing pile of exceptions. Headlines on this site are sized to the page they sit on, because the pages have different jobs, and flattening them onto shared steps would make a worse site, not a tidier one.</p>
+    <p class="cm-body">Headlines aren't on a scale. Each one is sized to the page it's on.</p>
 
-    <p class="cm-body">Restraint earns its place in exactly one register: the small band where labels, captions and body copy live. Nobody is expressing anything at 13.6px versus 13.76px. Counted across the stylesheets that ship:</p>
-
-    <ul class="cm-facts">
-      {TYPE_FACTS.map(([k, v]) => (
-        <li class="cm-fact"><span class="cm-fact-k">{k}</span><span class="cm-fact-v">{v}</span></li>
-      ))}
-    </ul>
-
-    <p class="cm-body">Forty-four distinct sizes inside a ten-pixel band is not range. It is thirteen years of reaching for a number slightly smaller than the one beside it, and the eye cannot tell the difference anyway. That band gets named steps. Above it, nothing — a headline answers to its page.</p>
-
-    <p class="cm-aside">Core and exceptions. Most systems get this backwards: they discipline the display type, where the variation is doing work, and leave the small sizes to drift, where it isn't.</p>
+    <p class="cm-body">Everything under 18px is. Labels, captions and body copy use ten named sizes. Until September there were forty-four.</p>
 
     </div>
 
@@ -321,7 +300,7 @@ const WEIGHTS = [
       z-index: 0;
       pointer-events: none;
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       line-height: 1.6;
       letter-spacing: 0.04em;
       color: var(--wear-dim);
@@ -371,7 +350,7 @@ const WEIGHTS = [
 
     .cm-eyebrow {
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--wear-dim);
@@ -389,12 +368,12 @@ const WEIGHTS = [
     .cm-headline em { font-style: normal; font-weight: 500; color: var(--wear-accent); }
 
     .cm-intro { max-width: 58ch; margin-bottom: 5.5rem; }
-    .cm-intro p { font-size: 1.05rem; line-height: 1.6; margin: 0 0 1rem; }
-    .cm-note { color: var(--wear-dim); font-size: 0.92rem !important; }
+    .cm-intro p { font-size: var(--fs-17); line-height: 1.6; margin: 0 0 1rem; }
+    .cm-note { color: var(--wear-dim); font-size: var(--fs-15) !important; }
 
     .cm-h2 {
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--wear-accent);
@@ -406,7 +385,7 @@ const WEIGHTS = [
 
     .cm-sub {
       color: var(--wear-dim);
-      font-size: 0.92rem;
+      font-size: var(--fs-15);
       line-height: 1.55;
       max-width: 58ch;
       margin: -1rem 0 2.4rem;
@@ -448,20 +427,20 @@ const WEIGHTS = [
     .cm-token {
       display: block;
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.88rem;
+      font-size: var(--fs-14);
       color: var(--wear-accent);
       letter-spacing: 0.01em;
     }
     .cm-value {
       display: block;
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       color: var(--wear-dim);
       margin-top: 0.3rem;
     }
     .cm-use {
       display: block;
-      font-size: 0.92rem;
+      font-size: var(--fs-15);
       line-height: 1.5;
       color: #e2e2ea;
       margin-top: 0.6rem;
@@ -517,11 +496,11 @@ const WEIGHTS = [
     }
     .cm-ms {
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       color: var(--wear-dim);
       text-align: right;
     }
-    .cm-dur .cm-use { margin-top: 0; font-size: 0.82rem; color: var(--wear-dim); }
+    .cm-dur .cm-use { margin-top: 0; font-size: var(--fs-13); color: var(--wear-dim); }
 
     @media (max-width: 720px) {
       .cm-trigger { grid-template-columns: 92px 1fr; gap: 1.2rem; }
@@ -532,10 +511,10 @@ const WEIGHTS = [
 
 
     /* ---- shared prose ---- */
-    .cm-body { max-width: 56ch; font-size: 1rem; line-height: 1.6; margin: 0 0 1.6rem; }
+    .cm-body { max-width: 56ch; font-size: var(--fs-16); line-height: 1.6; margin: 0 0 1.6rem; }
     .cm-aside {
       max-width: 54ch;
-      font-size: 0.92rem;
+      font-size: var(--fs-15);
       line-height: 1.6;
       color: var(--wear-dim);
       margin: 0 0 5.5rem;
@@ -543,7 +522,7 @@ const WEIGHTS = [
     .cm-w { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: 0.86em; }
     .cm-h3 {
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--wear-dim);
@@ -602,7 +581,7 @@ const WEIGHTS = [
     .cm-ladder-cap { margin: 0.6rem 0 0; }
     .cm-l-meta {
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       letter-spacing: 0.06em;
       color: var(--wear-dim);
     }
@@ -631,7 +610,7 @@ const WEIGHTS = [
     }
     .cm-l-label {
       font-family: 'Diatype Mono', monospace;
-      font-size: 13px;
+      font-size: var(--fs-13);
       letter-spacing: 0.04em;
       fill: var(--wear-ink);
       opacity: 0;
@@ -664,23 +643,12 @@ const WEIGHTS = [
     .cm-weight-mono { font-family: 'Diatype Mono', monospace; font-size: clamp(15px, 1.8vw, 22px); }
     .cm-weight-spec {
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       font-weight: 400;
       letter-spacing: 0.06em;
       color: var(--wear-dim);
       white-space: nowrap;
     }
-    .cm-facts { list-style: none; margin: 0 0 2rem; padding: 0; max-width: 460px; }
-    .cm-fact {
-      display: flex;
-      justify-content: space-between;
-      gap: 1.5rem;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      font-size: 0.88rem;
-    }
-    .cm-fact-k { color: #e2e2ea; }
-    .cm-fact-v { font-family: 'Diatype Mono', monospace; color: var(--wear-accent); }
 
     /* ---- voice ---- */
     .cm-rules {
@@ -694,7 +662,7 @@ const WEIGHTS = [
       counter-increment: r;
       position: relative;
       padding: 0.75rem 0 0.75rem 3rem;
-      font-size: 1rem;
+      font-size: var(--fs-16);
       line-height: 1.55;
       border-bottom: 1px solid rgba(255,255,255,0.07);
     }
@@ -704,7 +672,7 @@ const WEIGHTS = [
       left: 0;
       top: 0.95rem;
       font-family: 'Diatype Mono', monospace;
-      font-size: 0.72rem;
+      font-size: var(--fs-11);
       color: var(--wear-accent);
     }
 
@@ -716,9 +684,9 @@ const WEIGHTS = [
       gap: 1.4rem;
       padding: 0.8rem 0;
       border-bottom: 1px solid rgba(255,255,255,0.07);
-      font-size: 0.92rem;
+      font-size: var(--fs-15);
     }
-    .cm-o-n { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: 0.78rem; }
+    .cm-o-n { color: var(--wear-accent); font-family: 'Diatype Mono', monospace; font-size: var(--fs-12); }
     .cm-o-d { color: #e2e2ea; }
 
     @media (max-width: 720px) {
@@ -730,7 +698,7 @@ const WEIGHTS = [
 
     .cm-sign {
       max-width: 52ch;
-      font-size: 1rem;
+      font-size: var(--fs-16);
       line-height: 1.6;
       color: #e2e2ea;
       padding-top: 2rem;
@@ -911,8 +879,8 @@ const WEIGHTS = [
         pts: baseline(),
         nodes: SIZES.map(function (q) { return [Math.min(q[0] / 72, 1), 0.08 + (q[1] / maxUse) * 0.8]; }),
         handles: [],
-        name: '55 fixed sizes',
-        sub: '44 of them under 18px'
+        name: '10 sizes under 18px',
+        sub: 'was 44'
       };
 
       /* Accents by hue. The inline ladder already plots the grounds by

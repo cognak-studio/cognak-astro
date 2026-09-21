@@ -161,13 +161,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .brief-nav .inner-nav-links a:hover{ color:#DECBAF !important; }
     }
 
-    .brief .eyebrow{ font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3;
+    .brief .eyebrow{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); line-height:1.3;
       letter-spacing:.28em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.2rem; }
     .brief .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .brief .form-headline{ font-size:clamp(2rem,5vw,3.2rem); margin-bottom:1.3rem; }
     .brief .headline em{ font-style:normal; font-weight:500; color:var(--orange); }
-    .brief .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
+    .brief .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem; }
     /* Nudge the intro copy above the picker slightly right of the headline. */
     #step-pick .lede{ margin-left:40px; }
     .brief .sent-mail{ color:var(--accent); text-decoration:underline; text-underline-offset:var(--link-offset); }
@@ -178,7 +178,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .brief .form-headline{ font-size:clamp(24px,7vw,42px); }
     }
 
-    .brief .stepmeta{ font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.18em;
+    .brief .stepmeta{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.18em;
       text-transform:uppercase; color:var(--ink-soft); margin:0 0 2.4rem; display:flex; align-items:center; gap:.8rem; }
     /* Left-edge completion rail — fixed so it stays visible while scrolling.
        Fills bottom-to-top and shifts from tan toward orange as the brief
@@ -198,7 +198,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       transition:height var(--dur-xl) var(--ease-standard), background var(--dur-xl) var(--ease-standard), box-shadow var(--dur-xl) var(--ease-standard); }
     /* Tiny mono end-caps: 0% at the top, 100% at the bottom of the rail. */
     .brief .prograil-cap{ position:absolute; left:50%; transform:translateX(-50%);
-      font-family:'Diatype Mono', monospace; font-size:.52rem; letter-spacing:.06em;
+      font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.06em;
       color:var(--ink-soft); pointer-events:none; white-space:nowrap; }
     .brief .prograil-cap--top{ top:-15px; }
     .brief .prograil-cap--bot{ bottom:-15px; }
@@ -225,7 +225,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       will-change:transform; }
     /* Tiny mono end-caps: 0% at the left, 100% at the right of the track,
        matching the desktop rail's caps. */
-    .brief .progbar-m-cap{ font-family:'Diatype Mono', monospace; font-size:.52rem;
+    .brief .progbar-m-cap{ font-family:'Diatype Mono', monospace; font-size:var(--fs-9);
       letter-spacing:.06em; line-height:1; color:var(--ink-soft);
       pointer-events:none; white-space:nowrap; }
     .brief .progbar-m-track{ display:block; position:relative; flex:1; height:2px; border-radius:2px;
@@ -259,7 +259,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .brief.progtop .progbar-m{ display:flex; padding:20px 14px 26px; }
       .brief.progtop .bar-note{ display:block; position:absolute; top:10px;
         transform:translateX(-50%);
-        font-family:'Diatype Mono', monospace; font-size:.52rem; letter-spacing:.12em;
+        font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.12em;
         color:var(--ink-soft); white-space:nowrap; opacity:0;
         transition:opacity var(--dur-2xl) var(--ease-standard); }
       .brief.progtop .bar-note.on{ opacity:.75; }
@@ -320,9 +320,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .pcard:hover::before{ opacity:1; filter:brightness(1.15); }
     .brief .pcard:hover .idx, .brief .pcard:hover h3, .brief .pcard:hover p, .brief .pcard:hover .arrow{ color:var(--orange); }
     .brief .pcard:active{ transform:scale(.995); }
-    .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:.7rem; color:var(--ink-soft); letter-spacing:.14em; transition:color var(--dur-s) var(--ease-standard); }
+    .brief .pcard .idx{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); color:var(--ink-soft); letter-spacing:.14em; transition:color var(--dur-s) var(--ease-standard); }
     .brief .pcard h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; margin:.7rem 0 .35rem; transition:color var(--dur-s) var(--ease-standard); }
-    .brief .pcard p{ font-size:.9rem; line-height:1.45; color:var(--ink-soft); transition:color var(--dur-s) var(--ease-standard); }
+    .brief .pcard p{ font-size:var(--fs-14); line-height:1.45; color:var(--ink-soft); transition:color var(--dur-s) var(--ease-standard); }
     .brief .pcard .arrow{ position:absolute; bottom:20px; right:22px; color:var(--ink-soft); transition:transform var(--dur-sm) var(--ease-standard),color var(--dur-sm) var(--ease-standard); }
     .brief .pcard:hover .arrow{ transform:translateX(4px); }
 
@@ -330,7 +330,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* flex (not inline-flex) + fit-content: block-level so no inline strut
        nudges it below the shared header position, still shrink-wrapped. */
     .brief .backlink{ position:relative; display:flex; width:fit-content; align-items:center; gap:.5rem; background:none; border:none;
-      color:var(--orange); font-family:'Diatype Mono', monospace; font-size:.72rem; line-height:1.3; letter-spacing:.16em;
+      color:var(--orange); font-family:'Diatype Mono', monospace; font-size:var(--fs-11); line-height:1.3; letter-spacing:.16em;
       text-transform:uppercase; cursor:pointer; padding:0; margin:0 0 2.2rem; transition:color var(--dur-s) var(--ease-standard); }
     .brief .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
     .brief .backlink:hover{ color:#F5A65E; }
@@ -341,30 +341,30 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .brief .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .brief .group:first-of-type{ border-top:none; padding-top:0; margin-top:.6rem; }
-    .brief .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
+    .brief .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em;
       text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; }
 
     .brief .field{ margin-bottom:2rem; }
     .brief .field:last-child{ margin-bottom:0; }
     /* Title + sub give each box a clear name and a scannable hierarchy */
     .brief .q{ display:block; margin-bottom:.85rem; }
-    .brief .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
-    .brief .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; }
+    .brief .q-title{ display:block; font-size:var(--fs-17); font-weight:500; line-height:1.3; color:var(--ink); }
+    .brief .q-sub{ display:block; font-size:var(--fs-14); font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; }
     /* required fields are validated on submit — no visual dot */
-    .brief .hint{ display:block; font-size:.8rem; font-weight:450; color:var(--ink-soft); margin:-.35rem 0 .85rem; font-style:italic; }
-    .brief .group-desc{ font-size:.95rem; line-height:1.5; color:var(--ink-soft); margin:-1.1rem 0 1.7rem; }
+    .brief .hint{ display:block; font-size:var(--fs-13); font-weight:450; color:var(--ink-soft); margin:-.35rem 0 .85rem; font-style:italic; }
+    .brief .group-desc{ font-size:var(--fs-15); line-height:1.5; color:var(--ink-soft); margin:-1.1rem 0 1.7rem; }
     .brief .rangewrap{ padding-top:.2rem; }
-    .brief .rangeval{ font-size:1.15rem; font-weight:500; color:var(--ink); margin-bottom:.7rem; }
+    .brief .rangeval{ font-size:var(--fs-18); font-weight:500; color:var(--ink); margin-bottom:.7rem; }
     /* Track is lightened and thicker; JS paints an orange fill up to the value
        so the slider reads clearly against the dark WebGL background. */
     .brief input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:8px; border-radius:999px; background:var(--track); outline:none; cursor:pointer; }
     .brief input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid var(--orange); box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
     .brief input[type=range]::-moz-range-thumb{ width:24px; height:24px; border-radius:50%; background:var(--btn); border:2px solid var(--orange); box-shadow:0 2px 10px rgba(0,0,0,.5); cursor:pointer; }
-    .brief .rangeends{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-soft); margin-top:.55rem; }
+    .brief .rangeends{ display:flex; justify-content:space-between; font-size:var(--fs-11); color:var(--ink-soft); margin-top:.55rem; }
 
     .brief input[type=text], .brief input[type=email], .brief input[type=url], .brief textarea{
       width:100%; background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
-      color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
+      color:var(--ink); font-family:inherit; font-size:var(--fs-16); line-height:1.5; padding:14px 16px;
       -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       transition:border-color var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard),box-shadow var(--dur-s) var(--ease-standard); outline:none; }
     .brief input::placeholder, .brief textarea::placeholder{ color:var(--placeholder); }
@@ -379,7 +379,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .brief .pills{ display:flex; flex-wrap:wrap; gap:10px; }
     .brief .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
-      border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
+      border-radius:999px; padding:10px 18px; font-size:var(--fs-15); color:var(--ink); background:var(--field);
       transition:transform var(--dur-xs) var(--ease-press),border-color var(--dur-s) var(--ease-standard),color var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .pill:hover{ border-color:var(--ink); }
     .brief .pill:active{ transform:scale(.96); }
@@ -388,7 +388,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .brief .chips{ display:flex; flex-wrap:wrap; gap:10px; }
     .brief .chip{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
-      border-radius:999px; padding:9px 15px 9px 34px; font-size:.9rem; color:var(--ink); background:var(--field);
+      border-radius:999px; padding:9px 15px 9px 34px; font-size:var(--fs-14); color:var(--ink); background:var(--field);
       transition:transform var(--dur-xs) var(--ease-press),border-color var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .chip:hover{ border-color:var(--ink); }
     .brief .chip:active{ transform:scale(.96); }
@@ -411,16 +411,16 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .cslot:active{ transform:scale(.98); }
     .brief .cslot.editing{ box-shadow:0 0 0 2px var(--accent); }
     .brief .cslot-face{ position:absolute; inset:0; z-index:0; background:transparent; transition:background var(--dur-s) var(--ease-standard); }
-    .brief .cslot-hex{ position:relative; z-index:1; pointer-events:none; font-size:.72rem; letter-spacing:.04em;
+    .brief .cslot-hex{ position:relative; z-index:1; pointer-events:none; font-size:var(--fs-11); letter-spacing:.04em;
       color:#fff; text-shadow:0 1px 3px rgba(0,0,0,.55); }
     .brief .cslot-clear{ position:absolute; top:5px; right:8px; z-index:2; background:none; border:none;
-      color:#fff; font-size:1.05rem; line-height:1; cursor:pointer; opacity:.92; text-shadow:0 1px 2px rgba(0,0,0,.5);
+      color:#fff; font-size:var(--fs-17); line-height:1; cursor:pointer; opacity:.92; text-shadow:0 1px 2px rgba(0,0,0,.5);
       transition:opacity var(--dur-s) var(--ease-standard),transform var(--dur-s) var(--ease-standard); }
     .brief .cslot-clear:hover{ transform:scale(1.15); }
 
     .brief .coloradd{ width:96px; height:78px; background:none; border:1px dashed var(--line-strong); color:var(--ink-soft);
       border-radius:12px; padding:8px; display:flex; align-items:center; justify-content:center; text-align:center;
-      font-family:'Diatype Mono', monospace; font-size:.68rem; letter-spacing:.06em; line-height:1.35;
+      font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.06em; line-height:1.35;
       cursor:pointer; transition:border-color var(--dur-s) var(--ease-standard),color var(--dur-s) var(--ease-standard); }
     .brief .coloradd:hover{ border-color:var(--ink); color:var(--ink); }
     .brief .coloradd[hidden]{ display:none; }
@@ -431,7 +431,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       animation:ceIn var(--dur-sm) var(--ease-press) both; }
     @keyframes ceIn{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
     @media (prefers-reduced-motion:reduce){ .brief .ce-inner{ animation:none; } }
-    .brief .ce-label{ flex:1 1 100%; font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.18em;
+    .brief .ce-label{ flex:1 1 100%; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.18em;
       text-transform:uppercase; color:var(--ink-soft); margin-bottom:2px; }
     /* swatch = one filled circle; the color input is a transparent overlay that
        opens the OS picker. Pencil badge + hint show it is clickable. */
@@ -443,7 +443,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .ce-badge{ position:absolute; right:-3px; bottom:-3px; width:21px; height:21px; border-radius:50%;
       background:var(--btn); color:#2A2010; display:flex; align-items:center; justify-content:center;
       border:2px solid var(--bg); pointer-events:none; }
-    .brief .ce-hint{ font-size:.74rem; color:var(--ink-soft); }
+    .brief .ce-hint{ font-size:var(--fs-12); color:var(--ink-soft); }
     /* hex sits bare inside the card — a thin underline is the only affordance,
        so there's no container-within-a-container around it. */
     .brief .ce-hashwrap{ display:inline-flex; align-items:center; gap:6px; color:var(--ink);
@@ -451,10 +451,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       padding:6px 2px; transition:border-color var(--dur-s) var(--ease-standard); }
     .brief .ce-hashwrap:focus-within{ border-color:var(--orange); }
     .brief .ce-hashwrap .ce-hex{ width:7ch; background:none; border:none; outline:none; box-shadow:none; color:var(--ink);
-      font-family:inherit; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase; padding:0; }
+      font-family:inherit; font-size:var(--fs-15); letter-spacing:.1em; text-transform:uppercase; padding:0; }
     .brief .ce-hashwrap .ce-hex:focus{ background:none; border:none; box-shadow:none; }
     .brief .ce-done{ margin-left:auto; background:var(--btn); color:var(--cream); border:1px solid var(--ink);
-      border-radius:999px; padding:9px 20px; font-size:.85rem; cursor:pointer; font-family:inherit;
+      border-radius:999px; padding:9px 20px; font-size:var(--fs-14); cursor:pointer; font-family:inherit;
       transition:box-shadow var(--dur-s) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .ce-done:hover{ background:var(--accent); }
     .brief .ce-done:active{ transform:scale(.97); }
@@ -473,14 +473,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     .brief .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem;
       display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
-    .brief .btn{ font-family:inherit; font-size:1rem; cursor:pointer; border-radius:999px; padding:15px 30px;
+    .brief .btn{ font-family:inherit; font-size:var(--fs-16); cursor:pointer; border-radius:999px; padding:15px 30px;
       border:1px solid var(--orange); background:var(--orange); color:var(--cream); font-weight:500;
       transition:box-shadow var(--dur-sm) var(--ease-standard),background var(--dur-s) var(--ease-standard); }
     .brief .btn:hover{ background:var(--orange-hi); box-shadow:0 0 24px rgba(var(--orange-rgb),.45); }
     .brief .btn:active{ transform:scale(.98); }
     .brief .btn-ghost{ background:none; color:var(--ink); border:1px solid var(--ink); }
     .brief .btn-ghost:hover{ background:rgba(222,203,175,.10); box-shadow:none; }
-    .brief .formerr{ color:var(--err); font-size:.88rem; margin-top:1rem; display:none; }
+    .brief .formerr{ color:var(--err); font-size:var(--fs-14); margin-top:1rem; display:none; }
 
     #sent{ display:none; text-align:left; }
     #sent .headline{ margin-bottom:1.2rem; }
@@ -505,7 +505,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     /* picker cards: time-to-complete, mono, lighter orange (top-right) */
     .brief .pcard .ptime{ position:absolute; top:22px; right:22px; font-family:'Diatype Mono', monospace;
-      font-size:.62rem; letter-spacing:.14em; color:rgba(var(--orange-rgb),.55); transition:color var(--dur-s) var(--ease-standard); }
+      font-size:var(--fs-10); letter-spacing:.14em; color:rgba(var(--orange-rgb),.55); transition:color var(--dur-s) var(--ease-standard); }
     .brief .pcard:hover .ptime{ color:var(--orange); }
 
     /* fieldset/legend semantics for choice groups (radios/checkboxes/colors) —
@@ -520,7 +520,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* budget follow-up, revealed when the slider parks at max */
     .brief .bplus{ margin-top:16px; }
     .brief .bplus[hidden]{ display:none; }
-    .brief .bplus-q{ display:block; font-family:'Diatype Mono', monospace; font-size:.68rem;
+    .brief .bplus-q{ display:block; font-family:'Diatype Mono', monospace; font-size:var(--fs-11);
       letter-spacing:.16em; text-transform:uppercase; color:rgba(var(--orange-rgb),.75); margin-bottom:11px; }
     .brief .bplus-chips{ display:flex; flex-wrap:wrap; gap:10px; }
     .brief button.pill{ font-family:inherit; }
@@ -528,12 +528,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     /* existing-materials uploader: dashed drop target in the coloradd dialect */
     .brief .updrop{ display:block; width:100%; text-align:center; background:none;
       border:1px dashed var(--line-strong); color:var(--ink-soft); border-radius:8px; padding:20px 14px;
-      font-family:'Diatype Mono', monospace; font-size:.7rem; letter-spacing:.1em; cursor:pointer;
+      font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.1em; cursor:pointer;
       transition:border-color var(--dur-s) var(--ease-standard),color var(--dur-s) var(--ease-standard); }
     .brief .updrop:hover, .brief .updrop.drag{ border-color:var(--ink); color:var(--ink); }
     .brief .upfiles{ list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
     .brief .upfile{ position:relative; overflow:hidden; display:flex; align-items:center; gap:12px; background:var(--field);
-      border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:.85rem; color:var(--ink); }
+      border:1px solid var(--line); border-radius:8px; padding:9px 12px; font-size:var(--fs-14); color:var(--ink); }
     /* orange progress fill that sweeps left->right behind the row, then goes
        solid when the upload completes. Row content sits above it (z-index). */
     .brief .upfile > *{ position:relative; z-index:1; }
@@ -547,24 +547,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .brief .upfile.meta-lit .ufmeta, .brief .upfile.meta-lit .ufx{ color:#2A2010; }
     @media (prefers-reduced-motion:reduce){ .brief .upfile .uf-fill{ transition:none; } }
     .brief .upfile .ufname{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .brief .upfile .ufmeta{ font-family:'Diatype Mono', monospace; font-size:.66rem; letter-spacing:.08em;
+    .brief .upfile .ufmeta{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.08em;
       color:var(--ink-soft); white-space:nowrap; }
     .brief .upfile.err{ border-color:var(--err); }
     .brief .upfile.err .ufmeta{ color:var(--err); }
     .brief .upfile .ufx{ background:none; border:none; color:var(--ink-soft); cursor:pointer;
-      font-size:1.05rem; line-height:1; padding:0 2px; transition:color var(--dur-s) var(--ease-standard); }
+      font-size:var(--fs-17); line-height:1; padding:0 2px; transition:color var(--dur-s) var(--ease-standard); }
     .brief .upfile .ufx:hover{ color:var(--ink); }
     .brief .uplink{ margin-top:10px; }
     /* "+ Add another link" — quiet mono text button in the coloradd dialect */
     .brief .uplink-add{ margin-top:10px; background:none; border:none; padding:0;
       color:var(--ink-soft); cursor:pointer; font-family:'Diatype Mono', monospace;
-      font-size:.68rem; letter-spacing:.1em; transition:color var(--dur-s) var(--ease-standard); }
+      font-size:var(--fs-11); letter-spacing:.1em; transition:color var(--dur-s) var(--ease-standard); }
     .brief .uplink-add:hover{ color:var(--ink); }
     .brief .uplink-add[hidden]{ display:none; }
 
     /* rail receipt: section names materialize beside the rail as they complete */
     .brief .prograil .rail-note{ position:absolute; left:12px; transform:translateY(-50%);
-      font-family:'Diatype Mono', monospace; font-size:.56rem; letter-spacing:.12em;
+      font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.12em;
       color:var(--ink-soft); white-space:nowrap; opacity:0; transition:opacity var(--dur-2xl) var(--ease-standard); }
     .brief .prograil .rail-note.on{ opacity:.75; }
     @media (max-width:1279px){ .brief .prograil .rail-note{ display:none; } }

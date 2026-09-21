@@ -232,7 +232,7 @@ article img {
 }
 @media screen and (max-width: 720px) {
 .template-single-project .information .category {
-    font-size: 16px;
+    font-size: var(--fs-16);
   }
 }
 .template-single-project .information .details {
@@ -262,7 +262,7 @@ article img {
 .template-single-project .information .details h3 {
   color: #3A313B;
   font-family: 'Diatype Variable',sans-serif;
-  font-size: 13px;
+  font-size: var(--fs-13);
   font-weight: 700;
   letter-spacing: .15em;
   margin: 0 0 10px 0;
@@ -272,7 +272,7 @@ article img {
 .template-single-project .information .details ul {
   color: #6b7177;
   font-family: 'Diatype Variable',sans-serif;
-  font-size: 13px;
+  font-size: var(--fs-13);
   line-height: 1.5;
 }
 .template-single-project .information .details li {
@@ -383,7 +383,7 @@ a[rel="next"] {
   color: #898193;
   font-family: 'Diatype Variable',sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-14);
   letter-spacing: .20em;
   text-transform: uppercase;
 }
@@ -400,7 +400,7 @@ a[rel="next"] {
 }
 .template-single-project i {
   color: #898193;
-  font-size: 14px;
+  font-size: var(--fs-14);
 }
 @media screen and (max-width: 720px) {
 .template-single-project i {
@@ -415,7 +415,7 @@ a[rel="next"] {
 }
 input[type="text"] {
   color: #6d6d6d;
-  font-size: 14px;
+  font-size: var(--fs-14);
   line-height: 1.5;
   padding: 10px;
   border-radius: 2px;
@@ -572,6 +572,23 @@ label {
    --ink-deep-rgb exists because CSS cannot pull a channel out of a hex: the ~26
    rgba(23,21,26,·) scrims across the site need the triple. Same convention as
    the existing --orange-rgb. */
+:root {
+    /* Type scale - the small band only (labels, captions, body copy, UI).
+       Everything above 18px is sized to its page and deliberately not on a
+       scale; clamp() headlines stay as they are. Introduced 2026-09-21,
+       replacing 44 distinct fixed sizes between 8 and 18px. --fs-11 keeps
+       the site's mono label size (.72rem = 11.52px) exactly. */
+    --fs-9: .5625rem;
+    --fs-10: .625rem;
+    --fs-11: .72rem;
+    --fs-12: .75rem;
+    --fs-13: .8125rem;
+    --fs-14: .875rem;
+    --fs-15: .9375rem;
+    --fs-16: 1rem;
+    --fs-17: 1.0625rem;
+    --fs-18: 1.125rem;
+}
 :root {
     --ink:            #3A313B;   /* the body ink — 39 uses, the site's workhorse */
     --ink-deep:       #17151A;   /* the shared near-black ground */
@@ -860,7 +877,7 @@ body[data-page="schedule"] ::-moz-selection { background: #9F50FF; color: #1B142
 }
 #cognak-cursor-label {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 11px;
+    font-size: var(--fs-11);
     font-weight: 400;
     color: #fff;
     opacity: 0;
@@ -985,7 +1002,7 @@ body[data-page="schedule"] ::-moz-selection { background: #9F50FF; color: #1B142
     bottom: 32px;
     left: 32px;
     font-family: 'Diatype Mono', monospace;
-    font-size: 10px;
+    font-size: var(--fs-10);
     line-height: 1.7;
     color: rgba(255,255,255,0.22);
     white-space: pre;
@@ -1309,7 +1326,7 @@ body.non-fixed-nav::after {
 }
 .home-nav a {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 400;
     line-height: 1;
     color: rgba(255,255,255,0.6);
@@ -1337,7 +1354,7 @@ body.non-fixed-nav::after {
        mobile homepage nav text. .home-nav is display:none on mobile; these
        cloned links are what actually shows in the bottom bar on phones. */
     .home-nav-links-mobile a {
-        font-size: 15px !important;
+        font-size: var(--fs-15) !important;
     }
 }
 @media (hover: hover) {
@@ -1418,7 +1435,7 @@ body.non-fixed-nav::after {
     top: 50%;
     transform: translate(-50%, -50%);
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 400;
     color: rgba(255,255,255,0.6);
     text-decoration: none;
@@ -1460,7 +1477,7 @@ body.non-fixed-nav .home-bottom-email::before {
     transform: translate(-100%, -50%);
     transition: left var(--dur-m) var(--ease-standard), transform var(--dur-m) var(--ease-standard);
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 400;
     color: rgba(255,255,255,0.6);
     letter-spacing: 0.04em;
@@ -1574,7 +1591,7 @@ html.home-scrolled #cognak-cookie {
     .inner-nav-links a,
     .home-bottom-bar.inner-page-nav .home-bottom-email,
     .home-bottom-bar.inner-page-nav .home-bottom-location {
-        font-size: 15px !important;
+        font-size: var(--fs-15) !important;
     }
     /* No hover on mobile to lift the logo from its resting 0.7 opacity,
        so it reads as faded/transparent. Show it at full opacity. */
@@ -1592,7 +1609,7 @@ html.home-scrolled #cognak-cookie {
         line-height: 1.4 !important;
     }
     .hp-desc {
-        font-size: 15px !important;
+        font-size: var(--fs-15) !important;
         max-width: 100% !important;
     }
     .hp-intro-left {
@@ -1744,7 +1761,7 @@ html.home-scrolled #cognak-cookie {
 .footer-label {
     display: block;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 13px;
+    font-size: var(--fs-13);
     font-weight: 700;
     color: #6d6d6d;
     letter-spacing: normal;
@@ -1798,7 +1815,7 @@ html.home-scrolled #cognak-cookie {
 }
 .footer-backtotop {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 13px;
+    font-size: var(--fs-13);
     font-weight: 700;
     color: #3A313B;
     letter-spacing: normal;
@@ -1829,7 +1846,7 @@ html.home-scrolled #cognak-cookie {
 }
 .footer-copy-text {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 15px;
+    font-size: var(--fs-15);
     /* Lighter than the links (#3A313B) so copyright reads as secondary —
        still 5.09:1 against the #F1EFF4 footer bg, comfortably past the
        4.5:1 WCAG AA minimum for normal-size text (2026-07-28). */
@@ -1849,7 +1866,7 @@ html.home-scrolled #cognak-cookie {
 }
 .footer-links a {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 15px;
+    font-size: var(--fs-15);
     color: #3A313B;
     text-decoration: none;
     transition: color var(--dur-s) var(--ease-standard);
@@ -1913,7 +1930,7 @@ html.home-scrolled #cognak-cookie {
 }
 .hp-desc {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 17px;
+    font-size: var(--fs-17);
     color: rgba(255,255,255,0.6);
     line-height: 1.7;
     margin: 0;
@@ -2226,7 +2243,7 @@ html.home-scrolled #cognak-cookie {
 }
 .hp-bottom-right p {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 17px;
+    font-size: var(--fs-17);
     color: rgba(255,255,255,0.6);
     line-height: 1.75;
     margin: 0 0 16px;
@@ -2278,7 +2295,7 @@ html.home-scrolled #cognak-cookie {
     align-items: center;
     gap: 6px;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 13px;
+    font-size: var(--fs-13);
     font-weight: 400;
     letter-spacing: 0.02em;
     line-height: 1;
@@ -2440,7 +2457,7 @@ html.home-scrolled #cognak-cookie {
 }
 .projects-intro-text p {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 17px;
+    font-size: var(--fs-17);
     color: #3A313B;
     line-height: 1.75;
     max-width: 600px;
@@ -2506,7 +2523,7 @@ html.home-scrolled #cognak-cookie {
 }
 .projects-below-right p {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 17px;
+    font-size: var(--fs-17);
     color: rgba(58,49,59,0.72);
     line-height: 1.7;
     text-align: right;
@@ -2624,7 +2641,7 @@ html.home-scrolled #cognak-cookie {
 }
 .sort-label {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 13px;
+    font-size: var(--fs-13);
     font-weight: 700;
     letter-spacing: normal;
     color: #3A313B;
@@ -2730,7 +2747,7 @@ html.pv-grid .projects-list,
 }
 .list-item-tag {
     font-family: 'Diatype Mono', monospace;
-    font-size: 12px;
+    font-size: var(--fs-12);
     font-weight: 400;
     color: #6d6d6d;
     letter-spacing: 0.08em;
@@ -3008,7 +3025,7 @@ html.pv-grid .projects-list,
 #cognak-cursor.is-founder #cognak-cursor-label {
     opacity: 1 !important;
     font-family: 'Diatype Variable', sans-serif !important;
-    font-size: 11px !important;
+    font-size: var(--fs-11) !important;
     font-weight: 400 !important;
     color: #fff !important;
     white-space: nowrap !important;
@@ -3064,7 +3081,7 @@ html.pv-grid .projects-list,
 #cognak-cursor.is-view-projects #cognak-cursor-label {
     opacity: 1 !important;
     font-family: 'Diatype Variable', sans-serif !important;
-    font-size: 11px !important;
+    font-size: var(--fs-11) !important;
     font-weight: 400 !important;
     color: #fff !important;
     white-space: nowrap !important;
@@ -3226,7 +3243,7 @@ html.pv-grid .projects-list,
     top: 0;
     width: 280px;
     font-family: 'Diatype Mono', monospace;
-    font-size: 10px;
+    font-size: var(--fs-10);
     line-height: 1.7;
     color: rgba(255,255,255,0.25);
     white-space: pre;
@@ -3314,7 +3331,7 @@ html.pv-grid .projects-list,
 }
 .studio-subhead p {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 15px;
+    font-size: var(--fs-15);
     color: rgba(255,255,255,0.55);
     line-height: 1.7;
     margin: 0 0 14px;
@@ -3611,7 +3628,7 @@ html.pv-grid .projects-list,
 }
 .inner-nav-links a {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 400;
     color: #3A313B;
     text-decoration: none;
@@ -3808,7 +3825,7 @@ body.pagers-idle a[rel="next"] {
 .template-single-project .information .details h2,
 .template-single-project .information .details h3 {
     font-family: 'Diatype Variable', sans-serif !important;
-    font-size: 13px !important;
+    font-size: var(--fs-13) !important;
     font-weight: 700 !important;
     color: #3A313B !important;
     letter-spacing: normal !important;
@@ -3818,7 +3835,7 @@ body.pagers-idle a[rel="next"] {
 .template-single-project .information .details p,
 .template-single-project .information .details ul {
     font-family: 'Diatype Variable', sans-serif !important;
-    font-size: 15px !important;
+    font-size: var(--fs-15) !important;
     color: #6d6d6d !important;
     line-height: 1.75 !important;
 }
@@ -3948,7 +3965,7 @@ body.pagers-idle a[rel="next"] {
    them. */
 .template-single-project .information .details-extra .col p {
     font-family: 'Diatype Mono', monospace !important;
-    font-size: 13px !important;
+    font-size: var(--fs-13) !important;
     line-height: 1.75 !important;
     color: rgba(58, 49, 59, 0.78) !important;
     margin: 0 !important;
@@ -4018,7 +4035,7 @@ body.pagers-idle a[rel="next"] {
     display: inline-block;
     margin-top: 14px;
     font-family: 'Diatype Mono', monospace;
-    font-size: 12px;
+    font-size: var(--fs-12);
     font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -4092,7 +4109,7 @@ body.pagers-idle a[rel="next"] {
     top: 50%;
     white-space: nowrap;
     font-family: 'Diatype Mono', monospace;
-    font-size: 11px;
+    font-size: var(--fs-11);
     letter-spacing: 0.06em;
     text-transform: none;
     color: rgba(58, 49, 59, 0.42);
@@ -4135,7 +4152,7 @@ html.pv-grid .projects-grade-note,
     margin: -86px 0 100px;
     text-align: right;
     font-family: 'Diatype Mono', monospace;
-    font-size: 11px;
+    font-size: var(--fs-11);
     font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -4455,7 +4472,7 @@ html.js .template-single-project .details-extra .col p.pd-in {
     align-items: center !important;
 }
 .cky-btn {
-    font-size: 12px !important;
+    font-size: var(--fs-12) !important;
     letter-spacing: 0.04em !important;
     border-radius: 4px !important;
     padding: 8px 18px !important;
@@ -4561,7 +4578,7 @@ a[href*="cookieyes.com"],
 }
 .cognak-cookie-label {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 400;
     line-height: 1;
     color: rgba(255,255,255,0.6);
@@ -4572,7 +4589,7 @@ a[href*="cookieyes.com"],
     align-items: center;
     gap: 7px;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-14);
     font-weight: 400;
     line-height: 1;
     color: rgba(255,255,255,0.55);
@@ -4741,7 +4758,7 @@ a[href*="cookieyes.com"],
        chain is gone, so it has to be set here directly or they fall back to
        the browser default serif/16px/black. */
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 15px;
+    font-size: var(--fs-15);
     color: #3A313B;
     line-height: 1.6;
     text-decoration: none;
@@ -4826,7 +4843,7 @@ a[href*="cookieyes.com"],
    size. */
 .privacy-body h2 {
     font-family: 'Diatype Mono', monospace;
-    font-size: 12px;
+    font-size: var(--fs-12);
     font-weight: 500;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -4848,7 +4865,7 @@ a[href*="cookieyes.com"],
 }
 .privacy-body p {
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 16px;
+    font-size: var(--fs-16);
     /* This 1.8 IS the grid: the canvas reads it off this rule at runtime
        (see privacy-policy.astro's resize()). Changing it re-spaces the drawn
        lines, so re-check every quantized margin above if you touch it. */
@@ -4874,7 +4891,7 @@ a[href*="cookieyes.com"],
 .privacy-body code,
 .privacy-body code * {
     font-family: 'Diatype Mono', monospace !important;
-    font-size: 13px !important;
+    font-size: var(--fs-13) !important;
     color: #815275 !important;
     background: rgba(129,82,117,0.1) !important;
     padding: 2px 6px !important;
@@ -4920,7 +4937,7 @@ a[href*="cookieyes.com"],
         pointer-events: none;
         white-space: nowrap;
         font-family: 'Diatype Variable', sans-serif;
-        font-size: 15px;
+        font-size: var(--fs-15);
         font-weight: 400;
         line-height: 1;
         letter-spacing: 0.04em;
@@ -4942,7 +4959,7 @@ a[href*="cookieyes.com"],
     /* Dot between time and temp — hidden until temp value arrives */
     .home-hero-time-dot {
         display: none;
-        font-size: 10px;
+        font-size: var(--fs-10);
         opacity: 0.5;
     }
     /* Fade both out once the hero scrolls off */
@@ -5078,7 +5095,7 @@ a[href*="cookieyes.com"],
     .availability-sub {
         font-family: 'Diatype Variable', sans-serif !important;
         margin-top: 12px !important;
-        font-size: 12px !important;
+        font-size: var(--fs-12) !important;
     }
 
     /* Larger "more +" and "Start a project" */
@@ -5164,7 +5181,7 @@ a.is-copied::after {
     background: #9F50FF;
     color: #fff;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 13px;
+    font-size: var(--fs-13);
     font-weight: 500;
     padding: 10px 20px;
     border-radius: 4px;
@@ -5502,7 +5519,7 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
     padding: 18px 14px 14px;
     background: none;
     font-family: 'Diatype Variable', sans-serif;
-    font-size: 10px;
+    font-size: var(--fs-10);
     font-weight: 500;
     letter-spacing: 0.12em;
     line-height: 1.6;
@@ -5579,7 +5596,7 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
     .mobile-pager-title {
         flex-shrink: 0;
         font-family: 'Diatype Variable', sans-serif;
-        font-size: 12px;
+        font-size: var(--fs-12);
         font-weight: 500;
         color: #3A313B;
         letter-spacing: 0.03em;
@@ -5683,7 +5700,7 @@ html:active-view-transition-type(list-morph)::view-transition-old(.proj-thumb) {
 
 .fourofour-body {
     font-family: "Diatype Variable", sans-serif;
-    font-size: 15px;
+    font-size: var(--fs-15);
     font-weight: 400;
     line-height: 1.7;
     color: #F3F3F3;
@@ -5791,7 +5808,7 @@ html.js .fourofour-btn.is-in {
     .fourofour-nav .inner-nav-links a { color: #EEEEEE !important; }
     .fourofour-template { padding: 140px 24px 64px; }
     .fourofour-headline { font-size: clamp(24px, 7vw, 42px); margin: 0 0 32px 0; }
-    .fourofour-body { font-size: 14px; margin: 0 0 48px 0; }
+    .fourofour-body { font-size: var(--fs-14); margin: 0 0 48px 0; }
     .fourofour-buttons { margin-left: 0; gap: 24px; }
     .fourofour-btn { font-size: clamp(32px, 8vw, 48px); }
 }

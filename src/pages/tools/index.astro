@@ -359,7 +359,7 @@ const toolsJsonLd = {
     .tools .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1;
       letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .tools .headline em{ font-style:normal; font-weight:500; color:var(--accent-soft); }
-    .tools .lede{ font-size:1.05rem; line-height:1.65; color:var(--ink-soft); max-width:52ch;
+    .tools .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch;
       margin:0 0 3.4rem 40px; }
     @media (max-width:720px){
       .tools .headline{ font-size:clamp(24px,7vw,42px); }
@@ -387,15 +387,15 @@ const toolsJsonLd = {
     .tools .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .tools .group:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
     .tools .group[hidden]{ display:none; }
-    .tools .group-title{ font-family:'Diatype Mono', monospace; font-size:.72rem; letter-spacing:.2em;
+    .tools .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em;
       text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; }
 
     .tools .field{ margin-bottom:2rem; }
     .tools .field:last-child{ margin-bottom:0; }
     .tools .fieldset{ border:none; padding:0; margin-inline:0; }
     .tools .q{ display:block; margin-bottom:.85rem; padding:0; }
-    .tools .q-title{ display:block; font-size:1.08rem; font-weight:500; line-height:1.3; color:var(--ink); }
-    .tools .q-sub{ display:block; font-size:.88rem; font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:54ch; }
+    .tools .q-title{ display:block; font-size:var(--fs-17); font-weight:500; line-height:1.3; color:var(--ink); }
+    .tools .q-sub{ display:block; font-size:var(--fs-14); font-weight:450; line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:54ch; }
     .tools .q-sub a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset);
       text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
     @media (hover:hover){ .tools .q-sub a:hover{ color:var(--accent); } }
@@ -408,7 +408,7 @@ const toolsJsonLd = {
     .tools .txt{
       width:100%; box-sizing:border-box; margin:0;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
-      color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 16px;
+      color:var(--ink); font-family:inherit; font-size:var(--fs-16); line-height:1.5; padding:14px 16px;
       transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none;
       -moz-appearance:textfield; }
     .tools .txt::-webkit-outer-spin-button,
@@ -425,7 +425,7 @@ const toolsJsonLd = {
     .tools .sel{
       width:100%; box-sizing:border-box; -webkit-appearance:none; appearance:none;
       background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
-      color:var(--ink); font-family:inherit; font-size:1rem; line-height:1.5; padding:14px 46px 14px 16px;
+      color:var(--ink); font-family:inherit; font-size:var(--fs-16); line-height:1.5; padding:14px 46px 14px 16px;
       transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); outline:none; cursor:pointer; }
     .tools .sel:focus{ border-color:var(--accent); background:var(--field-focus); }
     /* Native option lists render in the OS palette; force dark so the menu
@@ -437,22 +437,22 @@ const toolsJsonLd = {
     .tools .suffixed{ position:relative; }
     .tools .suffixed--narrow{ max-width:220px; }
     .tools .suffix{ position:absolute; right:16px; top:50%; transform:translateY(-50%);
-      font-family:'Diatype Mono', monospace; font-size:.8rem; color:var(--ink-soft); pointer-events:none; }
+      font-family:'Diatype Mono', monospace; font-size:var(--fs-13); color:var(--ink-soft); pointer-events:none; }
     .tools .suffixed .txt{ padding-right:46px; }
 
-    .tools .note{ margin:.7rem 0 0; font-size:.84rem; line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
+    .tools .note{ margin:.7rem 0 0; font-size:var(--fs-13); line-height:1.45; color:var(--ink-soft); min-height:1.2em; }
     .tools .note.is-error{ color:var(--err); }
     .tools .note.is-ok{ color:var(--ok); }
 
     /* ----------------------------------------------------------- pills --- */
     .tools .pills{ display:flex; flex-wrap:wrap; gap:10px; }
     .tools .pill{ position:relative; cursor:pointer; user-select:none; border:1px solid var(--line-strong);
-      border-radius:999px; padding:10px 18px; font-size:.92rem; color:var(--ink); background:var(--field);
+      border-radius:999px; padding:10px 18px; font-size:var(--fs-15); color:var(--ink); background:var(--field);
       transition:transform var(--dur-xs) var(--ease-press), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
     .tools .pill:hover{ border-color:var(--ink); }
     .tools .pill:active{ transform:scale(.96); }
     .tools .pill input{ position:absolute; opacity:0; pointer-events:none; }
-    .tools .pill .pct{ font-family:'Diatype Mono', monospace; font-size:.72rem; color:var(--ink-soft);
+    .tools .pill .pct{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); color:var(--ink-soft);
       margin-left:.5rem; transition:color var(--dur-s) var(--ease-standard); }
     .tools .pill.on{ border-color:var(--accent); color:var(--deep); background:var(--accent); font-weight:500; }
     .tools .pill.on .pct{ color:rgba(27,20,36,.65); }
@@ -468,15 +468,15 @@ const toolsJsonLd = {
     .tools .proof.mode-itf svg{ width:100%; max-width:640px; }
     .tools .proof.mode-qr svg{ width:216px; }
     .tools .proof.is-empty{ background:var(--field); box-shadow:none; color:var(--placeholder);
-      font-size:.88rem; font-family:'Diatype Mono', monospace; letter-spacing:.06em; }
-    .tools .meta{ margin:1rem 0 0; font-size:.74rem; line-height:1.6; letter-spacing:.04em;
+      font-size:var(--fs-14); font-family:'Diatype Mono', monospace; letter-spacing:.06em; }
+    .tools .meta{ margin:1rem 0 0; font-size:var(--fs-12); line-height:1.6; letter-spacing:.04em;
       color:var(--ink-soft); min-height:2.4em; }
     .tools .meta .warn{ color:#FFC98A; }
 
     /* --------------------------------------------------------- actions --- */
     .tools .actions{ border-top:1px solid var(--line); margin-top:3rem; padding-top:2.4rem;
       display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
-    .tools .btn{ font-family:inherit; font-size:1rem; font-weight:500; cursor:pointer;
+    .tools .btn{ font-family:inherit; font-size:var(--fs-16); font-weight:500; cursor:pointer;
       display:inline-flex; align-items:center; justify-content:center; gap:.6rem;
       border-radius:999px; padding:14px 28px; background:none; color:var(--ink);
       border:1px solid var(--line-strong);
@@ -488,13 +488,13 @@ const toolsJsonLd = {
       color:var(--deep); box-shadow:0 0 24px rgba(180,124,255,.34); }
     .tools .btn:active:not(:disabled){ transform:scale(.98); }
     .tools .btn:disabled{ opacity:.32; cursor:not-allowed; }
-    .tools .actions-note{ margin-left:auto; font-size:.68rem; letter-spacing:.16em;
+    .tools .actions-note{ margin-left:auto; font-size:var(--fs-11); letter-spacing:.16em;
       text-transform:uppercase; color:var(--placeholder); }
     @media (max-width:600px){
       .tools .actions-note{ display:none; }
       /* Three equal pills on one row rather than wrapping 2 + 1. */
       .tools .actions{ gap:8px; flex-wrap:nowrap; }
-      .tools .btn{ flex:1 1 0; padding:14px 6px; font-size:.94rem; gap:.45rem; }
+      .tools .btn{ flex:1 1 0; padding:14px 6px; font-size:var(--fs-15); gap:.45rem; }
     }
 
     /* ------------------------------------------------------------ foot --- */
@@ -504,7 +504,7 @@ const toolsJsonLd = {
    the thing above it. The .tcard has no max-width of its own — it fills the
    1040px .tools column — so matching it means removing the cap, not setting a
    number that would have to be kept in sync. (Pierce, 2026-08-02) */
-    .tools .tfoot{ margin:2.6rem 0 0; font-size:.82rem; line-height:1.7; color:var(--placeholder); }
+    .tools .tfoot{ margin:2.6rem 0 0; font-size:var(--fs-13); line-height:1.7; color:var(--placeholder); }
     .tools .tfoot a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset);
       text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
     @media (hover:hover){ .tools .tfoot a:hover{ color:var(--accent); } }
