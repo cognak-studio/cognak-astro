@@ -81,7 +81,20 @@ const PROBES = [
   </section></main>
 
   <style is:inline>
-    :root { --dw-bg: #0E06D2; --dw-ink: #f4f4ee; --dw-accent: #b6ff2e; }
+    :root {
+      --dw-bg: #0E06D2; --dw-ink: #f4f4ee; --dw-accent: #b6ff2e;
+      --dw-nav: rgba(7, 0, 172, 0.80); --dw-nav-ink: #ffffff;
+    }
+    .home-bottom-bar.inner-page-nav.colophon-nav {
+      background: var(--dw-nav) !important;
+      transition: background-color .4s ease;
+    }
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-email,
+    .home-bottom-bar.inner-page-nav.colophon-nav .home-bottom-location,
+    .home-bottom-bar.inner-page-nav.colophon-nav .inner-nav-links a,
+    .home-bottom-bar.inner-page-nav.colophon-nav .pulse-dot {
+      color: var(--dw-nav-ink) !important;
+    }
     html, body { background-color: var(--dw-bg) !important; transition: background-color .4s ease; }
     .dw {
       max-width: 860px;
@@ -160,6 +173,12 @@ const PROBES = [
           lum(ground) < 0.35 ? 'rgba(255,255,255,0.15)' : 'rgba(23,21,26,0.15)'
         );
         root.style.colorScheme = lum(ground) < 0.35 ? 'dark' : 'light';
+        var dark = lum(ground) < 0.35;
+        var g = rgbOf(ground);
+        root.style.setProperty('--dw-nav', dark
+          ? 'rgb(' + g.map(function (c) { return Math.round(c * 0.72); }).join(',') + ')'
+          : 'rgba(247, 241, 255, 0.75)');
+        root.style.setProperty('--dw-nav-ink', dark ? '#ffffff' : ink);
         body.setAttribute('data-page', key);
         now.textContent = label;
       }
@@ -181,6 +200,7 @@ const PROBES = [
       reset.addEventListener('click', function () {
         btns.forEach(function (o) { o.classList.remove('is-on'); });
         apply('colophon', '#0E06D2', '#f4f4ee', '#b6ff2e', 'resting — colophon');
+        root.style.setProperty('--dw-nav', 'rgba(7, 0, 172, 0.80)');
       });
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { reset.click(); }
