@@ -996,3 +996,43 @@
         }).observe(section);
     }
 })();
+
+/* ── "Some of our favorite" → "All of our" on projects hover ─────────────────
+   The swap in custom.css animates two widths: the Some/All slot and the
+   "favorite" box. Neither can animate to auto, so both are measured off the
+   rendered glyphs and handed over as custom properties. Measured once the
+   fonts are in (Diatype is self-hosted; system-font widths would be wrong by
+   pixels), and again on resize because the heading is vw-sized. */
+(function() {
+    var slot = document.querySelector('.hp-projects-heading .hp-hl-slot');
+    var some = document.querySelector('.hp-projects-heading .hp-hl-some');
+    var all  = document.querySelector('.hp-projects-heading .hp-hl-all');
+    var fav  = document.querySelector('.hp-projects-heading .hp-hl-fav');
+    if (!slot || !some || !all || !fav) return;
+
+    function measure() {
+        // Clear our own widths so the measurement reads the natural glyph
+        // widths, not the last values we set.
+        slot.style.removeProperty('--w-some');
+        slot.style.removeProperty('--w-all');
+        fav.style.removeProperty('--w-fav');
+        var wSome = some.getBoundingClientRect().width;
+        var wAll  = all.getBoundingClientRect().width;
+        var wFav  = fav.getBoundingClientRect().width;
+        if (!wSome || !wAll || !wFav) return;
+        slot.style.setProperty('--w-some', wSome + 'px');
+        slot.style.setProperty('--w-all',  wAll + 'px');
+        fav.style.setProperty('--w-fav',   wFav + 'px');
+    }
+
+    var raf = 0;
+    function queue() { if (!raf) raf = requestAnimationFrame(function() { raf = 0; measure(); }); }
+
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(queue);
+    } else {
+        queue();
+    }
+    window.addEventListener('resize', queue);
+    window.addEventListener('pageshow', queue);
+})();

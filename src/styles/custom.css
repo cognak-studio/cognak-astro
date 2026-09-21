@@ -1976,6 +1976,81 @@ html.home-scrolled #cognak-cookie {
 }
 }
 
+/* Hovering "projects" rewrites the line above it: "Some of our favorite" becomes
+   "All of our". An edit, not a replacement: "of our" is in both sentences and
+   stays put; "Some" rolls to "All" in its own slot; "favorite" collapses to
+   nothing and, the heading being right-aligned, "of our" slides right to close
+   the gap. Timed to the arrow's 300ms so the three changes land as one.
+
+   The words are authored as .stagger-word spans (not left for the splitter),
+   so the scroll-enter reveal still runs word by word. The slot and the
+   "favorite" box get their widths from cognak-home.js, measured off the real
+   glyphs, because "All" is narrower than "Some" and a width can't animate to
+   auto. Before JS measures, everything sits at its natural size and nothing
+   moves; without :has() support the hover simply changes nothing up here. */
+.hp-hl-slot {
+    display: inline-block;
+    position: relative;
+    vertical-align: baseline;
+    width: var(--w-some, auto);
+    transition: width var(--dur-m) var(--ease-out-expo);
+}
+.hp-hl-some,
+.hp-hl-all {
+    display: inline-block;
+    white-space: nowrap;
+}
+/* The swap pair share a slot. "Some" is the stagger word (it reveals with the
+   line); "All" waits underneath it, one step down, hidden. */
+.hp-hl-slot .hp-hl-some {
+    transition: opacity var(--dur-sm) var(--ease-standard), transform var(--dur-m) var(--ease-out-expo);
+}
+.hp-hl-all {
+    position: absolute;
+    right: 0;
+    top: 0;
+    opacity: 0;
+    transform: translateY(0.35em);
+    transition: opacity var(--dur-sm) var(--ease-standard), transform var(--dur-m) var(--ease-out-expo);
+}
+/* inline-flex, not inline-block: an inline-block with overflow hidden moves
+   its baseline to its bottom edge and the word rides up off the line. A flex
+   container keeps the text's own baseline. The reveal's transform moves this
+   box as a whole, so the clip never catches it. */
+.stagger-word.hp-hl-fav {
+    display: inline-flex;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: baseline;
+    width: var(--w-fav, auto);
+    transition: opacity var(--dur-l) var(--ease-standard), transform var(--dur-l) var(--ease-standard), width var(--dur-m) var(--ease-out-expo);
+}
+@media (hover: hover) {
+    .hp-projects-heading:has(.hp-projects-link:hover) .hp-hl-slot,
+    .hp-projects-heading:has(.hp-projects-link:focus-visible) .hp-hl-slot {
+        width: var(--w-all, auto);
+    }
+    .hp-projects-heading:has(.hp-projects-link:hover) .hp-hl-some.stagger-in,
+    .hp-projects-heading:has(.hp-projects-link:focus-visible) .hp-hl-some.stagger-in {
+        opacity: 0;
+        transform: translateY(-0.35em);
+    }
+    .hp-projects-heading:has(.hp-projects-link:hover) .hp-hl-all,
+    .hp-projects-heading:has(.hp-projects-link:focus-visible) .hp-hl-all {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .hp-projects-heading:has(.hp-projects-link:hover) .hp-hl-fav.stagger-in,
+    .hp-projects-heading:has(.hp-projects-link:focus-visible) .hp-hl-fav.stagger-in {
+        width: 0;
+        opacity: 0;
+        transition: opacity var(--dur-s) var(--ease-standard), width var(--dur-m) var(--ease-out-expo);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .hp-hl-slot, .hp-hl-some, .hp-hl-all, .hp-hl-fav { transition: none !important; }
+}
+
 /* Project grid */
 .hp-grid {
     display: grid;
