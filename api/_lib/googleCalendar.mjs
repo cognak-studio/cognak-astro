@@ -90,16 +90,26 @@ export function formatPacific(iso) {
   }).format(new Date(iso)) + ' Pacific';
 }
 
+function escHtml(v) {
+  return String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/**
+ * The description is HTML (2026-09-22): Google Calendar and its invite emails
+ * render <a> and <br>, so the manage links read as short words instead of
+ * three long token URLs. Guest notes are escaped. The first line must stay
+ * "Scheduled for … Pacific." — moveBookingEvent() rewrites it by regex.
+ */
 function buildDescription(startISO, notes, links) {
-  let d = 'Scheduled for ' + formatPacific(startISO) + '.';
+  const lines = ['Scheduled for ' + formatPacific(startISO) + '.'];
   if (links) {
-    d += '\n\nView your booking: ' + links.view
-      + '\nNeed to move it? ' + links.reschedule
-      + '\nCan\u2019t make it? ' + links.cancel;
+    const a = (href, label) => '<a href="' + escHtml(href) + '">' + label + '</a>';
+    lines.push('', a(links.view, 'View your booking') + ' · '
+      + a(links.reschedule, 'Reschedule') + ' · ' + a(links.cancel, 'Cancel'));
   }
-  d += '\n\nBooked via cognak.com/schedule.';
-  if (notes && notes.trim()) d += '\n\n' + notes.trim();
-  return d;
+  lines.push('', 'Booked via <a href="https://cognak.com/schedule">cognak.com/schedule</a>.');
+  if (notes && notes.trim()) lines.push('', escHtml(notes.trim()).replace(/\r?\n/g, '<br>'));
+  return lines.join('<br>');
 }
 
 /**
@@ -187,7 +197,7 @@ export async function cancelBookingEvent(eventId) {
 export async function moveBookingEvent(event, startISO, endISO) {
   const token = await getAccessToken();
   const description = String(event.description || '')
-    .replace(/^Scheduled for [^\n]*?Pacific\./, 'Scheduled for ' + formatPacific(startISO) + '.');
+    .replace(/^Scheduled for [^\n<]*?Pacific\./, 'Scheduled for ' + formatPacific(startISO) + '.');
   const r = await fetch(eventUrl(event.id, 'sendUpdates=all&conferenceDataVersion=1'), {
     method: 'PATCH',
     headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
