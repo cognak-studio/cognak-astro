@@ -5434,7 +5434,8 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
 .project-gallery {
     margin: 70px;
 }
-.project-gallery img {
+.project-gallery img,
+.project-gallery video {
     margin-bottom: 70px;
 }
 /* Still zeroed — but the space below the last image did NOT go away, it MOVED:
@@ -5455,7 +5456,8 @@ html:active-view-transition-type(proj-switch)::view-transition-new(root) {
     .project-gallery {
         margin: 24px;
     }
-    .project-gallery img {
+    .project-gallery img,
+    .project-gallery video {
         margin-bottom: 24px;
     }
 }

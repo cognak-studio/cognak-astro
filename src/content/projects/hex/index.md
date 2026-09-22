@@ -32,6 +32,7 @@ homepageFeature: true
 homepagePosition: 2
 ---
 
+<p><video src="/media/2026/09/hex-value-props.mp4" autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="auto"></video></p>
 <p><picture><source type="image/webp" srcset="/media/2025/08/hex-homepage-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2025/08/hex-homepage-cognak-scaled.jpg" alt="Hex, homepage" width="2560" height="1920" /></picture></p>
 <p><picture><source type="image/webp" srcset="/media/2026/06/hex-hero-cognak-scaled.webp"/><img loading="lazy" decoding="async" src="/media/2026/06/hex-hero-cognak-scaled.jpg" alt="Hex, hero" width="2560" height="1920" /></picture></p>
 
