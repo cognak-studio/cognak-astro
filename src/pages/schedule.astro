@@ -70,6 +70,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="scard rise" id="scard">
       <div class="scard-body" id="scard-body">
 
+        {/* Reschedule mode (2026-09-22): shown when the page is opened from
+           the "Need to move it?" link in an invite. The rest of the card is
+           the normal picker; booking moves the existing event instead of
+           creating one. */}
+        <div class="reschedule-banner" id="reschedule-banner" hidden>
+          <p class="rb-text"><span class="rb-label">Moving</span> <span id="reschedule-from"></span></p>
+          <button class="schedule-inline-link" id="reschedule-cancel-link" type="button">Cancel it instead</button>
+        </div>
+
         <div class="group">
           <div class="group-title">Call length</div>
           <div class="field">
@@ -108,7 +117,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <label class="q" for="email-input"><span class="q-title">Email</span></label>
             <input class="txt" id="email-input" type="email" autocomplete="email" required />
           </div>
-          <div class="field">
+          <div class="field" id="notes-field">
             <label class="q" for="notes-input">
               <span class="q-title">What's this about?</span>
               <span class="q-sub">Optional, a line or two helps us show up prepared.</span>
@@ -118,9 +127,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           {/* Honeypot: off-screen, unreachable by tab, invisible to a real
              visitor. A bot that fills every field blind trips it; see
              api/schedule-book.js for the server-side handling. */}
+          {/* 2026-09-22: was id="company-input" labelled "Company" — browser
+             autofill matches on that and fills it for real people (Chrome
+             ignores autocomplete="off"), which tripped the honeypot and
+             silently dropped a genuine booking. The id and label are now
+             words no autofill heuristic keys on. */}
           <div class="field hp-field" aria-hidden="true">
-            <label class="q" for="company-input">Company</label>
-            <input class="txt" id="company-input" type="text" tabindex="-1" autocomplete="off" />
+            <label class="q" for="cgk-hp-x">Leave blank</label>
+            <input class="txt" id="cgk-hp-x" type="text" tabindex="-1" autocomplete="off" data-1p-ignore data-lpignore="true" />
           </div>
         </div>
 
@@ -150,11 +164,36 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <p class="confirmed-when" id="confirmed-when"></p>
         <p class="confirmed-sub">
           A calendar invite is on its way to <span id="confirmed-email"></span>.
-          Accept it and you're set. Need to reschedule? Just reply to the invite.
+          <span id="confirmed-accept">Accept it and you're set.</span>
+          If plans change, the invite has links to reschedule or cancel.
         </p>
         <div class="confirmed-actions">
           <a class="btn" id="confirmed-meet" href="#" target="_blank" rel="noopener noreferrer">Join by Google Meet</a>
           <a class="btn btn-ghost" id="confirmed-cal" href="#" target="_blank" rel="noopener noreferrer">Open in Google Calendar</a>
+        </div>
+        <p class="confirmed-manage" id="confirmed-manage" hidden>
+          <a id="confirmed-resched" href="#">Reschedule</a>
+          <span aria-hidden="true">&middot;</span>
+          <a id="confirmed-cancel" href="#">Cancel</a>
+        </p>
+      </div>
+
+      {/* Manage view (2026-09-22): the "Can't make it?" link in the invite
+         lands here. Also shows the dead ends — already cancelled, already
+         happened, bad link — so a stale link never drops someone on a
+         booking form with no explanation. */}
+      <div class="confirmed-view manage-view" id="manage-view" hidden>
+        <p class="manage-loading" id="manage-loading">Loading your booking&hellip;</p>
+        <div id="manage-body" hidden>
+          <h2 class="confirmed-title" id="manage-title"></h2>
+          <p class="confirmed-when" id="manage-when"></p>
+          <p class="confirmed-sub" id="manage-sub"></p>
+          <div class="confirmed-actions">
+            <button class="btn" id="manage-cancel-btn" type="button" hidden>Cancel the call</button>
+            <button class="btn btn-ghost" id="manage-move-btn" type="button" hidden>Pick a new time instead</button>
+            <button class="btn" id="manage-new-btn" type="button" hidden>Book a new time</button>
+          </div>
+          <p class="note" id="manage-note" role="status"></p>
         </div>
       </div>
     </div>
@@ -462,6 +501,33 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .schedule .confirmed-actions{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
     animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .85s both; }
 
+  /* ---------------------------------------------- reschedule / cancel --- */
+  /* 2026-09-22. The banner sits at the top of the normal picker card while
+     moving a booking; the manage view reuses the confirmed-view layout and
+     its staggered entrance. */
+  .schedule .reschedule-banner{ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between;
+    gap:.6rem 1.6rem; margin:0 0 2.6rem; padding:0 0 1.6rem; border-bottom:1px solid var(--line); }
+  .schedule .reschedule-banner[hidden]{ display:none; }
+  .schedule .rb-text{ margin:0; font-size:var(--fs-15); color:var(--accent-soft); }
+  .schedule .rb-label{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11);
+    letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-right:.5rem; }
+  .schedule .schedule-inline-link{ background:none; border:none; padding:0; font:inherit; font-size:var(--fs-14);
+    color:var(--ink-soft); cursor:pointer; text-decoration:underline; text-underline-offset:var(--link-offset);
+    text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
+  @media (hover:hover){ .schedule .schedule-inline-link:hover{ color:var(--accent-soft); } }
+  .schedule .txt[readonly]{ opacity:.6; cursor:default; }
+  .schedule .confirmed-manage{ display:flex; justify-content:center; gap:.7rem; margin:2rem 0 0;
+    font-size:var(--fs-14); color:var(--placeholder); animation:schedConfirmIn var(--dur-2xl) var(--ease-standard) .95s both; }
+  .schedule .confirmed-manage[hidden]{ display:none; }
+  .schedule .confirmed-manage a{ color:var(--ink-soft); text-decoration:underline; text-underline-offset:var(--link-offset);
+    text-decoration-thickness:1px; transition:color var(--link-dur) var(--link-ease); }
+  @media (hover:hover){ .schedule .confirmed-manage a:hover{ color:var(--accent-soft); } }
+  .schedule .manage-view{ padding-top:3.2rem; }
+  .schedule .manage-loading{ margin:0; font-size:var(--fs-15); color:var(--ink-soft); }
+  .schedule .manage-view .note{ text-align:center; }
+  .schedule .btn[hidden]{ display:none !important; }
+  .schedule .confirmed-when.is-struck{ text-decoration:line-through; text-decoration-thickness:1px; color:var(--ink-soft); }
+
   /* ---------------------------------------------------------- motion --- */
   .schedule .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl) var(--ease-standard), transform var(--dur-2xl) var(--ease-standard); }
   .schedule .rise.in{ opacity:1; transform:none; }
@@ -472,7 +538,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .schedule .cal-day-label, .schedule .cal-day-note, .schedule .sched-slot,
     .schedule .confirmed-check circle, .schedule .confirmed-check path,
     .schedule .confirmed-title, .schedule .confirmed-when,
-    .schedule .confirmed-sub, .schedule .confirmed-actions{
+    .schedule .confirmed-sub, .schedule .confirmed-actions, .schedule .confirmed-manage{
       animation:none; opacity:1; transform:none; stroke-dashoffset:0;
     }
   }
@@ -512,7 +578,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   const nameInput = $('name-input');
   const emailInput = $('email-input');
   const notesInput = $('notes-input');
-  const companyInput = $('company-input');
+  const companyInput = $('cgk-hp-x');
+  const notesField = $('notes-field');
+  const rescheduleBanner = $('reschedule-banner');
+  const manageView = $('manage-view');
 
   const LA_TZ = 'America/Los_Angeles';
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -524,6 +593,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   let duration = 30;
   let selectedSlot = null; // ISO string, or null
   let daysCache = [];
+
+  // Reschedule mode (2026-09-22): set from ?reschedule=<token>. While set,
+  // availability leaves the booking being moved out of the busy list, and
+  // Book moves that event instead of creating one. `booking` is what
+  // /api/schedule-manage returned for it.
+  let rescheduleToken = null;
+  let booking = null;
 
   // Staleness guards (Pierce, 2026-09-03 — "someone tried to book 1:30 and it
   // wouldn't let them"). The list used to be fetched once and then trusted for
@@ -654,6 +730,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (msg) setNote(msg, 'error');
   }
 
+  function availabilityUrl() {
+    return '/api/schedule-availability?duration=' + duration
+      + (rescheduleToken ? '&reschedule=' + encodeURIComponent(rescheduleToken) : '');
+  }
+
   async function loadAvailability() {
     daysWrap.innerHTML = '<div class="sched-loading">Loading availability…</div>';
     selectedSlot = null;
@@ -662,7 +743,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     setNote('');
 
     try {
-      const r = await fetch('/api/schedule-availability?duration=' + duration, { cache: 'no-store' });
+      const r = await fetch(availabilityUrl(), { cache: 'no-store' });
       const json = await r.json().catch(() => null);
       if (!r.ok || !json) throw new Error((json && json.error) || 'Could not load availability.');
       daysCache = json.days || [];
@@ -687,7 +768,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   async function refreshAvailability() {
     if (!confirmedView.hidden) return; // already booked; nothing to refresh
     try {
-      const r = await fetch('/api/schedule-availability?duration=' + duration, { cache: 'no-store' });
+      const r = await fetch(availabilityUrl(), { cache: 'no-store' });
       const json = await r.json().catch(() => null);
       if (!r.ok || !json || !json.days) return;
       daysCache = json.days;
@@ -981,9 +1062,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       refreshAvailability();
       return;
     }
+    if (booking && selectedSlot === booking.start && duration === booking.durationMinutes) {
+      setNote('That\u2019s the time it\u2019s already booked for. Pick a different one.', 'error');
+      return;
+    }
     bookBtn.disabled = true;
     const original = bookBtn.textContent;
-    bookBtn.textContent = 'Booking…';
+    bookBtn.textContent = rescheduleToken ? 'Moving…' : 'Booking…';
     setNote('');
 
     try {
@@ -997,6 +1082,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           durationMinutes: duration,
           start: selectedSlot,
           company: companyInput.value,
+          reschedule: rescheduleToken || undefined,
         }),
       });
       const json = await r.json().catch(() => null);
@@ -1009,6 +1095,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         // lead-time window caught up with it — json.reason says which, and the
         // server's message is already worded for that case). Refresh quietly so
         // their typed details survive.
+        if (r.status === 409 && json && json.state) {
+          // The booking itself changed state (started, or not ours) — show why.
+          showManage({ state: json.state });
+          return;
+        }
+        if (r.status === 410 || r.status === 404) {
+          showManage({ state: r.status === 410 ? 'cancelled' : 'invalid', error: json && json.error });
+          return;
+        }
         if (r.status === 409) {
           if (json && json.reason) dropSelection();
           refreshAvailability();
@@ -1033,6 +1128,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     const dayLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(payload.start));
     $('confirmed-when').textContent = dayLabel + ', ' + when;
     $('confirmed-email').textContent = emailInput.value.trim();
+    const moved = !!payload.rescheduled;
+    document.querySelector('#confirmed-view .confirmed-title').textContent = moved ? 'Your call has moved.' : 'You\u2019re on the calendar.';
+    $('confirmed-accept').textContent = moved ? 'Same Meet link as before.' : 'Accept it and you\u2019re set.';
+    const manageLine = $('confirmed-manage');
+    if (payload.manageToken) {
+      const t = encodeURIComponent(payload.manageToken);
+      $('confirmed-resched').href = '/schedule?reschedule=' + t;
+      $('confirmed-cancel').href = '/schedule?cancel=' + t;
+      manageLine.hidden = false;
+    } else {
+      manageLine.hidden = true;
+    }
 
     const meetBtn = $('confirmed-meet');
     if (payload.meetLink) { meetBtn.href = payload.meetLink; } else { meetBtn.hidden = true; }
@@ -1042,7 +1149,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     // The real Ads conversion moment — a call actually booked, not just a
     // click through to this page (BaseLayout's sitewide click handler only
     // tracks that click-through now; see the comment there for why).
-    if (typeof gtag === 'function') {
+    if (!moved && typeof gtag === 'function') {
       gtag('event', 'schedule_call_booked', { event_category: 'Contact', event_label: duration + ' min' });
       gtag('event', 'conversion', { send_to: 'AW-876403750/r1GlCKXGmLwcEKa486ED' });
     }
@@ -1050,11 +1157,194 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   backToCalBtn.addEventListener('click', () => {
     confirmedView.hidden = true;
+    exitManage();
+  });
+
+  /* ---- reschedule / cancel (2026-09-22) ----------------------------- */
+
+  function fmtWhen(iso) {
+    let when = fmtTime(iso, LA_TZ) + ' Pacific';
+    if (showBothTz) when += ' · ' + fmtTime(iso, viewerTz) + ' your time';
+    const dayLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(iso));
+    return dayLabel + ', ' + when;
+  }
+
+  function setUrl(qs) {
+    try { history.replaceState(null, '', '/schedule' + (qs || '')); } catch (e) { /* cosmetic */ }
+  }
+
+  async function fetchBooking(token) {
+    const r = await fetch('/api/schedule-manage?t=' + encodeURIComponent(token), { cache: 'no-store' });
+    const json = await r.json().catch(() => null);
+    if (r.status === 404) return { state: 'invalid', error: json && json.error };
+    if (!r.ok || !json) return { state: 'error', error: (json && json.error) || 'Couldn\u2019t load that booking.' };
+    return json;
+  }
+
+  /** Back to a plain new-booking card: no token, inputs unlocked. */
+  function exitManage() {
+    // A fresh booking shouldn't carry the moved call's guest over.
+    if (booking && nameInput.readOnly) { nameInput.value = ''; emailInput.value = ''; }
+    rescheduleToken = null;
+    booking = null;
+    rescheduleBanner.hidden = true;
+    notesField.hidden = false;
+    nameInput.readOnly = false;
+    emailInput.readOnly = false;
+    manageView.hidden = true;
+    confirmedView.hidden = true;
     scardBody.hidden = false;
     bookBtn.disabled = true;
     bookBtn.textContent = 'Book the call';
+    setUrl('');
     loadAvailability();
+  }
+
+  function setDuration(mins) {
+    const input = document.querySelector('#duration-pills input[value="' + mins + '"]');
+    if (!input) return;
+    input.checked = true;
+    document.querySelectorAll('#duration-pills .pill').forEach((p) => p.classList.remove('on'));
+    const pillEl = input.closest('.pill');
+    if (pillEl) pillEl.classList.add('on');
+    duration = mins;
+  }
+
+  function enterReschedule(token, b) {
+    rescheduleToken = token;
+    booking = b;
+    manageView.hidden = true;
+    confirmedView.hidden = true;
+    scardBody.hidden = false;
+    rescheduleBanner.hidden = false;
+    $('reschedule-from').textContent = fmtWhen(b.start);
+    // Same guest; only the time changes. Prefill and lock rather than hide,
+    // so they can see whose call it is.
+    nameInput.value = b.name || '';
+    emailInput.value = b.email || '';
+    nameInput.readOnly = !!b.name;
+    emailInput.readOnly = !!b.email;
+    notesField.hidden = true;
+    bookBtn.textContent = 'Move the call';
+    setUrl('?reschedule=' + encodeURIComponent(token));
+    if (b.durationMinutes === 30 || b.durationMinutes === 60) setDuration(b.durationMinutes);
+    loadAvailability();
+  }
+
+  let manageToken = null;
+  const manageBtns = { cancel: $('manage-cancel-btn'), move: $('manage-move-btn'), fresh: $('manage-new-btn') };
+
+  /** Renders the manage card for a state: confirm | cancelled | done | past | invalid | error */
+  function showManage(b, token) {
+    if (token) manageToken = token;
+    scardBody.hidden = true;
+    confirmedView.hidden = true;
+    manageView.hidden = false;
+    $('manage-loading').hidden = true;
+    const body = $('manage-body');
+    // Re-trigger the staggered entrance when the state changes in place.
+    body.hidden = true; void body.offsetWidth; body.hidden = false;
+
+    const title = $('manage-title');
+    const when = $('manage-when');
+    const sub = $('manage-sub');
+    when.textContent = b.start ? fmtWhen(b.start) : '';
+    when.classList.toggle('is-struck', b.state === 'done');
+    manageBtns.cancel.hidden = true;
+    manageBtns.move.hidden = true;
+    manageBtns.fresh.hidden = true;
+    $('manage-note').textContent = '';
+
+    if (b.state === 'active') {
+      title.textContent = 'Cancel this call?';
+      sub.textContent = 'Google Calendar will send you both a cancellation, and the time opens back up.';
+      manageBtns.cancel.hidden = false;
+      manageBtns.move.hidden = false;
+      manageBtns.cancel.disabled = false;
+      manageBtns.cancel.textContent = 'Cancel the call';
+    } else if (b.state === 'done') {
+      title.textContent = 'Cancelled.';
+      sub.textContent = 'A cancellation is on its way from Google Calendar.';
+      manageBtns.fresh.hidden = false;
+    } else if (b.state === 'cancelled') {
+      title.textContent = 'This call was already cancelled.';
+      sub.textContent = 'Nothing else to do. Book a new time whenever you like.';
+      manageBtns.fresh.hidden = false;
+    } else if (b.state === 'past') {
+      title.textContent = 'This call has already started.';
+      sub.textContent = 'If something\u2019s changed, email hello@cognak.com.';
+      manageBtns.fresh.hidden = false;
+    } else {
+      title.textContent = b.state === 'invalid' ? 'That link doesn\u2019t work.' : 'Something went wrong.';
+      sub.textContent = b.error || 'Use the link in your calendar invite, or email hello@cognak.com.';
+      manageBtns.fresh.hidden = false;
+    }
+  }
+
+  manageBtns.cancel.addEventListener('click', async () => {
+    if (!manageToken || manageBtns.cancel.disabled) return;
+    manageBtns.cancel.disabled = true;
+    manageBtns.cancel.textContent = 'Cancelling…';
+    const start = booking && booking.start;
+    try {
+      const r = await fetch('/api/schedule-manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ t: manageToken, action: 'cancel' }),
+      });
+      const json = await r.json().catch(() => null);
+      if (r.ok && json && json.ok) {
+        showManage({ state: 'done', start: json.start || start });
+        setUrl('');
+        return;
+      }
+      if (json && json.state === 'past') { showManage({ state: 'past', start }); return; }
+      if (r.status === 404) { showManage({ state: 'invalid', error: json && json.error }); return; }
+      $('manage-note').textContent = (json && json.error) || 'Couldn\u2019t cancel just now. Please try again.';
+      $('manage-note').className = 'note is-error';
+    } catch (e) {
+      $('manage-note').textContent = 'Couldn\u2019t cancel just now. Please try again.';
+      $('manage-note').className = 'note is-error';
+    }
+    manageBtns.cancel.disabled = false;
+    manageBtns.cancel.textContent = 'Cancel the call';
   });
+
+  manageBtns.move.addEventListener('click', () => {
+    if (manageToken && booking) enterReschedule(manageToken, booking);
+  });
+  manageBtns.fresh.addEventListener('click', () => exitManage());
+
+  $('reschedule-cancel-link').addEventListener('click', () => {
+    if (!rescheduleToken || !booking) return;
+    const t = rescheduleToken;
+    rescheduleToken = null;
+    rescheduleBanner.hidden = true;
+    notesField.hidden = false;
+    nameInput.readOnly = false;
+    emailInput.readOnly = false;
+    bookBtn.textContent = 'Book the call';
+    setUrl('?cancel=' + encodeURIComponent(t));
+    showManage(booking, t);
+  });
+
+  async function initFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const cancelT = params.get('cancel');
+    const moveT = params.get('reschedule');
+    const token = cancelT || moveT;
+    if (!token) { loadAvailability(); return; }
+
+    // Show the manage card's loading line while the booking is looked up,
+    // rather than flashing the booking form first.
+    scardBody.hidden = true;
+    manageView.hidden = false;
+    let b;
+    try { b = await fetchBooking(token); } catch (e) { b = { state: 'error' }; }
+    if (b.state === 'active') booking = b;
+    if (moveT && b.state === 'active') { enterReschedule(token, b); return; }
+    showManage(b, token);
+  }
 
   // Card entrance — same immediate-reveal-on-next-frame pattern as /tools'
   // #tcard (there's no shared sitewide .rise revealer; each page fires its
@@ -1062,7 +1352,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   // of this reveal instead).
   requestAnimationFrame(() => $('scard').classList.add('in'));
 
-  loadAvailability();
+  initFromUrl();
 
   // Fade the WebGL background in once UnicornStudio mounts its canvas --
   // same pattern as /send and /brief (see cognak-unicorn-init.js for the load).

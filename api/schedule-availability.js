@@ -1,5 +1,8 @@
 /**
- * GET /api/schedule-availability?duration=30|60
+ * GET /api/schedule-availability?duration=30|60[&reschedule=<token>]
+ *
+ * With a valid reschedule token, the booking being moved is left out of the
+ * busy list so the times around it (and its own slot) show as open.
  *
  * Returns real open slots on Pierce's actual Google Calendar — queries
  * freeBusy for the whole HORIZON_DAYS window in one call, then runs the
@@ -8,7 +11,8 @@
  *
  * Response: { timeZone, durationMinutes, minLeadMinutes, days: [{ date, weekday, slots }] }
  */
-import { getBusyIntervals } from './_lib/googleCalendar.mjs';
+import { getBusyIntervals, getBookingEvent } from './_lib/googleCalendar.mjs';
+import { parseManageToken, describeBooking, subtractInterval } from './_lib/scheduleManage.mjs';
 import { computeAvailableSlots, DURATIONS, HORIZON_DAYS, MIN_LEAD_MINUTES, TIME_ZONE } from './_lib/scheduleSlots.mjs';
 
 export default async function handler(req, res) {
@@ -26,7 +30,12 @@ export default async function handler(req, res) {
     const now = new Date();
     const timeMin = now.toISOString();
     const timeMax = new Date(now.getTime() + (HORIZON_DAYS + 1) * 24 * 60 * 60 * 1000).toISOString();
-    const busy = await getBusyIntervals(timeMin, timeMax);
+    let busy = await getBusyIntervals(timeMin, timeMax);
+    const rescheduleId = parseManageToken(req.query && req.query.reschedule);
+    if (rescheduleId) {
+      const b = describeBooking(await getBookingEvent(rescheduleId).catch(() => null), now);
+      if (b.state === 'active') busy = subtractInterval(busy, b.start, b.end);
+    }
     const days = computeAvailableSlots({ busy, durationMinutes, now });
 
     // Slots are real availability, not static content — don't let any CDN or

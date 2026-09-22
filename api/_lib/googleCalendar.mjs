@@ -79,7 +79,7 @@ export async function getBusyIntervals(timeMinISO, timeMaxISO) {
  * IANA zone, but a plain-language restatement in the description heads
  * off that exact confusion. (Pierce, 2026-08-27.)
  */
-function formatPacific(iso) {
+export function formatPacific(iso) {
   return new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
     weekday: 'short',
@@ -90,18 +90,35 @@ function formatPacific(iso) {
   }).format(new Date(iso)) + ' Pacific';
 }
 
-export async function createBookingEvent({ startISO, endISO, attendee, notes }) {
+function buildDescription(startISO, notes, links) {
+  let d = 'Scheduled for ' + formatPacific(startISO) + '.';
+  if (links) {
+    d += '\n\nNeed to move it? ' + links.reschedule
+      + '\nCan\u2019t make it? ' + links.cancel;
+  }
+  d += '\n\nBooked via cognak.com/schedule.';
+  if (notes && notes.trim()) d += '\n\n' + notes.trim();
+  return d;
+}
+
+/**
+ * `eventId` is chosen by us (see scheduleManage.mjs newEventId) rather than
+ * left to Google, so the reschedule/cancel links can be written into the
+ * description in the same request that sends the invite — the invite email
+ * carries them from the first send.
+ */
+export async function createBookingEvent({ eventId, startISO, endISO, attendee, notes, links }) {
   const token = await getAccessToken();
   const id = calendarId();
 
   const event = {
+    id: eventId,
     summary: 'Call with ' + attendee.name + ' — COGNAK',
-    description: (notes && notes.trim())
-      ? 'Scheduled for ' + formatPacific(startISO) + '.\n\nBooked via cognak.com/schedule.\n\n' + notes.trim()
-      : 'Scheduled for ' + formatPacific(startISO) + '.\n\nBooked via cognak.com/schedule.',
+    description: buildDescription(startISO, notes, links),
     start: { dateTime: startISO, timeZone: 'America/Los_Angeles' },
     end: { dateTime: endISO, timeZone: 'America/Los_Angeles' },
     attendees: [{ email: attendee.email, displayName: attendee.name, responseStatus: 'accepted' }],
+    extendedProperties: { private: { cognakBooking: '1' } },
     conferenceData: {
       createRequest: {
         // Must be unique per request; Google dedupes on this if a request is
@@ -125,6 +142,64 @@ export async function createBookingEvent({ startISO, endISO, attendee, notes }) 
   if (!r.ok || !json) {
     const detail = json && json.error && json.error.message;
     throw new Error('Google event creation failed' + (detail ? ': ' + detail : ' (HTTP ' + r.status + ')'));
+  }
+  return json;
+}
+
+function eventUrl(eventId, query) {
+  return API + '/calendars/' + encodeURIComponent(calendarId()) + '/events/'
+    + encodeURIComponent(eventId) + (query ? '?' + query : '');
+}
+
+/**
+ * Fetches a booking. Returns null when it doesn't exist; a deleted event
+ * comes back with status 'cancelled' (Google keeps it around), which the
+ * caller treats the same way.
+ */
+export async function getBookingEvent(eventId) {
+  const token = await getAccessToken();
+  const r = await fetch(eventUrl(eventId), { headers: { Authorization: 'Bearer ' + token } });
+  if (r.status === 404 || r.status === 410) return null;
+  const json = await r.json().catch(() => null);
+  if (!r.ok || !json) throw new Error('Google event fetch failed (HTTP ' + r.status + ')');
+  return json;
+}
+
+/** Deletes the event; Google emails the guest a cancellation. */
+export async function cancelBookingEvent(eventId) {
+  const token = await getAccessToken();
+  const r = await fetch(eventUrl(eventId, 'sendUpdates=all'), {
+    method: 'DELETE',
+    headers: { Authorization: 'Bearer ' + token },
+  });
+  // 410 = already deleted — the outcome they wanted, so not an error.
+  if (!r.ok && r.status !== 410 && r.status !== 404) {
+    throw new Error('Google event delete failed (HTTP ' + r.status + ')');
+  }
+}
+
+/**
+ * Moves the event in place: same id, same Meet link, same manage links.
+ * Google emails the guest an "updated invitation". The description's
+ * "Scheduled for" line is rewritten so it doesn't state the old time.
+ */
+export async function moveBookingEvent(event, startISO, endISO) {
+  const token = await getAccessToken();
+  const description = String(event.description || '')
+    .replace(/^Scheduled for [^\n]*?Pacific\./, 'Scheduled for ' + formatPacific(startISO) + '.');
+  const r = await fetch(eventUrl(event.id, 'sendUpdates=all&conferenceDataVersion=1'), {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      start: { dateTime: startISO, timeZone: 'America/Los_Angeles' },
+      end: { dateTime: endISO, timeZone: 'America/Los_Angeles' },
+      description,
+    }),
+  });
+  const json = await r.json().catch(() => null);
+  if (!r.ok || !json) {
+    const detail = json && json.error && json.error.message;
+    throw new Error('Google event move failed' + (detail ? ': ' + detail : ' (HTTP ' + r.status + ')'));
   }
   return json;
 }

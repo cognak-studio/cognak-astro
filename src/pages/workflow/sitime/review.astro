@@ -94,6 +94,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       </div>
     </div>
 
+    {/* Back to the batch list (Pierce, 2026-09-22) — same mono uppercase
+       arrow link as /brief's "Change project type", under the card on the
+       left, lined up with the card's own labels. */}
+    <a class="backlink" href="/workflow/sitime/admin">&larr; Back to all batches</a>
+
   </section></main>
 
   <style is:inline>
@@ -126,6 +131,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
     .review .card{ background:var(--card); border-radius:12px; padding:34px 34px 30px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; position:relative; }
     .review .card + .card{ margin-top:22px; }
+    .review .backlink{ position:relative; display:flex; width:fit-content; align-items:center; gap:.5rem;
+      margin:1.8rem 0 0 34px; color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:var(--fs-11);
+      line-height:1.3; letter-spacing:.16em; text-transform:uppercase; text-decoration:none;
+      transition:color var(--dur-s) var(--ease-standard); }
+    .review .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
+    @media (hover:hover){ .review .backlink:hover{ color:var(--ink); } }
     .review .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .review .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
     .review .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; display:flex; align-items:center; gap:14px; }
@@ -212,6 +223,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       .review .headline{ font-size:clamp(24px,7vw,42px); }
       .review .lede{ margin-left:0; }
       .review .card{ padding:22px 18px 20px; }
+      .review .backlink{ margin-left:18px; }
       .review .pill{ padding:11px 18px; font-size:var(--fs-14); }
       .review .summary .row{ grid-template-columns:1fr; gap:4px; }
     }

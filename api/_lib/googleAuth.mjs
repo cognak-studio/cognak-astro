@@ -28,12 +28,16 @@ import crypto from 'node:crypto';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const SCOPE = 'https://www.googleapis.com/auth/calendar';
+// Booking notifications (2026-09-22) send mail as the same impersonated user.
+// Requested as a SEPARATE token so a missing gmail.send grant in the Workspace
+// admin console only breaks notifications, never booking itself.
+export const GMAIL_SEND_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
 
 // Access tokens last ~1hr from Google; cached at module scope so a warm
 // serverless instance reuses one instead of re-signing a JWT per request.
 // Cleared 60s before actual expiry to avoid using a token that expires
 // mid-request.
-let cached = { token: null, expiresAt: 0 };
+const cache = new Map(); // scope -> { token, expiresAt }
 
 function base64url(input) {
   return Buffer.from(input)
@@ -52,17 +56,18 @@ function assertConfigured() {
 }
 
 /** Returns a valid Bearer access token, minting + caching a fresh one as needed. */
-export async function getAccessToken() {
+export async function getAccessToken(scope = SCOPE) {
   assertConfigured();
 
   const now = Math.floor(Date.now() / 1000);
-  if (cached.token && cached.expiresAt - 60 > now) return cached.token;
+  const hit = cache.get(scope);
+  if (hit && hit.token && hit.expiresAt - 60 > now) return hit.token;
 
   const header = { alg: 'RS256', typ: 'JWT' };
   const claims = {
     iss: process.env.GOOGLE_SA_CLIENT_EMAIL,
     sub: process.env.GOOGLE_IMPERSONATE_SUBJECT, // impersonation -> domain-wide delegation
-    scope: SCOPE,
+    scope,
     aud: TOKEN_URL,
     iat: now,
     exp: now + 3600,
@@ -91,6 +96,6 @@ export async function getAccessToken() {
     throw new Error('Google token exchange failed' + (detail ? ': ' + detail : ' (HTTP ' + r.status + ')'));
   }
 
-  cached = { token: json.access_token, expiresAt: now + (json.expires_in || 3600) };
-  return cached.token;
+  cache.set(scope, { token: json.access_token, expiresAt: now + (json.expires_in || 3600) });
+  return json.access_token;
 }
