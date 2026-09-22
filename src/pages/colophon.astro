@@ -2494,9 +2494,25 @@ try {
         } catch (e) {}
       }
 
+      /* The colophon's own values, read once before anything is painted.
+         Returning to them SETS them rather than removing the inline
+         overrides: Safari doesn't restyle html/body's transitioned
+         background when a custom property is removed and falls back to the
+         stylesheet, so leaving a hover preview kept the previewed ground
+         under the colophon's ink and nav (2026-09-22). A new value always
+         triggers the restyle. */
+      var WEAR_VARS = ['--wear-bg', '--wear-ink', '--wear-accent', '--wear-dim', '--wear-nav', '--wear-nav-ink', '--sb-thumb'];
+      var HOME_VALS = (function () {
+        var cs = getComputedStyle(root), out = {};
+        WEAR_VARS.forEach(function (v) { out[v] = cs.getPropertyValue(v).trim(); });
+        if (!out['--wear-nav-ink']) { out['--wear-nav-ink'] = '#ffffff'; } // the nav rule's own fallback
+        return out;
+      })();
+
       function clearVars() {
-        ['--wear-bg', '--wear-ink', '--wear-accent', '--wear-dim', '--wear-nav', '--wear-nav-ink', '--sb-thumb']
-          .forEach(function (v) { root.style.removeProperty(v); });
+        WEAR_VARS.forEach(function (v) {
+          if (HOME_VALS[v]) { root.style.setProperty(v, HOME_VALS[v]); } else { root.style.removeProperty(v); }
+        });
         root.style.colorScheme = '';
         body.setAttribute('data-page', 'colophon');
       }
