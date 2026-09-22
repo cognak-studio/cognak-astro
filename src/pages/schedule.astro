@@ -163,9 +163,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <h2 class="confirmed-title">You're on the calendar.</h2>
         <p class="confirmed-when" id="confirmed-when"></p>
         <p class="confirmed-sub">
-          A calendar invite is on its way to <span id="confirmed-email"></span>.
-          <span id="confirmed-accept">Accept it and you're set.</span>
-          If plans change, the invite has links to reschedule or cancel.
+          <span id="confirmed-lead">A calendar invite is on its way to</span>{' '}<span id="confirmed-email"></span>.{' '}<span id="confirmed-accept">Accept it and you're set. </span>If plans change, the invite has links to reschedule or cancel.
         </p>
         <div class="confirmed-actions">
           <a class="btn" id="confirmed-meet" href="#" target="_blank" rel="noopener noreferrer">Join by Google Meet</a>
@@ -1127,10 +1125,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (showBothTz) when += ' · ' + fmtTime(payload.start, viewerTz) + ' your time';
     const dayLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(payload.start));
     $('confirmed-when').textContent = dayLabel + ', ' + when;
-    $('confirmed-email').textContent = emailInput.value.trim();
+    // payload.revisit = opened later from the "View your booking" link
+    // (?booking=<token>), not straight after submitting. Same card, past-tense
+    // copy, no conversion ping.
+    const revisit = !!payload.revisit;
+    $('confirmed-email').textContent = payload.email || emailInput.value.trim();
     const moved = !!payload.rescheduled;
     document.querySelector('#confirmed-view .confirmed-title').textContent = moved ? 'Your call has moved.' : 'You\u2019re on the calendar.';
-    $('confirmed-accept').textContent = moved ? 'Same Meet link as before.' : 'Accept it and you\u2019re set.';
+    $('confirmed-lead').textContent = revisit ? 'The invite went to' : 'A calendar invite is on its way to';
+    $('confirmed-accept').textContent = revisit ? '' : moved ? 'Same Meet link as before. ' : 'Accept it and you\u2019re set. ';
     const manageLine = $('confirmed-manage');
     if (payload.manageToken) {
       const t = encodeURIComponent(payload.manageToken);
@@ -1142,9 +1145,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     const meetBtn = $('confirmed-meet');
-    if (payload.meetLink) { meetBtn.href = payload.meetLink; } else { meetBtn.hidden = true; }
+    meetBtn.hidden = !payload.meetLink;
+    if (payload.meetLink) meetBtn.href = payload.meetLink;
     const calBtn = $('confirmed-cal');
-    if (payload.calendarLink) { calBtn.href = payload.calendarLink; } else { calBtn.hidden = true; }
+    calBtn.hidden = !payload.calendarLink;
+    if (payload.calendarLink) calBtn.href = payload.calendarLink;
+
+    // Make the confirmation addressable: reload or bookmark lands back here.
+    if (payload.manageToken) setUrl('?booking=' + encodeURIComponent(payload.manageToken));
+    if (revisit) return;
 
     // The real Ads conversion moment — a call actually booked, not just a
     // click through to this page (BaseLayout's sitewide click handler only
@@ -1332,7 +1341,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     const params = new URLSearchParams(location.search);
     const cancelT = params.get('cancel');
     const moveT = params.get('reschedule');
-    const token = cancelT || moveT;
+    const viewT = params.get('booking');
+    const token = cancelT || moveT || viewT;
     if (!token) { loadAvailability(); return; }
 
     // Show the manage card's loading line while the booking is looked up,
@@ -1343,6 +1353,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     try { b = await fetchBooking(token); } catch (e) { b = { state: 'error' }; }
     if (b.state === 'active') booking = b;
     if (moveT && b.state === 'active') { enterReschedule(token, b); return; }
+    if (viewT && b.state === 'active') {
+      manageView.hidden = true;
+      showConfirmed({ ...b, manageToken: token, revisit: true });
+      return;
+    }
     showManage(b, token);
   }
 

@@ -55,6 +55,7 @@ export function parseManageToken(token) {
 export function manageLinks(token) {
   const t = encodeURIComponent(token);
   return {
+    view: SITE + '/schedule?booking=' + t,
     reschedule: SITE + '/schedule?reschedule=' + t,
     cancel: SITE + '/schedule?cancel=' + t,
   };
@@ -99,6 +100,8 @@ export function describeBooking(event, now = new Date()) {
   const guest = (event.attendees || []).find((a) => !a.organizer && !a.self) || {};
   const durationMinutes = Math.round((new Date(end) - new Date(start)) / 60000);
   const base = {
+    meetLink: event.hangoutLink || null,
+    calendarLink: event.htmlLink || null,
     start: new Date(start).toISOString(),
     end: new Date(end).toISOString(),
     durationMinutes,

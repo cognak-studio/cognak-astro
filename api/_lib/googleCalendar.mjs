@@ -93,7 +93,8 @@ export function formatPacific(iso) {
 function buildDescription(startISO, notes, links) {
   let d = 'Scheduled for ' + formatPacific(startISO) + '.';
   if (links) {
-    d += '\n\nNeed to move it? ' + links.reschedule
+    d += '\n\nView your booking: ' + links.view
+      + '\nNeed to move it? ' + links.reschedule
       + '\nCan\u2019t make it? ' + links.cancel;
   }
   d += '\n\nBooked via cognak.com/schedule.';
