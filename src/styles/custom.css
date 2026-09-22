@@ -2943,21 +2943,21 @@ html.pv-grid .projects-list,
        to filter: drop-shadow() since text-shadow only paints on text. Same colors,
        same offsets, same 5s keyframe timing as founder-chroma, so the portrait and
        the name it belongs to pulse in lockstep rather than reading as two effects. */
-    filter: drop-shadow(-2px 0 rgba(139,31,255,0.5)) drop-shadow(2px 0 rgba(219,39,199,0.4));
+    filter: drop-shadow(-4px 0 rgba(139,31,255,0.55)) drop-shadow(4px 0 rgba(219,39,199,0.45));
     animation: portrait-chroma 5s ease-in-out infinite;
 }
 @keyframes portrait-chroma {
     0%, 100% {
-        filter: drop-shadow(-2px 0 rgba(139,31,255,0.5)) drop-shadow(2px 0 rgba(219,39,199,0.4));
+        filter: drop-shadow(-4px 0 rgba(139,31,255,0.55)) drop-shadow(4px 0 rgba(219,39,199,0.45));
     }
     25% {
-        filter: drop-shadow(-3px 0.5px rgba(139,31,255,0.58)) drop-shadow(2.5px -0.5px rgba(219,39,199,0.48));
+        filter: drop-shadow(-6px 1px rgba(139,31,255,0.63)) drop-shadow(5px -1px rgba(219,39,199,0.53));
     }
     50% {
-        filter: drop-shadow(-1.5px 1px rgba(139,31,255,0.38)) drop-shadow(1.5px -1px rgba(219,39,199,0.32));
+        filter: drop-shadow(-3px 2px rgba(139,31,255,0.42)) drop-shadow(3px -2px rgba(219,39,199,0.35));
     }
     75% {
-        filter: drop-shadow(-2.5px -0.5px rgba(139,31,255,0.54)) drop-shadow(3px 0.5px rgba(219,39,199,0.44));
+        filter: drop-shadow(-5px -1px rgba(139,31,255,0.6)) drop-shadow(6px 1px rgba(219,39,199,0.5));
     }
 }
 
@@ -3573,7 +3573,7 @@ html.pv-grid .projects-list,
     /* Portrait chroma freezes to its base offset too, same as the trigger words */
     .founder-portrait-img {
         animation: none;
-        filter: drop-shadow(-2px 0 rgba(139,31,255,0.5)) drop-shadow(2px 0 rgba(219,39,199,0.4));
+        filter: drop-shadow(-4px 0 rgba(139,31,255,0.55)) drop-shadow(4px 0 rgba(219,39,199,0.45));
     }
     .studio-feature-video-wrap {
         padding-left: 24px !important;
