@@ -187,13 +187,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .which i.approve{ color:#5A9E00; } .review .which i.deny{ color:#E5231B; } .review .which i.hold{ color:#E07000; }
     .review .which button.on i.approve{ color:#9DFF00; } .review .which button.on i.deny{ color:#FF7070; } .review .which button.on i.hold{ color:#FFB24D; }
     /* "Show original" (Pierce, 2026-09-23): the page's current sitime.com image
-       replaces the comp in the same frame, never laid over it. While it is up,
+       replaces the comp in the same frame and crops to it like the comp does, never laid over it. While it is up,
        the hero copy and scrim step aside and the decision pills are off. */
     .review .origbtn{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; border:1px solid var(--line-strong); background:none; color:var(--ink-soft); padding:9px 14px; border-radius:999px; cursor:pointer; margin-left:8px; }
     @media (hover:hover){ .review .origbtn:hover{ color:var(--ink); border-color:var(--ink-soft); } }
     .review .origbtn.on{ background:var(--ink); border-color:var(--ink); color:#fff; }
     .review .st-hero.orig .scrim, .review .st-hero.orig .copy{ display:none; }
-    .review .st-hero.orig img{ object-fit:contain; object-position:50% 50%; }
     .review .pills.off{ opacity:.35; pointer-events:none; }
     .review .foot-r{ display:inline-flex; align-items:center; gap:14px; }
     .review .ocyc{ display:inline-flex; align-items:center; gap:8px; }
