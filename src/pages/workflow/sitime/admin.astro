@@ -394,7 +394,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pcard .tg.on{ background:#1A1A1A; border-color:#1A1A1A; color:#fff; }
     .adm .pcard .ex{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:flex-start; }
     .adm .pcard .ex img{ width:130px; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#EEE; }
-    .adm .pcard .ex .mini{ max-width:22ch; }
+    .adm .pcard .exh{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-top:18px; }
+    .adm .pcard .exh .linkb{ font:inherit; letter-spacing:inherit; text-transform:inherit; background:none; border:0; padding:0; color:var(--head); text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+    .adm .pcard .ex .exi{ position:relative; display:block; }
+    .adm .pcard .ex .hb{ position:absolute; left:6px; top:6px; font-family:'Diatype Mono', monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; background:rgba(26,26,26,.78); color:#fff; padding:3px 6px; border-radius:4px; }
 
     /* ---- adding your own Adobe finds (no API needed) ---- */
     .adm .addbox{ border:1px dashed var(--line-strong); border-radius:10px; padding:16px 18px; margin-bottom:22px; background:#FCFCFB; transition:border-color .12s var(--ease-standard), background .12s var(--ease-standard); }
@@ -839,11 +842,32 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const cut = (t) => t && t.length > 54 ? t.slice(0, 52).replace(/[\s—·-]+$/, '') + '…' : t;
       const tags = [cut(p.status || p.briefStatus), p.type, p.scope ? 'v11: ' + p.scope : '', slots.length + ' slot' + (slots.length === 1 ? '' : 's'), (p.drupalImages || []).length ? 'Drupal export: yes' : 'Drupal export: no']
         .filter(Boolean).map((t, i) => '<span class="tg ' + (i === 0 ? 'on' : '') + '" title="' + esc(i === 0 ? (p.status || p.briefStatus || '') : t) + '">' + esc(t) + '</span>').join('');
-      const imgs = (p.drupalImages || []).slice(0, 4).map((u) => '<img loading="lazy" src="' + esc(u) + '">').join('');
+      const cur = pageCurrent(p);
+      const showAll = pcAll.has(p.id);
+      const imgs = (showAll ? cur : cur.slice(0, 6)).map((c) => '<a class="exi" href="' + esc(c.url) + '" target="_blank" rel="noopener" title="' + esc(c.name) + '"><img loading="lazy" src="' + esc(c.url) + '" alt="">' + (c.hero ? '<span class="hb">Hero</span>' : '') + '</a>').join('');
       el.innerHTML = '<div class="pcard"><div class="pt">' + esc(p.name) + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div><div class="tags">' + tags + '</div>' +
-        ((p.drupalImages || []).length ? '<div class="ex">' + imgs + '<span class="mini">Existing imagery in the Drupal export' + ((p.drupalImages || []).length > 4 ? ' (' + ((p.drupalImages || []).length - 4) + ' more)' : '') + '. Carries over untouched on a page that migrates as is.</span></div>' : '') +
+        (cur.length ? '<div class="exh">Currently on sitime.com · ' + cur.length + ' image' + (cur.length === 1 ? '' : 's') + (cur.length > 6 ? ' · <button type="button" class="linkb" data-pcall="1">' + (showAll ? 'Show fewer' : 'Show all') + '</button>' : '') + '</div><div class="ex">' + imgs + '</div>' : '<div class="exh">Nothing on sitime.com for this page</div>') +
         (p.parts && p.parts.length ? '<div class="mini" style="margin-top:12px">Parts: ' + esc(p.parts.slice(0, 12).join(' · ')) + (p.parts.length > 12 ? ' +' + (p.parts.length - 12) : '') + '</div>' : '') +
         '</div>';
+      const tg = el.querySelector('[data-pcall]');
+      if (tg) tg.addEventListener('click', () => { if (pcAll.has(p.id)) pcAll.delete(p.id); else pcAll.add(p.id); renderPageCard(); });
+    }
+    /* What the page shows on sitime.com today, hero first: page.current from
+       the 9/23 crawl of the live site (scripts/sitime-crawl-current.py), else
+       Ace's Drupal export. [{url, hero, name}] */
+    var pcAll = new Set();
+    function pageCurrent(p) {
+      if (!p) return [];
+      const raw = p.current || (p.drupalImages || []).map((u) => [u, u === p.drupalHero ? 1 : 0]);
+      return raw.map(([url, hero]) => ({ url, hero: !!hero, name: decodeURIComponent(url.split('/').pop()) }));
+    }
+    /* A slot's "Current site" tab: its own product renders, then everything
+       its page shows today. */
+    function currentFor(s) {
+      const seen = new Set();
+      const own = (s.existing || []).map((e) => ({ url: e.url, label: e.label || 'Current' }));
+      const pg = pageCurrent(pageById().get(s.pageId)).map((c) => ({ url: c.url, label: (c.hero ? 'Hero · ' : '') + c.name }));
+      return own.concat(pg).filter((e) => e.url && !seen.has(e.url) && seen.add(e.url));
     }
     /* Two tiles per slot, Main and Backup. Clicking an empty tile -- or Swap
        on a filled one -- opens the FULL-SCREEN picker (openPicker below), not
@@ -935,7 +959,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!s || !el) return;
       const which = targetOf(s);
       if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
-      const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + (s.existing || []).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
+      const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + currentFor(s).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
 
       el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc([s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ')) + '</span></div>' +
         '<div class="tgtbar"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
@@ -1160,7 +1184,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
 
     /* ---------- the source panels, rendered into the row drawer ---------- */
-    function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : ((S.library || []).length ? 'library' : ((s.existing || []).length ? 'existing' : 'generated')); }
+    function defaultSrcTab(s) { return (s.candidates || []).filter((c) => !(fx.hideAi && c.ai)).length ? 'stock' : ((S.library || []).length ? 'library' : (currentFor(s).length ? 'existing' : 'generated')); }
     function sourceBody(s) {
       if (srcTab === 'stock') {
         const allCands = s.candidates || [];
@@ -1200,8 +1224,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">The library is not indexed yet. Library tab, choose the Image Mapping folder.</p>');
       }
       if (srcTab === 'existing') {
-        const ex = (s.existing || []).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
-        return ex.length ? '<div class="cands">' + ex.join('') + '</div>' : '<p class="hint">No existing image on this page in the Drupal export.</p>';
+        const ex = currentFor(s).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
+        return ex.length ? '<div class="cands">' + ex.join('') + '</div>' : '<p class="hint">Nothing on sitime.com for this page.</p>';
       }
       if (srcTab === 'generated') {
         const busy = !!genBusy[s.id];
@@ -1287,7 +1311,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const url = c.dataset.url; if (!url) return; let pick = null;
         if (srcTab === 'stock') { const cc = s.candidates.find((x) => x.comp === url); pick = pickFrom('stock', cc); }
         if (srcTab === 'library') { const l = S.library.find((x) => x.url === url); pick = pickFrom('library', l); }
-        if (srcTab === 'existing') { const e = s.existing.find((x) => x.url === url); pick = pickFrom('existing', e); }
+        if (srcTab === 'existing') { const e = currentFor(s).find((x) => x.url === url); if (e) pick = pickFrom('existing', e); }
         if (srcTab === 'generated') { const g = (s.generated || []).find((x) => x.url === url); if (g) pick = pickFrom('generated', g); }
         if (pick) assign(s, pick);
       }));

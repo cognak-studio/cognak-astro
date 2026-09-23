@@ -39,7 +39,13 @@ export default async function handler(req, res) {
       if (!state) { state = mergeSeed(null); await writeState(state); seeded = true; }
       const tokens = (state.batches || []).map((b) => b.token);
       const decisions = tokens.length ? await readAllDecisions(tokens) : {};
-      const out = who.role === 'admin' ? state : { ...state, reviewPass: undefined };
+      /* Pages are seed-owned (nothing in the admin edits them), so they are
+         always served from the deployed seed. That is how a re-crawl of the
+         live site (page.current, scripts/sitime-crawl-current.py) reaches the
+         tool on the next deploy without a reseed, which would drop generated
+         images, added candidates and edited briefs. */
+      const withPages = { ...state, pages: seed.pages };
+      const out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
       return res.status(200).json({ ok: true, state: out, decisions, seeded, me: who });
     } catch (err) {
       console.error('sitime-state GET failed', err);

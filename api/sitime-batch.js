@@ -4,10 +4,25 @@
  * already recorded. The token is the credential, like /files/<token>.
  *
  * Only the fields the reviewer needs cross the wire; Ace's candidate lists,
- * prompts, Drupal export URLs and the rest of the working state stay
- * admin-side.
+ * prompts and the rest of the working state stay admin-side. The page's
+ * current sitime.com images go along as `original` (public URLs already).
  */
 import { readState, readDecisions, TOKEN_RE } from './_lib/sitimeStore.mjs';
+import seed from './_lib/sitime-seed.json' with { type: 'json' };
+
+/* What the slot's page shows on sitime.com today, for the reviewer's
+   "Show original" view. A hero slot (named hero, or the page's first slot)
+   gets the page's hero images; any other slot gets the rest of the page.
+   Falls back to the whole list when the split leaves nothing. Capped at 8. */
+const pages = new Map((seed.pages || []).map((p) => [p.id, p]));
+function originals(s) {
+  const p = pages.get(s.pageId);
+  const cur = (p && (p.current || (p.drupalImages || []).map((u) => [u, u === p.drupalHero ? 1 : 0]))) || [];
+  if (!cur.length) return [];
+  const heroSlot = /hero/i.test(s.name || '') || ((p.slotIds || [])[0] === s.id);
+  const part = cur.filter(([, h]) => (heroSlot ? h : !h));
+  return (part.length ? part : cur).slice(0, 8).map(([url]) => ({ url, name: decodeURIComponent(url.split('/').pop()) }));
+}
 
 function img(pick) {
   if (!pick) return null;
@@ -51,6 +66,7 @@ export default async function handler(req, res) {
       name: s.name,
       main: img(s.main),
       backup: img(s.backup),
+      original: originals(s),
     }));
 
     const { latest } = await readDecisions(token);

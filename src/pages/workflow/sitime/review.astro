@@ -67,18 +67,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
 
         <div class="stage-wrap">
-          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span><span class="which" id="which" role="group" aria-label="Image"><button type="button" data-w="main">Main</button><button type="button" data-w="backup">Backup</button></span></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
+          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span><span class="which" id="which" role="group" aria-label="Image"><button type="button" data-w="main">Main</button><button type="button" data-w="backup">Backup</button></span><button type="button" class="origbtn" id="orig" hidden>Show original</button></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
           <div class="stage" id="stage"><div class="st-inner">
             <div class="st-nav">
               <img class="mark" src="/media/sitime/logo.svg" alt="SiTime" />
               <div class="links"><span>Products</span><span>Applications</span><span>Tools &amp; Resources</span><span>Support</span><span>Company</span></div>
               <div class="right"><span>Search</span><span>Sign in</span><span class="cta">Sample &amp; Buy</span></div>
             </div>
-            <div class="st-hero"><img id="hero-img" src="" alt="" hidden /><div class="noimg" id="noimg">No image assigned to this slot yet</div><div class="scrim"></div>
+            <div class="st-hero" id="st-hero"><img id="hero-img" src="" alt="" hidden /><div class="noimg" id="noimg">No image assigned to this slot yet</div><div class="scrim"></div>
               <div class="copy"><h2 id="mock-h1">Built for where others fail.</h2><p id="mock-p">From space to factory floors, SiTime timing holds when conditions don’t.</p><span class="btn-s" id="mock-cta">Learn more</span></div>
             </div>
           </div></div>
-          <div class="stage-foot"><span id="source"></span><span id="source-note">Comp shown, licensed after approval</span></div>
+          <div class="stage-foot"><span id="source"></span><span class="foot-r"><span id="source-note">Comp shown, licensed after approval</span><span class="ocyc" id="ocyc" hidden><button type="button" id="oprev" aria-label="Previous original">‹</button><span id="ocount"></span><button type="button" id="onext" aria-label="Next original">›</button></span></span></div>
         </div>
       </div>
     </div>
@@ -186,6 +186,19 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .which i{ font-style:normal; font-size:var(--fs-13); letter-spacing:0; }
     .review .which i.approve{ color:#5A9E00; } .review .which i.deny{ color:#E5231B; } .review .which i.hold{ color:#E07000; }
     .review .which button.on i.approve{ color:#9DFF00; } .review .which button.on i.deny{ color:#FF7070; } .review .which button.on i.hold{ color:#FFB24D; }
+    /* "Show original" (Pierce, 2026-09-23): the page's current sitime.com image
+       replaces the comp in the same frame, never laid over it. While it is up,
+       the hero copy and scrim step aside and the decision pills are off. */
+    .review .origbtn{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; border:1px solid var(--line-strong); background:none; color:var(--ink-soft); padding:9px 14px; border-radius:999px; cursor:pointer; margin-left:8px; }
+    @media (hover:hover){ .review .origbtn:hover{ color:var(--ink); border-color:var(--ink-soft); } }
+    .review .origbtn.on{ background:var(--ink); border-color:var(--ink); color:#fff; }
+    .review .st-hero.orig .scrim, .review .st-hero.orig .copy{ display:none; }
+    .review .st-hero.orig img{ object-fit:contain; object-position:50% 50%; }
+    .review .pills.off{ opacity:.35; pointer-events:none; }
+    .review .foot-r{ display:inline-flex; align-items:center; gap:14px; }
+    .review .ocyc{ display:inline-flex; align-items:center; gap:8px; }
+    .review .ocyc button{ width:24px; height:24px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; font-size:var(--fs-13); line-height:1; }
+    .review .ocyc button:disabled{ opacity:.32; cursor:default; }
     .review .arrows button{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; font-size:var(--fs-14); line-height:1; }
     .review .arrows button:disabled{ opacity:.32; cursor:default; }
     .review .stage{ border-radius:8px; overflow:hidden; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,.12); border:1px solid #E1E1DE; font-family:Onest, sans-serif; color:#1A1A1A; --sit:#a4212d; --scale:.5; height:calc(var(--scale) * 1000px); }
@@ -254,7 +267,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     window.addEventListener('resize', fit);
 
     const token = getToken();
-    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {} };
+    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {}, orig: null };
     let pass = '';
     try { pass = sessionStorage.getItem('sitime-pass-' + token) || ''; } catch (e) {}
 
@@ -347,10 +360,29 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         btn.disabled = w === 'backup' && !(s.backup && s.backup.url);
         btn.innerHTML = (w === 'main' ? 'Main' : (btn.disabled ? 'No backup' : 'Backup')) + (ev ? ' <i class="' + ev.decision + '">' + MARK[ev.decision] + '</i>' : '');
       });
-      const heroUrl = (pick && pick.url) || '';
+      const origs = s.original || [];
+      if (state.orig && state.orig.id !== s.id) state.orig = null;
+      const oi = state.orig ? Math.min(state.orig.k, origs.length - 1) : -1;
+      const og = oi >= 0 ? origs[oi] : null;
+      $('orig').hidden = !origs.length;
+      $('orig').classList.toggle('on', !!og);
+      $('orig').textContent = og ? 'Back to comp' : 'Show original';
+      $('st-hero').classList.toggle('orig', !!og);
+      $('pills').classList.toggle('off', !!og);
+      if (og) document.querySelectorAll('#which button').forEach((btn) => btn.classList.remove('on'));
+      const heroUrl = og ? og.url : ((pick && pick.url) || '');
       $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
-      $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
-      $('source-note').textContent = pick && pick.source === 'stock' ? 'Comp shown, licensed after approval' : pick && pick.source === 'library' ? 'From SiTime’s licensed library' : '';
+      if (og) {
+        $('source').textContent = 'Currently on sitime.com · ' + og.name;
+        $('source-note').textContent = 'Not up for review';
+        $('ocyc').hidden = origs.length < 2;
+        $('ocount').textContent = (oi + 1) + ' of ' + origs.length;
+        $('oprev').disabled = oi === 0; $('onext').disabled = oi >= origs.length - 1;
+      } else {
+        $('ocyc').hidden = true;
+        $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
+        $('source-note').textContent = pick && pick.source === 'stock' ? 'Comp shown, licensed after approval' : pick && pick.source === 'library' ? 'From SiTime’s licensed library' : '';
+      }
 
       // decision controls
       document.querySelectorAll('#pills .pill').forEach((p) => p.classList.remove('on'));
@@ -406,8 +438,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     document.querySelectorAll('#which button').forEach((btn) => btn.addEventListener('click', () => {
       const s = state.slots[state.i]; if (!s || btn.disabled) return;
-      state.view[s.id] = btn.dataset.w; render();
+      state.view[s.id] = btn.dataset.w; state.orig = null; render();
     }));
+    $('orig').addEventListener('click', () => {
+      const s = state.slots[state.i]; if (!s) return;
+      state.orig = state.orig ? null : { id: s.id, k: 0 }; render();
+    });
+    $('oprev').addEventListener('click', () => { if (state.orig && state.orig.k > 0) { state.orig.k--; render(); } });
+    $('onext').addEventListener('click', () => { const s = state.slots[state.i]; if (state.orig && s && state.orig.k < (s.original || []).length - 1) { state.orig.k++; render(); } });
 
     /* Approve saves on the click -- no note. Deny and hold open the note box. */
     document.querySelectorAll('#pills .pill').forEach((p) => p.addEventListener('click', () => {
