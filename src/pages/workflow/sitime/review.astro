@@ -67,7 +67,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
 
         <div class="stage-wrap">
-          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span><span class="which" id="which" role="group" aria-label="Image"><button type="button" data-w="main">Main</button><button type="button" data-w="backup">Backup</button></span><button type="button" class="origbtn" id="orig" hidden>Show original</button></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
+          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span><span class="which" id="which" role="group" aria-label="Image"><button type="button" data-w="main">Main</button><button type="button" data-w="backup">Backup</button></span><button type="button" class="origbtn" id="orig" hidden>Show original</button><button type="button" class="origbtn" id="clean" aria-pressed="false">Hide text</button></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
           <div class="stage" id="stage"><div class="st-inner">
             <div class="st-nav">
               <img class="mark" src="/media/sitime/logo.svg" alt="SiTime" />
@@ -193,6 +193,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     @media (hover:hover){ .review .origbtn:hover{ color:var(--ink); border-color:var(--ink-soft); } }
     .review .origbtn.on{ background:var(--ink); border-color:var(--ink); color:#fff; }
     .review .st-hero.orig .scrim, .review .st-hero.orig .copy{ display:none; }
+    /* "Hide text" (Pierce, 2026-09-23): the image alone, no headline, CTA or
+       scrim. Sticks across slots until turned back on. */
+    .review .st-hero.clean .scrim, .review .st-hero.clean .copy{ display:none; }
     .review .pills.off{ opacity:.35; pointer-events:none; }
     .review .foot-r{ display:inline-flex; align-items:center; gap:14px; }
     .review .ocyc{ display:inline-flex; align-items:center; gap:8px; }
@@ -266,7 +269,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     window.addEventListener('resize', fit);
 
     const token = getToken();
-    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {}, orig: null };
+    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {}, orig: null, clean: false };
+    try { state.clean = localStorage.getItem('sitime-review-clean') === '1'; } catch (e) {}
     let pass = '';
     try { pass = sessionStorage.getItem('sitime-pass-' + token) || ''; } catch (e) {}
 
@@ -367,6 +371,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('orig').classList.toggle('on', !!og);
       $('orig').textContent = og ? 'Back to comp' : 'Show original';
       $('st-hero').classList.toggle('orig', !!og);
+      $('st-hero').classList.toggle('clean', state.clean);
+      $('clean').classList.toggle('on', state.clean);
+      $('clean').setAttribute('aria-pressed', String(state.clean));
+      $('clean').textContent = state.clean ? 'Show text' : 'Hide text';
+      $('clean').hidden = !!og;
       $('pills').classList.toggle('off', !!og);
       if (og) document.querySelectorAll('#which button').forEach((btn) => btn.classList.remove('on'));
       const heroUrl = og ? og.url : ((pick && pick.url) || '');
@@ -439,6 +448,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const s = state.slots[state.i]; if (!s || btn.disabled) return;
       state.view[s.id] = btn.dataset.w; state.orig = null; render();
     }));
+    $('clean').addEventListener('click', () => {
+      state.clean = !state.clean;
+      try { localStorage.setItem('sitime-review-clean', state.clean ? '1' : '0'); } catch (e) {}
+      render();
+    });
     $('orig').addEventListener('click', () => {
       const s = state.slots[state.i]; if (!s) return;
       state.orig = state.orig ? null : { id: s.id, k: 0 }; render();
