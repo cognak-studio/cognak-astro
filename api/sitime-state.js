@@ -28,6 +28,28 @@ function mergeSeed(existing) {
   return { ...existing, pages: seed.pages, slots, mock: existing.mock || seed.mock };
 }
 
+/* Slot structure is seed-owned too: a slot added to the seed (the homepage
+   rebuild of 2026-09-23 added IMG-9001..9008) is appended with its seed
+   defaults, and a slot that already exists takes the seed's name, priority,
+   page and originals while keeping everything worked on in the tool (picks,
+   candidates, generated images, edited brief and terms, batch). Slots are
+   ordered as the seed orders them; anything not in the seed stays, at the end. */
+const SEED_OWNED = ['name', 'priority', 'page', 'pageId', 'section', 'url', 'originals'];
+const seedIndex = new Map(seed.slots.map((s, i) => [s.id, i]));
+function syncSlots(slots) {
+  const have = new Map((slots || []).map((s) => [s.id, s]));
+  const out = (slots || []).map((s) => {
+    const i = seedIndex.get(s.id);
+    if (i == null) return s;
+    const sd = seed.slots[i]; const o = { ...s };
+    SEED_OWNED.forEach((k) => { if (k in sd) o[k] = sd[k]; else delete o[k]; });
+    return o;
+  });
+  seed.slots.forEach((sd) => { if (!have.has(sd.id)) out.push(sd); });
+  const at = (s) => (seedIndex.has(s.id) ? seedIndex.get(s.id) : 1e9);
+  return out.sort((a, b) => at(a) - at(b));
+}
+
 export default async function handler(req, res) {
   const who = await requireEditor(req, res);
   if (!who) return;
@@ -44,7 +66,7 @@ export default async function handler(req, res) {
          live site (page.current, scripts/sitime-crawl-current.py) reaches the
          tool on the next deploy without a reseed, which would drop generated
          images, added candidates and edited briefs. */
-      const withPages = { ...state, pages: seed.pages };
+      const withPages = { ...state, pages: seed.pages, slots: syncSlots(state.slots) };
       const out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
       return res.status(200).json({ ok: true, state: out, decisions, seeded, me: who });
     } catch (err) {

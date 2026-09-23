@@ -11,11 +11,16 @@ import { readState, readDecisions, TOKEN_RE } from './_lib/sitimeStore.mjs';
 import seed from './_lib/sitime-seed.json' with { type: 'json' };
 
 /* What the slot's page shows on sitime.com today, for the reviewer's
-   "Show original" view. A hero slot (named hero, or the page's first slot)
+   "Show original" view. A slot with its own seed `originals` list (the
+   homepage slots map to the exact old banner or category tile) uses that;
+   an empty list means nothing to show. Otherwise a hero slot (named hero, or the page's first slot)
    gets the page's hero images; any other slot gets the rest of the page.
    Falls back to the whole list when the split leaves nothing. Capped at 8. */
 const pages = new Map((seed.pages || []).map((p) => [p.id, p]));
+const seedSlots = new Map((seed.slots || []).map((s) => [s.id, s]));
 function originals(s) {
+  const own = (seedSlots.get(s.id) || {}).originals;
+  if (Array.isArray(own)) return own.slice(0, 8).map((url) => ({ url, name: decodeURIComponent(url.split('/').pop()) }));
   const p = pages.get(s.pageId);
   const cur = (p && (p.current || (p.drupalImages || []).map((u) => [u, u === p.drupalHero ? 1 : 0]))) || [];
   if (!cur.length) return [];
