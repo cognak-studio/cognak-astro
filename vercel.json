@@ -9,6 +9,16 @@
   "rewrites": [
     {
       "source": "/files/:token",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(Slackbot|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Discordbot|WhatsApp|TelegramBot|SkypeUriPreview|MicrosoftPreview|Applebot|redditbot|Embedly|Iframely|Pinterest|Bluesky|Mastodon|vkShare|Google-PageRenderer).*" }],
+      "destination": "/api/files-page?t=:token"
+    },
+    {
+      "source": "/r/:token",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(Slackbot|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Discordbot|WhatsApp|TelegramBot|SkypeUriPreview|MicrosoftPreview|Applebot|redditbot|Embedly|Iframely|Pinterest|Bluesky|Mastodon|vkShare|Google-PageRenderer).*" }],
+      "destination": "/api/files-page?t=:token"
+    },
+    {
+      "source": "/files/:token",
       "destination": "/receive"
     },
     {
