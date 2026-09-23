@@ -372,6 +372,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rsec > button{ width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); background:none; border:0; padding:11px 4px; cursor:pointer; text-align:left; }
     .adm .rsec > button:hover{ color:var(--ink); }
     .adm .rsec > button b{ margin-left:auto; font-weight:400; opacity:.7; }
+    .adm .rsec .sdot{ flex:none; width:7px; height:7px; border-radius:50%; background:#C9C9C4; box-sizing:border-box; }
+    .adm .rsec .sdot.part{ background:#F3D456; border:1px solid #C9A81E; }
+    .adm .rsec .sdot.done{ background:#AAFF00; border:1px solid #6EB300; }
     .adm .rsec.open > button{ color:var(--ink); }
     .adm .rsec > button.sel{ color:var(--ink); background:#F5F3EF; }
     .adm .rsec > button.sel b{ opacity:1; }
@@ -794,6 +797,21 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const done = slots.filter((s) => { const st = status(s); return st !== 'unassigned' && st !== 'unreviewed'; }).length;
       return done === 0 ? '' : done === slots.length ? 'done' : 'part';
     }
+    /* The dot beside a section (Pierce, 9/23): green once SiTime has decided
+       every image in it (approved, denied or held, or kept as is), yellow once
+       any image has been picked, batched or decided, gray while nothing has.
+       Counts the whole section, not just what the current filters show. */
+    const DECIDED = new Set(['approved', 'denied', 'held', 'kept']);
+    function sectionProgress(visible) {
+      const sec = secOf(visible[0] || {});
+      const all = S.slots.filter((s) => secOf(s) === sec);
+      const sts = all.map(status);
+      const decided = sts.filter((x) => DECIDED.has(x)).length;
+      const started = sts.filter((x) => x !== 'unassigned' && x !== 'unreviewed').length;
+      if (all.length && decided === all.length) return { cls: 'done', title: 'All ' + all.length + ' decided' };
+      if (started) return { cls: 'part', title: decided + ' of ' + all.length + ' decided · ' + started + ' started' };
+      return { cls: '', title: 'Not started' };
+    }
     function renderRail() {
       const list = preFiltered();
       const secs = new Map();
@@ -806,7 +824,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       });
       // keep the section holding the selected page open without a click
       if (fx.page) { const s0 = S.slots.find((x) => x.pageId === fx.page); if (s0) railOpen.add(secOf(s0)); }
-      const html = Array.from(secs.keys()).sort().map((sec) => {
+      // Unsectioned sorts last (Pierce, 9/23); the rest alphabetical.
+      const html = Array.from(secs.keys()).sort((a, b) => (a === '(unmapped)') - (b === '(unmapped)') || a.localeCompare(b)).map((sec) => {
         const pages = secs.get(sec);
         const n = Array.from(pages.values()).reduce((a, b) => a + b.length, 0);
         const open = railOpen.has(sec);
@@ -814,7 +833,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           const p = pageById().get(pid);
           return '<button class="rpage ' + (fx.page === pid ? 'on' : '') + '" data-page="' + esc(pid) + '"><span class="dot ' + pageProgress(slots) + '"></span>' + esc((p && p.name) || slots[0].page) + '<i>' + slots.length + '</i></button>';
         }).join('') + '</div>' : '';
-        return '<div class="rsec ' + (open ? 'open' : '') + '"><button class="' + (fx.section === sec && !fx.page ? 'sel' : '') + '" data-sec="' + esc(sec) + '">' + esc(sec === '(unmapped)' ? 'Unsectioned' : sec) + '<b>' + n + '</b></button>' + inner + '</div>';
+        const sp = sectionProgress([].concat(...pages.values()));
+        return '<div class="rsec ' + (open ? 'open' : '') + '"><button class="' + (fx.section === sec && !fx.page ? 'sel' : '') + '" data-sec="' + esc(sec) + '"><span class="sdot ' + sp.cls + '" title="' + esc(sp.title) + '"></span>' + esc(sec === '(unmapped)' ? 'Unsectioned' : sec) + '<b>' + n + '</b></button>' + inner + '</div>';
       }).join('');
       $('rail').innerHTML = html || '<p class="hint">Nothing matches.</p>';
       $('rail-count').textContent = list.length + ' slots';
