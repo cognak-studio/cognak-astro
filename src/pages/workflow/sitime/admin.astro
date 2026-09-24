@@ -113,6 +113,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       <!-- LIBRARY -->
       <div class="card rise tab" id="tab-library" hidden>
+        <div class="group">
+          <div class="card-head"><div class="group-title">Library</div><span class="mini" id="libgrid-count"></span></div>
+          <div class="srctabs" id="libgrid-filters"></div>
+          <div class="libgrid" id="libgrid"></div>
+          <div class="actions" id="libgrid-more"></div>
+          <p class="mini" id="libgrid-status"></p>
+          <input type="file" id="lib-replace" accept="image/*" hidden />
+        </div>
         <div class="group admin-only">
           <div class="group-title">SiTime licensed library</div>
           <p class="hint" id="lib-status"></p>
@@ -126,7 +134,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
         <div class="group">
           <div class="card-head"><div class="group-title">Recently deleted</div><span class="mini" id="trash-count"></span></div>
-          <p class="hint">Deleted uploads stay here for 30 days before the file is removed for good. Restore puts the image back in the library and back on any slot it was cleared from, if that slot is still empty.</p>
+          <p class="hint">Deleted images, and the originals of replaced ones, stay here for 30 days before the file is removed for good. Restore puts the image back in the library and back on any slot it was cleared from, if that slot is still empty.</p>
           <div class="queue" id="trash-list"></div>
         </div>
         <div class="group admin-only">
@@ -352,6 +360,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .toolbar .tb-m{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); line-height:1.5; }
     .adm .toolbar .sbtn{ flex:none; }
     .adm .srctabs{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+    /* Library grid (Pierce, 9/24): small thumbnails, Replace / Delete on hover. */
+    .adm .libgrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(112px, 1fr)); gap:8px; }
+    .adm .lt{ position:relative; aspect-ratio:3/2; border-radius:6px; overflow:hidden; background:#EEE; }
+    .adm .lt img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .adm .lt .used{ position:absolute; top:5px; left:5px; font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.08em; padding:2px 6px; border-radius:999px; background:#1A1A1A; color:#fff; }
+    .adm .lt .lt-acts{ position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:space-between; gap:6px; padding:6px; background:linear-gradient(to top, rgba(26,26,26,.72), rgba(26,26,26,0) 65%); opacity:0; transition:opacity .12s; }
+    .adm .lt:hover .lt-acts, .adm .lt:focus-within .lt-acts{ opacity:1; }
+    .adm .lt .lt-rep{ font:inherit; font-size:var(--fs-11); padding:4px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.6); background:rgba(26,26,26,.55); color:#fff; cursor:pointer; }
+    .adm .lt .lt-rep:hover{ background:#fff; color:#1A1A1A; }
+    .adm .lt .cand-x{ position:static; }
+    .adm .lt.busy::after{ content:'Replacing…'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.8); font-size:var(--fs-12); color:var(--ink); }
     .adm .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(224px,1fr)); gap:20px; }
     .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
     .adm .cand img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; background:#EEE; }
@@ -1325,7 +1344,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        save never leaves a slot pointing at a missing image. */
     async function deleteUpload(libId) {
       const l = (S.library || []).find((x) => x.id === libId);
-      if (!l || l.tier !== 'upload') return;
+      if (!l) return;
       const uses = S.slots.filter((x) => (x.main && x.main.url === l.url) || (x.backup && x.backup.url === l.url));
       const locked = uses.filter((x) => batchOf(x));
       if (locked.length) {
@@ -1333,7 +1352,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         alert('Can’t delete: ' + locked[0].page + ' · ' + locked[0].name + ' uses this image and is in Batch ' + String(b.num).padStart(2, '0') + '. Take the slot out of the batch first.');
         return;
       }
-      const msg = 'Delete ' + (l.name || 'this upload') + ' from the SiTime library?' + (uses.length ? '\n\nIt will also be cleared from ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') + ': ' + uses.slice(0, 4).map((x) => x.page + ' · ' + x.name).join(', ') + (uses.length > 4 ? '…' : '') + '.' : '') + '\n\nIt stays in Library → Recently deleted for 30 days.';
+      const msg = 'Delete ' + (l.name || 'this upload') + ' from the library?' + (l.tier !== 'upload' ? '\n\nThe file in Drive is not touched. Re-running the indexer would add it back.' : '') + (uses.length ? '\n\nIt will also be cleared from ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') + ': ' + uses.slice(0, 4).map((x) => x.page + ' · ' + x.name).join(', ') + (uses.length > 4 ? '…' : '') + '.' : '') + '\n\nIt stays in Library → Recently deleted for 30 days.';
       if (!confirm(msg)) return;
       withUndo('Deleted ' + (l.name || 'upload'), () => {
         const cleared = [];
@@ -1343,7 +1362,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         });
         S.library = S.library.filter((x) => x.id !== libId);
         S.trash = (S.trash || []).concat([{ item: l, deletedAt: Date.now(), by: me.name, cleared }]);
-        mark(); renderSlots(); renderStats();
+        mark(); rerender();
       });
     }
     function restoreTrash(i) {
@@ -1686,7 +1705,66 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       (S.slots || []).forEach((s) => { ['main', 'backup'].forEach((which) => { const p = s[which]; if (p && (p.source === 'stock' || p.source === 'upload')) rows.push({ s, which, p }); }); });
       return rows;
     }
+    /* ---------- library grid (Pierce, 9/24) ----------
+       Every library image as a small thumbnail. Hover: Replace (upload a new
+       file for this entry; every slot using it switches to the new file) and
+       Delete (same path as the picker's delete: cleared from slots, kept in
+       Recently deleted for 30 days). The entry keeps its id, name and group
+       on replace, so the indexer still treats it as already indexed and does
+       not overwrite it. The original files go to Recently deleted, where
+       Restore brings them back as a separate library image. */
+    let lgGroup = '', lgQuery = '', lgShown = 120, lgBusy = null, lgTarget = null;
+    const libUses = (l) => S.slots.filter((x) => (x.main && x.main.url === l.url) || (x.backup && x.backup.url === l.url));
+    function renderLibGrid() {
+      const lib = S.library || [];
+      const groups = Array.from(new Set(lib.map((l) => l.group).filter(Boolean))).sort();
+      if (lgGroup && !groups.includes(lgGroup)) lgGroup = '';
+      $('libgrid-filters').innerHTML = '<input class="search" id="lg-q" placeholder="Search filenames" value="' + esc(lgQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (lgGroup === g ? 'on' : '') + '" data-lgg="' + esc(g) + '">' + esc(g || 'All') + '</button>').join('');
+      $('lg-q').addEventListener('input', (e) => { lgQuery = e.target.value; lgShown = 120; drawLibGrid(); });
+      $('libgrid-filters').querySelectorAll('[data-lgg]').forEach((b) => b.addEventListener('click', () => { lgGroup = b.dataset.lgg; lgShown = 120; renderLibGrid(); }));
+      drawLibGrid();
+    }
+    function drawLibGrid() {
+      const lib = S.library || [];
+      const q = lgQuery.trim().toLowerCase();
+      const items = lib.filter((l) => (!lgGroup || l.group === lgGroup) && (!q || ((l.name || '') + ' ' + (l.group || '') + ' ' + (l.path || '')).toLowerCase().includes(q)));
+      $('libgrid-count').textContent = lib.length ? (items.length === lib.length ? lib.length : items.length + ' of ' + lib.length) + ' image' + (lib.length === 1 ? '' : 's') : '';
+      $('libgrid').innerHTML = items.length ? items.slice(0, lgShown).map((l) => {
+        const n = libUses(l).length;
+        return '<div class="lt' + (lgBusy === l.id ? ' busy' : '') + '" title="' + esc((l.name || '') + (l.group ? ' · ' + l.group : '') + (n ? ' · on ' + n + ' slot' + (n === 1 ? '' : 's') : '')) + '"><img loading="lazy" src="' + esc(l.thumb || l.url) + '" alt="">' +
+          (n ? '<span class="used">' + n + '</span>' : '') +
+          '<div class="lt-acts"><button type="button" class="lt-rep" data-lg-rep="' + esc(l.id) + '">Replace</button><button type="button" class="cand-x" data-lg-del="' + esc(l.id) + '" title="Delete" aria-label="Delete">' + ICONS.delete + '</button></div></div>';
+      }).join('') : '<p class="hint">' + (lib.length ? 'Nothing matches.' : 'The library is empty. Index the Image Mapping folder below, or upload from a slot.') + '</p>';
+      $('libgrid-more').innerHTML = items.length > lgShown ? '<button class="sbtn" id="lg-more">Show more (' + (items.length - lgShown) + ')</button>' : '';
+      if ($('lg-more')) $('lg-more').addEventListener('click', () => { lgShown += 240; drawLibGrid(); });
+      $('libgrid').querySelectorAll('[data-lg-del]').forEach((b) => b.addEventListener('click', () => deleteUpload(b.dataset.lgDel)));
+      $('libgrid').querySelectorAll('[data-lg-rep]').forEach((b) => b.addEventListener('click', () => { if (lgBusy) return; lgTarget = b.dataset.lgRep; $('lib-replace').value = ''; $('lib-replace').click(); }));
+    }
+    $('lib-replace').addEventListener('change', () => { const f = ($('lib-replace').files || [])[0]; const id = lgTarget; lgTarget = null; if (f && id) replaceLibImage(id, f); });
+    async function replaceLibImage(libId, file) {
+      const l = (S.library || []).find((x) => x.id === libId); if (!l) return;
+      const uses = libUses(l); const inBatch = uses.filter((x) => batchOf(x));
+      if (inBatch.length && !confirm('This image is on ' + inBatch.length + ' slot' + (inBatch.length === 1 ? '' : 's') + ' already in a batch (' + inBatch.slice(0, 3).map((x) => x.page + ' · ' + x.name).join(', ') + (inBatch.length > 3 ? '…' : '') + '). The review will show the new image, including on anything already approved. Replace it?')) return;
+      lgBusy = libId; $('libgrid-status').textContent = 'Uploading ' + file.name + '…'; drawLibGrid();
+      try {
+        const nid = await sha1('replace/' + l.id + '/' + WEB_MAX + '/' + file.name + '/' + file.size + '/' + (file.lastModified || 0));
+        const web = await resize(file, WEB_MAX); const th = await resize(file, 400);
+        const r1 = await uploadBlob('sitime/library/' + nid + '.' + web.ext, web.blob);
+        const r2 = await uploadBlob('sitime/library/t/' + nid + '.' + th.ext, th.blob);
+        withUndo('Replaced ' + (l.name || 'image'), () => {
+          const old = { ...l }; const oldUrl = l.url;
+          l.url = r1.url; l.thumb = r2.url; l.w = web.w; l.h = web.h; l.replacedWith = { file: file.name, at: Date.now(), by: me.name };
+          uses.forEach((x) => ['main', 'backup'].forEach((w) => { if (x[w] && x[w].url === oldUrl) x[w] = { ...x[w], url: l.url, thumb: l.thumb }; }));
+          S.trash = (S.trash || []).concat([{ item: { ...old, id: old.id + '-was-' + Date.now().toString(36), name: (old.name || 'Image') + ' (before replace)', tier: 'upload', group: 'Uploaded' }, deletedAt: Date.now(), by: me.name, cleared: [], replaced: true }]);
+          mark(); rerender();
+        });
+        $('libgrid-status').textContent = 'Replaced ' + (l.name || 'image') + (uses.length ? ' on ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') : '') + '.';
+      } catch (e) {
+        console.error(e); $('libgrid-status').textContent = 'Replace failed — ' + ((e && e.message) || e || 'unknown error');
+      } finally { lgBusy = null; drawLibGrid(); }
+    }
     function renderLib() {
+      renderLibGrid();
       const n = (S.library || []).length; $('lib-status').textContent = n ? n + ' images indexed.' : 'Not indexed yet.';
       $('mock-h1').value = S.mock?.h1 || ''; $('mock-p').value = S.mock?.p || ''; $('mock-cta').value = S.mock?.cta || '';
       $('review-pass').value = S.reviewPass == null ? 'silicon' : S.reviewPass;
@@ -1702,7 +1780,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       }));
       const trash = (S.trash || []).map((t, i) => ({ t, i })).reverse();
       $('trash-count').textContent = trash.length ? trash.length + ' item' + (trash.length === 1 ? '' : 's') : '';
-      $('trash-list').innerHTML = trash.length ? trash.map(({ t, i }) => { const days = Math.max(0, 30 - Math.floor((Date.now() - t.deletedAt) / 864e5)); return '<div class="qitem"><img src="' + esc(t.item.thumb || t.item.url) + '"><div><div class="t">' + esc(t.item.name || 'Upload') + '</div><div class="n">Deleted by ' + esc(t.by || 'someone') + ' ' + ago(t.deletedAt) + (t.cleared && t.cleared.length ? ' · was on ' + t.cleared.length + ' slot' + (t.cleared.length === 1 ? '' : 's') : '') + ' · removed for good in ' + days + ' day' + (days === 1 ? '' : 's') + '</div></div><button class="sbtn" data-restore="' + i + '">Restore</button></div>'; }).join('') : '<p class="hint">Nothing deleted.</p>';
+      $('trash-list').innerHTML = trash.length ? trash.map(({ t, i }) => { const days = Math.max(0, 30 - Math.floor((Date.now() - t.deletedAt) / 864e5)); return '<div class="qitem"><img src="' + esc(t.item.thumb || t.item.url) + '"><div><div class="t">' + esc(t.item.name || 'Upload') + '</div><div class="n">' + (t.replaced ? 'Replaced' : 'Deleted') + ' by ' + esc(t.by || 'someone') + ' ' + ago(t.deletedAt) + (t.cleared && t.cleared.length ? ' · was on ' + t.cleared.length + ' slot' + (t.cleared.length === 1 ? '' : 's') : '') + ' · removed for good in ' + days + ' day' + (days === 1 ? '' : 's') + '</div></div><button class="sbtn" data-restore="' + i + '">Restore</button></div>'; }).join('') : '<p class="hint">Nothing deleted.</p>';
       $('trash-list').querySelectorAll('[data-restore]').forEach((b) => b.addEventListener('click', () => restoreTrash(Number(b.dataset.restore))));
     }
     $('hist-load').addEventListener('click', loadHistory);
