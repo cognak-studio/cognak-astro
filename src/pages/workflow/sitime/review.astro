@@ -66,7 +66,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
 
         <div class="stage-wrap">
-          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span><span class="which" id="which" role="group" aria-label="Image"><button type="button" data-w="main">Main</button><button type="button" data-w="backup">Backup</button></span><button type="button" class="origbtn" id="orig" hidden>Show original</button><button type="button" class="origbtn" id="clean" aria-pressed="false">Hide text</button></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
+          <div class="stage-head"><span class="label-line"><span class="count" id="progress">0 of 0</span><span class="which" id="which" role="group" aria-label="Image"><button type="button" data-w="main">Main</button><button type="button" data-w="backup">Backup</button></span><button type="button" class="origbtn" id="orig" hidden>Show original</button><button type="button" class="origbtn" id="clean" aria-pressed="false">Hide text</button><button type="button" class="origbtn" id="bwbtn" hidden>Color</button></span><div class="arrows"><button type="button" id="prev" aria-label="Previous">←</button><button type="button" id="next" aria-label="Next">→</button></div></div>
           <div class="stage" id="stage"><div class="st-inner">
             <div class="st-nav">
               <img class="mark" src="/media/sitime/logo.svg" alt="SiTime" />
@@ -324,7 +324,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const LP = new URLSearchParams(location.search).get('preview') === 'local';
     if (LP) document.documentElement.classList.add('lp');
     const token = getToken();
-    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {}, orig: null, clean: false };
+    const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {}, orig: null, clean: false, bwView: {} };
     try { state.clean = localStorage.getItem('sitime-review-clean') === '1'; } catch (e) {}
     let pass = '';
     try { pass = sessionStorage.getItem('sitime-pass-' + token) || ''; } catch (e) {}
@@ -432,12 +432,20 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('clean').setAttribute('aria-pressed', String(state.clean));
       $('clean').textContent = state.clean ? 'Show text' : 'Hide text';
       $('clean').hidden = !!og;
+      /* B&W / Color swap (Pierce, 9/24). On a review link it only changes the
+         view (bwView, not saved). In Preview it sets the pick's treatment and
+         saves it back to the admin, same as the framing controls. */
+      const bwKey = s.id + ':' + which;
+      const bwOn = pick ? (bwKey in state.bwView ? state.bwView[bwKey] : !!pick.bw) : false;
+      $('bwbtn').hidden = !!og || !(pick && pick.url);
+      $('bwbtn').textContent = bwOn ? 'Show color' : 'Show B&W';
+      $('bwbtn').classList.toggle('on', bwOn);
       $('pills').classList.toggle('off', !!og);
       if (og) document.querySelectorAll('#which button').forEach((btn) => btn.classList.remove('on'));
       const heroUrl = og ? og.url : ((pick && pick.url) || '');
       $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
       /* COGNAK's treatment on the pick (B&W, flipped); never on the current-site original. */
-      $('hero-img').style.filter = !og && pick && pick.bw ? 'grayscale(1)' : '';
+      $('hero-img').style.filter = !og && bwOn ? 'grayscale(1)' : '';
       applyFrame(s, og ? null : pick);
       const canFrame = LP && !og && !!(pick && pick.url);
       $('st-hero').classList.toggle('canframe', canFrame);
@@ -567,6 +575,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const s = state.slots[state.i]; if (!s || btn.disabled) return;
       state.view[s.id] = btn.dataset.w; state.orig = null; render();
     }));
+    $('bwbtn').addEventListener('click', () => {
+      const { s, which, pick } = curPick(); if (!pick) return;
+      const key = s.id + ':' + which;
+      const cur = key in state.bwView ? state.bwView[key] : !!pick.bw;
+      if (LP) {
+        pick.bw = !cur; delete state.bwView[key];
+        try { if (window.parent.__sitimePreviewSaveBw) window.parent.__sitimePreviewSaveBw(s.id, which, pick.bw); } catch (e) {}
+      } else { state.bwView[key] = !cur; }
+      render();
+    });
     $('clean').addEventListener('click', () => {
       state.clean = !state.clean;
       try { localStorage.setItem('sitime-review-clean', state.clean ? '1' : '0'); } catch (e) {}

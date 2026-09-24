@@ -1305,6 +1305,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (zoom && zoom > 1) p.zoom = Math.round(zoom * 100) / 100; else delete p.zoom;
       mark();
     };
+    window.__sitimePreviewSaveBw = (id, which, bw) => {
+      const s = byId().get(id); const p = s && s[which]; if (!p) return;
+      if (bw) p.bw = true; else delete p.bw;
+      mark(); renderSlots();
+    };
     $('pv-close').addEventListener('click', () => $('pv-dialog').close());
     $('pv-dialog').addEventListener('close', () => { $('pv-frame').src = 'about:blank'; });
     $('preview-checked').addEventListener('click', () => {
