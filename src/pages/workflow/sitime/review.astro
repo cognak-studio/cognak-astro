@@ -48,7 +48,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="field">
           <span class="q-title" id="slot-title">Slot</span>
           <span class="q-sub" id="slot-sub"></span>
-          <p class="handoff" id="handoff" hidden></p>
           <div class="pills" id="pills" role="group" aria-label="Decision">
             <button type="button" class="pill" data-v="approve">Approve</button>
             <button type="button" class="pill" data-v="deny">Deny</button>
@@ -63,7 +62,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             </div>
             <p class="hint is-error" id="err" hidden></p>
           </div>
-          <p class="decided" id="decided" hidden></p>
+          <div class="statusslot"><p class="handoff" id="handoff" hidden></p><p class="decided" id="decided" hidden></p></div>
         </div>
 
         <div class="stage-wrap">
@@ -169,13 +168,25 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .btn.ghost{ background:none; color:var(--ink); border-color:var(--line-strong); }
     .review .skip{ font:inherit; background:none; border:0; padding:0; color:var(--ink-soft); font-size:var(--fs-14); text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
     .review .saving{ font-size:var(--fs-14); color:var(--ink-soft); }
-    .review .decided{ margin:14px 0 0; font-size:var(--fs-14); color:var(--ink-soft); }
+    .review .decided{ margin:0; font-size:var(--fs-14); color:var(--ink-soft); }
+    /* Fixed-height header (Pierce, 9/23): flipping Main / Backup / Show original
+       changes the subtitle length, the "Decided" line and the denied-main
+       banner, and each of those used to push the image down or pull it up.
+       The subtitle reserves two lines and the banner + decided line share one
+       reserved slot under the pills, so the stage stays put. Only opening the
+       deny/hold note box still moves it, deliberately. */
+    .review #slot-sub{ min-height:calc(2 * 1.4em); }
+    .review .statusslot{ min-height:46px; margin-top:14px; display:flex; flex-direction:column; justify-content:flex-start; }
+    .review .statusslot .handoff{ margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .review .statusslot .decided{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .review .statusslot .handoff:not([hidden]) + .decided{ display:none !important; }
     .review .decided b{ font-weight:500; color:var(--ink); }
     .review .handoff{ margin:12px 0 0; padding:10px 14px; border-radius:8px; background:#FDF2F2; border:1px solid #F3D2D2; color:#8A2A2A; font-size:var(--fs-14); line-height:1.5; }
     .review .handoff b{ font-weight:600; }
 
     .review .stage-wrap{ margin-top:.4rem; }
-    .review .stage-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .review .stage-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; min-height:40px; }
+    .review .which button, .review .origbtn{ line-height:1; }
     .review .stage-head .label-line{ display:flex; align-items:center; gap:8px; }
     .review .stage-head .label, .review .stage-head .sep, .review .stage-head .count{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
     .review .arrows{ display:flex; gap:8px; }
