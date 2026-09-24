@@ -1115,7 +1115,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        carry the treatment so the final file is made to match. B&W is 100%
        desaturation only, nothing else. */
     function fxStyle(p) { if (!p) return ''; const f = []; if (p.bw) f.push('filter:grayscale(1)'); if (p.flip) f.push('transform:scaleX(-1)'); return f.length ? ' style="' + f.join(';') + '"' : ''; }
-    const treatment = (p) => [p && p.bw ? 'bw' : 'color', p && p.flip ? 'flipped' : ''].filter(Boolean).join(' ');
+    const treatment = (p) => [p && p.bw ? 'bw' : 'color', p && p.flip ? 'flipped' : '', p && p.pos ? 'focus ' + p.pos.x + '%/' + p.pos.y + '%' : '', p && p.zoom > 1 ? 'zoom ' + p.zoom : ''].filter(Boolean).join(' ');
     function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '"' + fxStyle(p) + '>' : '<div class="thumb empty"></div>'; }
     function renderSlots() {
       renderRail(); renderPageCard();
@@ -1280,7 +1280,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!pick) return null;
       return { source: pick.source || null, url: pick.url || null, thumb: pick.thumb || pick.url || null, title: pick.title || '', id: pick.id || null,
         ref: pick.source === 'stock' ? 'Adobe Stock ' + (pick.id || '') : pick.source === 'library' ? 'SiTime library' : pick.source === 'existing' ? 'Current site' : 'COGNAK',
-        link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null, bw: !!pick.bw, flip: !!pick.flip };
+        link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null, bw: !!pick.bw, flip: !!pick.flip, pos: pick.pos || null, zoom: pick.zoom || 1 };
     }
     function pvOriginals(s) {
       const nm = (url) => decodeURIComponent(String(url).split('/').pop());
@@ -1298,6 +1298,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('pv-frame').src = '/workflow/sitime/review?preview=local&t=' + Date.now();
       if (!$('pv-dialog').open) $('pv-dialog').showModal();
     }
+    /* The preview iframe saves framing here (drag = pos, slider = zoom). */
+    window.__sitimePreviewSave = (id, which, pos, zoom) => {
+      const s = byId().get(id); const p = s && s[which]; if (!p) return;
+      if (pos) p.pos = { x: pos.x, y: pos.y }; else delete p.pos;
+      if (zoom && zoom > 1) p.zoom = Math.round(zoom * 100) / 100; else delete p.zoom;
+      mark();
+    };
     $('pv-close').addEventListener('click', () => $('pv-dialog').close());
     $('pv-dialog').addEventListener('close', () => { $('pv-frame').src = 'about:blank'; });
     $('preview-checked').addEventListener('click', () => {

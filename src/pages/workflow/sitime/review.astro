@@ -73,12 +73,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div class="links"><span>Products</span><span>Applications</span><span>Tools &amp; Resources</span><span>Support</span><span>Company</span></div>
               <div class="right"><span>Search</span><span>Sign in</span><span class="cta">Sample &amp; Buy</span></div>
             </div>
-            <div class="st-hero" id="st-hero"><img id="hero-img" src="" alt="" hidden /><div class="noimg" id="noimg">No image assigned to this slot yet</div><div class="scrim"></div>
+            <div class="st-hero" id="st-hero"><div class="imgbox" id="imgbox"><img id="hero-img" src="" alt="" hidden /></div><div class="noimg" id="noimg">No image assigned to this slot yet</div><div class="scrim"></div>
               <div class="ccopy" aria-hidden="true"><span class="eyebrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>Event</span><h3>How a Tier-1 OEM eliminated quartz failures in ADAS.</h3><p>Replacing 14 quartz parts with one MEMS platform across the radar stack.</p><span class="carrow">→</span></div>
               <div class="copy"><h2 id="mock-h1">Built for where others fail.</h2><p id="mock-p">From space to factory floors, SiTime timing holds when conditions don’t.</p><span class="btn-s" id="mock-cta">Learn more</span></div>
             </div>
           </div></div>
           <div class="stage-foot"><span id="source"></span><span class="foot-r"><span id="source-note">Comp shown, licensed after approval</span><span class="ocyc" id="ocyc" hidden><button type="button" id="oprev" aria-label="Previous original">‹</button><span id="ocount"></span><button type="button" id="onext" aria-label="Next original">›</button></span></span></div>
+          <div class="framebar" id="framebar" hidden><span>Drag the image to reframe</span><label>Zoom <input type="range" id="fzoom" min="1" max="2.5" step="0.01" value="1" /></label><span id="fval"></span><button type="button" class="origbtn" id="freset">Reset</button></div>
         </div>
       </div>
     </div>
@@ -129,6 +130,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     html.lp .review{ max-width:none; padding:8px 10px 24px; }
     html.lp .review .headline, html.lp .review .lede, html.lp .review .backlink{ display:none !important; }
     html.lp .review #pills, html.lp .review #note, html.lp .review .statusslot{ display:none !important; }
+    /* Reframing (Pierce, 9/24): preview only. Drag pans (object-position),
+       the slider zooms around the same point; saved on the pick. */
+    .review .framebar{ display:flex; align-items:center; gap:16px; margin-top:14px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); flex-wrap:wrap; }
+    .review .framebar label{ display:inline-flex; align-items:center; gap:10px; }
+    .review .framebar input[type=range]{ width:200px; accent-color:var(--head); }
+    .review .framebar .origbtn{ margin-left:0; }
+    html.lp .review .st-hero.canframe{ cursor:grab; touch-action:none; user-select:none; }
+    html.lp .review .st-hero.canframe.dragging{ cursor:grabbing; }
 
     .review{ --bg:#F4F4F2; --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B;
       --accent:#9B948A; --accent-rgb:155,148,138; --head:#575049; --deep:#1C1A17;
@@ -231,6 +240,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .st-nav .right{ margin-left:auto; display:flex; align-items:center; gap:32px; font-size:var(--fs-18); }
     .review .st-nav .cta{ background:var(--sit); color:#fff; padding:14px 26px; border-radius:6px; font-weight:500; }
     .review .st-hero{ position:relative; height:912px; background:#111; }
+    .review .st-hero{ overflow:hidden; }
+    /* The image sits in its own clipping box so zoom (a scale transform) never
+       spills past the hero or the card rectangle. */
+    .review .st-hero .imgbox{ position:absolute; inset:0; overflow:hidden; }
     .review .st-hero img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 40%; }
     .review .st-hero .noimg{ position:absolute; inset:0; background:repeating-linear-gradient(45deg,#2A2A2C,#2A2A2C 24px,#232325 24px,#232325 48px); color:#8A8A8E; font-size:22px; display:flex; align-items:flex-start; justify-content:flex-end; padding:40px 84px; }
     /* Hero scrim (Pierce, 9/24): angled up from the bottom-left corner, where
@@ -248,7 +261,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        page, copy on the card, scrim bottom to top. Image, placeholder and
        scrim all move into the card rectangle; the hero copy steps aside. */
     .review .st-hero.card{ background:#F4F4F2; }
-    .review .st-hero.card img, .review .st-hero.card .noimg, .review .st-hero.card .scrim{ inset:auto; left:602px; top:56px; width:380px; height:800px; border-radius:18px; }
+    .review .st-hero.card .imgbox, .review .st-hero.card .noimg, .review .st-hero.card .scrim{ inset:auto; left:602px; top:56px; width:380px; height:800px; border-radius:18px; }
     .review .st-hero.card .noimg{ padding:32px; font-size:18px; justify-content:center; text-align:center; }
     .review .st-hero.card img{ object-position:50% 50%; }
     .review .st-hero.card .scrim{ background:linear-gradient(0deg, rgba(36,38,41,.97) 0%, rgba(36,38,41,.70) 30%, rgba(36,38,41,0) 62%); }
@@ -425,7 +438,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
       /* COGNAK's treatment on the pick (B&W, flipped); never on the current-site original. */
       $('hero-img').style.filter = !og && pick && pick.bw ? 'grayscale(1)' : '';
-      $('hero-img').style.transform = !og && pick && pick.flip ? 'scaleX(-1)' : '';
+      applyFrame(s, og ? null : pick);
+      const canFrame = LP && !og && !!(pick && pick.url);
+      $('st-hero').classList.toggle('canframe', canFrame);
+      $('framebar').hidden = !canFrame;
+      if (canFrame) { $('fzoom').value = String(pick.zoom || 1); $('fval').textContent = (pick.pos || (pick.zoom && pick.zoom !== 1)) ? 'Custom framing' : 'Automatic'; }
       if (og) {
         $('source').textContent = 'Currently on sitime.com · ' + og.name;
         $('source-note').textContent = 'Not up for review';
@@ -460,6 +477,62 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('prev').disabled = state.i === 0;
       $('next').disabled = state.i >= state.slots.length - 1;
       fit();
+    }
+
+    /* Framing: pick.pos = {x,y} in object-position % (the image point at x%
+       sits at x% of the frame), pick.zoom = scale around that same point.
+       A flipped pick is mirrored about the frame centre: translateX makes a
+       flip about the focal origin equal to a flip about the middle. */
+    function frameDefault(s) { return s && s.display === 'card' ? { x: 50, y: 50 } : { x: 50, y: 40 }; }
+    function applyFrame(s, pick) {
+      const im = $('hero-img');
+      if (!pick) { im.style.objectPosition = ''; im.style.transformOrigin = ''; im.style.transform = ''; return; }
+      const pos = pick.pos || frameDefault(s); const z = pick.zoom || 1;
+      im.style.objectPosition = pick.pos ? pos.x + '% ' + pos.y + '%' : '';
+      im.style.transformOrigin = pos.x + '% ' + pos.y + '%';
+      let t = '';
+      if (pick.flip) t += 'translateX(' + (100 - 2 * pos.x) + '%) scaleX(-1) ';
+      if (z !== 1) t += 'scale(' + z + ')';
+      im.style.transform = t.trim();
+    }
+    function curPick() { const s = state.slots[state.i]; if (!s) return {}; const which = viewed(s); return { s, which, pick: which === 'backup' ? s.backup : s.main }; }
+    function saveFrame() {
+      const { s, which, pick } = curPick(); if (!pick) return;
+      try { if (window.parent.__sitimePreviewSave) window.parent.__sitimePreviewSave(s.id, which, pick.pos || null, pick.zoom || 1); } catch (e) {}
+      $('fval').textContent = (pick.pos || (pick.zoom && pick.zoom !== 1)) ? 'Custom framing' : 'Automatic';
+    }
+    if (LP) {
+      let drag = null;
+      $('st-hero').addEventListener('pointerdown', (e) => {
+        if (!$('st-hero').classList.contains('canframe')) return;
+        const { s, pick } = curPick(); const im = $('hero-img'); const box = $('imgbox');
+        if (!pick || !im.naturalWidth) return;
+        const r = box.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return;
+        e.preventDefault();
+        const sc = parseFloat(getComputedStyle($('stage')).getPropertyValue('--scale')) || 1;
+        const bw = box.offsetWidth, bh = box.offsetHeight, z = pick.zoom || 1;
+        const cover = Math.max(bw / im.naturalWidth, bh / im.naturalHeight);
+        const spanX = Math.max(im.naturalWidth * cover * z - bw, bw * 0.25);
+        const spanY = Math.max(im.naturalHeight * cover * z - bh, bh * 0.25);
+        const start = pick.pos || frameDefault(s);
+        drag = { x0: e.clientX, y0: e.clientY, sc, spanX, spanY, sx: start.x, sy: start.y, flip: !!pick.flip, pick, s };
+        $('st-hero').classList.add('dragging');
+        $('st-hero').setPointerCapture(e.pointerId);
+      });
+      $('st-hero').addEventListener('pointermove', (e) => {
+        if (!drag) return;
+        const dx = (e.clientX - drag.x0) / drag.sc * (drag.flip ? -1 : 1), dy = (e.clientY - drag.y0) / drag.sc;
+        const cl = (v) => Math.round(Math.min(100, Math.max(0, v)) * 10) / 10;
+        drag.pick.pos = { x: cl(drag.sx - dx / drag.spanX * 100), y: cl(drag.sy - dy / drag.spanY * 100) };
+        applyFrame(drag.s, drag.pick);
+      });
+      const end = () => { if (!drag) return; const moved = drag.pick.pos; drag = null; $('st-hero').classList.remove('dragging'); if (moved) saveFrame(); };
+      $('st-hero').addEventListener('pointerup', end);
+      $('st-hero').addEventListener('pointercancel', end);
+      $('fzoom').addEventListener('input', () => { const { s, pick } = curPick(); if (!pick) return; const z = parseFloat($('fzoom').value) || 1; if (z === 1) delete pick.zoom; else pick.zoom = z; applyFrame(s, pick); });
+      $('fzoom').addEventListener('change', saveFrame);
+      $('freset').addEventListener('click', () => { const { s, pick } = curPick(); if (!pick) return; delete pick.pos; delete pick.zoom; $('fzoom').value = '1'; applyFrame(s, pick); saveFrame(); });
     }
 
     function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }

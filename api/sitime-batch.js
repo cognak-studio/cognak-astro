@@ -41,6 +41,8 @@ function img(pick) {
     link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null,
     bw: !!pick.bw,
     flip: !!pick.flip,
+    pos: pick.pos && typeof pick.pos.x === 'number' ? { x: pick.pos.x, y: pick.pos.y } : null,
+    zoom: typeof pick.zoom === 'number' && pick.zoom > 1 ? pick.zoom : 1,
   };
 }
 
