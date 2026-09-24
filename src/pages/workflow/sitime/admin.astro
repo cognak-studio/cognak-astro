@@ -542,16 +542,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .tgtbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .adm .drawer .tgtbar .lbl{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .drawer .dsp-lbl{ margin-left:14px; }
-    /* One row for every drawer control (Pierce, 9/24): Close used to wrap
-       onto its own line. Tighter buttons, no wrap on normal widths; only a
-       narrow window lets the row break. */
-    .adm .drawer .tgtbar{ flex-wrap:nowrap; gap:6px; }
+    /* Drawer controls in two rows (Pierce, 9/24): actions (Preview, Clear
+       picks, Close) sit top-right beside the slot title; the picking controls
+       (Setting, Shown as) get their own row under it. One row overflowed the
+       card once Preview was added. */
+    .adm .drawer .dhead{ align-items:flex-start; }
+    .adm .drawer .dacts{ display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+    .adm .drawer .dacts .sbtn{ white-space:nowrap; padding:6px 14px; font-size:var(--fs-13); }
+    .adm .drawer .tgtbar{ gap:6px; margin-top:16px; }
     .adm .drawer .tgtbar .sbtn{ white-space:nowrap; padding:6px 14px; font-size:var(--fs-13); }
     .adm .drawer .tgtbar .tgt{ font-size:var(--fs-13); padding:4px 12px 4px 4px; white-space:nowrap; }
     .adm .drawer .tgtbar .tgt img, .adm .drawer .tgtbar .tgt .ph{ width:34px; height:22px; }
     .adm .drawer .tgtbar .dsp-lbl{ margin-left:10px; }
-    .adm .drawer .tgtbar [data-clear]{ margin-left:10px; }
-    @media (max-width: 1180px){ .adm .drawer .tgtbar{ flex-wrap:wrap; } }
     .adm .drawer [data-dsp] .mini{ margin-left:4px; opacity:.7; }
     .adm .drawer .tgt{ display:inline-flex; align-items:center; gap:8px; font:inherit; font-size:var(--fs-14); padding:5px 12px 5px 5px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; cursor:pointer; }
     .adm .drawer .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
@@ -1195,10 +1197,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + currentFor(s).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
 
       el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc([s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ')) + '</span></div>' +
+        '<div class="dacts"><button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="tgtbar"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') +
         '<span class="lbl dsp-lbl">Shown as</span>' + ['hero', 'card'].map((v) => '<button class="sbtn ' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + (v === 'card' ? 'Review shows it as a tall card with text' : 'Review shows it full width behind the headline') + '">' + (v === 'hero' ? 'Hero' : 'Card') + (autoDisplay(s) === v ? ' <span class="mini">auto</span>' : '') + '</button>').join('') +
-        '<button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
+        '</div>' +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b style="margin-right:0">' + which + '</b>.</span></div>' +
