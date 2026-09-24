@@ -15,7 +15,7 @@
  * files (see _lib/sitimeStore.mjs) and are never written here.
  */
 import { requireEditor } from './_lib/sitimeAuth.mjs';
-import { readState, writeState, readAllDecisions } from './_lib/sitimeStore.mjs';
+import { readState, writeState, readAllDecisions, stateHistory, readStateAt } from './_lib/sitimeStore.mjs';
 import seed from './_lib/sitime-seed.json' with { type: 'json' };
 
 function mergeSeed(existing) {
@@ -67,6 +67,12 @@ export default async function handler(req, res) {
   const who = await requireEditor(req, res);
   if (!who) return;
 
+  if (req.method === 'GET' && req.query && req.query.history) {
+    if (who.role !== 'admin') return res.status(403).json({ error: 'Admin only.' });
+    try { return res.status(200).json({ ok: true, history: await stateHistory() }); }
+    catch (err) { console.error('sitime-state history failed', err); return res.status(502).json({ error: 'Could not load the history.' }); }
+  }
+
   if (req.method === 'GET') {
     try {
       let state = await readState();
@@ -96,8 +102,19 @@ export default async function handler(req, res) {
       if (body && body.reseed) {
         if (who.role !== 'admin') return res.status(403).json({ error: 'Admin only.' });
         const state = mergeSeed(await readState());
-        const r = await writeState(state);
+        const r = await writeState(state, who.name + ' (reseed)');
         return res.status(200).json({ ok: true, savedAt: r.savedAt, state });
+      }
+      /* Restore an earlier version: written as a NEW version, so a restore
+         can itself be undone from the same list. Decisions live in their
+         own append-only files and are untouched either way. */
+      if (body && body.restore) {
+        if (who.role !== 'admin') return res.status(403).json({ error: 'Admin only.' });
+        const old = await readStateAt(body.restore);
+        if (!old || !Array.isArray(old.slots)) return res.status(404).json({ error: 'That version is no longer stored.' });
+        const { savedAt: _s, savedBy: _b, ...rest } = old;
+        const r = await writeState({ ...rest, restoredFrom: Number(body.restore) }, who.name + ' (restore)');
+        return res.status(200).json({ ok: true, savedAt: r.savedAt });
       }
       const state = body && body.state;
       if (!state || !Array.isArray(state.slots)) return res.status(400).json({ error: 'No state.' });
@@ -118,7 +135,7 @@ export default async function handler(req, res) {
       }
       // never let a save drop parked (retired) slot work
       if (current && Array.isArray(current.retiredSlots) && !Array.isArray(state.retiredSlots)) state.retiredSlots = current.retiredSlots;
-      const r = await writeState(state);
+      const r = await writeState(state, who.name);
       return res.status(200).json({ ok: true, savedAt: r.savedAt });
     } catch (err) {
       console.error('sitime-state POST failed', err);

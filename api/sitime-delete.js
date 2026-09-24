@@ -14,7 +14,11 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!(await requireEditor(req, res))) return;
+  const who = await requireEditor(req, res);
+  if (!who) return;
+  // Deleting stored files is admin-only: team deletes go to the tool's
+  // Recently deleted list and are purged from Pierce's session after 30 days.
+  if (who.role !== 'admin') return res.status(403).json({ error: 'Admin only.' });
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }
   const urls = Array.isArray(body && body.urls) ? body.urls.slice(0, 10) : [];

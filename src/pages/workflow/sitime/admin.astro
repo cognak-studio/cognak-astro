@@ -124,6 +124,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="card-head"><div class="group-title">Sourced from Stock / uploads</div><span class="mini" id="sourced-count"></span></div>
           <div class="queue" id="sourced-list"></div>
         </div>
+        <div class="group">
+          <div class="card-head"><div class="group-title">Recently deleted</div><span class="mini" id="trash-count"></span></div>
+          <p class="hint">Deleted uploads stay here for 30 days before the file is removed for good. Restore puts the image back in the library and back on any slot it was cleared from, if that slot is still empty.</p>
+          <div class="queue" id="trash-list"></div>
+        </div>
+        <div class="group admin-only">
+          <div class="card-head"><div class="group-title">Version history</div><button class="sbtn" id="hist-load">Show versions</button></div>
+          <p class="hint">Every save is kept: all of the last 48 hours, then one an hour for two weeks, then one a day for 90 days. If a lot of picks or a batch disappear, find the last version before the drop and restore it. A restore is saved as a new version, so it can be undone from this same list. Reviewer decisions are stored separately and are never affected.</p>
+          <div class="hist" id="hist-list"></div>
+        </div>
         <div class="group admin-only">
           <div class="group-title">Team access</div>
           <div class="grid3"><label class="q"><span class="q-title">Team passcode</span><input class="txt" id="team-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end" id="team-hint">Lets Michael or Ace sign in here with their name to pick and upload images. They cannot make or delete batches, change passcodes, or reach anything outside this tool. Generated images are capped at 40 a day across the team. Changing it signs everyone out; blank turns team access off.</p></div>
@@ -143,6 +153,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         </div>
       </div>
     </div>
+
+    <!-- undo toast -->
+    <div class="undo" id="undo" hidden role="status" aria-live="polite"><span id="undo-msg"></span><button type="button" class="sbtn" id="undo-btn">Undo</button><button type="button" class="undo-x" id="undo-x" aria-label="Dismiss">×</button></div>
 
     <!-- added-to-batch confirmation (and batch chooser when more than one is open) -->
     <dialog id="added-dialog" class="added">
@@ -385,6 +398,22 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .bslot img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; background:#EEE; display:block; margin-bottom:5px; }
     .adm .bslot b{ display:block; color:var(--ink); font-weight:500; font-size:var(--fs-12); }
     .adm dialog{ border:1px solid #ECECE9; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
+    /* undo toast (bottom centre, same pill language as the tabs) */
+    .adm .undo{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:14px; background:var(--deep); color:#fff; border-radius:999px; padding:8px 8px 8px 22px; box-shadow:0 10px 30px rgba(0,0,0,.22); font-size:var(--fs-15); max-width:min(92vw,640px); }
+    .adm .undo[hidden]{ display:none; }
+    .adm .undo #undo-msg{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .adm .undo .sbtn{ background:#fff; color:var(--ink); border-color:#fff; }
+    .adm .undo-x{ background:none; border:0; color:rgba(255,255,255,.6); font-size:20px; line-height:1; cursor:pointer; padding:4px 10px 4px 0; }
+    /* version history */
+    .adm .hist{ display:flex; flex-direction:column; }
+    .adm .hrow{ display:grid; grid-template-columns:170px 1fr auto; gap:16px; align-items:center; padding:10px 0; border-top:1px solid var(--line); font-size:var(--fs-14); }
+    .adm .hrow .when b{ display:block; font-weight:500; color:var(--ink); }
+    .adm .hrow .when span{ color:var(--ink-soft); font-size:var(--fs-12); }
+    .adm .hrow .what{ color:var(--ink-soft); }
+    .adm .hrow .what .hd-dn{ color:#C0281E; font-weight:500; }
+    .adm .hrow .what .hd-up{ color:#3F7A00; }
+    .adm .hrow.drop{ background:linear-gradient(90deg, rgba(229,35,27,.06), transparent 70%); }
+    .adm .hrow.cur .sbtn{ visibility:hidden; }
     /* added-to-batch confirmation */
     .adm dialog.added{ width:min(92vw,560px); padding:28px 28px 24px; }
     .adm .ad-eyebrow{ display:flex; align-items:center; gap:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:14px; }
@@ -551,6 +580,22 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const clone = (o) => JSON.parse(JSON.stringify(o));
     const slotKey = (o) => { if (!o) return 'null'; const c = Object.assign({}, o); delete c.edit; delete c.batch; return J(c); };
     function replaceInPlace(t, src) { Object.keys(t).forEach((k) => delete t[k]); Object.assign(t, clone(src)); }
+
+    /* Undo (Pierce, 9/24): every destructive click snapshots the state first
+       and offers a 12-second Undo. The snapshot is the whole document (plus
+       decisions for a deleted batch), so undo is exact. Older mistakes are
+       covered by Library -> Version history. */
+    let undoSnap = null, undoTimer = null;
+    function withUndo(label, fn) {
+      const snap = { S: clone(S), D: clone(D) };
+      const r = fn();
+      if (r === false) return r;
+      undoSnap = snap;
+      $('undo-msg').textContent = label; $('undo').hidden = false;
+      clearTimeout(undoTimer); undoTimer = setTimeout(hideUndo, 12000);
+      return r;
+    }
+    function hideUndo() { $('undo').hidden = true; undoSnap = null; clearTimeout(undoTimer); }
     function stampEdits() {
       const bm = new Map(((base && base.slots) || []).map((x) => [x.id, x]));
       S.slots.forEach((x) => { if (slotKey(x) !== slotKey(bm.get(x.id))) x.edit = { by: me.name, at: Date.now() }; });
@@ -575,8 +620,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       mergeList('slots', (x) => x.id);
       mergeList('batches', (x) => x.token);
       mergeList('library', (x) => x.id);
+      mergeList('trash', (x) => (x.item && x.item.id) + ':' + x.deletedAt);
       new Set(Object.keys(server).concat(Object.keys(S))).forEach((k) => {
-        if (['slots', 'batches', 'library', 'savedAt'].includes(k)) return;
+        if (['slots', 'batches', 'library', 'trash', 'savedAt'].includes(k)) return;
         if (J(S[k]) === J(B[k])) S[k] = clone(server[k]);
       });
       S.savedAt = server.savedAt;
@@ -707,9 +753,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const c = batchCounts(b); const decided = c.a + c.d + c.h;
       const msg = 'Delete batch ' + String(b.num).padStart(2, '0') + '? Its ' + total + ' slots go back to assigned.' + (decided ? ' ' + decided + ' decision' + (decided > 1 ? 's' : '') + ' already recorded will be discarded.' : '');
       if (!confirm(msg)) return;
-      const m = byId(); (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; });
-      S.batches = S.batches.filter((x) => x !== b); delete D[b.token];
-      mark(); renderBatches(); renderStats();
+      withUndo('Deleted batch ' + String(b.num).padStart(2, '0'), () => {
+        const m = byId(); (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; });
+        S.batches = S.batches.filter((x) => x.token !== b.token); delete D[b.token];
+        mark(); renderBatches(); renderStats();
+      });
     }
     function renderBatches() {
       const rows = S.batches.slice().sort((a, b) => b.num - a.num).map((b) => {
@@ -752,7 +800,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const m = byId();
       el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (o.outcome === 'pending' ? 'queued' : o.outcome) + '"><i></i>' + (o.outcome === 'pending' ? 'Not yet decided' : STATUS_LABEL[o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (!o.ev && me.role === 'admin' ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
         '<div class="actions">' + (me.role === 'admin' ? '<button class="link" data-edit="1">Rename / reschedule</button><button class="link" data-del="1">Delete batch</button>' : '') + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
-      el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.rm); b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }));
+      el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.rm); withUndo('Took ' + s.name + ' out of batch ' + String(b.num).padStart(2, '0'), () => { b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }); }));
       const ed = el.querySelector('[data-edit]'); if (ed) ed.addEventListener('click', () => openBatchDialog(b));
       const del = el.querySelector('[data-del]'); if (del) del.addEventListener('click', () => deleteBatch(b));
     }
@@ -786,6 +834,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('batch-dialog').showModal();
     }
     $('new-batch').addEventListener('click', () => openBatchDialog(null));
+    $('undo-x').addEventListener('click', hideUndo);
+    $('undo-btn').addEventListener('click', () => {
+      if (!undoSnap) return;
+      replaceInPlace(S, undoSnap.S); Object.keys(D).forEach((k) => delete D[k]); Object.assign(D, undoSnap.D);
+      hideUndo(); mark(); rerender();
+    });
     $('bd-cancel').addEventListener('click', () => $('batch-dialog').close());
     $('bd-save').addEventListener('click', () => {
       const name = $('bd-name').value.trim() || 'Untitled'; const date = $('bd-date').value || null;
@@ -1045,9 +1099,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         e.stopPropagation();
         const s = byId().get(btn.dataset.slot); const which = btn.dataset.which;
         if (btn.dataset.act === 'trash') {
-          s[which] = null; revealTile = null;
-          if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
-          mark(); renderSlots(); renderStats();
+          withUndo('Removed the ' + which + ' image from ' + s.name, () => {
+            s[which] = null; revealTile = null;
+            if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
+            mark(); renderSlots(); renderStats();
+          });
         } else if (btn.dataset.act === 'swap') {
           const tmp = s.main; s.main = s.backup; s.backup = tmp; revealTile = null;
           mark(); renderSlots(); renderStats();
@@ -1088,7 +1144,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich[s.id] = b.dataset.tgt; refreshDrawer(s.id); }));
       el.querySelectorAll('[data-dsp]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.dsp; if (v === autoDisplay(s)) delete s.display; else s.display = v; mark(); refreshDrawer(s.id); }));
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
-      el.querySelector('[data-clear]').addEventListener('click', () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); });
+      el.querySelector('[data-clear]').addEventListener('click', () => { if (!s.main && !s.backup) return; withUndo('Cleared picks on ' + s.name, () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
       el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
       el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
       el.querySelector('[data-terms]').addEventListener('change', (e) => { s.terms = e.target.value.split('\n').map((t) => t.trim()).filter(Boolean); _hay.delete(s.id); stockSlotId = null; mark(); refreshDrawer(s.id); });
@@ -1277,18 +1333,37 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         alert('Can’t delete: ' + locked[0].page + ' · ' + locked[0].name + ' uses this image and is in Batch ' + String(b.num).padStart(2, '0') + '. Take the slot out of the batch first.');
         return;
       }
-      const msg = 'Delete ' + (l.name || 'this upload') + ' from the SiTime library?' + (uses.length ? '\n\nIt will also be cleared from ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') + ': ' + uses.slice(0, 4).map((x) => x.page + ' · ' + x.name).join(', ') + (uses.length > 4 ? '…' : '') + '.' : '') + '\n\nThis cannot be undone.';
+      const msg = 'Delete ' + (l.name || 'this upload') + ' from the SiTime library?' + (uses.length ? '\n\nIt will also be cleared from ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') + ': ' + uses.slice(0, 4).map((x) => x.page + ' · ' + x.name).join(', ') + (uses.length > 4 ? '…' : '') + '.' : '') + '\n\nIt stays in Library → Recently deleted for 30 days.';
       if (!confirm(msg)) return;
-      uses.forEach((x) => {
-        if (x.main && x.main.url === l.url) x.main = null;
-        if (x.backup && x.backup.url === l.url) x.backup = null;
+      withUndo('Deleted ' + (l.name || 'upload'), () => {
+        const cleared = [];
+        uses.forEach((x) => {
+          if (x.main && x.main.url === l.url) { cleared.push({ id: x.id, which: 'main', pick: x.main }); x.main = null; }
+          if (x.backup && x.backup.url === l.url) { cleared.push({ id: x.id, which: 'backup', pick: x.backup }); x.backup = null; }
+        });
+        S.library = S.library.filter((x) => x.id !== libId);
+        S.trash = (S.trash || []).concat([{ item: l, deletedAt: Date.now(), by: me.name, cleared }]);
+        mark(); renderSlots(); renderStats();
       });
-      S.library = S.library.filter((x) => x.id !== libId);
-      mark(); renderSlots(); renderStats();
-      await flush();
-      if (!/^Saved/.test($('savestate').textContent || '')) return; // state not saved: keep the files
-      const r = await api('/api/sitime-delete', { method: 'POST', body: { urls: [l.url, l.thumb].filter(Boolean) } });
-      if (!r.ok) console.warn('upload removed from the tool, stored file not deleted', r.data);
+    }
+    function restoreTrash(i) {
+      const t = (S.trash || [])[i]; if (!t) return;
+      const m = byId();
+      if (!(S.library || []).some((x) => x.id === t.item.id)) S.library = (S.library || []).concat([t.item]);
+      (t.cleared || []).forEach((c) => { const s = m.get(c.id); if (s && !s[c.which] && c.pick) s[c.which] = c.pick; });
+      S.trash.splice(i, 1);
+      mark(); rerender();
+    }
+    /* Files in Recently deleted for more than 30 days are removed from
+       storage for good, from Pierce's session only (the delete API is
+       admin-only). */
+    async function purgeTrash() {
+      const cut = Date.now() - 30 * 24 * 3600e3;
+      const old = (S.trash || []).filter((t) => t.deletedAt < cut);
+      if (!old.length || me.role !== 'admin') return;
+      S.trash = S.trash.filter((t) => t.deletedAt >= cut); mark(); await flush();
+      if (!/^Saved/.test($('savestate').textContent || '')) return;
+      for (const t of old) await api('/api/sitime-delete', { method: 'POST', body: { urls: [t.item.url, t.item.thumb].filter(Boolean) } });
     }
     function removeCandidate(slot, key) {
       slot.candidates = (slot.candidates || []).filter((c) => (c.comp || c.id) !== key);
@@ -1625,6 +1700,32 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
         mark(); renderLib(); renderSlots(); renderStats();
       }));
+      const trash = (S.trash || []).map((t, i) => ({ t, i })).reverse();
+      $('trash-count').textContent = trash.length ? trash.length + ' item' + (trash.length === 1 ? '' : 's') : '';
+      $('trash-list').innerHTML = trash.length ? trash.map(({ t, i }) => { const days = Math.max(0, 30 - Math.floor((Date.now() - t.deletedAt) / 864e5)); return '<div class="qitem"><img src="' + esc(t.item.thumb || t.item.url) + '"><div><div class="t">' + esc(t.item.name || 'Upload') + '</div><div class="n">Deleted by ' + esc(t.by || 'someone') + ' ' + ago(t.deletedAt) + (t.cleared && t.cleared.length ? ' · was on ' + t.cleared.length + ' slot' + (t.cleared.length === 1 ? '' : 's') : '') + ' · removed for good in ' + days + ' day' + (days === 1 ? '' : 's') + '</div></div><button class="sbtn" data-restore="' + i + '">Restore</button></div>'; }).join('') : '<p class="hint">Nothing deleted.</p>';
+      $('trash-list').querySelectorAll('[data-restore]').forEach((b) => b.addEventListener('click', () => restoreTrash(Number(b.dataset.restore))));
+    }
+    $('hist-load').addEventListener('click', loadHistory);
+    async function loadHistory() {
+      $('hist-list').innerHTML = '<p class="hint">Loading…</p>';
+      const r = await api('/api/sitime-state?history=1');
+      if (!r.ok) { $('hist-list').innerHTML = '<p class="hint">' + esc((r.data && r.data.error) || 'Could not load.') + '</p>'; return; }
+      const h = r.data.history || [];
+      /* Collapse runs of autosaves by the same person with nothing changed in
+         the counts, so the list reads as events, not keystrokes. */
+      const rows = []; h.forEach((v, k) => { const next = h[k + 1]; const same = rows.length && rows[rows.length - 1].by === v.by && ['picks', 'batches', 'library', 'batched', 'trash'].every((f) => rows[rows.length - 1][f] === v[f]); if (!same || k === 0) rows.push({ ...v, prev: next }); else rows[rows.length - 1].prev = next; });
+      const fmt = (t) => new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const delta = (v, f, label) => { const p = v.prev ? v.prev[f] : v[f]; const d = v[f] - p; return v[f] + ' ' + label + (d ? ' <span class="' + (d < 0 ? 'dn' : 'up') + '">(' + (d > 0 ? '+' : '') + d + ')</span>' : ''); };
+      $('hist-list').innerHTML = rows.length ? rows.slice(0, 80).map((v, k) => { const drop = v.prev && (v.picks - v.prev.picks <= -3 || v.batches < v.prev.batches || v.batched - v.prev.batched <= -3 || v.library - v.prev.library <= -3); return '<div class="hrow' + (k === 0 ? ' cur' : '') + (drop ? ' drop' : '') + '"><div class="when"><b>' + fmt(v.savedAt) + '</b><span>' + esc(v.by) + (k === 0 ? ' · current' : '') + '</span></div><div class="what">' + [delta(v, 'picks', 'picks'), delta(v, 'batches', 'batches'), delta(v, 'batched', 'in batches'), delta(v, 'library', 'library')].join(' · ') + '</div><button class="sbtn" data-ver="' + v.savedAt + '">Restore</button></div>'; }).join('') : '<p class="hint">No saved versions yet. History starts with the next save.</p>';
+      $('hist-list').querySelectorAll('[data-ver]').forEach((b) => b.addEventListener('click', async () => {
+        const t = Number(b.dataset.ver);
+        if (!confirm('Restore the version from ' + fmt(t) + '? Everything saved after it is replaced for everyone. The current version stays in this list, so this can be undone.')) return;
+        clearTimeout(saveTimer); dirty = false;
+        b.textContent = 'Restoring…';
+        const rr = await api('/api/sitime-state', { method: 'POST', body: { restore: t } });
+        if (!rr.ok) { alert((rr.data && rr.data.error) || 'Could not restore.'); b.textContent = 'Restore'; return; }
+        location.reload();
+      }));
     }
     $('team-save').addEventListener('click', async () => {
       const pass = $('team-pass').value;
@@ -1692,6 +1793,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (booted) return; booted = true;
       $('app').hidden = false; $('savestate').textContent = r.data.seeded ? 'Seeded' : 'Saved';
       renderStats(); renderFilters(); showTab(me.role === 'admin' ? 'batches' : 'slots');
+      purgeTrash().catch(() => {});
       // refresh decisions every 60s while the page is open
       // refresh decisions every 60s, and straight away when coming back from a review tab
       // and pull in other editors' saves (merged, never overwriting unsaved work here)

@@ -25,8 +25,18 @@
  */
 import { put, list, del } from '@vercel/blob';
 
-const KEEP_STATE_VERSIONS = 5;
 const STATE_DIR = 'sitime/state/';
+/* Version history (Pierce, 9/24: "what if Michael deletes a bunch by
+   accident"). Every save already writes a new file; retention used to keep
+   only the newest 5, which at a 1.2s autosave is a few seconds of history.
+   Now: the newest 30 always, everything from the last 48 hours, one per hour
+   for 14 days, one per day for 90 days. Each save also drops an empty marker
+   in LOG_DIR whose NAME carries who saved and the counts, so the history list
+   is one listing call with no downloads. */
+const LOG_DIR = 'sitime/state-log/';
+const KEEP_NEWEST = 30;
+const H = 3600e3, DAY = 24 * H;
+const LOG_RE = /\/(\d{13})~p(\d+)~b(\d+)~l(\d+)~s(\d+)~t(\d+)~(.*)\.json$/;
 const DECISION_DIR = (token) => 'sitime/decisions/' + token + '/';
 const VERSION_RE = /\/(\d{13})\.json$/;
 
@@ -63,10 +73,10 @@ export async function readState() {
 }
 
 /** Write a new version of the state. Returns { pathname, savedAt }. */
-export async function writeState(state) {
+export async function writeState(state, by) {
   const savedAt = Date.now();
   const pathname = STATE_DIR + savedAt + '.json';
-  await put(pathname, JSON.stringify({ ...state, savedAt }), {
+  await put(pathname, JSON.stringify({ ...state, savedAt, savedBy: by || '' }), {
     access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
@@ -74,14 +84,53 @@ export async function writeState(state) {
     cacheControlMaxAge: 60,
   });
   try {
-    const old = (await listAll(STATE_DIR))
-      .filter((b) => VERSION_RE.test(b.pathname))
-      .sort((a, b) => (a.pathname < b.pathname ? 1 : -1))
-      .slice(KEEP_STATE_VERSIONS)
-      .map((b) => b.url);
-    if (old.length) await del(old);
-  } catch (e) { /* prune next time */ }
+    const slots = state.slots || [];
+    const picks = slots.filter((s) => s.main).length;
+    const batched = slots.filter((s) => s.batch).length;
+    const who = String(by || '').replace(/[^A-Za-z0-9 ._-]/g, '').slice(0, 40) || 'unknown';
+    const tag = [savedAt, 'p' + picks, 'b' + (state.batches || []).length, 'l' + (state.library || []).length, 's' + batched, 't' + (state.trash || []).length, who].join('~');
+    await put(LOG_DIR + tag + '.json', '{}', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' });
+  } catch (e) { /* history marker is best-effort */ }
+  try { await pruneState(); } catch (e) { /* prune next time */ }
   return { pathname, savedAt };
+}
+
+function keepSet(times) {
+  const now = Date.now(); const keep = new Set(); const hours = new Set(); const days = new Set();
+  times.sort((a, b) => b - a).forEach((t, i) => {
+    const age = now - t;
+    if (i < KEEP_NEWEST || age < 2 * DAY) { keep.add(t); return; }
+    if (age < 14 * DAY) { const k = Math.floor(t / H); if (!hours.has(k)) { hours.add(k); keep.add(t); } return; }
+    if (age < 90 * DAY) { const k = Math.floor(t / DAY); if (!days.has(k)) { days.add(k); keep.add(t); } }
+  });
+  return keep;
+}
+
+async function pruneState() {
+  const states = (await listAll(STATE_DIR)).filter((b) => VERSION_RE.test(b.pathname));
+  const keep = keepSet(states.map((b) => Number(b.pathname.match(VERSION_RE)[1])));
+  const drop = states.filter((b) => !keep.has(Number(b.pathname.match(VERSION_RE)[1]))).map((b) => b.url);
+  const logs = (await listAll(LOG_DIR)).filter((b) => LOG_RE.test(b.pathname));
+  const dropLogs = logs.filter((b) => !keep.has(Number(b.pathname.match(LOG_RE)[1]))).map((b) => b.url);
+  const all = drop.concat(dropLogs);
+  for (let i = 0; i < all.length; i += 500) await del(all.slice(i, i + 500));
+}
+
+/** Saved versions, newest first: [{ savedAt, by, picks, batches, library, batched, trash }]. */
+export async function stateHistory() {
+  const have = new Set((await listAll(STATE_DIR)).map((b) => (b.pathname.match(VERSION_RE) || [])[1]).filter(Boolean));
+  return (await listAll(LOG_DIR))
+    .map((b) => b.pathname.match(LOG_RE)).filter(Boolean)
+    .filter((m) => have.has(m[1]))
+    .map((m) => ({ savedAt: Number(m[1]), picks: +m[2], batches: +m[3], library: +m[4], batched: +m[5], trash: +m[6], by: m[7] }))
+    .sort((a, b) => b.savedAt - a.savedAt);
+}
+
+/** One stored version by its savedAt, or null. */
+export async function readStateAt(savedAt) {
+  const want = STATE_DIR + String(Number(savedAt)) + '.json';
+  const hit = (await listAll(STATE_DIR)).find((b) => b.pathname === want);
+  return fetchJson(hit);
 }
 
 /** Append one reviewer decision to a batch. */
