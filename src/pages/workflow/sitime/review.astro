@@ -122,6 +122,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        same fix: force it back to a hard override for this page. */
     .review [hidden]{ display:none !important; }
 
+    /* ?preview=local: shown inside the admin's Preview modal. Just the stage,
+       no site chrome, no decision controls. */
+    html.lp .home-bottom-bar, html.lp .main-footer, html.lp #cognak-cookie, html.lp #cognak-scrollbar{ display:none !important; }
+    html.lp, html.lp body{ background:#F4F4F2 !important; }
+    html.lp .review{ max-width:none; padding:8px 10px 24px; }
+    html.lp .review .headline, html.lp .review .lede, html.lp .review .backlink{ display:none !important; }
+    html.lp .review #pills, html.lp .review #note, html.lp .review .statusslot{ display:none !important; }
+
     .review{ --bg:#F4F4F2; --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B;
       --accent:#9B948A; --accent-rgb:155,148,138; --head:#575049; --deep:#1C1A17;
       --line:#E6E6E3; --line-strong:#CFCFCB; --ok:#5A9E00; --err:#E5231B;
@@ -299,6 +307,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     window.addEventListener('resize', fit);
 
+    const LP = new URLSearchParams(location.search).get('preview') === 'local';
+    if (LP) document.documentElement.classList.add('lp');
     const token = getToken();
     const state = { batch: null, slots: [], decisions: {}, i: 0, pending: null, view: {}, orig: null, clean: false };
     try { state.clean = localStorage.getItem('sitime-review-clean') === '1'; } catch (e) {}
@@ -379,7 +389,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const d = state.decisions[s.id] || {};
       const done = state.slots.filter((x) => outcome(x).outcome !== 'pending').length;
 
-      $('batch-label').textContent = 'Batch ' + String(state.batch.num || '').padStart(2, '0') + (state.batch.name ? ' · ' + state.batch.name : '');
+      $('batch-label').textContent = LP ? 'Preview' : 'Batch ' + String(state.batch.num || '').padStart(2, '0') + (state.batch.name ? ' · ' + state.batch.name : '');
       $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length;
       /* max(6px, …) is the /brief rail's rule: at zero decided the fill is still
          a visible nub, so an untouched batch reads as "at the start" rather than
@@ -534,6 +544,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('review-again').addEventListener('click', () => { state.i = 0; $('summary').hidden = true; $('card').hidden = false; render(); });
 
     async function load() {
+      if (LP) {
+        let P = null; try { P = window.parent !== window ? window.parent.__sitimePreview : null; } catch (e) {}
+        $('loading').hidden = true;
+        if (!P || !(P.slots || []).length) { $('invalid').hidden = false; $('invalid-note').textContent = 'Nothing to preview. Open this from the admin.'; return; }
+        state.batch = { num: '', name: P.title || '' }; state.slots = P.slots; state.decisions = {};
+        if (P.mock) { $('mock-h1').textContent = P.mock.h1 || $('mock-h1').textContent; $('mock-p').textContent = P.mock.p || $('mock-p').textContent; $('mock-cta').textContent = P.mock.cta || $('mock-cta').textContent; }
+        state.i = 0; $('card').hidden = false; render(); return;
+      }
       if (!token) { $('loading').hidden = true; $('invalid').hidden = false; return; }
       const r = await api('/api/sitime-batch', { token, pass });
       $('loading').hidden = true;
@@ -555,7 +573,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('pass-go').addEventListener('click', () => { pass = $('pass').value; $('pass-err').hidden = true; $('gate').hidden = true; $('loading').hidden = false; load(); });
     $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pass-go').click(); });
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && state.batch) resync().then(() => { if (!$('card').hidden) render(); });
+      if (!LP && !document.hidden && state.batch) resync().then(() => { if (!$('card').hidden) render(); });
     });
     load();
   })();

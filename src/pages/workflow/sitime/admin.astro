@@ -89,7 +89,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div id="page-card"></div>
               <div class="card-head">
                 <span class="mini" id="pg-count"></span>
-                <div class="right"><span class="admin-only selbar"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
+                <div class="right"><span class="admin-only selbar"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn" id="preview-checked" disabled title="See the checked slots in the review mockup without adding them to a batch">Preview</button><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
               </div>
               <div class="srows" id="slot-rows"></div>
               <p class="hint pager-foot" id="slot-more"></p>
@@ -168,6 +168,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <!-- added-to-batch confirmation (and batch chooser when more than one is open) -->
     <dialog id="added-dialog" class="added">
       <div id="ad-body"></div>
+    </dialog>
+
+    <!-- preview: the review mockup for picks not yet in a batch (Pierce, 9/24) -->
+    <dialog id="pv-dialog" class="pv">
+      <div class="pv-head"><span class="group-title" id="pv-title">Preview</span><button type="button" class="sbtn" id="pv-close">Close</button></div>
+      <iframe id="pv-frame" title="Review preview"></iframe>
     </dialog>
 
     <!-- batch modal -->
@@ -454,6 +460,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .ad-pick em{ font-style:normal; font-size:var(--fs-13); color:var(--ink-soft); }
     @media (hover:hover){ .adm .ad-pick:hover{ border-color:var(--ink); box-shadow:0 4px 14px rgba(var(--accent-rgb),.25); } }
     .adm dialog::backdrop{ background:rgba(26,26,26,.35); }
+    /* display:flex only while open -- on the closed dialog it would beat the UA's display:none. */
+    .adm dialog.pv{ width:min(96vw,1280px); height:min(94vh,1000px); max-width:none; max-height:none; padding:14px 14px 0; background:#F4F4F2; }
+    .adm dialog.pv[open]{ display:flex; flex-direction:column; }
+    .adm .pv-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 4px 12px; }
+    .adm .pv-head .group-title{ margin:0; }
+    .adm #pv-frame{ flex:1; width:100%; border:0; background:#F4F4F2; }
     .adm dialog:focus{ outline:none; }
     /* The site's custom cursor (#cognak-cursor) is a fixed element on the
        page layer; a <dialog> renders in the browser's top layer above it, so
@@ -1186,7 +1198,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<div class="tgtbar"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') +
         '<span class="lbl dsp-lbl">Shown as</span>' + ['hero', 'card'].map((v) => '<button class="sbtn ' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + (v === 'card' ? 'Review shows it as a tall card with text' : 'Review shows it full width behind the headline') + '">' + (v === 'hero' ? 'Hero' : 'Card') + (autoDisplay(s) === v ? ' <span class="mini">auto</span>' : '') + '</button>').join('') +
-        '<button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
+        '<button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b style="margin-right:0">' + which + '</b>.</span></div>' +
@@ -1197,6 +1209,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
       el.querySelector('[data-clear]').addEventListener('click', () => { if (!s.main && !s.backup) return; withUndo('Cleared picks on ' + s.name, () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
       el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
+      el.querySelector('[data-pv]').addEventListener('click', () => openPreview([s], s.page + ' · ' + s.name));
       el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
       el.querySelector('[data-terms]').addEventListener('change', (e) => { s.terms = e.target.value.split('\n').map((t) => t.trim()).filter(Boolean); _hay.delete(s.id); stockSlotId = null; mark(); refreshDrawer(s.id); });
       el.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; refreshDrawer(s.id); }));
@@ -1229,7 +1242,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (el) el.closest('.drawer-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
+    function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('preview-checked').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
     function visibleSlots() { const l = filtered(); return fx.page ? l : l.slice(pageIdx * PAGE, pageIdx * PAGE + PAGE); }
     $('check-all').addEventListener('change', (e) => { visibleSlots().forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
     $('f-pri').addEventListener('change', (e) => { fx.pri = e.target.value; pageIdx = 0; renderSlots(); });
@@ -1253,6 +1266,40 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!drafts.length) { openBatchDialog(null); return; }
       if (drafts.length > 1) { chooseBatch(drafts); return; }
       const choice = drafts[0]; const res = addCheckedTo(choice); mark(); renderSlots(); renderStats(); showAdded(choice, res);
+    });
+
+    /* ---------- preview (Pierce, 9/24) ----------
+       Shows picks in the review mockup without putting them in a batch.
+       review.astro?preview=local reads window.parent.__sitimePreview (same
+       origin) instead of calling /api/sitime-batch, and hides the decision
+       controls. Slot shape mirrors api/sitime-batch.js img()/originals(). */
+    function pvImg(pick) {
+      if (!pick) return null;
+      return { source: pick.source || null, url: pick.url || null, thumb: pick.thumb || pick.url || null, title: pick.title || '', id: pick.id || null,
+        ref: pick.source === 'stock' ? 'Adobe Stock ' + (pick.id || '') : pick.source === 'library' ? 'SiTime library' : pick.source === 'existing' ? 'Current site' : 'COGNAK',
+        link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null, bw: !!pick.bw, flip: !!pick.flip };
+    }
+    function pvOriginals(s) {
+      const nm = (url) => decodeURIComponent(String(url).split('/').pop());
+      if (Array.isArray(s.originals)) return s.originals.slice(0, 8).map((url) => ({ url, name: nm(url) }));
+      const p = pageById().get(s.pageId); const cur = pageCurrent(p);
+      if (!cur.length) return [];
+      const heroSlot = /hero/i.test(s.name || '') || ((p.slotIds || [])[0] === s.id);
+      const part = cur.filter((c) => (heroSlot ? c.hero : !c.hero));
+      return (part.length ? part : cur).slice(0, 8).map((c) => ({ url: c.url, name: c.name }));
+    }
+    function openPreview(slots, title) {
+      if (!slots.length) return;
+      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
+      $('pv-title').textContent = 'Preview · ' + title;
+      $('pv-frame').src = '/workflow/sitime/review?preview=local&t=' + Date.now();
+      if (!$('pv-dialog').open) $('pv-dialog').showModal();
+    }
+    $('pv-close').addEventListener('click', () => $('pv-dialog').close());
+    $('pv-dialog').addEventListener('close', () => { $('pv-frame').src = 'about:blank'; });
+    $('preview-checked').addEventListener('click', () => {
+      const list = S.slots.filter((s) => checked.has(s.id));
+      openPreview(list, list.length + ' checked slot' + (list.length === 1 ? '' : 's'));
     });
 
     /* ---------- drawer: the source picker ---------- */
