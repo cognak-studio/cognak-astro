@@ -1189,10 +1189,41 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return '<div class="cand ' + cls + (extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
         (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') +
         (pick.source === 'stock' ? '<button type="button" class="cand-x" data-remove-cand="' + esc(pick.url) + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button>' : '') +
+        (extra.libId ? '<button type="button" class="cand-x" data-del-lib="' + esc(extra.libId) + '" title="Delete this upload" aria-label="Delete this upload">' + ICONS.delete + '</button>' : '') +
         '<div class="cb"><b>' + esc(extra.label || pick.id || '') + '</b>' + esc(extra.text || pick.title || '') + '</div>' +
         (flags.length ? '<div class="meta2">' + flags.join('') + '</div>' : '') +
         (extra.adobe ? '<a class="adobe" href="' + esc(extra.adobe) + '" target="_blank" rel="noopener" data-stop="1">Open on Adobe Stock ↗</a>' : '') +
         '</div>';
+    }
+    /* Delete an uploaded image (Pierce, 9/24: there was no way to). Only
+       tier 'upload' library entries -- SiTime's indexed library is never
+       deletable from here. Refused while any slot using it sits in a batch,
+       because a batch may already be on screen with SiTime. Otherwise it is
+       cleared from every slot's main/backup, dropped from the library, the
+       state is saved, and only THEN are the stored files deleted, so a failed
+       save never leaves a slot pointing at a missing image. */
+    async function deleteUpload(libId) {
+      const l = (S.library || []).find((x) => x.id === libId);
+      if (!l || l.tier !== 'upload') return;
+      const uses = S.slots.filter((x) => (x.main && x.main.url === l.url) || (x.backup && x.backup.url === l.url));
+      const locked = uses.filter((x) => batchOf(x));
+      if (locked.length) {
+        const b = batchOf(locked[0]);
+        alert('Can’t delete: ' + locked[0].page + ' · ' + locked[0].name + ' uses this image and is in Batch ' + String(b.num).padStart(2, '0') + '. Take the slot out of the batch first.');
+        return;
+      }
+      const msg = 'Delete ' + (l.name || 'this upload') + ' from the SiTime library?' + (uses.length ? '\n\nIt will also be cleared from ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') + ': ' + uses.slice(0, 4).map((x) => x.page + ' · ' + x.name).join(', ') + (uses.length > 4 ? '…' : '') + '.' : '') + '\n\nThis cannot be undone.';
+      if (!confirm(msg)) return;
+      uses.forEach((x) => {
+        if (x.main && x.main.url === l.url) x.main = null;
+        if (x.backup && x.backup.url === l.url) x.backup = null;
+      });
+      S.library = S.library.filter((x) => x.id !== libId);
+      mark(); renderSlots(); renderStats();
+      await flush();
+      if (!/^Saved/.test($('savestate').textContent || '')) return; // state not saved: keep the files
+      const r = await api('/api/sitime-delete', { method: 'POST', body: { urls: [l.url, l.thumb].filter(Boolean) } });
+      if (!r.ok) console.warn('upload removed from the tool, stored file not deleted', r.data);
     }
     function removeCandidate(slot, key) {
       slot.candidates = (slot.candidates || []).filter((c) => (c.comp || c.id) !== key);
@@ -1281,7 +1312,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const q = libQuery.toLowerCase();
         const items = (S.library || []).filter((l) => (!libGroup || l.group === libGroup) && (!q || (l.name + ' ' + l.group).toLowerCase().includes(q)));
         return '<div class="srctabs"><input class="search" data-libq="1" placeholder="Search filenames" value="' + esc(libQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (libGroup === g ? 'on' : '') + '" data-g="' + esc(g) + '">' + (g || 'All') + '</button>').join('') + '</div>' +
-          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">The library is not indexed yet. Library tab, choose the Image Mapping folder.</p>');
+          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name, libId: l.tier === 'upload' ? l.id : null })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">The library is not indexed yet. Library tab, choose the Image Mapping folder.</p>');
       }
       if (srcTab === 'existing') {
         const ex = currentFor(s).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
@@ -1322,6 +1353,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const upStatus = {};
     function wireSource(s, el) {
       el.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
+      el.querySelectorAll('[data-del-lib]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); deleteUpload(b.dataset.delLib); }));
       el.querySelectorAll('.cand .adobe').forEach((a) => a.addEventListener('click', (ev) => ev.stopPropagation()));
       const sq = el.querySelector('[data-stockq]'); const sg = el.querySelector('[data-stockgo]');
       if (sq) sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchStock(s, sq.value); } });
