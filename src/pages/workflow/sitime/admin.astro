@@ -336,6 +336,20 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .up .paste-link{ cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
     .adm .up .paste-link:hover{ color:var(--ink); }
     .adm .uperr{ color:#C0231B; display:block; margin-top:8px; }
+    /* Upload drop zone (9/23 redesign). Full width, short, centered.
+       display:flex needs !important: the page's form reset sets every
+       .adm label to display:block !important, which is what stacked the old
+       box's text at the top of an empty 4:3 cell. */
+    .adm .upzone{ display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:10px; min-height:188px; padding:28px 24px; border:1px dashed var(--line-strong); border-radius:10px; background:#FBFAF8; text-align:center; cursor:pointer; transition:border-color .15s, background .15s; }
+    .adm .upzone:hover{ border-color:var(--accent); background:#F7F5F1; }
+    .adm .upzone.drop{ border-style:solid; border-color:var(--head); background:#F1EEE8; }
+    .adm .upzone .upi{ width:28px; height:28px; color:var(--accent); }
+    .adm .upzone:hover .upi, .adm .upzone.drop .upi{ color:var(--head); }
+    .adm .upzone .upt{ font-size:var(--fs-15); color:var(--ink); }
+    .adm .upzone .upt u{ text-decoration-color:var(--line-strong); text-underline-offset:3px; }
+    .adm .upzone:hover .upt u{ text-decoration-color:currentColor; }
+    .adm .upzone .upm{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); max-width:62ch; line-height:1.6; }
+    .adm .upok{ display:block; margin-top:10px; }
     .adm .batchrow{ display:grid; grid-template-columns:1.4fr 1.2fr 60px 110px 1.2fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:var(--fs-15); }
     .adm .acts{ display:flex; gap:6px; justify-content:flex-end; }
     .adm .ibtn{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:background var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
@@ -987,7 +1001,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
-        '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b>' + which + '</b>.</span></div>' +
+        '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b style="margin-right:0">' + which + '</b>.</span></div>' +
         sourceBody(s);
 
       el.querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich[s.id] = b.dataset.tgt; refreshDrawer(s.id); }));
@@ -1263,7 +1277,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const full = nextEmpty === -1;
         return '<div class="up" style="margin-bottom:12px;aspect-ratio:auto;padding:14px"><button class="sbtn p" data-genall="1" ' + (busy || full ? 'disabled' : '') + '>' + (busy ? 'Generating…' : 'Generate one') + '</button><span class="mini" style="margin-left:10px">' + (full ? 'All five filled — re-roll any one with its ↻.' : 'One image per click. Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.') + '</span></div><div class="cands">' + cards.join('') + '</div>';
       }
-      return '<div class="cands"><label class="up" data-uplabel="1">Drop or choose images<br><span class="mini">JPG or PNG, as many as you like. Resized to 1200px and added to the SiTime library, so you can reuse one on another slot without uploading it again. The first lands on the ' + targetOf(s) + '.</span><input type="file" data-upfile="1" accept="image/*" multiple hidden></label><span class="mini' + (upStatus[s.id] && upStatus[s.id].err ? ' uperr' : '') + '" data-upstatus="1">' + esc((upStatus[s.id] && upStatus[s.id].text) || '') + '</span></div>';
+      const upSt = upStatus[s.id];
+      return '<label class="upzone" data-uplabel="1">' +
+        '<svg class="upi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '<span class="upt">Drop images here, or <u>choose files</u></span>' +
+        '<span class="upm">JPG or PNG · Resized to 1200px · Saved to the SiTime library · First image fills the ' + targetOf(s) + '</span>' +
+        '<input type="file" data-upfile="1" accept="image/*" multiple hidden></label>' +
+        '<span class="mini' + (upSt && upSt.err ? ' uperr' : ' upok') + '" data-upstatus="1">' + esc((upSt && upSt.text) || '') + '</span>';
     }
     const upStatus = {};
     function wireSource(s, el) {
@@ -1345,8 +1365,19 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          keyed by name+size+date, so the same image on a second slot is picked
          rather than uploaded twice. The first file fills the current target;
          a second fills the other tile if it is empty. */
-      const uf = el.querySelector('[data-upfile]'); if (uf) uf.addEventListener('change', async () => {
-        const files = Array.from(uf.files || []); if (!files.length) return;
+      const uf = el.querySelector('[data-upfile]');
+      /* The zone says "drop", so it takes a drop (it only opened a file
+         picker before; a dropped file fell through to the browser). */
+      const uz = el.querySelector('[data-uplabel]');
+      if (uz) {
+        const stopU = (e) => { e.preventDefault(); e.stopPropagation(); };
+        ['dragenter', 'dragover'].forEach((k) => uz.addEventListener(k, (e) => { stopU(e); uz.classList.add('drop'); }));
+        ['dragleave', 'dragend'].forEach((k) => uz.addEventListener(k, (e) => { stopU(e); uz.classList.remove('drop'); }));
+        uz.addEventListener('drop', (e) => { stopU(e); uz.classList.remove('drop'); const fs = Array.from((e.dataTransfer && e.dataTransfer.files) || []).filter((f) => /^image\//.test(f.type)); if (fs.length) handleUpload(fs); });
+      }
+      if (uf) uf.addEventListener('change', () => handleUpload(Array.from(uf.files || [])));
+      async function handleUpload(files) {
+        if (!files.length) return;
         delete upStatus[s.id];
         const st = el.querySelector('[data-upstatus]');
         S.library = S.library || [];
@@ -1371,13 +1402,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
            used to wipe the message -- a failed upload looked like nothing
            happened at all. */
         upStatus[s.id] = { text: picked.length + ' uploaded' + (failed ? '. ' + failed + ' failed — ' + lastErr : '.'), err: !!failed };
-        uf.value = '';
+        if (uf) uf.value = '';
         mark();
         if (!picked.length) { refreshDrawer(s.id); return; }
         assign(s, pickFrom('library', picked[0]));
         if (picked[1] && !(s.main && s.backup)) assign(s, pickFrom('library', picked[1]));
         renderSlots();
-      });
+      }
     }
 
     /* ---------- replacements ---------- */
