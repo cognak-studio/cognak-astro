@@ -526,6 +526,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .tgtbar{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .adm .drawer .tgtbar .lbl{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .drawer .dsp-lbl{ margin-left:14px; }
+    /* One row for every drawer control (Pierce, 9/24): Close used to wrap
+       onto its own line. Tighter buttons, no wrap on normal widths; only a
+       narrow window lets the row break. */
+    .adm .drawer .tgtbar{ flex-wrap:nowrap; gap:6px; }
+    .adm .drawer .tgtbar .sbtn{ white-space:nowrap; padding:6px 14px; font-size:var(--fs-13); }
+    .adm .drawer .tgtbar .tgt{ font-size:var(--fs-13); padding:4px 12px 4px 4px; white-space:nowrap; }
+    .adm .drawer .tgtbar .tgt img, .adm .drawer .tgtbar .tgt .ph{ width:34px; height:22px; }
+    .adm .drawer .tgtbar .dsp-lbl{ margin-left:10px; }
+    .adm .drawer .tgtbar [data-clear]{ margin-left:10px; }
+    @media (max-width: 1180px){ .adm .drawer .tgtbar{ flex-wrap:wrap; } }
     .adm .drawer [data-dsp] .mini{ margin-left:4px; opacity:.7; }
     .adm .drawer .tgt{ display:inline-flex; align-items:center; gap:8px; font:inherit; font-size:var(--fs-14); padding:5px 12px 5px 5px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; cursor:pointer; }
     .adm .drawer .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
