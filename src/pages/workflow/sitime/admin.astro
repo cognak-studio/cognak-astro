@@ -315,7 +315,24 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:6px; }
     .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.04em; color:#575049; line-height:1.5; }
     .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E6E6E3; border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
-    .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; min-height:110px; cursor:default; color:var(--ink-soft); font-size:var(--fs-12); background:#FAFAF8; border-style:dashed; }
+    .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; aspect-ratio:3/2; cursor:default; color:var(--ink-soft); font-size:var(--fs-12); background:#FAFAF8; border-style:dashed; border-color:#E6E6E3; }
+    .adm .cand.gen-empty .gn{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.12em; color:#BDBDB8; }
+    .adm .cand.gen-working{ border-style:solid; border-color:var(--accent); color:var(--head); gap:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.12em; text-transform:uppercase;
+      background:linear-gradient(100deg,#F4F2ED 30%,#FBFAF7 50%,#F4F2ED 70%) 0 0/300% 100%; animation:gen-sheen 1.6s linear infinite; }
+    .adm .gw-dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); animation:gen-pulse 1s ease-in-out infinite alternate; }
+    .adm .cand.gen-rerolling img{ opacity:.35; filter:grayscale(1); transition:opacity .2s; }
+    .adm .cand.gen-rerolling::after{ content:'Generating…'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.12em; text-transform:uppercase; color:var(--head); }
+    @keyframes gen-sheen{ from{ background-position:100% 0; } to{ background-position:0 0; } }
+    @keyframes gen-pulse{ from{ opacity:.35; } to{ opacity:1; } }
+    @media (prefers-reduced-motion:reduce){ .adm .cand.gen-working, .adm .gw-dot{ animation:none; } }
+    /* Shared tool row: title + one mono line on the left, the action on the
+       right. Used by Generated and by the Adobe add box. */
+    .adm .toolbar{ display:flex; align-items:center; justify-content:space-between; gap:20px; padding:16px 18px; margin-bottom:18px; border:1px solid var(--line); border-radius:10px; background:#FBFAF8; }
+    .adm .toolbar.flat{ padding:0; margin:0 0 14px; border:0; background:none; }
+    .adm .toolbar .tb-copy{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+    .adm .toolbar .tb-t{ font-size:var(--fs-15); color:var(--ink); }
+    .adm .toolbar .tb-m{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); line-height:1.5; }
+    .adm .toolbar .sbtn{ flex:none; }
     .adm .srctabs{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
     .adm .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(224px,1fr)); gap:20px; }
     .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
@@ -417,8 +434,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pcard .ex .hb{ position:absolute; left:6px; top:6px; font-family:'Diatype Mono', monospace; font-size:9px; letter-spacing:.14em; text-transform:uppercase; background:rgba(26,26,26,.78); color:#fff; padding:3px 6px; border-radius:4px; }
 
     /* ---- adding your own Adobe finds (no API needed) ---- */
-    .adm .addbox{ border:1px dashed var(--line-strong); border-radius:10px; padding:16px 18px; margin-bottom:22px; background:#FCFCFB; transition:border-color .12s var(--ease-standard), background .12s var(--ease-standard); }
-    .adm .addbox.drop{ border-color:var(--accent); border-style:solid; background:#F4F2ED; }
+    .adm .addbox{ border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:22px; background:#FBFAF8; transition:border-color .12s var(--ease-standard), background .12s var(--ease-standard); }
+    .adm .addbox .ab-row{ display:flex; gap:10px; align-items:stretch; }
+    .adm .addbox .ab-row .ab-input{ flex:1; min-height:44px; height:44px; }
+    .adm .addbox .ab-row .sbtn{ flex:none; padding:0 22px; }
+    .adm .addbox .ab-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; }
+    .adm .addbox .ab-foot .link{ margin-right:0; font-size:var(--fs-13); color:var(--ink-soft); }
+    .adm .addbox .ab-foot .ab-status{ margin-top:0; }
+    .adm .addbox.drop{ border-color:var(--head); border-style:dashed; background:#F1EEE8; }
     .adm .addbox .ab-head{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
     .adm .addbox .ab-input{ width:100%; box-sizing:border-box; font:inherit; font-size:var(--fs-14); min-height:64px; resize:vertical; border:1px solid var(--line-strong); border-radius:8px; padding:10px 12px; background:#fff; outline:none; }
     .adm .addbox .ab-input:focus{ border-color:var(--accent); }
@@ -1183,9 +1206,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function generateImages(slot, opts) {
       const idx = opts && typeof opts.index === 'number' ? opts.index : null;
       const count = idx === null ? 5 : 1;
-      if (genBusy[slot.id]) return;
+      if (genBusy[slot.id] != null) return;
       if (!(slot.prompt || '').trim()) { alert('Write a brief first — that’s what gets sent to the image generator.'); return; }
-      genBusy[slot.id] = true; refreshDrawer(slot.id);
+      /* The index being generated, not just "busy": only that card shows
+         the working state (Pierce, 9/23: every empty card read as generating). */
+      genBusy[slot.id] = idx === null ? 'all' : idx; refreshDrawer(slot.id);
       try {
         const r = await api('/api/sitime-generate', { method: 'POST', body: { slotId: slot.id, prompt: slot.prompt || '', count } });
         if (!r.ok || !r.data || !r.data.ok) { alert((r.data && r.data.error) || 'Generation failed (' + r.status + ').'); return; }
@@ -1200,7 +1225,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } catch (e) {
         alert('Generation failed: ' + (e && e.message ? e.message : e));
       } finally {
-        genBusy[slot.id] = false; refreshDrawer(slot.id);
+        delete genBusy[slot.id]; refreshDrawer(slot.id);
       }
     }
     /* ---------- live Adobe Stock search ---------- */
@@ -1238,12 +1263,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           return '<div class="cand' + (already ? ' added' : '') + '" data-srch-idx="' + i + '"><img loading="lazy" src="' + esc(r.thumb) + '">' + (already ? '<span class="tag">ADDED</span>' : '') + '<div class="cb"><b>' + esc(r.id) + (r.type ? ' \u00b7 ' + esc(r.type) : '') + '</b>' + esc(r.creator ? 'by ' + r.creator : '') + '</div></div>';
         }).join('');
         const addbox = '<div class="addbox" data-addbox="1">' +
-          '<div class="ab-head"><a class="sbtn p" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Search Adobe Stock \u2197</a>' +
-          '<span class="mini">Right-click a result \u2192 Copy image, then paste below. Dragging the image in works too, and so does pasting Adobe links, several at once.</span></div>' +
-          '<textarea class="ab-input" data-abtext="1" placeholder="Paste the image here, or paste Adobe links \u2014 one per line"></textarea>' +
-          '<div class="actions" style="margin-top:10px"><button type="button" class="sbtn p" data-abadd="1">Add</button>' +
-          '<button type="button" class="link" data-abtoggle="1">' + (stockSearchOpen ? 'Hide live API search' : 'Live API search') + '</button>' +
-          '<span class="ab-status mini" data-abstatus="1">' + esc(addStatus[s.id] || '') + '</span></div></div>';
+          '<div class="toolbar flat"><div class="tb-copy"><span class="tb-t">Add from Adobe Stock</span>' +
+          '<span class="tb-m">Copy an image or link on Adobe Stock, then paste or drag it here · Several at once</span></div>' +
+          '<a class="sbtn" href="' + esc(stockSearchUrl) + '" target="_blank" rel="noopener">Open Adobe Stock \u2197</a></div>' +
+          '<div class="ab-row"><textarea class="ab-input" data-abtext="1" rows="1" placeholder="Paste an image or Adobe links here"></textarea>' +
+          '<button type="button" class="sbtn p" data-abadd="1">Add</button></div>' +
+          '<div class="ab-foot"><span class="ab-status mini" data-abstatus="1">' + esc(addStatus[s.id] || '') + '</span>' +
+          '<button type="button" class="link" data-abtoggle="1">' + (stockSearchOpen ? 'Hide live API search' : 'Live API search') + '</button></div></div>';
         const searchRow = !stockSearchOpen ? '' :
           '<div class="stocksearch"><input class="txt" type="text" data-stockq="1" placeholder="Search Adobe Stock\u2026" value="' + esc(stockQ) + '"><button type="button" class="sbtn p" data-stockgo="1" ' + (stockBusy ? 'disabled' : '') + '>' + (stockBusy ? 'Searching\u2026' : 'Search') + '</button></div>' +
           (stockErr ? '<p class="hint" style="color:#B00020">' + esc(stockErr) + '</p>' : '') +
@@ -1262,20 +1288,28 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return ex.length ? '<div class="cands">' + ex.join('') + '</div>' : '<p class="hint">Nothing on sitime.com for this page.</p>';
       }
       if (srcTab === 'generated') {
-        const busy = !!genBusy[s.id];
+        const bi = genBusy[s.id];
+        const busy = bi != null;
         const gens = s.generated || [];
+        const working = (i) => bi === 'all' || bi === i;
         const cards = [0, 1, 2, 3, 4].map((i) => {
           const g = gens[i];
-          if (!g) return '<div class="cand gen-empty">' + (busy ? 'Generating…' : 'Empty') + '</div>';
+          if (!g) return working(i)
+            ? '<div class="cand gen-empty gen-working"><span class="gw-dot"></span>Generating…</div>'
+            : '<div class="cand gen-empty"><span class="gn">' + String(i + 1).padStart(2, '0') + '</span></div>';
           const cls = s.main && s.main.url === g.url ? 'main' : s.backup && s.backup.url === g.url ? 'backup' : '';
-          return '<div class="cand ' + cls + '" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
+          return '<div class="cand ' + cls + (working(i) ? ' gen-rerolling' : '') + '" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
         });
         // ONE image per click, never a batch of five -- every call costs money
         // and most of these will never be used. The first empty card is the
         // target; a filled card is re-rolled one at a time with its own ↻.
         const nextEmpty = [0, 1, 2, 3, 4].findIndex((i) => !gens[i]);
         const full = nextEmpty === -1;
-        return '<div class="up" style="margin-bottom:12px;aspect-ratio:auto;padding:14px"><button class="sbtn p" data-genall="1" ' + (busy || full ? 'disabled' : '') + '>' + (busy ? 'Generating…' : 'Generate one') + '</button><span class="mini" style="margin-left:10px">' + (full ? 'All five filled — re-roll any one with its ↻.' : 'One image per click. Uses the brief above, plus SiTime’s house subject rules (no hands, no light trails, etc.) added automatically.') + '</span></div><div class="cands">' + cards.join('') + '</div>';
+        return '<div class="toolbar">' +
+          '<div class="tb-copy"><span class="tb-t">' + (full ? 'All five filled' : 'Generate from the brief') + '</span>' +
+          '<span class="tb-m">' + (full ? 'Re-roll any one with its ↻' : 'One image per click · House subject rules added automatically') + '</span></div>' +
+          '<button class="sbtn p" data-genall="1" ' + (busy || full ? 'disabled' : '') + '>' + (busy ? 'Generating…' : 'Generate one') + '</button></div>' +
+          '<div class="cands">' + cards.join('') + '</div>';
       }
       const upSt = upStatus[s.id];
       return '<label class="upzone" data-uplabel="1">' +
