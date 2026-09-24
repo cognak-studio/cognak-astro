@@ -144,6 +144,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       </div>
     </div>
 
+    <!-- added-to-batch confirmation (and batch chooser when more than one is open) -->
+    <dialog id="added-dialog" class="added">
+      <div id="ad-body"></div>
+    </dialog>
+
     <!-- batch modal -->
     <dialog id="batch-dialog">
       <div class="group-title" id="bd-title">New batch</div>
@@ -380,6 +385,22 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .bslot img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; background:#EEE; display:block; margin-bottom:5px; }
     .adm .bslot b{ display:block; color:var(--ink); font-weight:500; font-size:var(--fs-12); }
     .adm dialog{ border:1px solid #ECECE9; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
+    /* added-to-batch confirmation */
+    .adm dialog.added{ width:min(92vw,560px); padding:28px 28px 24px; }
+    .adm .ad-eyebrow{ display:flex; align-items:center; gap:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:14px; }
+    .adm .ad-eyebrow i.ok{ width:8px; height:8px; border-radius:999px; background:#AAFF00; box-shadow:0 0 0 1px rgba(0,0,0,.12); }
+    .adm .ad-h{ font-size:1.5rem; line-height:1.2; font-weight:400; letter-spacing:-.01em; color:var(--ink); margin-bottom:8px; }
+    .adm .ad-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:18px 0 22px; }
+    .adm .ad-t{ font-size:var(--fs-12); color:var(--ink-soft); line-height:1.3; min-width:0; }
+    .adm .ad-t img, .adm .ad-t .ph{ display:block; width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:6px; background:#EEE; margin-bottom:6px; }
+    .adm .ad-t .ph{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
+    .adm .ad-t span{ display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .adm .ad-more{ display:flex; align-items:center; justify-content:center; aspect-ratio:4/3; border-radius:6px; border:1px solid var(--line); font-size:var(--fs-14); color:var(--ink-soft); }
+    .adm .ad-list{ display:flex; flex-direction:column; gap:8px; margin:6px 0 22px; }
+    .adm .ad-pick{ display:grid; grid-template-columns:40px 1fr auto; align-items:center; gap:12px; text-align:left; font:inherit; font-size:var(--fs-15); padding:12px 14px; border:1px solid var(--line-strong); border-radius:10px; background:#fff; cursor:pointer; color:var(--ink); }
+    .adm .ad-pick b{ font-family:'Diatype Mono', monospace; font-weight:400; color:var(--ink-soft); }
+    .adm .ad-pick em{ font-style:normal; font-size:var(--fs-13); color:var(--ink-soft); }
+    @media (hover:hover){ .adm .ad-pick:hover{ border-color:var(--ink); box-shadow:0 4px 14px rgba(var(--accent-rgb),.25); } }
     .adm dialog::backdrop{ background:rgba(26,26,26,.35); }
     .adm dialog:focus{ outline:none; }
     /* The site's custom cursor (#cognak-cursor) is a fixed element on the
@@ -772,15 +793,49 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       else {
         const num = (S.batches.reduce((a, b) => Math.max(a, b.num || 0), 0) || 0) + 1;
         const b = { token: randomToken(10), num, name, scope: '', slotIds: [], status: 'open', createdAt: new Date().toISOString(), plannedFor: date };
-        addCheckedTo(b); S.batches.push(b);
+        const hadChecked = checked.size; const res = addCheckedTo(b); S.batches.push(b);
+        $('batch-dialog').close(); mark(); renderBatches(); renderStats(); renderSlots();
+        if (hadChecked) showAdded(b, res);
+        return;
       }
       $('batch-dialog').close(); mark(); renderBatches(); renderStats(); renderSlots();
     });
     function addCheckedTo(b) {
       const m = byId();
-      checked.forEach((id) => { const s = m.get(id); if (!s || s.batch) return; b.slotIds.push(id); s.batch = b.token; });
+      const added = []; let skipped = 0;
+      checked.forEach((id) => { const s = m.get(id); if (!s) return; if (s.batch) { if (s.batch !== b.token) skipped++; return; } b.slotIds.push(id); s.batch = b.token; added.push(id); });
       const secs = new Set(b.slotIds.map((id) => m.get(id)?.section).filter(Boolean)); b.scope = Array.from(secs).slice(0, 3).join(', ') + (secs.size > 3 ? ' +' + (secs.size - 3) : '');
       checked.clear();
+      return { added, skipped };
+    }
+
+    /* Confirmation after slots go into a batch (Pierce, 9/24). Same dialog
+       doubles as the batch chooser when more than one batch is open, which
+       replaces the old prompt(). */
+    function showAdded(b, res) {
+      const m = byId(); const ids = res.added; const n = ids.length;
+      const thumbs = ids.slice(0, 8).map((id) => { const s = m.get(id); const p = s && s.main; return '<div class="ad-t">' + (p && (p.thumb || p.url) ? '<img src="' + esc(p.thumb || p.url) + '">' : '<span class="ph"></span>') + '<span>' + esc(s ? s.name.replace(/^.*? · /, '') : id) + '</span></div>'; }).join('');
+      const bn = 'Batch ' + String(b.num).padStart(2, '0') + (b.name ? ' · ' + b.name : '');
+      $('ad-body').innerHTML = '<div class="ad-eyebrow"><i class="ok"></i>' + (n ? 'Added to batch' : 'Nothing added') + '</div>' +
+        '<div class="ad-h">' + (n ? n + ' slot' + (n > 1 ? 's' : '') + ' in ' : 'No new slots in ') + esc(bn) + '</div>' +
+        '<p class="hint">' + (b.slotIds || []).length + ' in the batch now.' + (res.skipped ? ' ' + res.skipped + ' skipped, already in another batch.' : '') + (ids.some((id) => !(m.get(id) || {}).main) ? ' Some have no main image yet.' : '') + '</p>' +
+        (n ? '<div class="ad-strip">' + thumbs + (n > 8 ? '<div class="ad-more">+' + (n - 8) + '</div>' : '') + '</div>' : '') +
+        '<div class="actions"><button class="sbtn p" data-ad="review">Open for review</button><button class="sbtn" data-ad="view">View batch</button><button class="sbtn" data-ad="close">Keep picking</button></div>';
+      const el = $('ad-body');
+      el.querySelector('[data-ad="close"]').addEventListener('click', () => $('added-dialog').close());
+      el.querySelector('[data-ad="view"]').addEventListener('click', () => { $('added-dialog').close(); showTab('batches'); const row = document.querySelector('.batchrow[data-b="' + b.token + '"]'); const d = row && row.querySelector('.bdetail'); if (d) { d.hidden = false; renderBatchDetail(b, d); row.scrollIntoView({ block: 'center' }); } });
+      el.querySelector('[data-ad="review"]').addEventListener('click', () => { if (!(b.slotIds || []).length) return; const w = window.open('about:blank', '_blank'); const link = location.origin + '/workflow/sitime/' + b.token; flush().then(() => { if (w) w.location.href = link; else location.href = link; }); $('added-dialog').close(); });
+      if (!$('added-dialog').open) $('added-dialog').showModal();
+    }
+    function chooseBatch(drafts) {
+      $('ad-body').innerHTML = '<div class="ad-eyebrow">Add ' + checked.size + ' slot' + (checked.size > 1 ? 's' : '') + ' to</div>' +
+        '<div class="ad-list">' + drafts.map((b) => '<button class="ad-pick" data-pick="' + b.token + '"><b>' + String(b.num).padStart(2, '0') + '</b><span>' + esc(b.name || 'Untitled') + '</span><em>' + (b.slotIds || []).length + ' slots</em></button>').join('') + '</div>' +
+        '<div class="actions"><button class="sbtn" data-ad="new">New batch</button><button class="sbtn" data-ad="close">Cancel</button></div>';
+      const el = $('ad-body');
+      el.querySelectorAll('[data-pick]').forEach((x) => x.addEventListener('click', () => { const b = S.batches.find((y) => y.token === x.dataset.pick); const res = addCheckedTo(b); mark(); renderSlots(); renderStats(); showAdded(b, res); }));
+      el.querySelector('[data-ad="new"]').addEventListener('click', () => { $('added-dialog').close(); openBatchDialog(null); });
+      el.querySelector('[data-ad="close"]').addEventListener('click', () => $('added-dialog').close());
+      $('added-dialog').showModal();
     }
 
     /* ---------- slots ---------- */
@@ -1089,8 +1144,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       /* Any batch still waiting on decisions can take more slots. */
       const drafts = S.batches.filter((b) => { const c = batchCounts(b); return !(b.slotIds || []).length || c.p > 0; });
       if (!drafts.length) { openBatchDialog(null); return; }
-      const choice = drafts.length === 1 ? drafts[0] : drafts.find((b) => String(b.num) === prompt('Which batch? ' + drafts.map((b) => b.num + ' = ' + b.name).join(', '), String(drafts[drafts.length - 1].num)));
-      if (!choice) return; addCheckedTo(choice); mark(); renderSlots(); renderStats();
+      if (drafts.length > 1) { chooseBatch(drafts); return; }
+      const choice = drafts[0]; const res = addCheckedTo(choice); mark(); renderSlots(); renderStats(); showAdded(choice, res);
     });
 
     /* ---------- drawer: the source picker ---------- */
