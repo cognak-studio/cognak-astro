@@ -1805,12 +1805,30 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         location.reload();
       }));
     }
+    /* The passcode is stored only as a hash, so the field can never show it.
+       It used to go blank ("Not set") after saving and on every reload, which
+       read as the passcode having been lost (Pierce, 9/24). The field and the
+       status line now reflect whether team access is actually on, read from
+       the server on load. */
+    let teamOn = null;
+    function showTeamState(msg) {
+      $('team-pass').placeholder = teamOn ? 'Set · type a new one to change it' : 'Not set';
+      $('team-save').textContent = teamOn ? 'Change team passcode' : 'Set team passcode';
+      $('team-status').textContent = msg || (teamOn == null ? '' : teamOn ? 'Team access is on.' : 'Team access is off.');
+    }
+    async function loadTeamState() {
+      if (me.role !== 'admin') return;
+      const r = await api('/api/sitime-team');
+      if (r.ok && r.data) { teamOn = !!r.data.teamOn; showTeamState(); }
+    }
     $('team-save').addEventListener('click', async () => {
       const pass = $('team-pass').value;
+      if (!pass.trim() && teamOn && !confirm('The field is blank. Turn team access off and sign everyone out?')) return;
       $('team-status').textContent = 'Saving…';
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', pass } });
       $('team-pass').value = '';
-      $('team-status').textContent = r.ok ? (r.data.teamOn ? 'Set. Anyone signed in with the old one is signed out.' : 'Team access is off.') : ((r.data && r.data.error) || 'Could not save.');
+      if (r.ok) { teamOn = !!r.data.teamOn; showTeamState(teamOn ? 'Team access is on. Anyone signed in with the old passcode is signed out.' : 'Team access is off.'); }
+      else $('team-status').textContent = (r.data && r.data.error) || 'Could not save.';
     });
     $('review-pass').addEventListener('change', (e) => { S.reviewPass = e.target.value.trim(); mark(); });
     ['mock-h1', 'mock-p', 'mock-cta'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value }; mark(); }));
@@ -1862,6 +1880,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       S.batches = S.batches || []; S.library = S.library || [];
       base = clone(S);
       me = r.data.me || me;
+      loadTeamState();
       document.querySelector('.adm').classList.toggle('team', me.role !== 'admin');
       if (me.role !== 'admin') {
         $('lede').textContent = 'Pick a main and a backup for each slot. Your edits save as you go and show your name; Pierce builds the batches.';
