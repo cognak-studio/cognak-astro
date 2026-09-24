@@ -1477,7 +1477,33 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* A PNG is re-encoded as PNG, not JPEG: SiTime's product renders are
        transparent PNGs and flattening them to JPEG puts a black box behind
        every one. Everything else goes to JPEG at 0.84. */
-    function resize(file, max, type) { return new Promise((resolve, reject) => { const mime = type || (/png$/i.test(file.type || file.name || '') ? 'image/png' : 'image/jpeg'); const img = new Image(); img.onload = () => { const sc = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * sc); c.height = Math.round(img.height * sc); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); c.toBlob((b) => b ? resolve({ blob: b, w: img.width, h: img.height, ext: mime === 'image/png' ? 'png' : 'jpg' }) : reject(new Error('encode')), mime, 0.84); URL.revokeObjectURL(img.src); }; img.onerror = () => reject(new Error('the browser could not read this image — use JPG or PNG (HEIC, TIFF and PSD will not load)')); img.src = URL.createObjectURL(file); }); }
+    /* Decode with createImageBitmap first: it reads the file directly, so it
+       does not depend on the page CSP allowing blob: in img-src (it did not,
+       which failed every upload with "could not read this image", 9/23). The
+       <img> + object URL path stays as a fallback for older browsers. */
+    async function decodeImage(file) {
+      if (window.createImageBitmap) {
+        try { const bm = await createImageBitmap(file); return { src: bm, w: bm.width, h: bm.height, done: () => bm.close && bm.close() }; } catch (e) { /* fall through */ }
+      }
+      return new Promise((resolve, reject) => {
+        const img = new Image(); const u = URL.createObjectURL(file);
+        img.onload = () => resolve({ src: img, w: img.naturalWidth, h: img.naturalHeight, done: () => URL.revokeObjectURL(u) });
+        img.onerror = () => { URL.revokeObjectURL(u); reject(new Error('the browser could not read this image — use JPG or PNG (HEIC, TIFF and PSD will not load)')); };
+        img.src = u;
+      });
+    }
+    async function resize(file, max, type) {
+      const mime = type || (/png$/i.test(file.type || file.name || '') ? 'image/png' : 'image/jpeg');
+      const im = await decodeImage(file);
+      try {
+        const sc = Math.min(1, max / Math.max(im.w, im.h));
+        const c = document.createElement('canvas'); c.width = Math.round(im.w * sc); c.height = Math.round(im.h * sc);
+        c.getContext('2d').drawImage(im.src, 0, 0, c.width, c.height);
+        const blob = await new Promise((res) => c.toBlob(res, mime, 0.84));
+        if (!blob) throw new Error('could not encode the resized image');
+        return { blob, w: im.w, h: im.h, ext: mime === 'image/png' ? 'png' : 'jpg' };
+      } finally { im.done(); }
+    }
     function sourcedRows() {
       const rows = [];
       (S.slots || []).forEach((s) => { ['main', 'backup'].forEach((which) => { const p = s[which]; if (p && (p.source === 'stock' || p.source === 'upload')) rows.push({ s, which, p }); }); });
