@@ -39,6 +39,8 @@ function img(pick) {
     id: pick.id || null,
     ref: pick.source === 'stock' ? 'Adobe Stock ' + (pick.id || '') : pick.source === 'library' ? 'SiTime library' : pick.source === 'existing' ? 'Current site' : 'COGNAK',
     link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null,
+    bw: !!pick.bw,
+    flip: !!pick.flip,
   };
 }
 

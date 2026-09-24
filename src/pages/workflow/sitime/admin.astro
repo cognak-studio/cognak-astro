@@ -291,6 +291,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile.is-open .cap, .adm .tile.filled:hover .cap{ opacity:0; }
     .adm .tact{ font:inherit; font-size:var(--fs-13); font-weight:500; padding:9px 16px; border-radius:999px; border:1px solid #fff; background:#fff; color:#1A1A1A; cursor:pointer; }
     .adm .tact:hover{ background:var(--accent); border-color:var(--accent); }
+    .adm .tile-actions{ flex-wrap:wrap; align-content:center; padding:8px; }
     .adm .tact.trash{ width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:transparent; color:#fff; }
     .adm .tact.trash svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     .adm .tact.trash:hover{ background:#FF1E1E; border-color:#FF7070; color:#fff; }
@@ -848,8 +849,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const refOf = (p) => !p ? '' : p.source === 'stock' ? (p.id ? 'https://stock.adobe.com/images/x/' + p.id : '') : (p.path || p.title || '');
     function exportBatchCsv(b) {
       const m = byId();
-      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'note']];
-      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', (o.ev && o.ev.note) || '']); });
+      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'note']];
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', treatment(p), (o.ev && o.ev.note) || '']); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
     function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
@@ -1076,15 +1077,24 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!pick) return '<div class="tile empty" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · generate · upload</span></div>';
       const open = revealTile && revealTile.slotId === s.id && revealTile.which === which;
       return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + '" title="' + esc(pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
-        '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
-        '<span class="tag">' + which.toUpperCase() + '</span>' +
+        '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '"' + fxStyle(pick) + '>' +
+        '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
         '<span class="cap">' + esc(pick.title || pick.id || '') + '</span>' +
         '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
         (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
+        '<button class="tact" data-act="bw" data-slot="' + s.id + '" data-which="' + which + '" title="Toggle black and white">' + (pick.bw ? 'Color' : 'B&amp;W') + '</button>' +
+        '<button class="tact" data-act="flip" data-slot="' + s.id + '" data-which="' + which + '" title="Flip horizontally">Flip</button>' +
         '<button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
     }
     function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + tileHtml(s, 'backup') + '</div>'; }
-    function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '">' : '<div class="thumb empty"></div>'; }
+    /* Per-pick treatment (Pierce, 9/24): B&W and horizontal flip are stored on
+       the pick ({bw, flip}) and applied at display time -- tiles, the drawer,
+       Handoff and the reviewer all show the treated image, and both CSVs
+       carry the treatment so the final file is made to match. B&W is 100%
+       desaturation only, nothing else. */
+    function fxStyle(p) { if (!p) return ''; const f = []; if (p.bw) f.push('filter:grayscale(1)'); if (p.flip) f.push('transform:scaleX(-1)'); return f.length ? ' style="' + f.join(';') + '"' : ''; }
+    const treatment = (p) => [p && p.bw ? 'bw' : 'color', p && p.flip ? 'flipped' : ''].filter(Boolean).join(' ');
+    function thumbCell(p) { return p && (p.thumb || p.url) ? '<img class="thumb" src="' + esc(p.thumb || p.url) + '"' + fxStyle(p) + '>' : '<div class="thumb empty"></div>'; }
     function renderSlots() {
       renderRail(); renderPageCard();
       const list = filtered();
@@ -1138,6 +1148,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           mark(); renderSlots(); renderStats();
         } else if (btn.dataset.act === 'replace') {
           revealTile = null; openPicker(s.id, which);
+        } else if (btn.dataset.act === 'bw' || btn.dataset.act === 'flip') {
+          const p = s[which]; if (!p) return;
+          const k = btn.dataset.act; if (p[k]) delete p[k]; else p[k] = true;
+          revealTile = { slotId: s.id, which }; mark(); renderSlots();
         }
       }));
       $('slot-rows').querySelectorAll('input[data-chk]').forEach((c) => c.addEventListener('click', (e) => { e.stopPropagation(); c.checked ? checked.add(c.dataset.chk) : checked.delete(c.dataset.chk); updateChecked(); }));
@@ -1189,7 +1203,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function targetOf(s) { return pkWhich[s.id] === 'backup' ? 'backup' : 'main'; }
     function tgtBtn(s, which) {
       const p = s[which];
-      return '<button class="tgt ' + (targetOf(s) === which ? 'on' : '') + '" data-tgt="' + which + '">' + (p ? '<img src="' + esc(p.thumb || p.url) + '">' : '<span class="ph"></span>') + which[0].toUpperCase() + which.slice(1) + '</button>';
+      return '<button class="tgt ' + (targetOf(s) === which ? 'on' : '') + '" data-tgt="' + which + '">' + (p ? '<img src="' + esc(p.thumb || p.url) + '"' + fxStyle(p) + '>' : '<span class="ph"></span>') + which[0].toUpperCase() + which.slice(1) + '</button>';
     }
     /* Re-render just the one open drawer, leaving the rest of the list alone. */
     function refreshDrawer(id) {
@@ -1661,11 +1675,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('handoff-rows').querySelectorAll('[data-lic]').forEach((i) => i.addEventListener('change', (e) => { const s = byId().get(i.dataset.lic); s.license = { id: e.target.value.trim(), at: new Date().toISOString() }; mark(); }));
     }
     $('export-handoff').addEventListener('click', () => {
-      const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'license', 'batch']];
+      const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'license', 'batch']];
       S.slots.forEach((s) => {
         const p = finalPick(s); if (!p) return;
         const b = batchOf(s); const o = b ? outcomeIn(s, b) : null; const ev = o && o.ev;
-        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? DECIDED_BY : '', p.source, assetId(p), refOf(p), p.url, (s.license && s.license.id) || '', b ? String(b.num).padStart(2, '0') : '']);
+        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? DECIDED_BY : '', p.source, assetId(p), refOf(p), p.url, treatment(p), (s.license && s.license.id) || '', b ? String(b.num).padStart(2, '0') : '']);
       });
       downloadCsv('sitime-approved-images.csv', rows);
     });

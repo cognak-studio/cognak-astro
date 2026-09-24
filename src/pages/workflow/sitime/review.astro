@@ -412,6 +412,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (og) document.querySelectorAll('#which button').forEach((btn) => btn.classList.remove('on'));
       const heroUrl = og ? og.url : ((pick && pick.url) || '');
       $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
+      /* COGNAK's treatment on the pick (B&W, flipped); never on the current-site original. */
+      $('hero-img').style.filter = !og && pick && pick.bw ? 'grayscale(1)' : '';
+      $('hero-img').style.transform = !og && pick && pick.flip ? 'scaleX(-1)' : '';
       if (og) {
         $('source').textContent = 'Currently on sitime.com · ' + og.name;
         $('source-note').textContent = 'Not up for review';
