@@ -1139,8 +1139,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           if (it.file) {
             // a dropped/pasted image is hosted by us -- a hotlink to whatever
             // the browser handed over is not something to rely on
-            const web = await resize(it.file, 1400);
-            const key = await sha1('comp/' + it.file.name + '/' + it.file.size + '/' + (it.file.lastModified || 0));
+            const web = await resize(it.file, WEB_MAX);
+            const key = await sha1('comp' + WEB_MAX + '/' + it.file.name + '/' + it.file.size + '/' + (it.file.lastModified || 0));
             comp = (await uploadBlob('sitime/comps/' + key + '.' + web.ext, web.blob)).url;
           }
           const dup = s.candidates.find((c) => (id && c.id === id) || (comp && c.comp === comp));
@@ -1315,7 +1315,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return '<label class="upzone" data-uplabel="1">' +
         '<svg class="upi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
         '<span class="upt">Drop images here, or <u>choose files</u></span>' +
-        '<span class="upm">JPG or PNG · Resized to 1200px · Saved to the SiTime library · First image fills the ' + targetOf(s) + '</span>' +
+        '<span class="upm">JPG or PNG · Up to 2400px · Saved to the SiTime library · First image fills the ' + targetOf(s) + '</span>' +
         '<input type="file" data-upfile="1" accept="image/*" multiple hidden></label>' +
         '<span class="mini' + (upSt && upSt.err ? ' uperr' : ' upok') + '" data-upstatus="1">' + esc((upSt && upSt.text) || '') + '</span>';
     }
@@ -1420,10 +1420,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           const f = files[i];
           if (st) st.textContent = 'Uploading ' + (i + 1) + ' of ' + files.length + '…';
           try {
-            const id = await sha1('upload/' + f.name + '/' + f.size + '/' + (f.lastModified || 0));
+            const id = await sha1('upload' + WEB_MAX + '/' + f.name + '/' + f.size + '/' + (f.lastModified || 0));
             let entry = S.library.find((l) => l.id === id);
             if (!entry) {
-              const web = await resize(f, 1200); const th = await resize(f, 400);
+              const web = await resize(f, WEB_MAX); const th = await resize(f, 400);
               const r1 = await uploadBlob('sitime/library/' + id + '.' + web.ext, web.blob);
               const r2 = await uploadBlob('sitime/library/t/' + id + '.' + th.ext, th.blob);
               entry = { id, path: f.name, name: f.name, group: 'Uploaded', tier: 'upload', url: r1.url, thumb: r2.url, w: web.w, h: web.h };
@@ -1492,6 +1492,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         img.src = u;
       });
     }
+    /* Long edge for stored images (Pierce, 9/23): was 1200, which the review
+       stage (1584 wide, ~2000 device px on a Retina screen) upscaled and
+       softened. The size is part of the upload/comp dedupe key, so an image
+       uploaded at the old size is re-uploaded at this one, not reused. */
+    const WEB_MAX = 2400;
     async function resize(file, max, type) {
       const mime = type || (/png$/i.test(file.type || file.name || '') ? 'image/png' : 'image/jpeg');
       const im = await decodeImage(file);
@@ -1544,7 +1549,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const id = await sha1(rel);
         if (!have.has(id)) {
           try {
-            const web = await resize(f, 1200); const th = await resize(f, 400);
+            const web = await resize(f, WEB_MAX); const th = await resize(f, 400);
             const r1 = await uploadBlob('sitime/library/' + id + '.' + web.ext, web.blob);
             const r2 = await uploadBlob('sitime/library/t/' + id + '.' + th.ext, th.blob);
             const parts = rel.split('/'); const tier = /Digital-Web/.test(rel) ? 'Digital-Web' : 'product'; const group = parts[0] === 'by-Segment' || parts[0] === 'Thematic' ? parts[1] : parts[0];
