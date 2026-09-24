@@ -42,6 +42,9 @@ function img(pick) {
   };
 }
 
+// Same rule as admin.astro autoDisplay(): card-type slots review as a tall card.
+function autoDisplay(s) { return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -72,6 +75,7 @@ export default async function handler(req, res) {
       main: img(s.main),
       backup: img(s.backup),
       original: originals(s),
+      display: s.display === 'card' || s.display === 'hero' ? s.display : autoDisplay(s),
     }));
 
     const { latest } = await readDecisions(token);

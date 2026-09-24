@@ -74,6 +74,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div class="right"><span>Search</span><span>Sign in</span><span class="cta">Sample &amp; Buy</span></div>
             </div>
             <div class="st-hero" id="st-hero"><img id="hero-img" src="" alt="" hidden /><div class="noimg" id="noimg">No image assigned to this slot yet</div><div class="scrim"></div>
+              <div class="ccopy" aria-hidden="true"><span class="eyebrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>Event</span><h3>How a Tier-1 OEM eliminated quartz failures in ADAS.</h3><p>Replacing 14 quartz parts with one MEMS platform across the radar stack.</p><span class="carrow">→</span></div>
               <div class="copy"><h2 id="mock-h1">Built for where others fail.</h2><p id="mock-p">From space to factory floors, SiTime timing holds when conditions don’t.</p><span class="btn-s" id="mock-cta">Learn more</span></div>
             </div>
           </div></div>
@@ -233,6 +234,25 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .st-hero h2{ font-size:72px; line-height:1.02; letter-spacing:-.02em; font-weight:300; margin:0 0 26px; color:#fff; }
     .review .st-hero p{ font-size:22px; line-height:1.45; font-weight:300; margin:0 0 36px; max-width:620px; color:#E8E8EA; }
     .review .st-hero .btn-s{ display:inline-block; background:var(--sit); color:#fff; font-size:var(--fs-18); font-weight:500; padding:18px 30px; border-radius:6px; }
+    /* Card display (Pierce, 9/24): card-type slots (Applications, Explore,
+       Culture is Key, focus areas) review as a tall card centred on a light
+       page, copy on the card, scrim bottom to top. Image, placeholder and
+       scrim all move into the card rectangle; the hero copy steps aside. */
+    .review .st-hero.card{ background:#F4F4F2; }
+    .review .st-hero.card img, .review .st-hero.card .noimg, .review .st-hero.card .scrim{ inset:auto; left:602px; top:56px; width:380px; height:800px; border-radius:18px; }
+    .review .st-hero.card .noimg{ padding:32px; font-size:18px; justify-content:center; text-align:center; }
+    .review .st-hero.card img{ object-position:50% 50%; }
+    .review .st-hero.card .scrim{ background:linear-gradient(0deg, rgba(36,38,41,.82) 0%, rgba(36,38,41,.55) 30%, rgba(36,38,41,0) 62%); }
+    .review .st-hero.card .copy{ display:none; }
+    .review .st-hero .ccopy{ display:none; }
+    .review .st-hero.card .ccopy{ display:block; position:absolute; left:602px; width:380px; top:56px; height:800px; padding:0 40px 44px; box-sizing:border-box; color:#fff; pointer-events:none; }
+    .review .st-hero.card .ccopy > *{ position:relative; }
+    .review .st-hero.card .ccopy{ display:flex; flex-direction:column; justify-content:flex-end; }
+    .review .ccopy .eyebrow{ display:inline-flex; align-items:center; gap:10px; font-size:16px; letter-spacing:.04em; text-transform:uppercase; font-weight:400; margin-bottom:22px; }
+    .review .ccopy h3{ font-size:32px; line-height:1.14; font-weight:500; letter-spacing:-.01em; margin:0 0 18px; color:#fff; }
+    .review .ccopy p{ font-size:17px; line-height:1.45; font-weight:300; margin:0 0 30px; color:#EDEDEF; }
+    .review .ccopy .carrow{ width:52px; height:52px; border-radius:16px; background:#fff; color:#1A1A1A; display:flex; align-items:center; justify-content:center; font-size:24px; }
+    .review .st-hero.card.orig .ccopy, .review .st-hero.card.clean .ccopy{ display:none; }
     .review .stage-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); gap:16px; flex-wrap:wrap; }
     .review .stage-foot a{ color:var(--head); text-decoration:none; }
 
@@ -383,6 +403,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('orig').textContent = og ? 'Back to comp' : 'Show original';
       $('st-hero').classList.toggle('orig', !!og);
       $('st-hero').classList.toggle('clean', state.clean);
+      $('st-hero').classList.toggle('card', s.display === 'card');
       $('clean').classList.toggle('on', state.clean);
       $('clean').setAttribute('aria-pressed', String(state.clean));
       $('clean').textContent = state.clean ? 'Show text' : 'Hide text';
