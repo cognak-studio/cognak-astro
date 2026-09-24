@@ -276,6 +276,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile img{ width:100%; height:100%; object-fit:cover; display:block; }
     .adm .tile.filled{ cursor:pointer; }
     .adm .tile.filled:hover{ border-color:var(--accent); }
+    .adm .tile .dec{ position:absolute; top:10px; right:10px; background:#fff; padding:4px 10px; border-radius:999px; font-size:var(--fs-11); z-index:2; }
+    .adm .tile.dec-approved{ border-color:#6EB300; }
+    .adm .tile.dec-denied img{ opacity:.45; }
     .adm .tile.is-main{ border-color:#1A1A1A; } .adm .tile.is-backup{ border-color:#1A1A1A; border-style:dashed; }
     .adm .tile .tag{ position:absolute; top:10px; left:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
     .adm .tile.is-backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
@@ -1076,9 +1079,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const pick = s[which];
       if (!pick) return '<div class="tile empty" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · generate · upload</span></div>';
       const open = revealTile && revealTile.slotId === s.id && revealTile.which === which;
-      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + '" title="' + esc(pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
+      /* SiTime's decision on THIS image, from its batch (Pierce, 9/24): shown
+         on the tile so a finished slot reads as done without opening it. */
+      const bt = batchOf(s); const dd = bt && D[bt.token] && D[bt.token].latest && D[bt.token].latest[s.id];
+      const dec = dd && dd[which] && dd[which].decision; const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'] }[dec];
+      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title=""' + esc(pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '"' + fxStyle(pick) + '>' +
         '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
+        (DEC ? '<span class="dec st ' + DEC[0] + '"><i></i>' + DEC[1] + '</span>' : '') +
         '<span class="cap">' + esc(pick.title || pick.id || '') + '</span>' +
         '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
         (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
