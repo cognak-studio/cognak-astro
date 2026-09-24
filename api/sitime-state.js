@@ -36,9 +36,22 @@ function mergeSeed(existing) {
    ordered as the seed orders them; anything not in the seed stays, at the end. */
 const SEED_OWNED = ['name', 'priority', 'page', 'pageId', 'section', 'url', 'originals'];
 const seedIndex = new Map(seed.slots.map((s, i) => [s.id, i]));
-function syncSlots(slots) {
-  const have = new Map((slots || []).map((s) => [s.id, s]));
-  const out = (slots || []).map((s) => {
+/* Retired slots (Pierce, 2026-09-24: About Us pages not in SITE MAP 0409, and
+   the investor pages Q4 hosts) leave the working list but are never thrown
+   away: whatever was worked on them moves to state.retiredSlots, and the
+   seed keeps their definitions in seed.retiredSlots / seed.retired, so any of
+   them can be brought back by moving the id back into seed.slots. */
+const RETIRED = new Set((seed.retiredSlots || []).map((s) => s.id));
+const livePages = () => seed.pages.filter((p) => !p.retired);
+function syncSlots(allSlots, parked) {
+  const keep = new Map((parked || []).map((s) => [s.id, s]));
+  (allSlots || []).forEach((s) => { if (RETIRED.has(s.id)) keep.set(s.id, s); });
+  const slots = (allSlots || []).filter((s) => !RETIRED.has(s.id));
+  const have = new Map(slots.map((s) => [s.id, s]));
+  // a slot un-retired in the seed comes back with its old work, not blank
+  seed.slots.forEach((sd) => { if (!have.has(sd.id) && keep.has(sd.id)) { slots.push(keep.get(sd.id)); have.set(sd.id, keep.get(sd.id)); keep.delete(sd.id); } });
+  syncSlots.parked = Array.from(keep.values());
+  const out = slots.map((s) => {
     const i = seedIndex.get(s.id);
     if (i == null) return s;
     const sd = seed.slots[i]; const o = { ...s };
@@ -66,7 +79,8 @@ export default async function handler(req, res) {
          live site (page.current, scripts/sitime-crawl-current.py) reaches the
          tool on the next deploy without a reseed, which would drop generated
          images, added candidates and edited briefs. */
-      const withPages = { ...state, pages: seed.pages, slots: syncSlots(state.slots) };
+      const liveSlots = syncSlots(state.slots, state.retiredSlots);
+      const withPages = { ...state, pages: livePages(), slots: liveSlots, retiredSlots: syncSlots.parked };
       const out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
       return res.status(200).json({ ok: true, state: out, decisions, seeded, me: who });
     } catch (err) {
@@ -102,6 +116,8 @@ export default async function handler(req, res) {
         // one into a batch.
         state.slots.forEach((s) => { const w = was.has(s.id) ? was.get(s.id) : null; s.batch = s.batch == null ? null : w; });
       }
+      // never let a save drop parked (retired) slot work
+      if (current && Array.isArray(current.retiredSlots) && !Array.isArray(state.retiredSlots)) state.retiredSlots = current.retiredSlots;
       const r = await writeState(state);
       return res.status(200).json({ ok: true, savedAt: r.savedAt });
     } catch (err) {
