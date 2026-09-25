@@ -923,7 +923,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const refOf = (p) => !p ? '' : p.source === 'stock' ? (p.id ? 'https://stock.adobe.com/images/x/' + p.id : '') : (p.path || p.title || '');
     function exportBatchCsv(b) {
       const m = byId();
-      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'image_desc', 'treatment', 'note']];
+      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'additional_notes', 'treatment', 'note']];
       (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '']); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
@@ -1261,7 +1261,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
-        '<div class="descrow"><label>Description · shown to SiTime under the image<input type="text" data-desc="1" maxlength="200" value="' + esc(slotDesc(s)) + '" placeholder="One line for this slot, main and backup alike"></label></div>' +
+        '<div class="descrow"><label>Additional notes · shown to SiTime under the image<input type="text" data-desc="1" maxlength="200" value="' + esc(slotDesc(s)) + '" placeholder="Optional"></label></div>' +
         reviewBlock(s) +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
