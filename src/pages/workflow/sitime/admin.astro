@@ -154,9 +154,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="group admin-only">
           <div class="group-title">Mock copy</div>
           <div class="grid3">
-            <label class="q"><span class="q-title">Headline</span><input class="txt" id="mock-h1" /></label>
-            <label class="q"><span class="q-title">Subhead</span><input class="txt" id="mock-p" /></label>
-            <label class="q"><span class="q-title">Button</span><input class="txt" id="mock-cta" /></label>
+            <label class="q"><span class="q-title">Hero headline</span><input class="txt" id="mock-h1" placeholder="Built for where others fail." /></label>
+            <label class="q"><span class="q-title">Hero subhead</span><input class="txt" id="mock-p" placeholder="From space to factory floors, SiTime timing holds when conditions don’t." /></label>
+            <label class="q"><span class="q-title">Hero button</span><input class="txt" id="mock-cta" placeholder="Learn more" /></label>
+          </div>
+          <div class="grid3" style="margin-top:1.2rem">
+            <label class="q"><span class="q-title">Card headline</span><input class="txt" id="mock-card-h" placeholder="How a Tier-1 OEM eliminated quartz failures in ADAS." /></label>
+            <label class="q"><span class="q-title">Card text</span><input class="txt" id="mock-card-p" placeholder="Replacing 14 quartz parts with one MEMS platform across the radar stack." /></label>
+            <p class="hint" style="align-self:end">The Event label and its icon stay fixed at the top of every card.</p>
           </div>
         </div>
       </div>
@@ -1894,7 +1899,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderLib() {
       renderLibGrid();
       const n = (S.library || []).length; $('lib-status').textContent = n ? n + ' images indexed.' : 'Not indexed yet.';
-      $('mock-h1').value = S.mock?.h1 || ''; $('mock-p').value = S.mock?.p || ''; $('mock-cta').value = S.mock?.cta || '';
+      $('mock-h1').value = S.mock?.h1 || ''; $('mock-p').value = S.mock?.p || ''; $('mock-cta').value = S.mock?.cta || ''; $('mock-card-h').value = S.mock?.cardH || ''; $('mock-card-p').value = S.mock?.cardP || '';
       $('review-pass').value = S.reviewPass == null ? 'silicon' : S.reviewPass;
       const sourced = sourcedRows();
       $('sourced-count').textContent = sourced.length ? sourced.length + ' image' + (sourced.length === 1 ? '' : 's') : '';
@@ -1959,7 +1964,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       else $('team-status').textContent = (r.data && r.data.error) || 'Could not save.';
     });
     $('review-pass').addEventListener('change', (e) => { S.reviewPass = e.target.value.trim(); mark(); });
-    ['mock-h1', 'mock-p', 'mock-cta'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value }; mark(); }));
+    ['mock-h1', 'mock-p', 'mock-cta', 'mock-card-h', 'mock-card-p'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value, cardH: $('mock-card-h').value, cardP: $('mock-card-p').value }; mark(); }));
     $('lib-dir').addEventListener('change', async () => {
       const files = Array.from($('lib-dir').files).filter((f) => /\.(jpe?g|png)$/i.test(f.name));
       const wanted = files.filter((f) => { const p = f.webkitRelativePath; return /\/Digital-Web\//.test(p) || /(^|\/)MEMS-Products\//.test(p); }).filter((f) => !/\/(_index|__|\[Visual-Assets\]-Licensed-Image-Library)\//.test(f.webkitRelativePath) && !/^\[Visual-Assets\]/.test(f.webkitRelativePath.split('/')[1] || ''));

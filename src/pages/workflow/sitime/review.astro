@@ -75,7 +75,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div class="right"><span>Search</span><span>Sign in</span><span class="cta">Sample &amp; Buy</span></div>
             </div>
             <div class="st-hero" id="st-hero"><div class="imgbox" id="imgbox"><img id="hero-img" src="" alt="" hidden /></div><div class="noimg" id="noimg">No image assigned to this slot yet</div><div class="scrim"></div>
-              <div class="ccopy" aria-hidden="true"><span class="eyebrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>Event</span><h3>How a Tier-1 OEM eliminated quartz failures in ADAS.</h3><p>Replacing 14 quartz parts with one MEMS platform across the radar stack.</p><span class="carrow">→</span></div>
+              <div class="ccopy" aria-hidden="true"><span class="eyebrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>Event</span><h3 id="mock-card-h">How a Tier-1 OEM eliminated quartz failures in ADAS.</h3><p id="mock-card-p">Replacing 14 quartz parts with one MEMS platform across the radar stack.</p><span class="carrow">→</span></div>
               <div class="copy"><h2 id="mock-h1">Built for where others fail.</h2><p id="mock-p">From space to factory floors, SiTime timing holds when conditions don’t.</p><span class="btn-s" id="mock-cta">Learn more</span></div>
             </div>
           </div></div>
@@ -309,6 +309,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const $ = (id) => document.getElementById(id);
     const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    /* Mock copy from the admin Library tab. Hero: headline, subhead, button.
+       Card: headline and text; the Event label and icon stay fixed. A blank
+       field keeps the default in the markup. */
+    function applyMock(m) {
+      [['mock-h1', 'h1'], ['mock-p', 'p'], ['mock-cta', 'cta'], ['mock-card-h', 'cardH'], ['mock-card-p', 'cardP']].forEach(([id, k]) => { if (m[k]) $(id).textContent = m[k]; });
+    }
     function getToken() {
       const m = location.pathname.match(/\/workflow\/sitime\/([a-z0-9]{8,16})\/?$/);
       if (m) return m[1];
@@ -650,7 +656,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         $('loading').hidden = true;
         if (!P || !(P.slots || []).length) { $('invalid').hidden = false; $('invalid-note').textContent = 'Nothing to preview. Open this from the admin.'; return; }
         state.batch = { num: '', name: P.title || '' }; state.slots = P.slots; state.decisions = {};
-        if (P.mock) { $('mock-h1').textContent = P.mock.h1 || $('mock-h1').textContent; $('mock-p').textContent = P.mock.p || $('mock-p').textContent; $('mock-cta').textContent = P.mock.cta || $('mock-cta').textContent; }
+        if (P.mock) applyMock(P.mock);
         state.i = 0; $('card').hidden = false; render(); return;
       }
       if (!token) { $('loading').hidden = true; $('invalid').hidden = false; return; }
@@ -665,7 +671,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('gate').hidden = true;
       try { sessionStorage.setItem('sitime-pass-' + token, pass); } catch (e) {}
       state.batch = r.data.batch; state.slots = r.data.slots; state.decisions = r.data.decisions || {};
-      if (r.data.mock) { $('mock-h1').textContent = r.data.mock.h1 || $('mock-h1').textContent; $('mock-p').textContent = r.data.mock.p || $('mock-p').textContent; $('mock-cta').textContent = r.data.mock.cta || $('mock-cta').textContent; }
+      if (r.data.mock) applyMock(r.data.mock);
       if (!state.slots.length) { $('invalid').hidden = false; $('invalid-note').textContent = 'This batch is empty.'; return; }
       const j = firstPending(0);
       if (j === -1) { $('card').hidden = false; render(); showSummary(); return; }
