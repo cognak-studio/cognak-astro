@@ -769,11 +769,21 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const d = batch && D[batch.token] && D[batch.token].latest && D[batch.token].latest[slot.id];
       return resolveOutcome(d && d.main, d && d.backup, !!slot.backup);
     }
+    /* Internal review (Michael, 9/25): he denies BACKUPS too, so SiTime sees
+       stronger pairs. One approve winning the slot would hide those, so an
+       internal batch is judged per image: every denied or held image that is
+       still in the slot is its own item. No swap: a denied main is replaced
+       as the main, the approved backup stays the backup. */
+    function internalFlags(slot, batch) {
+      const d = (batch && D[batch.token] && D[batch.token].latest && D[batch.token].latest[slot.id]) || {};
+      return ['main', 'backup'].filter((w) => slot[w] && d[w] && (d[w].decision === 'deny' || d[w].decision === 'hold')).map((w) => ({ which: w, ev: d[w] }));
+    }
     function status(slot) {
       const b = batchOf(slot);
       if (b) {
         /* No send step (Pierce, 9/16): batches are reviewed live on calls,
            so a batch is open for decisions from the moment it exists. */
+        if (b.internal) { const f = internalFlags(slot, b); if (f.some((x) => x.ev.decision === 'deny')) return 'denied'; if (f.some((x) => x.ev.decision === 'hold')) return 'held'; }
         const o = outcomeIn(slot, b).outcome;
         return o === 'pending' ? 'queued' : o;
       }
@@ -798,7 +808,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       ].map((x) => '<div class="stat ' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('');
       $('n-batches').textContent = S.batches.length;
       $('n-slots').textContent = S.slots.length;
-      $('n-repl').textContent = n('denied') + n('held');
+      $('n-repl').textContent = replItems().length;
       $('n-handoff').textContent = n('approved');
       $('n-lib').textContent = (S.library || []).length;
     }
@@ -1845,20 +1855,38 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
 
     /* ---------- replacements ---------- */
-    function renderRepl() {
+    function replItems() {
       const m = byId(); const items = [];
-      S.batches.forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
-      $('repl-list').innerHTML = items.length ? items.map(({ s, b, o }) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + o.outcome + '"><i></i>' + STATUS_LABEL[o.outcome] + '</span> in batch ' + String(b.num).padStart(2, '0') + (o.which === 'backup' ? ' (main and backup both)' : '') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '" data-b="' + b.token + '">Pick a replacement</button></div></div></div>').join('') : '<p class="hint">Nothing denied or held.</p>';
+      S.batches.forEach((b) => (b.slotIds || []).forEach((id) => {
+        const s = m.get(id); if (!s) return;
+        if (b.internal) { internalFlags(s, b).forEach((f) => items.push({ s, b, which: f.which, ev: f.ev, outcome: f.ev.decision === 'deny' ? 'denied' : 'held' })); return; }
+        const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, which: o.which, ev: o.ev, outcome: o.outcome, both: o.outcome === 'denied' && o.which === 'backup' });
+      }));
+      return items;
+    }
+    function renderRepl() {
+      const m = byId(); const items = replItems();
+      const ROLE = { main: 'Main', backup: 'Backup' };
+      $('repl-list').innerHTML = items.length ? items.map((it) => {
+        const { s, b, which, ev, outcome } = it; const img = s[which];
+        const hasDeny = b.internal ? internalFlags(s, b).some((f) => f.ev.decision === 'deny') : outcome === 'denied';
+        const label = b.internal ? ROLE[which] + ' ' + (outcome === 'denied' ? 'denied' : 'held') : STATUS_LABEL[outcome];
+        return '<div class="qitem" style="margin-bottom:12px"><img src="' + esc(img?.thumb || img?.url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + outcome + '"><i></i>' + esc(label) + '</span> in batch ' + String(b.num).padStart(2, '0') + (b.internal ? ' (internal)' : '') + (it.both ? ' (main and backup both)' : '') + '. ' + (ev && ev.note ? '“' + esc(ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">' + (hasDeny ? 'Pick a replacement' : 'Open to revise') + '</button></div></div></div>';
+      }).join('') : '<p class="hint">Nothing denied or held.</p>';
       $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => {
         /* Only the denied image(s) come out; an approved or held one stays.
            Notes go onto the images first, so the removed one keeps its note in history. */
         const s = m.get(x.dataset.re); const b = S.batches.find((y) => y.token === x.dataset.b);
         if (b) archiveDecisions(b);
         const d = (b && D[b.token] && D[b.token].latest && D[b.token].latest[s.id]) || {};
-        ['main', 'backup'].forEach((w) => { if (d[w] && d[w].decision === 'deny') retirePick(s, w, 'Denied in ' + (b ? batchLabel(b) : 'review')); });
-        if (!s.main && s.backup) { s.main = s.backup; s.backup = null; }
+        const out = [];
+        ['main', 'backup'].forEach((w) => { if (s[w] && d[w] && d[w].decision === 'deny') { retirePick(s, w, 'Denied in ' + (b ? batchLabel(b) : 'review')); out.push(w); } });
+        /* External review keeps the old behavior (a surviving backup moves up).
+           Internal review never swaps (Pierce, 9/25). */
+        if (!(b && b.internal) && !s.main && s.backup) { s.main = s.backup; s.backup = null; }
         s.batch = null; if (s.state === 'unreviewed' || s.state === 'kept') s.state = 'assigned';
-        mark(); fx.page = s.pageId; pageIdx = 0; showTab('slots'); renderSlots(); openPicker(s.id, s.main ? 'backup' : 'main');
+        const aim = out.length ? (out.includes(x.dataset.w) ? x.dataset.w : out[0]) : x.dataset.w;
+        mark(); fx.page = s.pageId; pageIdx = 0; showTab('slots'); renderSlots(); openPicker(s.id, (b && b.internal) ? aim : (s.main ? 'backup' : 'main'));
       }));
     }
 
