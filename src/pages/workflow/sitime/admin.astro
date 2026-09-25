@@ -129,7 +129,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="actions"><label class="sbtn p" for="lib-dir">Choose folder</label><input type="file" id="lib-dir" webkitdirectory directory multiple hidden /><span class="mini" id="lib-progress"></span></div>
           <div class="hint" id="lib-log"></div>
         </div>
-        <div class="group">
+        <div class="group client-hide">
           <div class="card-head"><div class="group-title">Sourced from Stock / uploads</div><span class="mini" id="sourced-count"></span></div>
           <div class="queue" id="sourced-list"></div>
         </div>
@@ -251,6 +251,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tabs a.on{ background:#1A1A1A; color:#fff; border-color:#1A1A1A; }
     .adm .tabs a i{ font-style:normal; color:inherit; opacity:.6; margin-left:6px; font-family:'Diatype Mono', monospace; font-size:var(--fs-12); }
     .adm.team .admin-only{ display:none !important; }
+    /* SiTime's own sign-in: COGNAK working lists and inventory vocabulary stay out of view. */
+    .adm.client .client-hide{ display:none !important; }
     .adm .whoami{ margin-left:14px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .whoami button{ font:inherit; background:none; border:0; padding:0; color:inherit; text-decoration:underline; cursor:pointer; letter-spacing:inherit; text-transform:inherit; }
     .adm .teamlogin{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; max-width:620px; }
@@ -1759,12 +1761,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!/^Saved/.test($('savestate').textContent || '')) return;
       for (const t of old) await api('/api/sitime-delete', { method: 'POST', body: { urls: [t.item.url, t.item.thumb].filter(Boolean) } });
     }
+    /* Removing a candidate never touches the pick. It used to clear the main
+       or backup underneath with no confirm and no undo, including on a slot
+       in a live batch. Now a candidate that is the current main or backup
+       stays until it is replaced; anything else comes off with an Undo. */
     function removeCandidate(slot, key) {
-      slot.candidates = (slot.candidates || []).filter((c) => (c.comp || c.id) !== key);
-      const url = key;
-      if (slot.main && slot.main.url === url) slot.main = null;
-      if (slot.backup && slot.backup.url === url) slot.backup = null;
-      mark(); renderSlots(); renderStats();
+      const inUse = ['main', 'backup'].filter((w) => slot[w] && slot[w].url === key);
+      if (inUse.length) { addStatus[slot.id] = 'That image is the ' + inUse.join(' and ') + '. Replace it on the tile first, then remove it here.'; refreshDrawer(slot.id); return; }
+      const c = (slot.candidates || []).find((x) => (x.comp || x.id) === key);
+      withUndo('Removed candidate ' + ((c && c.id) || '') + ' from ' + slot.name, () => {
+        slot.candidates = (slot.candidates || []).filter((x) => (x.comp || x.id) !== key);
+        mark(); renderSlots(); renderStats();
+      });
     }
     /* ---------- AI-generated candidates ---------- */
     const genBusy = {}; // slotId -> true while a generate call is in flight
@@ -2028,11 +2036,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const ROLE = { main: 'Main', backup: 'Backup' };
       const DECW = { deny: 'denied', hold: 'held', approve: 'approved' };
       const B2 = (b) => 'Batch ' + String(b.num).padStart(2, '0') + ' · ' + esc(b.name || '');
+      /* Solved is COGNAK's call (a hold or deny fixed by a move or an
+         adjustment). On SiTime's own sign-in it would turn their deny into an
+         approval with no decision recorded, so they don't get the button. */
       const openRow = (it) => {
         const { s, b, which, ev, outcome } = it; const img = s[which];
         const hasDeny = b.internal ? internalFlags(s, b).some((f) => f.ev.decision === 'deny') : outcome === 'denied';
         const label = b.internal ? ROLE[which] + ' ' + (outcome === 'denied' ? 'denied' : 'held') : STATUS_LABEL[outcome];
-        return '<div class="qitem" style="margin-bottom:12px"><img src="' + esc(img?.thumb || img?.url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + outcome + '"><i></i>' + esc(label) + '</span>' + (b.internal ? '' : ' in batch ' + String(b.num).padStart(2, '0')) + (it.both ? ' (main and backup both)' : '') + '. ' + (ev && ev.note ? '“' + esc(ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">' + (hasDeny ? 'Pick a replacement' : 'Open to revise') + '</button><button class="link" data-solve="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">Mark as solved</button></div></div></div>';
+        return '<div class="qitem" style="margin-bottom:12px"><img src="' + esc(img?.thumb || img?.url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + outcome + '"><i></i>' + esc(label) + '</span>' + (b.internal ? '' : ' in batch ' + String(b.num).padStart(2, '0')) + (it.both ? ' (main and backup both)' : '') + '. ' + (ev && ev.note ? '“' + esc(ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">' + (hasDeny ? 'Pick a replacement' : 'Open to revise') + '</button>' + (isClient() ? '' : '<button class="link" data-solve="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">Mark as solved</button>') + '</div></div></div>';
       };
       const solvedRow = (s, b, which, x, ev) => '<div class="qitem" style="margin-bottom:12px;opacity:.7"><img src="' + esc(s[which].thumb || s[which].url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st approved"><i></i>' + ROLE[which] + ' ' + (ev ? DECW[ev.decision] + ', ' : '') + 'solved</span>' + (x.by ? ' by ' + esc(x.by) : '') + (x.at ? ' ' + ago(x.at) : '') + '.' + (ev && ev.note ? ' “' + esc(ev.note) + '”' : '') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-unsolve="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">Reopen</button></div></div></div>';
       const pastRow = (x) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc(x.thumb) + '">' + (x.now ? '<span class="mini" style="align-self:center">→</span><img src="' + esc(x.now) + '" title="Now in the slot">' : '') + '<div style="flex:1"><div class="t">' + esc(x.page + ' · ' + x.name) + '</div><div class="n"><span class="st ' + (x.solved || x.decision === 'approve' ? 'approved' : DECW[x.decision]) + '"><i></i>' + ROLE[x.which] + ' ' + DECW[x.decision] + (x.solved ? ', solved' : '') + '</span>' + (x.solved && x.solved.by ? ' by ' + esc(x.solved.by) : '') + (x.solved && x.solved.at ? ' ' + ago(x.solved.at) : '') + (x.now ? ', replaced' : '') + '.' + (x.note ? ' “' + esc(x.note) + '”' : '') + '</div></div></div>';
@@ -2224,9 +2235,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('sourced-list').querySelectorAll('[data-unassign]').forEach((b) => b.addEventListener('click', () => {
         const [id, which] = b.dataset.unassign.split(':');
         const s = byId().get(id); if (!s) return;
-        s[which] = null;
-        if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
-        mark(); renderLib(); renderSlots(); renderStats();
+        /* Same guard as deleting an upload: a slot in a batch may be on
+           screen with SiTime right now. */
+        const bt = batchOf(s);
+        if (bt) { alert('Can’t remove: ' + s.page + ' · ' + s.name + ' is in Batch ' + String(bt.num).padStart(2, '0') + '. Take the slot out of the batch first.'); return; }
+        withUndo('Removed the ' + which + ' image from ' + s.name, () => {
+          retirePick(s, which, 'Removed');
+          if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
+          mark(); renderLib(); renderSlots(); renderStats();
+        });
       }));
       const trash = (S.trash || []).map((t, i) => ({ t, i })).reverse();
       $('trash-count').textContent = trash.length ? trash.length + ' item' + (trash.length === 1 ? '' : 's') : '';
