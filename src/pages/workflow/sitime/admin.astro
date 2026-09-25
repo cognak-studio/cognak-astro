@@ -89,7 +89,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div id="page-card"></div>
               <div class="card-head">
                 <span class="mini" id="pg-count"></span>
-                <div class="right"><span class="admin-only selbar"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><span class="mini" id="checked-count"></span><button class="sbtn" id="preview-checked" disabled title="See the checked slots in the review mockup without adding them to a batch">Preview</button><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
+                <div class="right"><span class="admin-only selbar"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><button type="button" class="link" id="check-all-pages" hidden></button><span class="mini" id="checked-count"></span><button class="sbtn" id="preview-checked" disabled title="See the checked slots in the review mockup without adding them to a batch">Preview</button><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
               </div>
               <div class="srows" id="slot-rows"></div>
               <p class="hint pager-foot" id="slot-more"></p>
@@ -497,6 +497,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rail{ position:sticky; top:110px; max-height:calc(100vh - 150px); overflow-y:auto; overscroll-behavior:contain; padding-right:8px; border-right:1px solid var(--line); }
     .adm .railhead{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:1; }
     .adm .railhead .link{ margin:0; }
+    .adm .selbar .link{ margin:0; white-space:nowrap; }
     .adm .rsec{ margin-bottom:4px; }
     .adm .rsec > button{ width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); background:none; border:0; padding:11px 4px; cursor:pointer; text-align:left; }
     .adm .rsec > button:hover{ color:var(--ink); }
@@ -1270,8 +1271,35 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (el) el.closest('.drawer-wrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function updateChecked() { $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('preview-checked').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
+    /* Select across pages (Pierce, 9/24): "Select these" only reaches the 8
+       rows on screen, so a section like About Us took select / next / uncheck /
+       recheck per page. The box now mirrors the page it is on (checked,
+       partial or empty), and "Select all N" takes every slot in the current
+       rail scope (section, or whole-site search) in one click. Slots already
+       in a batch are skipped, as before. */
+    function syncCheckAll() {
+      const box = $('check-all'); const btn = $('check-all-pages'); if (!box || !btn) return;
+      const vis = visibleSlots().filter((s) => !s.batch);
+      const all = filtered().filter((s) => !s.batch);
+      const nVis = vis.filter((s) => checked.has(s.id)).length;
+      box.checked = !!vis.length && nVis === vis.length;
+      box.indeterminate = nVis > 0 && nVis < vis.length;
+      const spans = !fx.page && all.length > vis.length;
+      btn.hidden = !spans;
+      if (spans) {
+        const every = all.every((s) => checked.has(s.id));
+        const scope = fx.section ? ' in ' + (fx.section === '(unmapped)' ? 'Unsectioned' : fx.section) : '';
+        btn.textContent = every ? 'Clear all ' + all.length : 'Select all ' + all.length + scope;
+        btn.dataset.every = every ? '1' : '';
+      }
+    }
+    function updateChecked() { syncCheckAll(); $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('preview-checked').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
     function visibleSlots() { const l = filtered(); return fx.page ? l : l.slice(pageIdx * PAGE, pageIdx * PAGE + PAGE); }
+    $('check-all-pages').addEventListener('click', (e) => {
+      const every = e.currentTarget.dataset.every === '1';
+      filtered().forEach((s) => { if (s.batch) return; every ? checked.delete(s.id) : checked.add(s.id); });
+      renderSlots();
+    });
     $('check-all').addEventListener('change', (e) => { visibleSlots().forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
     $('f-pri').addEventListener('change', (e) => { fx.pri = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-status').addEventListener('change', (e) => { fx.status = e.target.value; pageIdx = 0; renderSlots(); });
