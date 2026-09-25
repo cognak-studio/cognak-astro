@@ -1423,8 +1423,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       /* Any batch still waiting on decisions can take more slots. */
       const drafts = S.batches.filter((b) => { const c = batchCounts(b); return !(b.slotIds || []).length || c.p > 0; });
       if (!drafts.length) { openBatchDialog(null); return; }
-      if (drafts.length > 1) { chooseBatch(drafts); return; }
-      const choice = drafts[0]; const res = addCheckedTo(choice); mark(); renderSlots(); renderStats(); showAdded(choice, res);
+      /* Always ask (Pierce, 9/25): with one open batch this used to add
+         straight into it, so a second batch could not be started. */
+      chooseBatch(drafts);
     });
 
     /* ---------- preview (Pierce, 9/24) ----------
