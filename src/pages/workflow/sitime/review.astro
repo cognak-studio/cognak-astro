@@ -436,7 +436,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('bar').style.width = 'max(6px, ' + Math.round((done / state.slots.length) * 100) + '%)';
       $('slot-title').textContent = s.page + ' · ' + s.name;
       $('slot-where').textContent = s.where || ''; $('slot-where').hidden = !s.where;
-      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image.' : (s.backup ? 'Main image. The backup is one click away above the image, and appears on its own if the main is denied.' : 'Main image. No backup for this one.'));
+      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image.' : (s.backup ? 'Main image.' : 'Main image. No backup for this one.'));
       const MARK = { approve: '✓', deny: '✕', hold: '◦' };
       document.querySelectorAll('#which button').forEach((btn) => {
         const w = btn.dataset.w; const ev = d[w];
