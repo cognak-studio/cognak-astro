@@ -646,6 +646,31 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     @media (max-width:900px){ .adm .workspace{ grid-template-columns:1fr; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; } }
     @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
+    /* Narrow screens. The batch table's header row reads as nonsense once the
+       cells flow two to a row, so it goes; the drawer's title row and the
+       Main/Backup row wrap instead of pushing the page wider (they were 536px
+       on a 390 viewport); one tile per row keeps the six tile actions and the
+       license chip readable. */
+    @media (max-width:900px){
+      .adm .batchrow.head{ display:none; }
+      .adm .batchrow .acts{ justify-content:flex-start; grid-column:1/-1; }
+      .adm .drawer .dhead{ flex-wrap:wrap; }
+      .adm .drawer .dmeta{ white-space:normal; flex-basis:100%; }
+      .adm .drawer .dacts{ justify-content:flex-start; }
+      .adm .drawer .tgtbar{ flex-direction:column; align-items:flex-start; }
+      .adm .card{ padding:26px 20px 24px; }
+    }
+    @media (max-width:760px){
+      .adm{ padding-top:150px; }
+      .adm .headline{ font-size:clamp(24px,7vw,42px); }
+    }
+    @media (max-width:700px){
+      .adm .tiles{ grid-template-columns:1fr; }
+      .adm .tile{ max-height:none; }
+      .adm .srow{ padding:16px 14px 14px; }
+      .adm .drawer-wrap{ padding:18px 14px 24px; }
+      .adm .fbar .search{ width:100%; }
+    }
   </style>
 
   <script is:inline>
