@@ -80,6 +80,7 @@ export default async function handler(req, res) {
       /* Placement note is seed-owned (sitime-state SEED_OWNED); read it from
          the seed so a batch opened before the next admin save still has it. */
       where: (seedSlots.get(s.id) || {}).where || s.where || '',
+      mask: (seedSlots.get(s.id) || {}).mask || null,
       main: img(s.main),
       backup: img(s.backup),
       original: originals(s),

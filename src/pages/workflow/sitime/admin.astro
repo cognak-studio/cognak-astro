@@ -1390,7 +1390,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function openPreview(slots, title) {
       if (!slots.length) return;
-      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
+      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', mask: s.mask || null, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
       $('pv-title').textContent = 'Preview · ' + title;
       $('pv-frame').src = '/workflow/sitime/review?preview=local&t=' + Date.now();
       if (!$('pv-dialog').open) $('pv-dialog').showModal();

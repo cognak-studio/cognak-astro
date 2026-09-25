@@ -34,7 +34,7 @@ function mergeSeed(existing) {
    page, originals and `where` (the one-line placement note, 9/24) while keeping everything worked on in the tool (picks,
    candidates, generated images, edited brief and terms, batch). Slots are
    ordered as the seed orders them; anything not in the seed stays, at the end. */
-const SEED_OWNED = ['name', 'priority', 'page', 'pageId', 'section', 'url', 'originals', 'where'];
+const SEED_OWNED = ['name', 'priority', 'page', 'pageId', 'section', 'url', 'originals', 'where', 'mask'];
 const seedIndex = new Map(seed.slots.map((s, i) => [s.id, i]));
 /* Retired slots (Pierce, 2026-09-24: About Us pages not in SITE MAP 0409, and
    the investor pages Q4 hosts) leave the working list but are never thrown
