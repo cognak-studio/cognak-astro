@@ -78,9 +78,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             <input class="search" id="search" placeholder="Search pages and slots" title="Matches page, slot, URL, part number and search terms" />
             <select class="sel" id="f-pri"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select>
             <select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In a batch</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
-            <select class="sel" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
-            <label class="chk"><input type="checkbox" id="f-hideai" checked /> Hide Gen-AI candidates</label>
-            <label class="chk"><input type="checkbox" id="f-hidereuse" /> Hide migrate-as-is pages</label>
+            <select class="sel client-hide" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
+            <label class="chk client-hide"><input type="checkbox" id="f-hideai" checked /> Hide Gen-AI candidates</label>
+            <label class="chk client-hide"><input type="checkbox" id="f-hidereuse" /> Hide migrate-as-is pages</label>
             <button class="sbtn" id="expand-all">Expand all</button>
           </div>
           <div class="workspace">
@@ -1369,8 +1369,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.hidden = false;
       const slots = S.slots.filter((s) => s.pageId === p.id);
       const cut = (t) => t && t.length > 54 ? t.slice(0, 52).replace(/[\s—·-]+$/, '') + '…' : t;
-      const tags = [cut(p.status || p.briefStatus), p.type, p.scope ? 'v11: ' + p.scope : '', slots.length + ' slot' + (slots.length === 1 ? '' : 's'), (p.drupalImages || []).length ? 'Drupal export: yes' : 'Drupal export: no']
-        .filter(Boolean).map((t, i) => '<span class="tg ' + (i === 0 ? 'on' : '') + '" title="' + esc(i === 0 ? (p.status || p.briefStatus || '') : t) + '">' + esc(t) + '</span>').join('');
+      /* The status, type, v11 scope and Drupal tags are Ace's inventory
+         vocabulary; SiTime's sign-in sees only the slot count. */
+      const tags = (isClient() ? [slots.length + ' slot' + (slots.length === 1 ? '' : 's')] : [cut(p.status || p.briefStatus), p.type, p.scope ? 'v11: ' + p.scope : '', slots.length + ' slot' + (slots.length === 1 ? '' : 's'), (p.drupalImages || []).length ? 'Drupal export: yes' : 'Drupal export: no'])
+        .filter(Boolean).map((t, i) => '<span class="tg ' + (i === 0 && !isClient() ? 'on' : '') + '" title="' + esc(i === 0 && !isClient() ? (p.status || p.briefStatus || '') : t) + '">' + esc(t) + '</span>').join('');
       const cur = pageCurrent(p);
       const showAll = pcAll.has(p.id);
       const imgs = (showAll ? cur : cur.slice(0, 6)).map((c) => '<a class="exi" href="' + esc(c.url) + '" target="_blank" rel="noopener" title="' + esc(c.name) + '"><img loading="lazy" src="' + esc(c.url) + '" alt="">' + (c.hero ? '<span class="hb">Hero</span>' : '') + '</a>').join('');
@@ -1531,7 +1533,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + currentFor(s).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
 
-      el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id, s.action].filter(Boolean).join(' · ')) + '</span>' +
+      el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id, isClient() ? '' : s.action].filter(Boolean).join(' · ')) + '</span>' +
         '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="tgtbar"><div class="tgrp"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
@@ -1775,13 +1777,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             comp = (await uploadBlob('sitime/comps/' + key + '.' + web.ext, web.blob)).url;
           }
           const dup = s.candidates.find((c) => (id && c.id === id) || (comp && c.comp === comp));
-          if (dup) { if (comp && !dup.comp) { dup.comp = comp; delete dup.needsPreview; dup.why = 'Added by COGNAK'; filled++; } else dupes++; continue; }
+          if (dup) { if (comp && !dup.comp) { dup.comp = comp; delete dup.needsPreview; dup.why = 'Added by ' + me.name; filled++; } else dupes++; continue; }
           // a picture with no ID completes the oldest link-only card if there is one
           if (comp && !id) {
             const need = s.candidates.find((c) => !c.comp);
-            if (need) { need.comp = comp; delete need.needsPreview; need.why = 'Added by COGNAK'; filled++; continue; }
+            if (need) { need.comp = comp; delete need.needsPreview; need.why = 'Added by ' + me.name; filled++; continue; }
           }
-          const c = { id: id, title: '', comp: comp, url: page || (id ? 'https://stock.adobe.com/images/x/' + id : ''), why: comp ? 'Added by COGNAK' : 'Link added — drag the image in to preview it', ai: false, manual: true };
+          const c = { id: id, title: '', comp: comp, url: page || (id ? 'https://stock.adobe.com/images/x/' + id : ''), why: comp ? 'Added by ' + me.name : 'Link added — drag the image in to preview it', ai: false, manual: true };
           if (!comp) c.needsPreview = true;
           s.candidates.unshift(c); added++;
         } catch (e) { failed++; console.error(e); }
@@ -2550,7 +2552,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       // refresh decisions every 60s, and straight away when coming back from a review tab
       // and pull in other editors' saves (merged, never overwriting unsaved work here)
       const refreshDecisions = async () => {
-        if (saving) return;
+        if (saving || document.hidden) return;   // a background tab pulls nothing; the visibilitychange below refreshes on return
         const rr = await api('/api/sitime-state');
         if (!(rr.ok && rr.data)) return;
         D = rr.data.decisions || {};
