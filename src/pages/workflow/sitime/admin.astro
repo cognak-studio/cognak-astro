@@ -75,7 +75,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="card rise tab" id="tab-slots" hidden>
         <div class="group">
           <div class="fbar">
-            <input class="search" id="search" placeholder="Search page, slot, URL, part number, search term" />
+            <input class="search" id="search" placeholder="Search pages and slots" title="Matches page, slot, URL, part number and search terms" />
             <select class="sel" id="f-pri"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select>
             <select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In a batch</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
             <select class="sel" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
@@ -478,7 +478,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .ibtn:hover{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
     .adm .ibtn[data-act=delete]:hover{ background:#FF1E1E; border-color:#FF7070; color:#fff; }
     .adm .ibtn.done{ background:#9DFF00; border-color:#D9FF66; color:#152400; }
-    .adm .batchrow .grip{ display:inline-block; width:14px; margin-right:8px; color:var(--ink-soft); cursor:grab; letter-spacing:-2px; user-select:none; opacity:.45; }
+    .adm .batchrow .grip{ display:inline-block; width:10px; height:16px; margin-right:10px; vertical-align:-3px; color:var(--ink-soft); cursor:grab; user-select:none; opacity:.45; }
+    .adm .batchrow .grip svg{ width:10px; height:16px; fill:currentColor; display:block; }
     @media (hover:hover){ .adm .batchrow:hover .grip{ opacity:1; } }
     .adm .batchrow.dragging{ opacity:.4; }
     .adm .batchrow.drop-before{ box-shadow:inset 0 2px 0 var(--head); }
@@ -1035,7 +1036,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const stat = !total ? 'Empty' : c.p === 0 ? 'Complete' : decided ? 'In review' : 'Ready';
         const cls = !total || !decided ? 'draft' : c.p === 0 ? 'approved' : 'held';
         const link = location.origin + '/workflow/sitime/' + b.token;
-        return '<div class="batchrow" data-b="' + b.token + '"><div>' + (me.role === 'admin' ? '<span class="grip" title="Drag to reorder" aria-hidden="true">⋮⋮</span>' : '') + '<b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + (b.internal ? ' <span class="mini">internal</span>' : '') + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
+        return '<div class="batchrow" data-b="' + b.token + '"><div>' + (me.role === 'admin' ? '<span class="grip" title="Drag to reorder" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.4"/><circle cx="7" cy="3" r="1.4"/><circle cx="3" cy="8" r="1.4"/><circle cx="7" cy="8" r="1.4"/><circle cx="3" cy="13" r="1.4"/><circle cx="7" cy="13" r="1.4"/></svg></span>' : '') + '<b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + (b.internal ? ' <span class="mini">internal</span>' : '') + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
           '<div><span class="mini">' + (!decided ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
           '<div class="mini">' + (b.plannedFor ? fmtDate(b.plannedFor) : b.createdAt ? fmtDate(b.createdAt.slice(0, 10)) : '—') + '</div>' +
           /* Review is the one action a first-time reviewer must find, so it has a label; the rest stay icons. */
@@ -1397,7 +1398,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
         '<button class="tact" data-act="bw" data-slot="' + s.id + '" data-which="' + which + '" title="Toggle black and white">' + (pick.bw ? 'Color' : 'B&amp;W') + '</button>' +
         '<button class="tact" data-act="flip" data-slot="' + s.id + '" data-which="' + which + '" title="Flip horizontally">Flip</button>' +
-        '<button class="tact" data-act="lic" data-slot="' + s.id + '" data-which="' + which + '" title="Where this image comes from, for licensing. Click to change.">' + esc(LIC[licOf(pick)][0]) + '</button>' +
+        '<button class="tact" data-act="lic" data-slot="' + s.id + '" data-which="' + which + '" title="Where this image comes from, for licensing. Click to change.">Source · ' + esc(LIC[licOf(pick)][0]) + '</button>' +
         '<button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
     }
     function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + tileHtml(s, 'backup') + '</div>'; }
