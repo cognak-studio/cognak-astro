@@ -128,6 +128,7 @@ export default async function handler(req, res) {
       if (who.role !== 'admin' && current) {
         state.batches = current.batches || [];
         state.reviewPass = current.reviewPass;
+        state.reviewLog = current.reviewLog || [];
         const was = new Map((current.slots || []).map((s) => [s.id, s.batch || null]));
         // Team may take a slot OUT of a batch (Pick a replacement) but never put
         // one into a batch.

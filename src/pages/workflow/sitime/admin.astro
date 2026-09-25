@@ -100,7 +100,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       <!-- REPLACEMENTS -->
       <div class="card rise tab" id="tab-replacements" hidden>
-        <div class="group"><div class="group-title">Denied and held</div><div id="repl-list"></div></div>
+        <div class="group"><div id="repl-list"></div></div>
       </div>
 
       <!-- HANDOFF -->
@@ -700,8 +700,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       mergeList('batches', (x) => x.token);
       mergeList('library', (x) => x.id);
       mergeList('trash', (x) => (x.item && x.item.id) + ':' + x.deletedAt);
+      mergeList('reviewLog', (x) => x.token);
       new Set(Object.keys(server).concat(Object.keys(S))).forEach((k) => {
-        if (['slots', 'batches', 'library', 'trash', 'savedAt'].includes(k)) return;
+        if (['slots', 'batches', 'library', 'trash', 'reviewLog', 'savedAt'].includes(k)) return;
         if (J(S[k]) === J(B[k])) S[k] = clone(server[k]);
       });
       S.savedAt = server.savedAt;
@@ -872,12 +873,33 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if ((p.reviews || []).length) { s.history = [{ which, why, at: Date.now(), pick: clone(p) }].concat(s.history || []).slice(0, 20); }
       s[which] = null;
     }
+    /* Internal review history (Pierce, 9/25): a deleted internal batch leaves a
+       read-only record under Replacements, so what Michael flagged and how it
+       was resolved stays in one place. Stored in S.reviewLog. */
+    function logInternal(b) {
+      const m = byId(); const lat = (D[b.token] && D[b.token].latest) || {}; const items = [];
+      (b.slotIds || []).forEach((id) => {
+        const s = m.get(id); const d = lat[id]; if (!s || !d) return;
+        ['main', 'backup'].forEach((w) => {
+          const ev = d[w]; if (!ev || (ev.decision === 'approve' && !ev.note)) return;
+          const cur = s[w] || null;
+          const h = (s.history || []).find((x) => x.which === w && (x.pick.reviews || []).some((r) => r.token === b.token));
+          const was = h ? h.pick : cur;
+          const sv = cur && (cur.solved || []).find((x) => x.token === b.token);
+          items.push({ slotId: id, page: s.page, name: s.name, which: w, decision: ev.decision, note: ev.note || '', at: ev.at || null,
+            thumb: (was && (was.thumb || was.url)) || '', now: h && cur ? (cur.thumb || cur.url || '') : '',
+            solved: sv ? { by: sv.by || '', at: sv.at || null } : null });
+        });
+      });
+      S.reviewLog = [{ token: b.token, num: b.num, name: b.name, createdAt: b.createdAt || null, closedAt: Date.now(), closedBy: (me && me.name) || '', items }].concat((S.reviewLog || []).filter((x) => x.token !== b.token));
+    }
     function deleteBatch(b) {
       const total = (b.slotIds || []).length;
       const c = batchCounts(b); const decided = c.a + c.d + c.h;
       const msg = 'Delete batch ' + String(b.num).padStart(2, '0') + '? Its ' + total + ' slots go back to assigned.' + (decided ? ' The ' + decided + ' recorded decision' + (decided > 1 ? 's and their notes stay' : ' and its note stays') + ' with each image.' : '');
       if (!confirm(msg)) return;
       withUndo('Deleted batch ' + String(b.num).padStart(2, '0'), () => {
+        if (b.internal) logInternal(b);
         archiveDecisions(b);
         const m = byId(); (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; });
         S.batches = S.batches.filter((x) => x.token !== b.token); delete D[b.token];
@@ -1879,15 +1901,36 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderRepl() {
       const m = byId(); const items = replItems();
       const ROLE = { main: 'Main', backup: 'Backup' };
-      $('repl-list').innerHTML = items.length ? items.map((it) => {
+      const DECW = { deny: 'denied', hold: 'held', approve: 'approved' };
+      const B2 = (b) => 'Batch ' + String(b.num).padStart(2, '0') + ' · ' + esc(b.name || '');
+      const openRow = (it) => {
         const { s, b, which, ev, outcome } = it; const img = s[which];
         const hasDeny = b.internal ? internalFlags(s, b).some((f) => f.ev.decision === 'deny') : outcome === 'denied';
         const label = b.internal ? ROLE[which] + ' ' + (outcome === 'denied' ? 'denied' : 'held') : STATUS_LABEL[outcome];
-        return '<div class="qitem" style="margin-bottom:12px"><img src="' + esc(img?.thumb || img?.url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + outcome + '"><i></i>' + esc(label) + '</span> in batch ' + String(b.num).padStart(2, '0') + (b.internal ? ' (internal)' : '') + (it.both ? ' (main and backup both)' : '') + '. ' + (ev && ev.note ? '“' + esc(ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">' + (hasDeny ? 'Pick a replacement' : 'Open to revise') + '</button><button class="link" data-solve="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">Mark as solved</button></div></div></div>';
-      }).join('') : '<p class="hint">Nothing denied or held.</p>';
-      const solved = [];
-      S.batches.forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; ['main', 'backup'].forEach((w) => { const x = s[w] && (s[w].solved || []).find((y) => y.token === b.token); if (x) solved.push({ s, b, which: w, x }); }); }));
-      $('repl-list').innerHTML += solved.length ? '<div class="group-title" style="margin-top:24px">Solved</div>' + solved.map(({ s, b, which, x }) => '<div class="qitem" style="margin-bottom:12px;opacity:.7"><img src="' + esc(s[which].thumb || s[which].url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st approved"><i></i>' + ROLE[which] + ' solved</span> in batch ' + String(b.num).padStart(2, '0') + (x.by ? ' by ' + esc(x.by) : '') + (x.at ? ' ' + ago(x.at) : '') + '.</div><div class="actions" style="margin-top:8px"><button class="link" data-unsolve="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">Reopen</button></div></div></div>').join('') : '';
+        return '<div class="qitem" style="margin-bottom:12px"><img src="' + esc(img?.thumb || img?.url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + outcome + '"><i></i>' + esc(label) + '</span>' + (b.internal ? '' : ' in batch ' + String(b.num).padStart(2, '0')) + (it.both ? ' (main and backup both)' : '') + '. ' + (ev && ev.note ? '“' + esc(ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">' + (hasDeny ? 'Pick a replacement' : 'Open to revise') + '</button><button class="link" data-solve="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">Mark as solved</button></div></div></div>';
+      };
+      const solvedRow = (s, b, which, x, ev) => '<div class="qitem" style="margin-bottom:12px;opacity:.7"><img src="' + esc(s[which].thumb || s[which].url || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st approved"><i></i>' + ROLE[which] + ' ' + (ev ? DECW[ev.decision] + ', ' : '') + 'solved</span>' + (x.by ? ' by ' + esc(x.by) : '') + (x.at ? ' ' + ago(x.at) : '') + '.' + (ev && ev.note ? ' “' + esc(ev.note) + '”' : '') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-unsolve="' + s.id + '" data-b="' + b.token + '" data-w="' + which + '">Reopen</button></div></div></div>';
+      const pastRow = (x) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc(x.thumb) + '">' + (x.now ? '<span class="mini" style="align-self:center">→</span><img src="' + esc(x.now) + '" title="Now in the slot">' : '') + '<div style="flex:1"><div class="t">' + esc(x.page + ' · ' + x.name) + '</div><div class="n"><span class="st ' + (x.solved || x.decision === 'approve' ? 'approved' : DECW[x.decision]) + '"><i></i>' + ROLE[x.which] + ' ' + DECW[x.decision] + (x.solved ? ', solved' : '') + '</span>' + (x.solved && x.solved.by ? ' by ' + esc(x.solved.by) : '') + (x.solved && x.solved.at ? ' ' + ago(x.solved.at) : '') + (x.now ? ', replaced' : '') + '.' + (x.note ? ' “' + esc(x.note) + '”' : '') + '</div></div></div>';
+
+      /* SiTime first: external batches only. */
+      const ext = items.filter((it) => !it.b.internal);
+      let html = '<div class="group-title">From SiTime · denied and held</div>' + (ext.length ? ext.map(openRow).join('') : '<p class="hint">Nothing denied or held.</p>');
+
+      /* Internal reviews underneath: live internal batches, then closed ones. */
+      html += '<div class="group-title" style="margin-top:32px">Internal reviews</div>';
+      const live = S.batches.filter((b) => b.internal);
+      live.forEach((b) => {
+        const open = items.filter((it) => it.b === b);
+        const done = [];
+        (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; ['main', 'backup'].forEach((w) => { const x = s[w] && (s[w].solved || []).find((y) => y.token === b.token); if (x) done.push({ s, which: w, x, ev: D[b.token] && D[b.token].latest && D[b.token].latest[id] && D[b.token].latest[id][w] }); }); });
+        html += '<div class="t" style="margin:8px 0 12px">' + B2(b) + ' <span class="mini">· open · ' + open.length + ' to do · ' + done.length + ' solved</span></div>' +
+          (open.length ? open.map(openRow).join('') : '<p class="hint">Nothing left to do.</p>') +
+          done.map(({ s, which, x, ev }) => solvedRow(s, b, which, x, ev)).join('');
+      });
+      const past = (S.reviewLog || []).slice().sort((a, b) => (b.closedAt || 0) - (a.closedAt || 0));
+      html += past.map((l) => { const nS = l.items.filter((x) => x.solved).length; return '<details style="margin:8px 0 12px"><summary class="t" style="cursor:pointer">' + B2(l) + ' <span class="mini">· closed ' + (l.closedAt ? new Date(l.closedAt).toLocaleDateString() : '') + ' · ' + l.items.length + ' flagged · ' + nS + ' solved</span></summary><div style="margin-top:12px">' + (l.items.length ? l.items.map(pastRow).join('') : '<p class="hint">Nothing was flagged.</p>') + '</div></details>'; }).join('');
+      if (!live.length && !past.length) html += '<p class="hint">No internal reviews yet.</p>';
+      $('repl-list').innerHTML = html;
       const setSolved = (el, on) => {
         const s = m.get(el.dataset.slot || el.dataset.solve || el.dataset.unsolve); const p = s && s[el.dataset.w]; if (!p) return;
         p.solved = (p.solved || []).filter((y) => y.token !== el.dataset.b);
