@@ -1415,7 +1415,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function pickFrom(source, obj) {
       if (source === 'stock') return { source, id: obj.id, url: obj.comp, thumb: obj.comp, title: obj.title || '', manual: !!obj.manual };
-      if (source === 'library') return { source, id: obj.id, url: obj.url, thumb: obj.thumb, title: obj.name, path: obj.path };
+      if (source === 'library') return { source, id: obj.id, url: obj.url, thumb: obj.thumb, title: obj.name, path: obj.path, ...(obj.orig ? { orig: obj.orig } : {}), ...(obj.tier ? { tier: obj.tier } : {}) };
       if (source === 'existing') return { source, id: null, url: obj.url, thumb: obj.url, title: obj.label || 'Current' };
       if (source === 'generated') return { source, id: obj.id, url: obj.url, thumb: obj.thumb || obj.url, title: 'Generated' };
       return obj;
@@ -1731,7 +1731,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               const web = await resize(f, WEB_MAX); const th = await resize(f, 400);
               const r1 = await uploadBlob('sitime/library/' + id + '.' + web.ext, web.blob);
               const r2 = await uploadBlob('sitime/library/t/' + id + '.' + th.ext, th.blob);
+              const orig = await uploadOriginal(id, f);
               entry = { id, path: f.name, name: f.name, group: 'Uploaded', tier: 'upload', url: r1.url, thumb: r2.url, w: web.w, h: web.h };
+              if (orig) entry.orig = orig;
               S.library.push(entry);
             }
             picked.push(entry);
@@ -1777,6 +1779,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* ---------- library indexer + mock copy ---------- */
     let _blob = null;
     function blobClient() { if (!_blob) _blob = import('https://esm.sh/@vercel/blob@1/client').catch(() => { _blob = null; throw new Error('the uploader could not load (esm.sh)'); }); return _blob; }
+    /* The file exactly as uploaded, before resize (Pierce, 9/24: Site Imagery
+       keeps the uploaded file, not the 2400px web copy). Best effort: a failure
+       here never blocks the upload itself. */
+    async function uploadOriginal(id, file) {
+      try {
+        const ext = ((file.name.match(/\.([a-z0-9]{2,5})$/i) || [])[1] || 'jpg').toLowerCase();
+        const r = await uploadBlob('sitime/uploads/orig/' + id + '.' + ext, file);
+        return r.url;
+      } catch (e) { console.error('original upload failed', file.name, e); return null; }
+    }
     async function uploadBlob(pathname, fileOrBlob) { const mod = await blobClient(); return mod.upload(pathname, fileOrBlob, { access: 'public', handleUploadUrl: '/api/sitime-upload-token', contentType: fileOrBlob.type || 'image/jpeg' }); }
     async function sha1(str) { const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str)); return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12); }
     /* A PNG is re-encoded as PNG, not JPEG: SiTime's product renders are
@@ -1865,10 +1877,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const web = await resize(file, WEB_MAX); const th = await resize(file, 400);
         const r1 = await uploadBlob('sitime/library/' + nid + '.' + web.ext, web.blob);
         const r2 = await uploadBlob('sitime/library/t/' + nid + '.' + th.ext, th.blob);
+        const orig = await uploadOriginal(nid, file);
         withUndo('Replaced ' + (l.name || 'image'), () => {
           const old = { ...l }; const oldUrl = l.url;
           l.url = r1.url; l.thumb = r2.url; l.w = web.w; l.h = web.h; l.replacedWith = { file: file.name, at: Date.now(), by: me.name };
-          uses.forEach((x) => ['main', 'backup'].forEach((w) => { if (x[w] && x[w].url === oldUrl) x[w] = { ...x[w], url: l.url, thumb: l.thumb }; }));
+          if (orig) l.orig = orig; else delete l.orig;
+          uses.forEach((x) => ['main', 'backup'].forEach((w) => { if (x[w] && x[w].url === oldUrl) { x[w] = { ...x[w], url: l.url, thumb: l.thumb, title: l.name }; if (orig) x[w].orig = orig; else delete x[w].orig; } }));
           S.trash = (S.trash || []).concat([{ item: { ...old, id: old.id + '-was-' + Date.now().toString(36), name: (old.name || 'Image') + ' (before replace)', tier: 'upload', group: 'Uploaded' }, deletedAt: Date.now(), by: me.name, cleared: [], replaced: true }]);
           mark(); rerender();
         });
