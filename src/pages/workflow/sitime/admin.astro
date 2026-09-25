@@ -441,6 +441,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .ibtn:hover{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
     .adm .ibtn[data-act=delete]:hover{ background:#FF1E1E; border-color:#FF7070; color:#fff; }
     .adm .ibtn.done{ background:#9DFF00; border-color:#D9FF66; color:#152400; }
+    .adm .batchrow .grip{ display:inline-block; width:14px; margin-right:8px; color:var(--ink-soft); cursor:grab; letter-spacing:-2px; user-select:none; opacity:.45; }
+    @media (hover:hover){ .adm .batchrow:hover .grip{ opacity:1; } }
+    .adm .batchrow.dragging{ opacity:.4; }
+    .adm .batchrow.drop-before{ box-shadow:inset 0 2px 0 var(--head); }
+    .adm .batchrow.drop-after{ box-shadow:inset 0 -2px 0 var(--head); }
     .adm .batchrow.head{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); padding:0 0 12px; }
     .adm .bslots{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:10px 0 18px; }
     .adm .bslot{ border:1px solid #ECECE9; border-radius:6px; padding:6px; font-size:var(--fs-12); color:var(--ink-soft); }
@@ -908,20 +913,25 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       });
     }
     function renderBatches() {
-      const rows = S.batches.slice().sort((a, b) => b.num - a.num).map((b) => {
+      /* Batch order (Pierce, 9/25): oldest first by default; drag the grip to
+         re-sort. b.order is written on every batch after a drag; a batch made
+         later has none and lands at the end. */
+      const ord = (b) => (typeof b.order === 'number' ? b.order : 1000 + (b.num || 0));
+      const rows = S.batches.slice().sort((a, b) => ord(a) - ord(b) || a.num - b.num).map((b) => {
         const c = batchCounts(b);
         const total = (b.slotIds || []).length;
         const decided = c.a + c.d + c.h;
         const stat = !total ? 'Empty' : c.p === 0 ? 'Complete' : decided ? 'In review' : 'Ready';
         const cls = !total || !decided ? 'draft' : c.p === 0 ? 'approved' : 'held';
         const link = location.origin + '/workflow/sitime/' + b.token;
-        return '<div class="batchrow" data-b="' + b.token + '"><div><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + (b.internal ? ' <span class="mini">internal</span>' : '') + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
+        return '<div class="batchrow" data-b="' + b.token + '"><div>' + (me.role === 'admin' ? '<span class="grip" title="Drag to reorder" aria-hidden="true">⋮⋮</span>' : '') + '<b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + (b.internal ? ' <span class="mini">internal</span>' : '') + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
           '<div><span class="mini">' + (!decided ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
           '<div class="mini">' + (b.plannedFor ? fmtDate(b.plannedFor) : b.createdAt ? fmtDate(b.createdAt.slice(0, 10)) : '—') + '</div>' +
           '<div class="acts">' + ICON('open', 'Show slots') + ICON('review', 'Open for review') + ICON('copy', 'Copy link') + ICON('csv', 'Export CSV') + (me.role === 'admin' ? ICON('delete', 'Delete batch') : '') + '</div>' +
           '<div class="bdetail" hidden style="grid-column:1/-1"></div></div>';
       });
       $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Call date</div><div></div></div>' : '<p class="hint">No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.</p>') + rows.join('');
+      if (me.role === 'admin') wireBatchDrag();
       $('batch-list').querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', (e) => {
         const row = e.target.closest('.batchrow'); const b = S.batches.find((x) => x.token === row.dataset.b); const link = location.origin + '/workflow/sitime/' + b.token;
         const act = btn.dataset.act;
@@ -943,6 +953,30 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('waiting').innerHTML = items.slice(0, 8).map(({ s, b, o }) => '<div class="qitem"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n">' + (o.outcome === 'denied' ? 'Denied' : 'Held') + ' in ' + String(b.num).padStart(2, '0') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div></div></div>').join('') +
         (approvedUnlicensed ? '<div class="qitem"><div class="thumb empty" style="width:72px;height:48px"></div><div><div class="t">' + approvedUnlicensed + ' approved Stock image' + (approvedUnlicensed > 1 ? 's' : '') + ' to license</div><div class="n">Approved comps are ready to license on Adobe Stock. Handoff tab has the list and a field for the license ID.</div></div></div>' : '') ||
         '<p class="hint">Nothing waiting.</p>';
+    }
+    function wireBatchDrag() {
+      const list = $('batch-list'); let dragTok = null;
+      const rows = () => Array.from(list.querySelectorAll('.batchrow[data-b]'));
+      const clear = () => rows().forEach((r) => r.classList.remove('drop-before', 'drop-after'));
+      rows().forEach((row) => {
+        const grip = row.querySelector('.grip'); if (!grip) return;
+        grip.addEventListener('mousedown', () => { row.draggable = true; });
+        row.addEventListener('dragstart', (e) => { dragTok = row.dataset.b; row.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', dragTok); } catch (x) {} });
+        row.addEventListener('dragend', () => { row.draggable = false; row.classList.remove('dragging'); clear(); dragTok = null; });
+        row.addEventListener('dragover', (e) => {
+          if (!dragTok || row.dataset.b === dragTok) return; e.preventDefault();
+          const r = row.getBoundingClientRect(); const after = e.clientY > r.top + Math.min(r.height, 60) / 2;
+          clear(); row.classList.add(after ? 'drop-after' : 'drop-before');
+        });
+        row.addEventListener('drop', (e) => {
+          e.preventDefault(); if (!dragTok || row.dataset.b === dragTok) return;
+          const after = row.classList.contains('drop-after');
+          const order = rows().map((r) => r.dataset.b).filter((t) => t !== dragTok);
+          order.splice(order.indexOf(row.dataset.b) + (after ? 1 : 0), 0, dragTok);
+          order.forEach((t, i) => { const b = S.batches.find((x) => x.token === t); if (b) b.order = i + 1; });
+          dragTok = null; mark(); renderBatches();
+        });
+      });
     }
     function renderBatchDetail(b, el) {
       const m = byId();
