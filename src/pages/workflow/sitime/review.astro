@@ -454,7 +454,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('st-hero').classList.toggle('orig', !!og);
       $('st-hero').classList.toggle('clean', state.clean);
       $('st-hero').classList.toggle('card', s.display === 'card');
-      const mk = !og && (s.mask === 'burst' || s.mask === 'arm') ? s.mask : '';
+      const mk = !og && (s.display === 'burst' || s.display === 'arm') ? s.display : '';
       $('st-hero').classList.toggle('masked', !!mk);
       $('st-hero').classList.toggle('m-burst', mk === 'burst');
       $('st-hero').classList.toggle('m-arm', mk === 'arm');

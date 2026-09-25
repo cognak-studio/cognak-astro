@@ -574,7 +574,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .tgtbar .sbtn{ white-space:nowrap; padding:6px 14px; font-size:var(--fs-13); }
     .adm .drawer .tgtbar .tgt{ font-size:var(--fs-13); padding:4px 12px 4px 4px; white-space:nowrap; }
     .adm .drawer .tgtbar .tgt img, .adm .drawer .tgtbar .tgt .ph{ width:34px; height:22px; }
-    .adm .drawer .tgtbar .dsp-lbl{ margin-left:10px; }
+    .adm .drawer .tgtbar{ justify-content:space-between; row-gap:10px; }
+    .adm .drawer .tgrp{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .adm .drawer .tgrp .lbl{ margin-right:4px; }
+    .adm .drawer .dhead{ align-items:center; }
+    .adm .drawer .dhead{ flex-wrap:nowrap; }
+    .adm .drawer .dmeta{ letter-spacing:.06em; flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .adm .drawer .dacts{ flex:none; }
+    .adm .drawer .descrow{ margin-top:20px; }
+    .adm .drawer .seg{ display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:2px; background:#fff; }
+    .adm .drawer .seg button{ font:inherit; font-size:var(--fs-13); border:0; background:none; padding:5px 14px; border-radius:999px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
+    .adm .drawer .seg button:hover{ color:var(--ink); }
+    .adm .drawer .seg button.on{ background:var(--ink); color:#fff; }
     .adm .drawer [data-dsp] .mini{ margin-left:4px; opacity:.7; }
     .adm .drawer .tgt{ display:inline-flex; align-items:center; gap:8px; font:inherit; font-size:var(--fs-14); padding:5px 12px 5px 5px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; cursor:pointer; }
     .adm .drawer .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
@@ -1178,7 +1189,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const st = status(s); const b = batchOf(s); const open = openSlots.has(s.id);
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
           '<div class="mrow">' + (me.role === 'admin' ? '<input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' : '<span></span>') + '<div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + (s.edit ? '<span class="edited">' + esc(s.edit.by) + ' · ' + ago(s.edit.at) + '</span>' : '') + '</div>' +
-          '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span>' +
+          '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + DSP_LABEL[displayOf(s)] + '</span>' +
           '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Brief and notes">' + ICONS.chevron + '</span></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
       });
@@ -1244,11 +1255,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + currentFor(s).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
 
-      el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc([s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ')) + '</span>' + (s.where ? '<span class="dwhere">' + esc(s.where) + '</span>' : '') + '</div>' +
+      el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id, s.action].filter(Boolean).join(' · ')) + '</span>' +
         '<div class="dacts"><button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
-        '<div class="tgtbar"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
-        (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') +
-        '<span class="lbl dsp-lbl">Shown as</span>' + ['hero', 'card'].map((v) => '<button class="sbtn ' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + (v === 'card' ? 'Review shows it as a tall card with text' : 'Review shows it full width behind the headline') + '">' + (v === 'hero' ? 'Hero' : 'Card') + (autoDisplay(s) === v ? ' <span class="mini">auto</span>' : '') + '</button>').join('') +
+        '<div class="tgtbar"><div class="tgrp"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
+        (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
+        '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
         '<div class="descrow">' + ['main', 'backup'].map((w) => '<label>' + (w === 'main' ? 'Main' : 'Backup') + ' · what the image is<input type="text" data-desc="' + w + '" maxlength="200" value="' + esc((s[w] && s[w].desc) || '') + '" placeholder="' + (s[w] ? 'One line, shown to SiTime under the image' : 'Pick a ' + w + ' first') + '"' + (s[w] ? '' : ' disabled') + '></label>').join('') + '</div>' +
         reviewBlock(s) +
@@ -1292,8 +1303,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return '<div class="rvbox">' + (cur.length ? '<div class="rvh">Review notes</div>' + cur.join('') : '') +
         (hist.length ? '<details class="rvhist"><summary>Earlier images · ' + hist.length + '</summary>' + hist.map((h) => '<div class="rvold"><img src="' + esc(h.pick.thumb || h.pick.url || '') + '"' + fxStyle(h.pick) + '><div><b>' + (h.which === 'main' ? 'Main' : 'Backup') + '</b> · ' + esc(h.why || '') + ' · ' + ago(h.at) + (h.pick.desc ? '<div>' + esc(h.pick.desc) + '</div>' : '') + ((h.pick.reviews || []).map((r) => '<div>' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>').join('')) + '</div></div>').join('') + '</details>' : '') + '</div>';
     }
-    function autoDisplay(s) { return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
-    function displayOf(s) { return s.display === 'card' || s.display === 'hero' ? s.display : autoDisplay(s); }
+    /* How review shows a slot: hero (full width), card (tall card with copy),
+       or through SiTime's logo burst / arm mask. Masks come from the seed
+       (s.mask); s.display only exists when someone overrides the default. */
+    const DSP = ['hero', 'card', 'burst', 'arm'];
+    const DSP_LABEL = { hero: 'Hero', card: 'Card', burst: 'Logo mask', arm: 'Arm mask' };
+    function autoDisplay(s) { if (s.mask === 'burst' || s.mask === 'arm') return s.mask; return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
+    function displayOf(s) { return DSP.includes(s.display) ? s.display : autoDisplay(s); }
     function targetOf(s) { return pkWhich[s.id] === 'backup' ? 'backup' : 'main'; }
     function tgtBtn(s, which) {
       const p = s[which];
