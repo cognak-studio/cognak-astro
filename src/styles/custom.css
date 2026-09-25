@@ -982,6 +982,7 @@ body[data-page="schedule"] ::-moz-selection { background: #9F50FF; color: #1B142
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    mix-blend-mode: normal !important; /* difference would invert the emoji on light pages */
     width: 36px !important;
     height: 36px !important;
     transition: all var(--dur-l) var(--ease-standard) !important;
