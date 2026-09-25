@@ -47,6 +47,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="group-title"><span id="batch-label">Batch</span><span class="bar"><i id="bar"></i></span></div>
         <div class="field">
           <span class="q-title" id="slot-title">Slot</span>
+          <span class="q-sub q-where" id="slot-where" hidden></span>
           <span class="q-sub" id="slot-sub"></span>
           <div class="pills" id="pills" role="group" aria-label="Decision">
             <button type="button" class="pill" data-v="approve">Approve</button>
@@ -78,6 +79,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div class="copy"><h2 id="mock-h1">Built for where others fail.</h2><p id="mock-p">From space to factory floors, SiTime timing holds when conditions don’t.</p><span class="btn-s" id="mock-cta">Learn more</span></div>
             </div>
           </div></div>
+          <p class="pdesc" id="pdesc"></p>
           <div class="stage-foot"><span id="source"></span><span class="foot-r"><span id="source-note">Comp shown, licensed after approval</span><span class="ocyc" id="ocyc" hidden><button type="button" id="oprev" aria-label="Previous original">‹</button><span id="ocount"></span><button type="button" id="onext" aria-label="Next original">›</button></span></span></div>
           <div class="framebar" id="framebar" hidden><span>Drag the image to reframe</span><label>Zoom <input type="range" id="fzoom" min="1" max="2.5" step="0.01" value="1" /></label><span id="fval"></span><button type="button" class="origbtn" id="freset">Reset</button></div>
         </div>
@@ -194,6 +196,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        reserved slot under the pills, so the stage stays put. Only opening the
        deny/hold note box still moves it, deliberately. */
     .review #slot-sub{ min-height:calc(2 * 1.4em); }
+    /* Where the image sits on the page (seed `where`) and what the image is
+       (pick.desc), 9/24. The description line keeps its height when empty so
+       the source line under it doesn't move between slots. */
+    .review .q-where{ color:var(--ink); margin-top:.35rem; min-height:calc(2 * 1.4em); }
+    .review .pdesc{ margin:12px 0 0; font-size:var(--fs-14); line-height:1.45; color:var(--ink); min-height:1.45em; max-width:80ch; }
     .review .statusslot{ min-height:46px; margin-top:14px; display:flex; flex-direction:column; justify-content:flex-start; }
     .review .statusslot .handoff{ margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .review .statusslot .decided{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -410,6 +417,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          as an empty rule with nothing in it. */
       $('bar').style.width = 'max(6px, ' + Math.round((done / state.slots.length) * 100) + '%)';
       $('slot-title').textContent = s.page + ' · ' + s.name;
+      $('slot-where').textContent = s.where || ''; $('slot-where').hidden = !s.where;
       $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image.' : (s.backup ? 'Main image. The backup is one click away above the image, and appears on its own if the main is denied.' : 'Main image. No backup for this one.'));
       const MARK = { approve: '✓', deny: '✕', hold: '◦' };
       document.querySelectorAll('#which button').forEach((btn) => {
@@ -451,6 +459,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('st-hero').classList.toggle('canframe', canFrame);
       $('framebar').hidden = !canFrame;
       if (canFrame) { $('fzoom').value = String(pick.zoom || 1); $('fval').textContent = (pick.pos || (pick.zoom && pick.zoom !== 1)) ? 'Custom framing' : 'Automatic'; }
+      $('pdesc').textContent = !og && pick && pick.desc ? pick.desc : '';
       if (og) {
         $('source').textContent = 'Currently on sitime.com · ' + og.name;
         $('source-note').textContent = 'Not up for review';

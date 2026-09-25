@@ -312,6 +312,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow .who{ flex:1 1 260px; min-width:0; }
     .adm .mrow .who .pg{ font-size:var(--fs-18); margin-bottom:6px; }
     .adm .mrow .who .sub{ line-height:1.45; }
+    /* Placement note (seed `where`) and the pick description (pick.desc), 9/24. */
+    .adm .mrow .who .where{ font-size:var(--fs-13); line-height:1.45; color:var(--ink-soft); margin-top:4px; max-width:72ch; }
+    .adm .drawer .dwhere{ display:block; font-size:var(--fs-14); line-height:1.5; color:var(--ink-soft); margin-top:6px; max-width:72ch; }
+    .adm .drawer .descrow{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; }
+    .adm .drawer .descrow label{ display:flex; flex-direction:column; gap:6px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+    .adm .drawer .descrow input{ width:100%; box-sizing:border-box; font-family:inherit; text-transform:none; letter-spacing:.02em; font-size:var(--fs-13); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:9px 12px; background:#fff; }
+    .adm .drawer .descrow input:disabled{ background:transparent; color:var(--ink-soft); }
+    @media (max-width:900px){ .adm .drawer .descrow{ grid-template-columns:1fr; } }
     .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; gap:18px; }
     .adm .mrow .chev{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; color:var(--ink-soft); flex:none; transition:transform .15s var(--ease-standard), color .15s var(--ease-standard); }
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
@@ -866,8 +874,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const refOf = (p) => !p ? '' : p.source === 'stock' ? (p.id ? 'https://stock.adobe.com/images/x/' + p.id : '') : (p.path || p.title || '');
     function exportBatchCsv(b) {
       const m = byId();
-      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'note']];
-      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', treatment(p), (o.ev && o.ev.note) || '']); });
+      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'image_desc', 'treatment', 'note']];
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', p.desc || '', treatment(p), (o.ev && o.ev.note) || '']); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
     function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
@@ -1097,11 +1105,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          on the tile so a finished slot reads as done without opening it. */
       const bt = batchOf(s); const dd = bt && D[bt.token] && D[bt.token].latest && D[bt.token].latest[s.id];
       const dec = dd && dd[which] && dd[which].decision; const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'] }[dec];
-      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title=""' + esc(pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
+      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc(pick.desc || pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '"' + fxStyle(pick) + '>' +
         '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
         (DEC ? '<span class="dec st ' + DEC[0] + '"><i></i>' + DEC[1] + '</span>' : '') +
-        '<span class="cap">' + esc(pick.title || pick.id || '') + '</span>' +
+        '<span class="cap">' + esc(pick.desc || pick.title || pick.id || '') + '</span>' +
         '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
         (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
         '<button class="tact" data-act="bw" data-slot="' + s.id + '" data-which="' + which + '" title="Toggle black and white">' + (pick.bw ? 'Color' : 'B&amp;W') + '</button>' +
@@ -1129,7 +1137,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const rows = shown.map((s) => {
         const st = status(s); const b = batchOf(s); const open = openSlots.has(s.id);
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
-          '<div class="mrow">' + (me.role === 'admin' ? '<input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' : '<span></span>') + '<div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div>' + (s.edit ? '<span class="edited">' + esc(s.edit.by) + ' · ' + ago(s.edit.at) + '</span>' : '') + '</div>' +
+          '<div class="mrow">' + (me.role === 'admin' ? '<input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' : '<span></span>') + '<div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + (s.edit ? '<span class="edited">' + esc(s.edit.by) + ' · ' + ago(s.edit.at) + '</span>' : '') + '</div>' +
           '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + esc((s.rec || '').split(' ')[0]) + '</span>' +
           '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Brief and notes">' + ICONS.chevron + '</span></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
@@ -1196,12 +1204,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (stockSlotId !== s.id) { stockSlotId = s.id; stockQ = (s.terms && s.terms.length) ? s.terms.join(' ') : ''; stockResults = []; stockErr = ''; }
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + currentFor(s).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
 
-      el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc([s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ')) + '</span></div>' +
+      el.innerHTML = '<div class="dhead"><div><div class="group-title" style="margin-bottom:6px">' + esc(s.page) + ' · ' + esc(s.name) + '</div><span class="mini">' + esc([s.section === '(unmapped)' ? '' : s.section, 'sitime.com' + s.url, s.priority, s.action].filter(Boolean).join(' · ')) + '</span>' + (s.where ? '<span class="dwhere">' + esc(s.where) + '</span>' : '') + '</div>' +
         '<div class="dacts"><button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="tgtbar"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') +
         '<span class="lbl dsp-lbl">Shown as</span>' + ['hero', 'card'].map((v) => '<button class="sbtn ' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + (v === 'card' ? 'Review shows it as a tall card with text' : 'Review shows it full width behind the headline') + '">' + (v === 'hero' ? 'Hero' : 'Card') + (autoDisplay(s) === v ? ' <span class="mini">auto</span>' : '') + '</button>').join('') +
         '</div>' +
+        '<div class="descrow">' + ['main', 'backup'].map((w) => '<label>' + (w === 'main' ? 'Main' : 'Backup') + ' · what the image is<input type="text" data-desc="' + w + '" maxlength="200" value="' + esc((s[w] && s[w].desc) || '') + '" placeholder="' + (s[w] ? 'One line, shown to SiTime under the image' : 'Pick a ' + w + ' first') + '"' + (s[w] ? '' : ' disabled') + '></label>').join('') + '</div>' +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b style="margin-right:0">' + which + '</b>.</span></div>' +
@@ -1214,6 +1223,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
       el.querySelector('[data-pv]').addEventListener('click', () => openPreview([s], s.page + ' · ' + s.name));
       el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
+      /* One-line description per pick (Pierce, 9/24): lives on the pick, so
+         it travels with Swap and goes away with Replace. */
+      el.querySelectorAll('[data-desc]').forEach((inp) => inp.addEventListener('change', () => {
+        const p = s[inp.dataset.desc]; if (!p) return;
+        const v = inp.value.replace(/\s+/g, ' ').trim();
+        if (v) p.desc = v; else delete p.desc;
+        mark();
+        // update the tile caption in place so focus can move on to the next field
+        const tl = document.querySelector('.tile.filled[data-slot="' + s.id + '"][data-which="' + inp.dataset.desc + '"]');
+        if (tl) { const cap = tl.querySelector('.cap'); if (cap) cap.textContent = p.desc || p.title || p.id || ''; tl.title = p.desc || p.title || ''; }
+      }));
       el.querySelector('[data-terms]').addEventListener('change', (e) => { s.terms = e.target.value.split('\n').map((t) => t.trim()).filter(Boolean); _hay.delete(s.id); stockSlotId = null; mark(); refreshDrawer(s.id); });
       el.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; refreshDrawer(s.id); }));
       wireSource(s, el);
@@ -1278,7 +1298,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        controls. Slot shape mirrors api/sitime-batch.js img()/originals(). */
     function pvImg(pick) {
       if (!pick) return null;
-      return { source: pick.source || null, url: pick.url || null, thumb: pick.thumb || pick.url || null, title: pick.title || '', id: pick.id || null,
+      return { source: pick.source || null, url: pick.url || null, thumb: pick.thumb || pick.url || null, title: pick.title || '', desc: pick.desc || '', id: pick.id || null,
         ref: pick.source === 'stock' ? 'Adobe Stock ' + (pick.id || '') : pick.source === 'library' ? 'SiTime library' : pick.source === 'existing' ? 'Current site' : 'COGNAK',
         link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null, bw: !!pick.bw, flip: !!pick.flip, pos: pick.pos || null, zoom: pick.zoom || 1 };
     }
@@ -1293,7 +1313,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function openPreview(slots, title) {
       if (!slots.length) return;
-      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
+      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
       $('pv-title').textContent = 'Preview · ' + title;
       $('pv-frame').src = '/workflow/sitime/review?preview=local&t=' + Date.now();
       if (!$('pv-dialog').open) $('pv-dialog').showModal();

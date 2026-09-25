@@ -36,6 +36,7 @@ function img(pick) {
     url: pick.url || null,
     thumb: pick.thumb || pick.url || null,
     title: pick.title || '',
+    desc: typeof pick.desc === 'string' ? pick.desc : '',
     id: pick.id || null,
     ref: pick.source === 'stock' ? 'Adobe Stock ' + (pick.id || '') : pick.source === 'library' ? 'SiTime library' : pick.source === 'existing' ? 'Current site' : 'COGNAK',
     link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null,
@@ -76,6 +77,9 @@ export default async function handler(req, res) {
       section: s.section,
       url: s.url,
       name: s.name,
+      /* Placement note is seed-owned (sitime-state SEED_OWNED); read it from
+         the seed so a batch opened before the next admin save still has it. */
+      where: (seedSlots.get(s.id) || {}).where || s.where || '',
       main: img(s.main),
       backup: img(s.backup),
       original: originals(s),
