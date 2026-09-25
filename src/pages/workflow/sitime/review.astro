@@ -481,7 +481,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('st-hero').classList.toggle('canframe', canFrame);
       $('framebar').hidden = !canFrame;
       if (canFrame) { $('fzoom').value = String(pick.zoom || 1); $('fval').textContent = (pick.pos || (pick.zoom && pick.zoom !== 1)) ? 'Custom framing' : 'Automatic'; }
-      $('pdesc').textContent = !og && pick && pick.desc ? pick.desc : '';
+      $('pdesc').textContent = og ? '' : (s.desc || (pick && pick.desc) || '');
       if (og) {
         $('source').textContent = 'Currently on sitime.com · ' + og.name;
         $('source-note').textContent = 'Not up for review';

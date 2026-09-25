@@ -327,7 +327,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .rvhist summary{ cursor:pointer; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; }
     .adm .drawer .rvold{ display:flex; gap:12px; align-items:flex-start; margin-top:10px; }
     .adm .drawer .rvold img{ width:96px; height:64px; object-fit:cover; border-radius:4px; flex:none; }
-    .adm .drawer .descrow{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; }
+    .adm .drawer .descrow{ display:grid; grid-template-columns:1fr; gap:16px; margin-top:14px; }
     .adm .drawer .descrow label{ display:flex; flex-direction:column; gap:6px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .drawer .descrow input{ width:100%; box-sizing:border-box; font-family:inherit; text-transform:none; letter-spacing:.02em; font-size:var(--fs-13); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:9px 12px; background:#fff; }
     .adm .drawer .descrow input:disabled{ background:transparent; color:var(--ink-soft); }
@@ -924,7 +924,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function exportBatchCsv(b) {
       const m = byId();
       const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'image_desc', 'treatment', 'note']];
-      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', p.desc || '', treatment(p), (o.ev && o.ev.note) || '']); });
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '']); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
     function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
@@ -1261,7 +1261,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
-        '<div class="descrow">' + ['main', 'backup'].map((w) => '<label>' + (w === 'main' ? 'Main' : 'Backup') + ' · what the image is<input type="text" data-desc="' + w + '" maxlength="200" value="' + esc((s[w] && s[w].desc) || '') + '" placeholder="' + (s[w] ? 'One line, shown to SiTime under the image' : 'Pick a ' + w + ' first') + '"' + (s[w] ? '' : ' disabled') + '></label>').join('') + '</div>' +
+        '<div class="descrow"><label>Description · shown to SiTime under the image<input type="text" data-desc="1" maxlength="200" value="' + esc(slotDesc(s)) + '" placeholder="One line for this slot, main and backup alike"></label></div>' +
         reviewBlock(s) +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
@@ -1275,17 +1275,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
       el.querySelector('[data-pv]').addEventListener('click', () => openPreview([s], s.page + ' · ' + s.name));
       el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
-      /* One-line description per pick (Pierce, 9/24): lives on the pick, so
-         it travels with Swap and goes away with Replace. */
-      el.querySelectorAll('[data-desc]').forEach((inp) => inp.addEventListener('change', () => {
-        const p = s[inp.dataset.desc]; if (!p) return;
-        const v = inp.value.replace(/\s+/g, ' ').trim();
-        if (v) p.desc = v; else delete p.desc;
+      /* One description per slot (Pierce, 9/25): main and backup share it.
+         Stored as s.desc; older per-pick descriptions (pick.desc) still show
+         until the slot gets its own. */
+      el.querySelector('[data-desc]').addEventListener('change', (e) => {
+        const v = e.target.value.replace(/\s+/g, ' ').trim();
+        if (v) s.desc = v; else delete s.desc;
         mark();
-        // update the tile caption in place so focus can move on to the next field
-        const tl = document.querySelector('.tile.filled[data-slot="' + s.id + '"][data-which="' + inp.dataset.desc + '"]');
-        if (tl) { const cap = tl.querySelector('.cap'); if (cap) cap.textContent = p.desc || p.title || p.id || ''; tl.title = p.desc || p.title || ''; }
-      }));
+      });
       el.querySelector('[data-terms]').addEventListener('change', (e) => { s.terms = e.target.value.split('\n').map((t) => t.trim()).filter(Boolean); _hay.delete(s.id); stockSlotId = null; mark(); refreshDrawer(s.id); });
       el.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; refreshDrawer(s.id); }));
       wireSource(s, el);
@@ -1308,6 +1305,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        (s.mask); s.display only exists when someone overrides the default. */
     const DSP = ['hero', 'card', 'burst', 'arm'];
     const DSP_LABEL = { hero: 'Hero', card: 'Card', burst: 'Logo mask', arm: 'Arm mask' };
+    const slotDesc = (s) => s.desc || (s.main && s.main.desc) || '';
     function autoDisplay(s) { if (s.mask === 'burst' || s.mask === 'arm') return s.mask; return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
     function displayOf(s) { return DSP.includes(s.display) ? s.display : autoDisplay(s); }
     function targetOf(s) { return pkWhich[s.id] === 'backup' ? 'backup' : 'main'; }
@@ -1406,7 +1404,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function openPreview(slots, title) {
       if (!slots.length) return;
-      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', mask: s.mask || null, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
+      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', desc: s.desc || '', mask: s.mask || null, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
       $('pv-title').textContent = 'Preview · ' + title;
       $('pv-frame').src = '/workflow/sitime/review?preview=local&t=' + Date.now();
       if (!$('pv-dialog').open) $('pv-dialog').showModal();

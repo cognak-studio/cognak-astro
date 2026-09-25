@@ -81,6 +81,7 @@ export default async function handler(req, res) {
          the seed so a batch opened before the next admin save still has it. */
       where: (seedSlots.get(s.id) || {}).where || s.where || '',
       mask: (seedSlots.get(s.id) || {}).mask || null,
+      desc: typeof s.desc === 'string' ? s.desc : '',
       main: img(s.main),
       backup: img(s.backup),
       original: originals(s),
