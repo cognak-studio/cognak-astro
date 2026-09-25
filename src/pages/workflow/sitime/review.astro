@@ -100,7 +100,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     {/* Back to the batch list (Pierce, 2026-09-22) — same mono uppercase
        arrow link as /brief's "Change project type", under the card on the
        left, lined up with the card's own labels. */}
-    <a class="backlink" href="/workflow/sitime/admin">&larr; Back to all batches</a>
+    {/* Only for someone signed in to the tool; on the shared link it led to the sign-in gate. */}
+    <a class="backlink" id="backlink" href="/workflow/sitime/admin" hidden>&larr; Back to all batches</a>
 
     {/* Context (Pierce, 9/25): the whole page with this slot flashed in place. */}
     <div class="ctx" id="ctx" hidden role="dialog" aria-modal="true" aria-label="Where this image goes">
@@ -219,9 +220,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .handoff b{ font-weight:600; }
 
     .review .stage-wrap{ margin-top:.4rem; }
-    .review .stage-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; min-height:40px; }
+    /* The toolbar wraps as a whole row (arrows drop under the buttons on a
+       phone); the pills themselves never break mid-label. Before this, "SHOW
+       ORIGINAL" wrapped inside its pill at 1440 and the row ran off the right
+       edge of a phone, scrolling the whole page sideways. */
+    .review .stage-head{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; min-height:40px; gap:10px 8px; }
     .review .which button, .review .origbtn{ line-height:1; }
-    .review .stage-head .label-line{ display:flex; align-items:center; gap:8px; }
+    .review .stage-head .label-line{ display:flex; align-items:center; gap:8px; flex:1 1 0; min-width:0; flex-wrap:wrap; row-gap:8px; }
+    .review .stage-head .count, .review .origbtn, .review .which{ white-space:nowrap; }
+    .review .stage-head .arrows{ flex:none; margin-left:auto; }
     .review .stage-head .label, .review .stage-head .sep, .review .stage-head .count{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
     .review .arrows{ display:flex; gap:8px; }
     .review .which{ display:inline-flex; margin-left:14px; border:1px solid var(--line-strong); border-radius:999px; padding:3px; gap:2px; }
@@ -340,6 +347,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       .review .backlink{ margin-left:18px; }
       .review .pill{ padding:11px 18px; font-size:var(--fs-14); }
       .review .summary .row{ grid-template-columns:1fr; gap:4px; }
+      /* On a phone the denial note is worth more than a stage that never
+         moves: let the banner wrap instead of cutting the note off. */
+      .review .statusslot{ min-height:0; }
+      .review .statusslot .handoff, .review .statusslot .decided{ white-space:normal; }
+      .review .origbtn{ margin-left:0; }
     }
   </style>
 
@@ -524,7 +536,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       }
 
       // decision controls
-      document.querySelectorAll('#pills .pill').forEach((p) => p.classList.remove('on'));
+      document.querySelectorAll('#pills .pill').forEach((p) => { p.classList.remove('on'); p.setAttribute('aria-pressed', 'false'); });
       $('note').hidden = true; $('note-text').value = ''; $('err').hidden = true;
       state.pending = null;
       const ev = d[which];
@@ -700,8 +712,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        reviewer can approve with a comment. */
     const internalBatch = () => !!(state.batch && state.batch.internal);
     document.querySelectorAll('#pills .pill').forEach((p) => p.addEventListener('click', () => {
-      document.querySelectorAll('#pills .pill').forEach((x) => x.classList.remove('on'));
-      p.classList.add('on');
+      document.querySelectorAll('#pills .pill').forEach((x) => { x.classList.remove('on'); x.setAttribute('aria-pressed', 'false'); });
+      p.classList.add('on'); p.setAttribute('aria-pressed', 'true');
       state.pending = p.dataset.v;
       $('err').hidden = true;
       if (state.pending === 'approve' && !internalBatch()) { $('note').hidden = true; $('note-text').value = ''; submit(); return; }
@@ -734,6 +746,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('skip').addEventListener('click', () => { const j = firstPending(state.i + 1); if (j === -1 || j === state.i) { render(); return; } state.i = j; render(); });
     $('prev').addEventListener('click', () => { if (state.i > 0) { state.i--; render(); } });
     $('next').addEventListener('click', () => { if (state.i < state.slots.length - 1) { state.i++; render(); } });
+    /* Left / right arrow keys step through the images; ignored while a note
+       is being typed, while the Context view is open, and on the summary.
+       Decisions stay on the buttons: no single key approves or denies. */
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      const a = document.activeElement;
+      if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+      if (!$('ctx').hidden || $('card').hidden) return;
+      e.preventDefault();
+      $(e.key === 'ArrowLeft' ? 'prev' : 'next').click();
+    });
     $('review-again').addEventListener('click', () => { state.i = 0; $('summary').hidden = true; $('card').hidden = false; render(); });
 
     async function load() {
@@ -756,6 +779,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!r.ok || !r.data || !r.data.ok) { $('invalid').hidden = false; $('invalid-note').textContent = (r.data && r.data.error) || 'This link isn’t valid.'; return; }
       $('gate').hidden = true;
       try { sessionStorage.setItem('sitime-pass-' + token, pass); } catch (e) {}
+      $('backlink').hidden = !r.data.me;
       state.batch = r.data.batch; state.slots = r.data.slots; state.decisions = r.data.decisions || {};
       if (r.data.mock) applyMock(r.data.mock);
       if (!state.slots.length) { $('invalid').hidden = false; $('invalid-note').textContent = 'This batch is empty.'; return; }
