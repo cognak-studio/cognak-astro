@@ -275,15 +275,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .st-hero.card .copy{ display:none; }
     .review .st-hero .ccopy{ display:none; }
     /* Masked slots (Pierce, 9/25): the image shows through SiTime's burst or
-       arm shape, centered in the frame and never cropped: the burst is 792px
-       wide (792 tall) and the arm 677px wide (661 tall) in the 1920x912
+       arm shape, centered in the frame and never cropped: the burst is 713px
+       wide (713 tall) and the arm 609px wide (594 tall) in the 1920x912
        frame (Pierce, 9/25),
        on white, no copy. Pan and zoom still move the image inside it. The
        current-site original ("Show original") is shown unmasked. */
     .review .st-hero.masked{ background:#fff; }
     .review .st-hero.masked .imgbox, .review .st-hero.masked .noimg{ inset:auto; top:50%; left:50%; height:auto; transform:translate(-50%,-50%); }
-    .review .st-hero.masked.m-burst .imgbox, .review .st-hero.masked.m-burst .noimg{ width:792px; aspect-ratio:1 / 1; clip-path:url(#mask-burst); }
-    .review .st-hero.masked.m-arm .imgbox, .review .st-hero.masked.m-arm .noimg{ width:677px; aspect-ratio:875 / 854; clip-path:url(#mask-arm); }
+    .review .st-hero.masked.m-burst .imgbox, .review .st-hero.masked.m-burst .noimg{ width:713px; aspect-ratio:1 / 1; clip-path:url(#mask-burst); }
+    .review .st-hero.masked.m-arm .imgbox, .review .st-hero.masked.m-arm .noimg{ width:609px; aspect-ratio:875 / 854; clip-path:url(#mask-arm); }
     .review .st-hero.masked .noimg{ padding:0; justify-content:center; align-items:center; font-size:18px; }
     .review .st-hero.masked .scrim, .review .st-hero.masked .copy, .review .st-hero.masked .ccopy{ display:none; }
     .review .st-hero.card .ccopy{ display:block; position:absolute; left:602px; width:380px; top:56px; height:800px; padding:0 40px 44px; box-sizing:border-box; color:#fff; pointer-events:none; }
