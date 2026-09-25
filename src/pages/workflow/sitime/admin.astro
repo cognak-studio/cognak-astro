@@ -83,6 +83,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="workspace">
             <aside class="rail">
               <div class="railhead"><span class="mini" id="rail-count"></span><button class="link" id="rail-clear">Whole site</button></div>
+              <button class="sbtn" id="add-page" style="width:100%;margin-bottom:12px">Add a page or slot</button>
               <div id="rail"></div>
             </aside>
             <div class="railmain">
@@ -187,6 +188,25 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     </dialog>
 
     <!-- batch modal -->
+    <!-- add a page / slot (Pierce, 9/25: SiTime adds their own) -->
+    <dialog id="add-dialog">
+      <div class="group-title" id="ad2-title">Add a slot</div>
+      <label class="q"><span class="q-title">Page</span><select class="txt" id="ad2-page"></select></label>
+      <div id="ad2-newpage" hidden>
+        <label class="q"><span class="q-title">New page name</span><input class="txt" id="ad2-pname" placeholder="Press Releases" /></label>
+        <div class="grid3" style="grid-template-columns:1fr 1fr">
+          <label class="q"><span class="q-title">Section</span><input class="txt" id="ad2-psec" list="ad2-secs" placeholder="About Us" /><datalist id="ad2-secs"></datalist></label>
+          <label class="q"><span class="q-title">URL on sitime.com</span><input class="txt" id="ad2-purl" placeholder="/company/press-releases" /></label>
+        </div>
+      </div>
+      <label class="q"><span class="q-title">Slot name</span><input class="txt" id="ad2-sname" placeholder="Page hero" /></label>
+      <label class="q"><span class="q-title">Where it sits</span><input class="txt" id="ad2-where" placeholder="Top of the page, full width behind the title." /></label>
+      <label class="q"><span class="q-title">Shown as</span><select class="txt" id="ad2-disp"><option value="hero">Hero · full width behind the headline</option><option value="card">Card · tall card with copy on it</option></select></label>
+      <label class="q"><span class="q-title">What should it show? (optional)</span><input class="txt" id="ad2-brief" placeholder="People at work in the lab, from behind or at a distance." /></label>
+      <p class="hint is-error" id="ad2-err" hidden></p>
+      <div class="actions"><button class="sbtn p" id="ad2-save">Add slot</button><button class="sbtn" id="ad2-cancel">Cancel</button></div>
+    </dialog>
+
     <dialog id="batch-dialog">
       <div class="group-title" id="bd-title">New batch</div>
       <label class="q"><span class="q-title">Name</span><input class="txt" id="bd-name" placeholder="Homepage + Applications" /></label>
@@ -716,10 +736,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       mergeList('library', (x) => x.id);
       mergeList('trash', (x) => (x.item && x.item.id) + ':' + x.deletedAt);
       mergeList('reviewLog', (x) => x.token);
+      mergeList('customPages', (x) => x.id);
       new Set(Object.keys(server).concat(Object.keys(S))).forEach((k) => {
-        if (['slots', 'batches', 'library', 'trash', 'reviewLog', 'savedAt'].includes(k)) return;
+        if (['slots', 'batches', 'library', 'trash', 'reviewLog', 'customPages', 'savedAt'].includes(k)) return;
         if (J(S[k]) === J(B[k])) S[k] = clone(server[k]);
       });
+      { const ids = new Set((S.customPages || []).map((p) => p.id)); S.pages = (server.pages || []).filter((p) => !p.custom || ids.has(p.id)).concat((S.customPages || []).filter((p) => !(server.pages || []).some((q) => q.id === p.id))); _pmap = null; }
       S.savedAt = server.savedAt;
       base = clone(server);
       _hay.clear();
@@ -1237,10 +1259,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const cur = pageCurrent(p);
       const showAll = pcAll.has(p.id);
       const imgs = (showAll ? cur : cur.slice(0, 6)).map((c) => '<a class="exi" href="' + esc(c.url) + '" target="_blank" rel="noopener" title="' + esc(c.name) + '"><img loading="lazy" src="' + esc(c.url) + '" alt="">' + (c.hero ? '<span class="hb">Hero</span>' : '') + '</a>').join('');
-      el.innerHTML = '<div class="pcard"><div class="pt">' + esc(p.name) + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div><div class="tags">' + tags + '</div>' +
+      el.innerHTML = '<div class="pcard"><button class="sbtn" data-addslot="1" style="float:right">Add a slot to this page</button><div class="pt">' + esc(p.name) + (p.custom ? ' <span class="mini">added by ' + esc(p.addedBy || 'the team') + '</span>' : '') + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div><div class="tags">' + tags + '</div>' +
         (cur.length ? '<div class="exh">Currently on sitime.com · ' + cur.length + ' image' + (cur.length === 1 ? '' : 's') + (cur.length > 6 ? ' · <button type="button" class="linkb" data-pcall="1">' + (showAll ? 'Show fewer' : 'Show all') + '</button>' : '') + '</div><div class="ex">' + imgs + '</div>' : '<div class="exh">Nothing on sitime.com for this page</div>') +
         (p.parts && p.parts.length ? '<div class="mini" style="margin-top:12px">Parts: ' + esc(p.parts.slice(0, 12).join(' · ')) + (p.parts.length > 12 ? ' +' + (p.parts.length - 12) : '') + '</div>' : '') +
         '</div>';
+      el.querySelector('[data-addslot]').addEventListener('click', () => openAddDialog(p.id));
       const tg = el.querySelector('[data-pcall]');
       if (tg) tg.addEventListener('click', () => { if (pcAll.has(p.id)) pcAll.delete(p.id); else pcAll.add(p.id); renderPageCard(); });
     }
@@ -1392,7 +1415,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + currentFor(s).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
 
       el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id, s.action].filter(Boolean).join(' · ')) + '</span>' +
-        '<div class="dacts"><button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
+        '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="tgtbar"><div class="tgrp"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
@@ -1409,6 +1432,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
       el.querySelector('[data-clear]').addEventListener('click', () => { if (!s.main && !s.backup) return; withUndo('Cleared picks on ' + s.name, () => { retirePick(s, 'main', 'Cleared'); retirePick(s, 'backup', 'Cleared'); if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
       el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
+      const rms = el.querySelector('[data-rmslot]');
+      if (rms) rms.addEventListener('click', () => withUndo('Removed slot ' + s.name, () => {
+        S.slots = S.slots.filter((x) => x.id !== s.id); openSlots.delete(s.id);
+        /* a page someone added goes with its last slot */
+        if (!S.slots.some((x) => x.pageId === s.pageId)) { S.customPages = (S.customPages || []).filter((p) => p.id !== s.pageId); S.pages = S.pages.filter((p) => !(p.custom && p.id === s.pageId)); if (fx.page === s.pageId) fx.page = ''; _pmap = null; }
+        mark(); renderSlots(); renderStats();
+      }));
       el.querySelector('[data-pv]').addEventListener('click', () => openPreview([s], s.page + ' · ' + s.name));
       el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
       /* One description per slot (Pierce, 9/25): main and backup share it.
@@ -2290,6 +2320,49 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         done++; $('lib-progress').textContent = done + ' / ' + wanted.length + (failed ? ' · ' + failed + ' failed' : '');
       }
       mark(); renderLib(); renderStats(); $('lib-log').textContent = 'Done. ' + added + ' added' + (failed ? ', ' + failed + ' failed (see console)' : '') + '.';
+    });
+
+    /* ---------- add a page / slot (Pierce, 9/25) ----------
+       Anyone signed in (Pierce, team, SiTime) can add. Added pages live in
+       S.customPages (the server merges them into pages); added slots are
+       ordinary slots with custom:true, which the seed never touches. Ids:
+       PG-8xxx / IMG-8xxx, so they never collide with the seed or COGNAK's 9xxx. */
+    function nextId(prefix, list) { let n = 8000; list.forEach((x) => { const m = String(x.id || '').match(new RegExp('^' + prefix + '-(8\\d{3})$')); if (m) n = Math.max(n, +m[1]); }); return prefix + '-' + (n + 1); }
+    function openAddDialog(pageId) {
+      const pages = (S.pages || []).filter((p) => S.slots.some((s) => s.pageId === p.id) || p.custom).sort((a, b) => (a.section || '').localeCompare(b.section || '') || a.name.localeCompare(b.name));
+      $('ad2-page').innerHTML = '<option value="__new">+ New page…</option>' + pages.map((p) => '<option value="' + esc(p.id) + '"' + (p.id === pageId ? ' selected' : '') + '>' + esc((p.section || '') + ' · ' + p.name) + '</option>').join('');
+      if (!pageId && fx.page) $('ad2-page').value = fx.page;
+      if (!pageId && !fx.page) $('ad2-page').value = '__new';
+      $('ad2-secs').innerHTML = Array.from(new Set((S.pages || []).map((p) => p.section).filter(Boolean))).map((x) => '<option value="' + esc(x) + '">').join('');
+      ['ad2-pname', 'ad2-psec', 'ad2-purl', 'ad2-sname', 'ad2-where', 'ad2-brief'].forEach((id) => { $(id).value = ''; });
+      if (fx.section && fx.section !== '(unmapped)') $('ad2-psec').value = fx.section;
+      $('ad2-disp').value = 'hero'; $('ad2-err').hidden = true;
+      syncAddDialog(); $('add-dialog').showModal();
+    }
+    function syncAddDialog() { const nw = $('ad2-page').value === '__new'; $('ad2-newpage').hidden = !nw; $('ad2-title').textContent = nw ? 'Add a page' : 'Add a slot'; $('ad2-save').textContent = nw ? 'Add page and slot' : 'Add slot'; }
+    $('ad2-page').addEventListener('change', syncAddDialog);
+    $('add-page').addEventListener('click', () => openAddDialog(null));
+    $('ad2-cancel').addEventListener('click', () => $('add-dialog').close());
+    $('ad2-save').addEventListener('click', () => {
+      const err = (t) => { $('ad2-err').textContent = t; $('ad2-err').hidden = false; };
+      const sname = $('ad2-sname').value.trim(); if (!sname) return err('Name the slot, e.g. "Page hero".');
+      let page;
+      if ($('ad2-page').value === '__new') {
+        const name = $('ad2-pname').value.trim(); const section = $('ad2-psec').value.trim() || 'About Us';
+        let url = $('ad2-purl').value.trim(); if (!name) return err('Name the new page.');
+        if (url && !url.startsWith('/')) url = '/' + url.replace(/^https?:\/\/[^/]+/, '');
+        page = { id: nextId('PG', (S.pages || []).concat(S.customPages || [])), name, section, url: url || '', type: 'Page', scope: '', briefStatus: '', status: 'Added in the tool', notes: '', parts: [], custom: true, addedBy: me.name, addedAt: new Date().toISOString() };
+        S.customPages = (S.customPages || []).concat([page]); S.pages = (S.pages || []).concat([page]); _pmap = null;
+      } else page = pageById().get($('ad2-page').value);
+      if (!page) return err('Pick a page.');
+      const disp = $('ad2-disp').value;
+      const slot = { id: nextId('IMG', S.slots.concat(S.retiredSlots || [])), pageId: page.id, page: page.name, section: page.section, url: page.url || '', name: sname, priority: 'Medium',
+        rec: 'Added by ' + me.name + ' on ' + new Date().toLocaleDateString(), action: 'STOCK, LIBRARY OR GENERATE', gen: 'OPTIONAL', prompt: $('ad2-brief').value.trim(), terms: [], shared: false, existing: [], candidates: [],
+        main: null, backup: null, state: 'assigned', batch: null, license: null, notes: '', where: $('ad2-where').value.trim(), custom: true, addedBy: me.name, addedAt: new Date().toISOString() };
+      const auto = autoDisplay(slot); if (disp !== auto) slot.display = disp;
+      S.slots.push(slot); _hay.clear();
+      $('add-dialog').close(); fx.page = page.id; fx.section = ''; pageIdx = 0; openSlots.add(slot.id);
+      mark(); renderSlots(); renderStats();
     });
 
     /* ---------- boot ---------- */

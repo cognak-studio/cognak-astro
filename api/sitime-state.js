@@ -87,7 +87,12 @@ export default async function handler(req, res) {
          tool on the next deploy without a reseed, which would drop generated
          images, added candidates and edited briefs. */
       const liveSlots = syncSlots(state.slots, state.retiredSlots);
-      const withPages = { ...state, pages: livePages(), slots: liveSlots, retiredSlots: syncSlots.parked };
+      /* Pages and slots added in the tool (Pierce, 9/25: SiTime adds its own)
+         live in state.customPages and as non-seed slots; the seed never
+         touches them. */
+      const seedIds = new Set(livePages().map((p) => p.id));
+      const custom = (state.customPages || []).filter((p) => p && p.id && !seedIds.has(p.id));
+      const withPages = { ...state, pages: livePages().concat(custom), slots: liveSlots, retiredSlots: syncSlots.parked };
       let out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
       let decs = decisions;
       /* SiTime's own sign-in never sees COGNAK's internal reviews (Pierce, 9/25).
