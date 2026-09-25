@@ -25,3 +25,5 @@ yarn-error.log*
 
 # staging area for files pending deletion - never part of a commit
 _to_delete/
+
+__pycache__/

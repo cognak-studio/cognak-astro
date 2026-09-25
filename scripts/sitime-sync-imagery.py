@@ -95,12 +95,14 @@ def slot_dir(imagery, s, order, dry):
     return d
 
 
-def find_local(sitime, name, skip):
-    """A same-named file anywhere in the SiTime folder, outside Site Imagery."""
+def find_local(sitime, name, skip, skip_names=()):
+    """A same-named file in the SiTime folder outside Site Imagery; failing
+    that, in Site Imagery itself (a slot's _color/ or _candidates/), never in
+    the _source/ or _superseded/ folders this script writes."""
     if not name:
         return None
     for root, dirs, files in os.walk(sitime, followlinks=True):
-        dirs[:] = [d for d in dirs if os.path.join(root, d) != skip and not d.startswith('.')]
+        dirs[:] = [d for d in dirs if os.path.join(root, d) != skip and d not in skip_names and not d.startswith('.')]
         if name in files:
             return os.path.join(root, name)
     return None
@@ -122,7 +124,7 @@ def source_of(p, sitime, imagery, lib):
             name = entry.get('name') or title
             if orig:
                 return ('upload_' + slug(name), ext_of(orig), lambda: fetch(orig), 'Upload (original)', '')
-            local = find_local(sitime, name, imagery)
+            local = find_local(sitime, name, imagery) or find_local(imagery, name, None, skip_names=('_source', '_superseded'))
             if local:
                 kind = 'Envato Elements (Image Library)' if '/Image Library/' in local else 'Upload (original, from Drive)'
                 return (('envato_' if 'Envato' in kind else 'upload_') + slug(name), ext_of(local), lambda: local, kind, '')
