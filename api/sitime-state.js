@@ -17,6 +17,7 @@
 import { requireEditor } from './_lib/sitimeAuth.mjs';
 import { readState, writeState, readAllDecisions, stateHistory, readStateAt } from './_lib/sitimeStore.mjs';
 import seed from './_lib/sitime-seed.json' with { type: 'json' };
+import ctx from './_lib/sitime-context.json' with { type: 'json' };
 
 function mergeSeed(existing) {
   if (!existing) return { ...seed, batches: [], library: [] };
@@ -88,7 +89,7 @@ export default async function handler(req, res) {
       const liveSlots = syncSlots(state.slots, state.retiredSlots);
       const withPages = { ...state, pages: livePages(), slots: liveSlots, retiredSlots: syncSlots.parked };
       const out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
-      return res.status(200).json({ ok: true, state: out, decisions, seeded, me: who });
+      return res.status(200).json({ ok: true, state: out, decisions, seeded, me: who, context: ctx });
     } catch (err) {
       console.error('sitime-state GET failed', err);
       return res.status(502).json({ error: 'Could not load the state.' });

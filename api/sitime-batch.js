@@ -9,6 +9,7 @@
  */
 import { readState, readDecisions, TOKEN_RE } from './_lib/sitimeStore.mjs';
 import seed from './_lib/sitime-seed.json' with { type: 'json' };
+import ctx from './_lib/sitime-context.json' with { type: 'json' };
 
 /* What the slot's page shows on sitime.com today, for the reviewer's
    "Show original" view. A slot with its own seed `originals` list (the
@@ -18,6 +19,16 @@ import seed from './_lib/sitime-seed.json' with { type: 'json' };
    Falls back to the whole list when the split leaves nothing. Capped at 8. */
 const pages = new Map((seed.pages || []).map((p) => [p.id, p]));
 const seedSlots = new Map((seed.slots || []).map((s) => [s.id, s]));
+/* Context (Pierce, 9/25): where each slot sits on its page. Page images are
+   the newest page designs (Zaelab / COGNAK v3-1) or, for pages not designed
+   yet, a full-page capture of the live site; rects are in 1920-wide page px.
+   Data: api/_lib/sitime-context.json, images in public/workflow/sitime/context/. */
+function contextOf(id) {
+  const c = ctx.slots && ctx.slots[id]; const p = c && ctx.pages && ctx.pages[c.page];
+  if (!c || !p) return null;
+  return { src: p.src, w: p.w, h: p.h, rect: c.rect, live: /^Current/.test(p.from || '') };
+}
+
 function originals(s) {
   const own = (seedSlots.get(s.id) || {}).originals;
   if (Array.isArray(own)) return own.slice(0, 8).map((url) => ({ url, name: decodeURIComponent(url.split('/').pop()) }));
@@ -85,6 +96,7 @@ export default async function handler(req, res) {
       main: img(s.main),
       backup: img(s.backup),
       original: originals(s),
+      context: contextOf(s.id),
       display: ['hero', 'card', 'burst', 'arm'].includes(s.display) ? s.display : autoDisplay(s),
     }));
 

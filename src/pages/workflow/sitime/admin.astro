@@ -618,6 +618,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function randomToken(len = 10) { const a = 'abcdefghjkmnpqrstuvwxyz23456789'; const b = crypto.getRandomValues(new Uint8Array(len)); return Array.from(b, (x) => a[x % a.length]).join(''); }
 
     let S = null;          // state document
+    let CTX = null;        // page images + slot rects for the review Context view (served by sitime-state GET)
     let D = {};            // decisions by batch token → { latest: {slotId: {main, backup}} }
     let checked = new Set();
     let openSlots = new Set();   // slot ids whose inline detail drawer (brief, note) is open -- several at once now, so "Expand all" means something
@@ -1437,6 +1438,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         ref: pick.source === 'stock' ? 'Adobe Stock ' + (pick.id || '') : pick.source === 'library' ? 'SiTime library' : pick.source === 'existing' ? 'Current site' : 'COGNAK',
         link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null, bw: !!pick.bw, flip: !!pick.flip, pos: pick.pos || null, zoom: pick.zoom || 1 };
     }
+    function pvContext(s) { const c = CTX && CTX.slots && CTX.slots[s.id]; const p = c && CTX.pages[c.page]; return c && p ? { src: p.src, w: p.w, h: p.h, rect: c.rect, live: /^Current/.test(p.from || '') } : null; }
     function pvOriginals(s) {
       const nm = (url) => decodeURIComponent(String(url).split('/').pop());
       if (Array.isArray(s.originals)) return s.originals.slice(0, 8).map((url) => ({ url, name: nm(url) }));
@@ -1448,7 +1450,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function openPreview(slots, title) {
       if (!slots.length) return;
-      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', desc: s.desc || '', mask: s.mask || null, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), display: displayOf(s) })) };
+      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', desc: s.desc || '', mask: s.mask || null, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), context: pvContext(s), display: displayOf(s) })) };
       $('pv-title').textContent = 'Preview · ' + title;
       $('pv-frame').src = '/workflow/sitime/review?preview=local&t=' + Date.now();
       if (!$('pv-dialog').open) $('pv-dialog').showModal();
@@ -2201,7 +2203,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('loading').hidden = true;
       if (r.status === 401) { $('gate').hidden = false; $('tl-name').focus(); return; }
       if (!r.ok || !r.data) { $('gate').hidden = false; $('gate').querySelector('.hint').textContent = (r.data && r.data.error) || 'Could not load.'; return; }
-      S = r.data.state; D = r.data.decisions || {};
+      S = r.data.state; D = r.data.decisions || {}; CTX = r.data.context || null;
       S.batches = S.batches || []; S.library = S.library || [];
       base = clone(S);
       me = r.data.me || me;
