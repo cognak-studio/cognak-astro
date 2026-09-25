@@ -33,8 +33,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 >
   <main id="cognak-main"><section class="adm">
 
-    <h1 class="headline" id="headline"><em>SiTime</em> images. Internal.</h1>
-    <p class="lede" id="lede">Assign a main and a backup to each slot, group slots into a batch, then open the batch on a call with SiTime and record their decisions. Decisions land here; anything denied lands in Replacements.</p>
+    <!-- Neutral until the role is known: this is SiTime's first screen too.
+         boot() swaps in the admin or team wording. -->
+    <h1 class="headline" id="headline"><em>SiTime</em> images.</h1>
+    <p class="lede" id="lede">Image picks and reviews for the new sitime.com.</p>
 
     <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div>
       <p class="hint" id="gate-note">Your name and the passcode you were given.</p>
@@ -469,7 +471,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .upzone .upm{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); max-width:62ch; line-height:1.6; }
     .adm .upok{ display:block; margin-top:10px; }
     .adm .batchrow{ display:grid; grid-template-columns:1.4fr 1.2fr 60px 110px 1.2fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:var(--fs-15); }
-    .adm .acts{ display:flex; gap:6px; justify-content:flex-end; }
+    .adm .acts{ display:flex; gap:6px; justify-content:flex-end; align-items:center; }
+    .adm .acts .rvbtn{ height:32px; padding:0 14px; margin-right:6px; font-size:var(--fs-13); }
     .adm .ibtn{ width:32px; height:32px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; color:var(--ink); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:background var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
     .adm .ibtn svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     .adm .ibtn:hover{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
@@ -1035,10 +1038,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="batchrow" data-b="' + b.token + '"><div>' + (me.role === 'admin' ? '<span class="grip" title="Drag to reorder" aria-hidden="true">⋮⋮</span>' : '') + '<b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + (b.internal ? ' <span class="mini">internal</span>' : '') + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
           '<div><span class="mini">' + (!decided ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
           '<div class="mini">' + (b.plannedFor ? fmtDate(b.plannedFor) : b.createdAt ? fmtDate(b.createdAt.slice(0, 10)) : '—') + '</div>' +
-          '<div class="acts">' + ICON('open', 'Show slots') + ICON('review', 'Open for review') + ICON('copy', 'Copy link') + ICON('csv', 'Export CSV') + (me.role === 'admin' ? ICON('delete', 'Delete batch') : '') + '</div>' +
+          /* Review is the one action a first-time reviewer must find, so it has a label; the rest stay icons. */
+          '<div class="acts"><button class="sbtn p rvbtn" data-act="review" title="Open this batch for review">Review</button>' + ICON('open', 'Show slots') + ICON('copy', 'Copy link') + ICON('csv', 'Export CSV') + (me.role === 'admin' ? ICON('delete', 'Delete batch') : '') + '</div>' +
           '<div class="bdetail" hidden style="grid-column:1/-1"></div></div>';
       });
-      $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Call date</div><div></div></div>' : '<p class="hint">No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.</p>') + rows.join('');
+      $('batch-list').innerHTML = (S.batches.length ? '<div class="batchrow head"><div>Batch</div><div>Scope</div><div>Slots</div><div>Status</div><div>Decisions</div><div>Call date</div><div></div></div>' : '<p class="hint">' + (me.role === 'admin' ? 'No batches yet. Check slots in the Slots tab and add them to a batch, or make an empty one here.' : 'No batches yet. COGNAK opens one when a set of images is ready to review.') + '</p>') + rows.join('');
       if (me.role === 'admin') wireBatchDrag();
       $('batch-list').querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', (e) => {
         const row = e.target.closest('.batchrow'); const b = S.batches.find((x) => x.token === row.dataset.b); const link = location.origin + '/workflow/sitime/' + b.token;
@@ -1057,7 +1061,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       // waiting on you
       const m = byId(); const items = [];
       S.batches.forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
-      const approvedUnlicensed = S.slots.filter((s) => { const p = finalPick(s); return p && p.source === 'stock' && !(s.license && s.license.id); }).length;
+      /* For SiTime this list is their own denials and holds, and the licensing
+         reminder is COGNAK's job, so the heading and the card change. */
+      $('waiting-group').querySelector('.group-title').textContent = isClient() ? 'Denied and held' : 'Waiting on you';
+      const approvedUnlicensed = isClient() ? 0 : S.slots.filter((s) => { const p = finalPick(s); return p && p.source === 'stock' && !(s.license && s.license.id); }).length;
       $('waiting').innerHTML = items.slice(0, 8).map(({ s, b, o }) => '<div class="qitem"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n">' + (o.outcome === 'denied' ? 'Denied' : 'Held') + ' in ' + String(b.num).padStart(2, '0') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div></div></div>').join('') +
         (approvedUnlicensed ? '<div class="qitem"><div class="thumb empty" style="width:72px;height:48px"></div><div><div class="t">' + approvedUnlicensed + ' approved Stock image' + (approvedUnlicensed > 1 ? 's' : '') + ' to license</div><div class="n">Approved comps are ready to license on Adobe Stock. Handoff tab has the list and a field for the license ID.</div></div></div>' : '') ||
         '<p class="hint">Nothing waiting.</p>';
@@ -1923,7 +1930,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const q = libQuery.toLowerCase();
         const items = (S.library || []).filter((l) => (!libGroup || l.group === libGroup) && (!q || (l.name + ' ' + l.group).toLowerCase().includes(q)));
         return '<div class="srctabs"><input class="search" data-libq="1" placeholder="Search filenames" value="' + esc(libQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (libGroup === g ? 'on' : '') + '" data-g="' + esc(g) + '">' + (g || 'All') + '</button>').join('') + '</div>' +
-          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name, libId: l.tier === 'upload' ? l.id : null })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">The library is not indexed yet. Library tab, choose the Image Mapping folder.</p>');
+          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name, libId: l.tier === 'upload' ? l.id : null })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">' + (me.role === 'admin' ? 'The library is not indexed yet. Library tab, choose the Image Mapping folder.' : 'Nothing in the library yet. Use Upload to add images.') + '</p>');
       }
       if (srcTab === 'existing') {
         const ex = currentFor(s).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
@@ -2262,7 +2269,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="lt' + (lgBusy === l.id ? ' busy' : '') + '" title="' + esc((l.name || '') + (l.group ? ' · ' + l.group : '') + (n ? ' · on ' + n + ' slot' + (n === 1 ? '' : 's') : '')) + '"><img loading="lazy" src="' + esc(l.thumb || l.url) + '" alt="">' +
           (n ? '<span class="used">' + n + '</span>' : '') +
           '<div class="lt-acts"><button type="button" class="lt-rep" data-lg-rep="' + esc(l.id) + '">Replace</button><button type="button" class="cand-x" data-lg-del="' + esc(l.id) + '" title="Delete" aria-label="Delete">' + ICONS.delete + '</button></div></div>';
-      }).join('') : '<p class="hint">' + (lib.length ? 'Nothing matches.' : 'The library is empty. Index the Image Mapping folder below, or upload from a slot.') + '</p>';
+      }).join('') : '<p class="hint">' + (lib.length ? 'Nothing matches.' : me.role === 'admin' ? 'The library is empty. Index the Image Mapping folder below, or upload from a slot.' : 'The library is empty. Upload from a slot to add images.') + '</p>';
       $('libgrid-more').innerHTML = items.length > lgShown ? '<button class="sbtn" id="lg-more">Show more (' + (items.length - lgShown) + ')</button>' : '';
       if ($('lg-more')) $('lg-more').addEventListener('click', () => { lgShown += 240; drawLibGrid(); });
       $('libgrid').querySelectorAll('[data-lg-del]').forEach((b) => b.addEventListener('click', () => deleteUpload(b.dataset.lgDel)));
@@ -2481,6 +2488,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       loadTeamState();
       document.querySelector('.adm').classList.toggle('team', me.role !== 'admin');
       document.querySelector('.adm').classList.toggle('client', isClient());
+      if (me.role === 'admin') {
+        $('headline').innerHTML = '<em>SiTime</em> images. Internal.';
+        $('lede').textContent = 'Assign a main and a backup to each slot, group slots into a batch, then open the batch on a call with SiTime and record their decisions. Decisions land here; anything denied lands in Replacements.';
+      }
       if (isClient()) {
         $('headline').innerHTML = '<em>SiTime</em> images.';
         $('lede').textContent = 'Pick a main and a backup for each slot, and open a batch from Batches to review it. Your edits save as you go and show your name. COGNAK builds the batches.';
