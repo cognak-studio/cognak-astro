@@ -10,6 +10,7 @@
  * batch takes decisions from the moment it exists.
  */
 import { readState, writeDecision, TOKEN_RE } from './_lib/sitimeStore.mjs';
+import { sitimeEditor } from './_lib/sitimeAuth.mjs';
 
 const DECISIONS = new Set(['approve', 'deny', 'hold']);
 
@@ -37,12 +38,16 @@ export default async function handler(req, res) {
     if (!batch) return res.status(404).json({ error: 'This link is not valid.' });
     /* Shared passcode on top of the link (Pierce, 2026-09-14: "silicon").
        Set in the admin Library tab; compared case-insensitively. */
+    /* Anyone signed in to the tool (Pierce, team, or SiTime's own sign-in)
+       skips the review passcode (Pierce, 9/25). */
+    const who = await sitimeEditor(req).catch(() => null);
     const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
     const got = String((body && body.pass) || '').trim().toLowerCase();
-    if (want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
+    if (!who && want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
     if (!(batch.slotIds || []).includes(slotId)) return res.status(400).json({ error: 'That image is not in this batch.' });
 
-    const r = await writeDecision(token, { slotId, which, decision, note });
+    /* A signed-in reviewer's name goes on the decision; the shared review link stays 'SiTime (group)'. */
+    const r = await writeDecision(token, { slotId, which, decision, note, ...(who ? { by: who.name } : {}) });
     return res.status(200).json({ ok: true, at: r.at });
   } catch (err) {
     console.error('sitime-decide failed', err);

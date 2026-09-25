@@ -88,8 +88,17 @@ export default async function handler(req, res) {
          images, added candidates and edited briefs. */
       const liveSlots = syncSlots(state.slots, state.retiredSlots);
       const withPages = { ...state, pages: livePages(), slots: liveSlots, retiredSlots: syncSlots.parked };
-      const out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
-      return res.status(200).json({ ok: true, state: out, decisions, seeded, me: who, context: ctx });
+      let out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
+      let decs = decisions;
+      /* SiTime's own sign-in never sees COGNAK's internal reviews (Pierce, 9/25).
+         Safe to strip: non-admin saves keep batches and reviewLog from the
+         stored state (POST below), so nothing stripped here is lost. */
+      if (who.role === 'client') {
+        const hide = new Set((out.batches || []).filter((b) => b.internal).map((b) => b.token));
+        out = { ...out, batches: (out.batches || []).filter((b) => !b.internal), reviewLog: undefined };
+        decs = Object.fromEntries(Object.entries(decisions).filter(([t]) => !hide.has(t)));
+      }
+      return res.status(200).json({ ok: true, state: out, decisions: decs, seeded, me: who, context: ctx });
     } catch (err) {
       console.error('sitime-state GET failed', err);
       return res.status(502).json({ error: 'Could not load the state.' });

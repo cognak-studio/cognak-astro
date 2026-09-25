@@ -10,6 +10,11 @@
  *          batches and the passcodes stay admin-only (enforced in
  *          sitime-state.js, not just hidden in the page).
  *
+ *   client SiTime's own people (Pierce, 9/25), on a SEPARATE passcode:
+ *          same rights as team (pick, upload, generate within the shared
+ *          cap, add pages and slots, review batches) but they never see
+ *          COGNAK's internal reviews. Admin stays Pierce's.
+ *
  * The team passcode is set from the admin page and stored as a salted hash
  * under sitime/team/<ms>.json (newest wins, never overwritten -- same rule as
  * sitimeStore). The cookie carries a fingerprint of that hash, so changing
@@ -27,6 +32,7 @@ import { clientIp } from './rateLimit.mjs';
 const COOKIE = 'cognak_sitime';
 const SESSION_MS = 14 * 24 * 60 * 60 * 1000;
 const TEAM_DIR = 'sitime/team/';
+const CLIENT_DIR = 'sitime/client/';
 const ATTEMPT_DIR = 'sitime/team-attempts/';
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILS = 8;
@@ -51,12 +57,13 @@ async function putJson(prefix, obj) {
 
 /* ---- the team passcode ---- */
 export async function readTeam() { return (await newestJson(TEAM_DIR)) || { hash: '' }; }
-export async function setTeamPass(pass) {
+export async function readClient() { return (await newestJson(CLIENT_DIR)) || { hash: '' }; }
+export async function setTeamPass(pass, which) {
   const p = String(pass || '').trim();
   const salt = crypto.randomBytes(8).toString('hex');
-  await putJson(TEAM_DIR, { hash: p ? salt + ':' + sha(salt + p) : '' });
+  await putJson(which === 'client' ? CLIENT_DIR : TEAM_DIR, { hash: p ? salt + ':' + sha(salt + p) : '' });
 }
-function passMatches(team, pass) {
+export function passMatches(team, pass) {
   if (!team.hash) return false;
   const [salt, h] = team.hash.split(':');
   const a = Buffer.from(sha(salt + String(pass || '').trim()));
@@ -66,8 +73,8 @@ function passMatches(team, pass) {
 const fp = (team) => sha(team.hash || '').slice(0, 16);
 
 /* ---- cookie ---- */
-export function teamCookie(name, team) {
-  const payload = Buffer.from(JSON.stringify({ name, fp: fp(team), exp: Date.now() + SESSION_MS })).toString('base64url');
+export function teamCookie(name, team, role) {
+  const payload = Buffer.from(JSON.stringify({ name, role: role === 'client' ? 'client' : 'team', fp: fp(team), exp: Date.now() + SESSION_MS })).toString('base64url');
   return [COOKIE + '=' + payload + '.' + hmac(payload), 'HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/', 'Max-Age=' + Math.floor(SESSION_MS / 1000)].join('; ');
 }
 export const clearTeamCookie = () => COOKIE + '=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0';
@@ -81,14 +88,15 @@ function readCookie(req) {
   try { const p = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')); return p.exp > Date.now() ? p : null; } catch (e) { return null; }
 }
 
-/** { role: 'admin' | 'team', name } or null. Team sessions die when the passcode changes. */
+/** { role: 'admin' | 'team' | 'client', name } or null. Sessions die when their passcode changes. */
 export async function sitimeEditor(req) {
   if (isAdmin(req)) return { role: 'admin', name: 'Pierce' };
   const c = readCookie(req);
   if (!c) return null;
-  const team = await readTeam();
-  if (!team.hash || c.fp !== fp(team)) return null;
-  return { role: 'team', name: String(c.name || 'Team').slice(0, 40) };
+  const role = c.role === 'client' ? 'client' : 'team';
+  const rec = role === 'client' ? await readClient() : await readTeam();
+  if (!rec.hash || c.fp !== fp(rec)) return null;
+  return { role, name: String(c.name || (role === 'client' ? 'SiTime' : 'Team')).slice(0, 40) };
 }
 /** Sends the 401 itself and returns null when nobody is signed in. */
 export async function requireEditor(req, res) {
@@ -106,14 +114,16 @@ export async function teamLogin(req, name, pass) {
   Object.keys(ips).forEach((k) => { if (now - ips[k].first > WINDOW_MS) delete ips[k]; });
   const k = ipKey(req);
   if (ips[k] && ips[k].n >= MAX_FAILS) return { ok: false, status: 429, error: 'Too many tries. Wait 15 minutes.' };
-  const team = await readTeam();
-  if (!team.hash) return { ok: false, status: 403, error: 'Team access is off. Ask Pierce for the passcode.' };
-  if (!passMatches(team, pass)) {
+  const team = await readTeam(); const client = await readClient();
+  if (!team.hash && !client.hash) return { ok: false, status: 403, error: 'Access is off. Ask Pierce for the passcode.' };
+  const nm = String(name || '').trim().slice(0, 40);
+  if (passMatches(team, pass)) return { ok: true, cookie: teamCookie(nm || 'Team', team, 'team') };
+  if (passMatches(client, pass)) return { ok: true, cookie: teamCookie(nm || 'SiTime', client, 'client') };
+  {
     ips[k] = ips[k] || { n: 0, first: now }; ips[k].n++;
     try { await putJson(ATTEMPT_DIR, { ips }); } catch (e) {}
     return { ok: false, status: 401, error: 'That passcode isn’t right.' };
   }
-  return { ok: true, cookie: teamCookie(String(name || '').trim().slice(0, 40) || 'Team', team) };
 }
 
 /* ---- generate cap for team ---- */

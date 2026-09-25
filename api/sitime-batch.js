@@ -8,6 +8,7 @@
  * current sitime.com images go along as `original` (public URLs already).
  */
 import { readState, readDecisions, TOKEN_RE } from './_lib/sitimeStore.mjs';
+import { sitimeEditor } from './_lib/sitimeAuth.mjs';
 import seed from './_lib/sitime-seed.json' with { type: 'json' };
 import ctx from './_lib/sitime-context.json' with { type: 'json' };
 
@@ -40,6 +41,19 @@ function originals(s) {
   return (part.length ? part : cur).slice(0, 8).map(([url]) => ({ url, name: decodeURIComponent(url.split('/').pop()) }));
 }
 
+/* Same rule as admin.astro licOf() (Pierce, 9/25): Envato comps need SiTime's own license. */
+function licOf(p) {
+  if (!p) return null;
+  if (p.lic) return p.lic;
+  if (p.source === 'stock') return 'adobe';
+  if (p.source === 'existing') return 'own';
+  if (p.source === 'generated') return 'generated';
+  const n = String(p.name || p.title || p.path || '');
+  if (/adobe[-_ ]?\d{6,}|_comp\.\w+$/i.test(n)) return 'adobe';
+  if (/^(shutterstock|istock|adobestock)[-_ ]|[_-]ss\d{6,}/i.test(n)) return 'sitime';
+  if (/-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-utc\.\w+$/i.test(n) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]* \d{1,2},? 20\d\d( \(\d+\))?\.\w+$/i.test(n) || /[a-z] 20\d\d\.\w+$/i.test(n)) return 'envato';
+  return 'other';
+}
 function img(pick) {
   if (!pick) return null;
   return {
@@ -55,6 +69,7 @@ function img(pick) {
     flip: !!pick.flip,
     pos: pick.pos && typeof pick.pos.x === 'number' ? { x: pick.pos.x, y: pick.pos.y } : null,
     zoom: typeof pick.zoom === 'number' && pick.zoom > 1 ? pick.zoom : 1,
+    lic: licOf(pick),
   };
 }
 
@@ -77,9 +92,12 @@ export default async function handler(req, res) {
     if (!batch) return res.status(404).json({ error: 'This link is not valid.' });
     /* Shared passcode on top of the link (Pierce, 2026-09-14: "silicon").
        Set in the admin Library tab; compared case-insensitively. */
+    /* Anyone signed in to the tool (Pierce, team, or SiTime's own sign-in)
+       skips the review passcode (Pierce, 9/25). */
+    const who = await sitimeEditor(req).catch(() => null);
     const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
     const got = String((body && body.pass) || '').trim().toLowerCase();
-    if (want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
+    if (!who && want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
 
     const byId = new Map((state.slots || []).map((s) => [s.id, s]));
     const slots = (batch.slotIds || []).map((id) => byId.get(id)).filter(Boolean).map((s) => ({
@@ -104,6 +122,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       batch: { token, num: batch.num, name: batch.name, status: batch.status, internal: !!batch.internal },
+      me: who ? { name: who.name, role: who.role } : null,
       mock: state.mock || null,
       slots,
       decisions: latest,

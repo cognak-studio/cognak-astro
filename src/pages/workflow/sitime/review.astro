@@ -519,7 +519,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } else {
         $('ocyc').hidden = true;
         $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
-        $('source-note').textContent = pick && pick.source === 'stock' ? 'Comp shown, licensed after approval' : pick && pick.source === 'library' ? 'From SiTime’s licensed library' : '';
+        const LICN = { envato: 'Envato Elements comp · SiTime licenses it on its own Envato account', adobe: 'Comp shown, licensed after approval', sitime: 'From SiTime’s licensed library', own: 'SiTime’s own image', generated: 'AI-generated', other: '' };
+        $('source-note').textContent = pick ? (pick.lic ? (LICN[pick.lic] || '') : pick.source === 'stock' ? LICN.adobe : pick.source === 'library' ? LICN.sitime : '') : '';
       }
 
       // decision controls

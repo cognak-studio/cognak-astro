@@ -33,12 +33,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 >
   <main id="cognak-main"><section class="adm">
 
-    <h1 class="headline"><em>SiTime</em> images. Internal.</h1>
+    <h1 class="headline" id="headline"><em>SiTime</em> images. Internal.</h1>
     <p class="lede" id="lede">Assign a main and a backup to each slot, group slots into a batch, then open the batch on a call with SiTime and record their decisions. Decisions land here; anything denied lands in Replacements.</p>
 
     <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div>
-      <p class="hint" id="gate-note">Team members: your name and the team passcode from Pierce.</p>
-      <div class="teamlogin"><input class="txt" id="tl-name" placeholder="Your name" autocomplete="name" /><input class="txt" id="tl-pass" type="password" placeholder="Team passcode" autocomplete="off" /><button class="sbtn p" id="tl-go">Sign in</button></div>
+      <p class="hint" id="gate-note">Your name and the passcode you were given.</p>
+      <div class="teamlogin"><input class="txt" id="tl-name" placeholder="Your name" autocomplete="name" /><input class="txt" id="tl-pass" type="password" placeholder="Passcode" autocomplete="off" /><button class="sbtn p" id="tl-go">Sign in</button></div>
       <p class="hint is-error" id="tl-err" hidden></p>
       <p class="hint" style="margin-top:14px">COGNAK admin: sign in on <a href="/send">/send</a>, then reload this page.</p>
     </div></div>
@@ -146,6 +146,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="group-title">Team access</div>
           <div class="grid3"><label class="q"><span class="q-title">Team passcode</span><input class="txt" id="team-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end" id="team-hint">Lets Michael or Ace sign in here with their name to pick and upload images. They cannot make or delete batches, change passcodes, or reach anything outside this tool. Generated images are capped at 40 a day across the team. Changing it signs everyone out; blank turns team access off.</p></div>
           <div class="actions"><button class="sbtn p" id="team-save">Set team passcode</button><span class="mini" id="team-status"></span></div>
+        </div>
+        <div class="group admin-only">
+          <div class="group-title">SiTime access</div>
+          <div class="grid3"><label class="q"><span class="q-title">SiTime passcode</span><input class="txt" id="client-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end">For SiTime's own team. They sign in here with their name and can pick and upload images, add pages and slots, and review batches (no review passcode, decisions carry their name). They never see internal reviews, and cannot make or delete batches or change settings. Generation shares the 40-a-day cap. Must differ from the team passcode. Changing it signs SiTime out; blank turns it off.</p></div>
+          <div class="actions"><button class="sbtn p" id="client-save">Set SiTime passcode</button><span class="mini" id="client-status"></span></div>
         </div>
         <div class="group admin-only">
           <div class="group-title">Review link passcode</div>
@@ -297,6 +302,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile .tag{ position:absolute; top:10px; left:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
     .adm .tile.is-backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
     .adm .tile.ai::after{ content:'AI'; position:absolute; top:10px; right:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
+    .adm .tile .lic{ position:absolute; left:10px; bottom:10px; z-index:2; padding:3px 9px; border-radius:999px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.1em; text-transform:uppercase; background:#FFE9C7; color:#6B4300; }
+    .adm .tile .lic.other{ background:#EEE; color:#555; }
     .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity .12s; }
     .adm .tile.filled .cap{ opacity:1; }
     /* Click a filled tile to reveal these -- Swap re-opens the picker for just
@@ -754,6 +761,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     /* ---------- derived ---------- */
     const byId = () => new Map(S.slots.map((s) => [s.id, s]));
+    /* SiTime's own sign-in (role 'client', Pierce 9/25) never sees COGNAK's
+       internal reviews. The server already drops internal batches, their
+       decisions and the review log for that role; reviews copied onto picks
+       are hidden here. */
+    const isClient = () => !!(me && me.role === 'client');
+    const seeRv = (r) => !(isClient() && r && r.internal);
     function batchOf(slot) { return slot.batch ? S.batches.find((b) => b.token === slot.batch) : null; }
     /* One rule for a slot's outcome, shared verbatim by admin.astro,
        review.astro and sitimeStore.mjs. Either image can be decided at any
@@ -997,14 +1010,40 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        link with no login was Pierce's call, so the tool has no per-person
        attribution to report. The column is present and constant rather than
        absent, so the shape is stable if that ever changes. */
+
+    /* Licensing note per image (Pierce, 9/25). Envato Elements comps are licensed
+       to COGNAK's subscription and can't transfer, so SiTime has to license any
+       Envato pick on its own Envato account before use. Detected from the file
+       name (Envato's download names), overridable per image with pick.lic. */
+    const LIC = {
+      envato: ['Envato Elements', 'SiTime licenses it on its own Envato account before use'],
+      adobe: ['Adobe Stock', 'Comp shown, licensed after approval'],
+      sitime: ['SiTime library', 'From SiTime’s licensed library'],
+      own: ['SiTime owned', 'SiTime’s own photo or graphic'],
+      generated: ['Generated', 'AI-generated by COGNAK'],
+      other: ['Other', 'Licensing to confirm'],
+    };
+    function licOf(p) {
+      if (!p) return null;
+      if (p.lic && LIC[p.lic]) return p.lic;
+      if (p.source === 'stock') return 'adobe';
+      if (p.source === 'existing') return 'own';
+      if (p.source === 'generated') return 'generated';
+      const n = String(p.name || p.title || p.path || '');
+      if (/adobe[-_ ]?\d{6,}|_comp\.\w+$/i.test(n)) return 'adobe';
+      if (/^(shutterstock|istock|adobestock)[-_ ]|[_-]ss\d{6,}/i.test(n)) return 'sitime';
+      if (/-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-utc\.\w+$/i.test(n) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]* \d{1,2},? 20\d\d( \(\d+\))?\.\w+$/i.test(n) || /[a-z] 20\d\d\.\w+$/i.test(n)) return 'envato';
+      return 'other';
+    }
+    const LIC_CYCLE = ['envato', 'adobe', 'sitime', 'own', 'generated', 'other'];
     const DECIDED_BY = 'SiTime (group)';
     const isoAt = (ev) => (ev && ev.at) ? new Date(ev.at).toISOString() : '';
     const assetId = (p) => (p && p.source === 'stock') ? (p.id || '') : '';
     const refOf = (p) => !p ? '' : p.source === 'stock' ? (p.id ? 'https://stock.adobe.com/images/x/' + p.id : '') : (p.path || p.title || '');
     function exportBatchCsv(b) {
       const m = byId();
-      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'additional_notes', 'treatment', 'note']];
-      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? DECIDED_BY : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '']); });
+      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'additional_notes', 'treatment', 'note', 'license_source']];
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? (o.ev.by || DECIDED_BY) : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '', p && p.url ? LIC[licOf(p)][0] + ' — ' + LIC[licOf(p)][1] : '']); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
     function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
@@ -1243,19 +1282,21 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const solved = bt ? isSolved(pick, bt) : false;
       /* Internal review stays visible as a quiet secondary tag, not a status
          badge (Pierce, 9/25: "display it some other way, it is useful"). */
-      const intRv = (pick.reviews || []).filter((r) => r.internal).pop();
+      const intRv = isClient() ? null : (pick.reviews || []).filter((r) => r.internal).pop();
       const INT = intRv ? ({ approve: 'Approved', deny: 'Denied', hold: 'Held', solved: 'Solved' })[intRv.decision] : '';
       const dec = solved ? 'solved' : bt ? (dd && dd[which] && dd[which].decision) : (lastRv && lastRv.decision); const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'], solved: ['approved', 'Solved'] }[dec];
-      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc([pick.desc || pick.title || ''].concat((pick.reviews || []).map((r) => r.batch + ': ' + r.decision + (r.note ? ' — ' + r.note : ''))).join('\n')) + '" data-slot="' + s.id + '" data-which="' + which + '">' +
+      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc([pick.desc || pick.title || ''].concat((pick.reviews || []).filter(seeRv).map((r) => r.batch + ': ' + r.decision + (r.note ? ' — ' + r.note : ''))).join('\n')) + '" data-slot="' + s.id + '" data-which="' + which + '">' +
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '"' + fxStyle(pick) + '>' +
         '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
         (DEC ? '<span class="dec st ' + DEC[0] + '"><i></i>' + DEC[1] + '</span>' : '') +
         (INT ? '<span class="dec-int' + (DEC ? ' below' : '') + '" title="' + esc(intRv.batch + (intRv.note ? ' — ' + intRv.note : '')) + '">Internal · ' + INT + '</span>' : '') +
         '<span class="cap">' + esc(pick.desc || pick.title || pick.id || '') + '</span>' +
+        (licOf(pick) === 'envato' || licOf(pick) === 'other' ? '<span class="lic ' + licOf(pick) + '" title="' + esc(LIC[licOf(pick)][1]) + '">' + esc(LIC[licOf(pick)][0]) + (licOf(pick) === 'envato' ? ' · SiTime licenses' : '') + '</span>' : '') +
         '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
         (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
         '<button class="tact" data-act="bw" data-slot="' + s.id + '" data-which="' + which + '" title="Toggle black and white">' + (pick.bw ? 'Color' : 'B&amp;W') + '</button>' +
         '<button class="tact" data-act="flip" data-slot="' + s.id + '" data-which="' + which + '" title="Flip horizontally">Flip</button>' +
+        '<button class="tact" data-act="lic" data-slot="' + s.id + '" data-which="' + which + '" title="Where this image comes from, for licensing. Click to change.">' + esc(LIC[licOf(pick)][0]) + '</button>' +
         '<button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
     }
     function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + tileHtml(s, 'backup') + '</div>'; }
@@ -1320,6 +1361,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           mark(); renderSlots(); renderStats();
         } else if (btn.dataset.act === 'replace') {
           revealTile = null; openPicker(s.id, which);
+        } else if (btn.dataset.act === 'lic') {
+          const p = s[which]; if (!p) return;
+          p.lic = LIC_CYCLE[(LIC_CYCLE.indexOf(licOf(p)) + 1) % LIC_CYCLE.length];
+          revealTile = { slotId: s.id, which }; mark(); renderSlots();
         } else if (btn.dataset.act === 'bw' || btn.dataset.act === 'flip') {
           const p = s[which]; if (!p) return;
           const k = btn.dataset.act; if (p[k]) delete p[k]; else p[k] = true;
@@ -1385,11 +1430,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function reviewBlock(s) {
       const DL = { approve: 'Approved', deny: 'Denied', hold: 'Held', solved: 'Solved' };
       const line = (w, r) => '<div class="rv"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>';
-      const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).map((r) => line(w, r)));
+      const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).filter(seeRv).map((r) => line(w, r)));
       const hist = s.history || [];
+      const whyOf = (h) => (isClient() && (h.pick.reviews || []).some((r) => r.internal) && !(h.pick.reviews || []).some((r) => !r.internal)) ? 'Replaced' : (h.why || '');
       if (!cur.length && !hist.length) return '';
       return '<div class="rvbox">' + (cur.length ? '<div class="rvh">Review notes</div>' + cur.join('') : '') +
-        (hist.length ? '<details class="rvhist"><summary>Earlier images · ' + hist.length + '</summary>' + hist.map((h) => '<div class="rvold"><img src="' + esc(h.pick.thumb || h.pick.url || '') + '"' + fxStyle(h.pick) + '><div><b>' + (h.which === 'main' ? 'Main' : 'Backup') + '</b> · ' + esc(h.why || '') + ' · ' + ago(h.at) + (h.pick.desc ? '<div>' + esc(h.pick.desc) + '</div>' : '') + ((h.pick.reviews || []).map((r) => '<div>' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>').join('')) + '</div></div>').join('') + '</details>' : '') + '</div>';
+        (hist.length ? '<details class="rvhist"><summary>Earlier images · ' + hist.length + '</summary>' + hist.map((h) => '<div class="rvold"><img src="' + esc(h.pick.thumb || h.pick.url || '') + '"' + fxStyle(h.pick) + '><div><b>' + (h.which === 'main' ? 'Main' : 'Backup') + '</b> · ' + esc(whyOf(h)) + ' · ' + ago(h.at) + (h.pick.desc ? '<div>' + esc(h.pick.desc) + '</div>' : '') + ((h.pick.reviews || []).filter(seeRv).map((r) => '<div>' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>').join('')) + '</div></div>').join('') + '</details>' : '') + '</div>';
     }
     /* How review shows a slot: hero (full width), card (tall card with copy),
        or through SiTime's logo burst / arm mask. Masks come from the seed
@@ -1483,7 +1529,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!pick) return null;
       return { source: pick.source || null, url: pick.url || null, thumb: pick.thumb || pick.url || null, title: pick.title || '', desc: pick.desc || '', id: pick.id || null,
         ref: pick.source === 'stock' ? 'Adobe Stock ' + (pick.id || '') : pick.source === 'library' ? 'SiTime library' : pick.source === 'existing' ? 'Current site' : 'COGNAK',
-        link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null, bw: !!pick.bw, flip: !!pick.flip, pos: pick.pos || null, zoom: pick.zoom || 1 };
+        link: pick.source === 'stock' && pick.id ? 'https://stock.adobe.com/images/x/' + pick.id : null, bw: !!pick.bw, flip: !!pick.flip, pos: pick.pos || null, zoom: pick.zoom || 1, lic: licOf(pick) };
     }
     function pvContext(s) { const c = CTX && CTX.slots && CTX.slots[s.id]; const p = c && CTX.pages[c.page]; return c && p ? { src: p.src, w: p.w, h: p.h, rect: c.rect, live: /^Current/.test(p.from || '') } : null; }
     function pvOriginals(s) {
@@ -1963,10 +2009,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       /* SiTime first: external batches only. */
       const ext = items.filter((it) => !it.b.internal);
-      let html = '<div class="group-title">From SiTime · denied and held</div>' + (ext.length ? ext.map(openRow).join('') : '<p class="hint">Nothing denied or held.</p>');
+      let html = '<div class="group-title">' + (isClient() ? 'Denied and held' : 'From SiTime · denied and held') + '</div>' + (ext.length ? ext.map(openRow).join('') : '<p class="hint">Nothing denied or held.</p>');
 
       /* Internal reviews underneath: live internal batches, then closed ones. */
-      html += '<div class="group-title" style="margin-top:32px">Internal reviews</div>';
+      if (!isClient()) html += '<div class="group-title" style="margin-top:32px">Internal reviews</div>';
       const live = S.batches.filter((b) => b.internal);
       live.forEach((b) => {
         const open = items.filter((it) => it.b === b);
@@ -1978,7 +2024,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       });
       const past = (S.reviewLog || []).slice().sort((a, b) => (b.closedAt || 0) - (a.closedAt || 0));
       html += past.map((l) => { const nS = l.items.filter((x) => x.solved).length; return '<details style="margin:8px 0 12px"><summary class="t" style="cursor:pointer">' + B2(l) + ' <span class="mini">· closed ' + (l.closedAt ? new Date(l.closedAt).toLocaleDateString() : '') + ' · ' + l.items.length + ' flagged · ' + nS + ' solved</span></summary><div style="margin-top:12px">' + (l.items.length ? l.items.map(pastRow).join('') : '<p class="hint">Nothing was flagged.</p>') + '</div></details>'; }).join('');
-      if (!live.length && !past.length) html += '<p class="hint">No internal reviews yet.</p>';
+      if (!isClient() && !live.length && !past.length) html += '<p class="hint">No internal reviews yet.</p>';
       $('repl-list').innerHTML = html;
       const setSolved = (el, on) => {
         const s = m.get(el.dataset.slot || el.dataset.solve || el.dataset.unsolve); const p = s && s[el.dataset.w]; if (!p) return;
@@ -2017,7 +2063,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       S.slots.forEach((s) => {
         const p = finalPick(s); if (!p) return;
         const b = batchOf(s); const o = b ? outcomeIn(s, b) : null; const ev = o && o.ev;
-        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? DECIDED_BY : '', p.source, assetId(p), refOf(p), p.url, treatment(p), (s.license && s.license.id) || '', b ? String(b.num).padStart(2, '0') : '']);
+        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? (ev.by || DECIDED_BY) : '', p.source, assetId(p), refOf(p), p.url, treatment(p), (s.license && s.license.id) || '', b ? String(b.num).padStart(2, '0') : '']);
       });
       downloadCsv('sitime-approved-images.csv', rows);
     });
@@ -2190,11 +2236,26 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('team-save').textContent = teamOn ? 'Change team passcode' : 'Set team passcode';
       $('team-status').textContent = msg || (teamOn == null ? '' : teamOn ? 'Team access is on.' : 'Team access is off.');
     }
+    let clientOn = null;
+    function showClientState(msg) {
+      $('client-pass').placeholder = clientOn ? 'Set · type a new one to change it' : 'Not set';
+      $('client-save').textContent = clientOn ? 'Change SiTime passcode' : 'Set SiTime passcode';
+      $('client-status').textContent = msg || (clientOn == null ? '' : clientOn ? 'SiTime access is on.' : 'SiTime access is off.');
+    }
     async function loadTeamState() {
       if (me.role !== 'admin') return;
       const r = await api('/api/sitime-team');
-      if (r.ok && r.data) { teamOn = !!r.data.teamOn; showTeamState(); }
+      if (r.ok && r.data) { teamOn = !!r.data.teamOn; clientOn = !!r.data.clientOn; showTeamState(); showClientState(); }
     }
+    $('client-save').addEventListener('click', async () => {
+      const pass = $('client-pass').value;
+      if (!pass.trim() && clientOn && !confirm('The field is blank. Turn SiTime access off and sign SiTime out?')) return;
+      $('client-status').textContent = 'Saving…';
+      const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', which: 'client', pass } });
+      $('client-pass').value = '';
+      if (r.ok) { clientOn = !!r.data.clientOn; showClientState(clientOn ? 'SiTime access is on. Anyone signed in with the old passcode is signed out.' : 'SiTime access is off.'); }
+      else $('client-status').textContent = (r.data && r.data.error) || 'Could not save.';
+    });
     $('team-save').addEventListener('click', async () => {
       const pass = $('team-pass').value;
       if (!pass.trim() && teamOn && !confirm('The field is blank. Turn team access off and sign everyone out?')) return;
@@ -2256,8 +2317,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       me = r.data.me || me;
       loadTeamState();
       document.querySelector('.adm').classList.toggle('team', me.role !== 'admin');
+      document.querySelector('.adm').classList.toggle('client', isClient());
+      if (isClient()) {
+        $('headline').innerHTML = '<em>SiTime</em> images.';
+        $('lede').textContent = 'Pick a main and a backup for each slot, and open a batch from Batches to review it. Your edits save as you go and show your name. COGNAK builds the batches.';
+      }
       if (me.role !== 'admin') {
-        $('lede').textContent = 'Pick a main and a backup for each slot. Your edits save as you go and show your name; Pierce builds the batches.';
+        if (!isClient()) $('lede').textContent = 'Pick a main and a backup for each slot. Your edits save as you go and show your name; Pierce builds the batches.';
         $('whoami').innerHTML = esc(me.name) + ' · <button type="button" id="signout">Sign out</button>';
         $('signout').addEventListener('click', async () => { await flush(); await api('/api/sitime-team', { method: 'POST', body: { action: 'logout' } }); location.reload(); });
       }
