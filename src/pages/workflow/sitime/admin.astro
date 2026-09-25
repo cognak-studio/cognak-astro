@@ -41,6 +41,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="teamlogin"><input class="txt" id="tl-name" placeholder="Your name" autocomplete="name" /><input class="txt" id="tl-pass" type="password" placeholder="Passcode" autocomplete="off" /><button class="sbtn p" id="tl-go">Sign in</button></div>
       <p class="hint is-error" id="tl-err" hidden></p>
       <p class="hint" style="margin-top:14px">COGNAK admin: sign in on <a href="/send">/send</a>, then reload this page.</p>
+      <button class="sbtn" id="tl-retry" hidden>Try saving again</button>
     </div></div>
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
 
@@ -175,6 +176,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <!-- undo toast -->
     <div class="undo" id="undo" hidden role="status" aria-live="polite"><span id="undo-msg"></span><button type="button" class="sbtn" id="undo-btn">Undo</button><button type="button" class="undo-x" id="undo-x" aria-label="Dismiss">×</button></div>
+    <!-- saving trouble, shown where it can be seen (the save state line is easy to miss) -->
+    <div class="undo notice" id="notice" hidden role="alert"><span id="notice-msg"></span><button type="button" class="undo-x" id="notice-x" aria-label="Dismiss">×</button></div>
 
     <!-- added-to-batch confirmation (and batch chooser when more than one is open) -->
     <dialog id="added-dialog" class="added">
@@ -489,6 +492,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .undo #undo-msg{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .adm .undo .sbtn{ background:#fff; color:var(--ink); border-color:#fff; }
     .adm .undo-x{ background:none; border:0; color:rgba(255,255,255,.6); font-size:20px; line-height:1; cursor:pointer; padding:4px 10px 4px 0; }
+    .adm .undo.notice{ bottom:88px; padding-right:4px; }
+    .adm .undo.notice #notice-msg{ white-space:normal; line-height:1.4; padding:4px 0; }
     /* version history */
     .adm .hist{ display:flex; flex-direction:column; }
     .adm .hrow{ display:grid; grid-template-columns:170px 1fr auto; gap:16px; align-items:center; padding:10px 0; border-top:1px solid var(--line); font-size:var(--fs-14); }
@@ -646,10 +651,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
     const fmtDate = (iso) => iso ? new Date(iso + (iso.length === 10 ? 'T12:00:00' : '')).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
 
+    /* Never throws: a dropped connection comes back as { ok:false, status:0 }.
+       It used to reject, which left save() stuck on "Saving…" with `saving`
+       true for the rest of the session, so no later edit was ever saved. */
     async function api(path, opts) {
-      const res = await fetch(path, { method: (opts && opts.method) || 'GET', headers: { 'Content-Type': 'application/json' }, body: opts && opts.body ? JSON.stringify(opts.body) : undefined, credentials: 'same-origin' });
-      let json = null; try { json = await res.json(); } catch (e) {}
-      return { ok: res.ok, status: res.status, data: json };
+      try {
+        const res = await fetch(path, { method: (opts && opts.method) || 'GET', headers: { 'Content-Type': 'application/json' }, body: opts && opts.body ? JSON.stringify(opts.body) : undefined, credentials: 'same-origin' });
+        let json = null; try { json = await res.json(); } catch (e) {}
+        return { ok: res.ok, status: res.status, data: json };
+      } catch (e) {
+        return { ok: false, status: 0, data: null, error: e };
+      }
     }
     function randomToken(len = 10) { const a = 'abcdefghjkmnpqrstuvwxyz23456789'; const b = crypto.getRandomValues(new Uint8Array(len)); return Array.from(b, (x) => a[x % a.length]).join(''); }
 
@@ -763,16 +775,45 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       }
       if (r.ok && r.data && r.data.savedAt) {
         base = JSON.parse(sent); base.savedAt = r.data.savedAt; S.savedAt = r.data.savedAt;
-        if (merged && !typing()) rerender();
+        saveFails = 0; hideNotice();
+        if (merged) { renderStats(); if (!typing()) rerender(); }
         $('savestate').textContent = 'Verifying…';
         const ok = await verifySaved(r.data.savedAt);
         $('savestate').textContent = (ok ? 'Saved' : 'Saved (unverified — wait a moment before opening a batch)') + (merged ? ' · merged with another editor' : '');
+      } else if (r.status === 401) {
+        /* The session ended (passcode changed, or the cookie ran out). The
+           edits stay on the page: the sign-in card comes back in place and the
+           save runs again once they are in. A reload here would lose them. */
+        unsaved = true;
+        $('savestate').textContent = 'Not saved · signed out';
+        needSignIn();
       } else {
-        $('savestate').textContent = r.status === 401 ? 'Signed out — reload to sign in again' : 'Save failed';
+        /* Anything else (network, a 5xx, four conflicts in a row): try again
+           with a growing wait, and say so where it can be seen. */
+        unsaved = true; saveFails++;
+        const wait = Math.min(30000, 3000 * Math.pow(2, saveFails - 1));
+        $('savestate').textContent = 'Not saved · trying again in ' + Math.round(wait / 1000) + 's';
+        clearTimeout(saveTimer); saveTimer = setTimeout(() => { dirty = true; save(); }, wait);
+        if (saveFails >= 2) showNotice('Your changes are not saving. Check your connection and keep this tab open; the page keeps trying.');
       }
       saving = false;
       if (dirty) save();
     }
+    /* A closed tab loses whatever has not reached the server yet: the 1.2s
+       autosave window, a save in flight, or edits waiting on a retry. */
+    let saveFails = 0, unsaved = false;
+    window.addEventListener('beforeunload', (e) => { if (dirty || saving || unsaved) { e.preventDefault(); e.returnValue = ''; } });
+    function showNotice(msg) { $('notice-msg').textContent = msg; $('notice').hidden = false; }
+    function hideNotice() { unsaved = false; $('notice').hidden = true; }
+    $('notice-x').addEventListener('click', () => { $('notice').hidden = true; });
+    function needSignIn() {
+      $('gate').hidden = false;
+      $('gate-note').textContent = me.role === 'admin' ? 'Your session ended. Sign in on /send in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
+      $('tl-retry').hidden = me.role !== 'admin';
+      $('gate').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (me.role !== 'admin') $('tl-name').focus({ preventScroll: true });
+    }
+    $('tl-retry').addEventListener('click', () => { $('gate').hidden = true; dirty = true; save(); });
 
     /* Save now and wait for it. Opening a batch for review reads the SAVED
        state, so a batch made (or filled) in the last second would otherwise
@@ -2391,7 +2432,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'login', name, pass: $('tl-pass').value } });
       $('tl-go').disabled = false;
       if (!r.ok) { $('tl-err').textContent = (r.data && r.data.error) || 'Could not sign in.'; $('tl-err').hidden = false; return; }
-      $('gate').hidden = true; $('loading').hidden = false; boot();
+      $('gate').hidden = true;
+      /* Signed in again mid-session: keep the page as it is and save it,
+         instead of booting (which would replace the edits with the stored state). */
+      if (booted) { me.name = name || me.name; dirty = true; save(); return; }
+      $('loading').hidden = false; boot();
     }
     $('tl-go').addEventListener('click', teamSignIn);
     $('tl-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') teamSignIn(); });
