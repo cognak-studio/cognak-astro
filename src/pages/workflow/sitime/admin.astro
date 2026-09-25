@@ -858,7 +858,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         ['main', 'backup'].forEach((w) => {
           const ev = d[w]; const p = s[w]; if (!ev || !p) return;
           p.reviews = (p.reviews || []).filter((r) => r.token !== b.token);
-          p.reviews.push({ token: b.token, batch: batchLabel(b), internal: !!b.internal, decision: ev.decision, note: ev.note || '', at: ev.at || null });
+          /* A solved image is either the one that was fixed in place or a new one
+             put in after the review. Either way the old note is done: record it
+             as Solved, without carrying a note written about another picture. */
+          const solved = isSolved(p, b);
+          p.reviews.push({ token: b.token, batch: batchLabel(b), internal: !!b.internal, decision: solved ? 'solved' : ev.decision, note: solved ? '' : (ev.note || ''), at: ev.at || null });
         });
       });
     }
@@ -1309,7 +1313,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        default to card from their name; s.display only exists when someone
        overrides that. Same rule lives in api/sitime-batch.js. */
     function reviewBlock(s) {
-      const DL = { approve: 'Approved', deny: 'Denied', hold: 'Held' };
+      const DL = { approve: 'Approved', deny: 'Denied', hold: 'Held', solved: 'Solved' };
       const line = (w, r) => '<div class="rv"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>';
       const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).map((r) => line(w, r)));
       const hist = s.history || [];
