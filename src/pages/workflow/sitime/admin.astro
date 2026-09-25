@@ -42,7 +42,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <p class="hint" id="gate-note">Your name and the passcode you were given.</p>
       <div class="teamlogin"><input class="txt" id="tl-name" placeholder="Your name" aria-label="Your name" autocomplete="name" /><input class="txt" id="tl-pass" type="password" placeholder="Passcode" aria-label="Passcode" autocomplete="current-password" /><button class="sbtn p" id="tl-go">Sign in</button></div>
       <p class="hint is-error" id="tl-err" hidden></p>
-      <p class="hint" style="margin-top:14px">COGNAK admin: sign in on <a href="/send">/send</a>, then reload this page.</p>
+      <p class="hint" id="gate-admin" style="margin-top:14px">COGNAK admin: sign in on <a href="/send">/send</a>, then reload this page.</p>
       <button class="sbtn" id="tl-retry" hidden>Try saving again</button>
     </div></div>
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
@@ -261,6 +261,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .whoami{ margin-left:14px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .whoami button{ font:inherit; background:none; border:0; padding:0; color:inherit; text-decoration:underline; cursor:pointer; letter-spacing:inherit; text-transform:inherit; }
     .adm .teamlogin{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; max-width:620px; }
+    .adm #gate{ margin-bottom:1.6rem; }
     .adm .teamlogin .txt{ flex:1; min-width:160px; }
     .adm .edited{ display:block; font-size:var(--fs-11); color:var(--ink-soft); margin-top:2px; }
     .adm .savestate{ margin-left:auto; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
@@ -873,6 +874,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('gate').hidden = false;
       $('gate-note').textContent = me.role === 'admin' ? 'Your session ended. Sign in on /send in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
       $('tl-retry').hidden = me.role !== 'admin';
+      $('gate-admin').hidden = true;   // "reload this page" would lose the edits; the note above says what to do
       $('gate').scrollIntoView({ behavior: 'smooth', block: 'start' });
       if (me.role !== 'admin') $('tl-name').focus({ preventScroll: true });
     }
