@@ -710,20 +710,48 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function replaceInPlace(t, src) { Object.keys(t).forEach((k) => delete t[k]); Object.assign(t, clone(src)); }
 
     /* Undo (Pierce, 9/24): every destructive click snapshots the state first
-       and offers a 12-second Undo. The snapshot is the whole document (plus
-       decisions for a deleted batch), so undo is exact. Older mistakes are
-       covered by Library -> Version history. */
+       and offers a 12-second Undo. Older mistakes are covered by Library ->
+       Version history.
+       The snapshot is taken before AND after the action, and Undo puts back
+       only what the action changed (per slot, batch, library image, trash
+       entry, log entry, added page). It used to restore the whole document,
+       which also threw away anything another editor had saved in the meantime
+       and the 30s refresh had pulled in. */
     let undoSnap = null, undoTimer = null;
+    const UNDO_LISTS = { slots: (x) => x.id, batches: (x) => x.token, library: (x) => x.id, trash: (x) => (x.item && x.item.id) + ':' + x.deletedAt, reviewLog: (x) => x.token, customPages: (x) => x.id };
     function withUndo(label, fn) {
-      const snap = { S: clone(S), D: clone(D) };
+      const before = clone(S), D0 = clone(D);
       const r = fn();
       if (r === false) return r;
-      undoSnap = snap;
+      undoSnap = { before, after: clone(S), D: D0 };
       $('undo-msg').textContent = label; $('undo').hidden = false;
       clearTimeout(undoTimer); undoTimer = setTimeout(hideUndo, 12000);
       return r;
     }
     function hideUndo() { $('undo').hidden = true; undoSnap = null; clearTimeout(undoTimer); }
+    function applyUndo(snap) {
+      Object.keys(UNDO_LISTS).forEach((key) => {
+        const idOf = UNDO_LISTS[key];
+        const b = new Map((snap.before[key] || []).map((x) => [idOf(x), x]));
+        const a = new Map((snap.after[key] || []).map((x) => [idOf(x), x]));
+        const cur = S[key] || []; const curM = new Map(cur.map((x) => [idOf(x), x]));
+        new Set([...b.keys(), ...a.keys()]).forEach((id) => {
+          if (J(b.get(id)) === J(a.get(id))) return;                 // the action left it alone
+          const want = b.get(id), have = curM.get(id);
+          if (!want) { const i = cur.indexOf(have); if (i >= 0) cur.splice(i, 1); }   // the action added it
+          else if (have) replaceInPlace(have, want);                                    // the action changed it
+          else { const at = (snap.before[key] || []).findIndex((x) => idOf(x) === id); cur.splice(Math.min(Math.max(at, 0), cur.length), 0, clone(want)); }  // the action removed it
+        });
+        S[key] = cur;
+      });
+      new Set(Object.keys(snap.before).concat(Object.keys(snap.after))).forEach((k) => {
+        if (k in UNDO_LISTS || k === 'savedAt') return;
+        if (J(snap.before[k]) === J(snap.after[k])) return;
+        if (snap.before[k] === undefined) delete S[k]; else S[k] = clone(snap.before[k]);
+      });
+      Object.keys(snap.D).forEach((t) => { if (!D[t]) D[t] = clone(snap.D[t]); });   // decisions of a deleted batch
+      _pmap = null; _hay.clear();
+    }
     function stampEdits() {
       const bm = new Map(((base && base.slots) || []).map((x) => [x.id, x]));
       S.slots.forEach((x) => { if (slotKey(x) !== slotKey(bm.get(x.id))) x.edit = { by: me.name, at: Date.now() }; });
@@ -1125,7 +1153,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('undo-x').addEventListener('click', hideUndo);
     $('undo-btn').addEventListener('click', () => {
       if (!undoSnap) return;
-      replaceInPlace(S, undoSnap.S); Object.keys(D).forEach((k) => delete D[k]); Object.assign(D, undoSnap.D);
+      applyUndo(undoSnap);
       hideUndo(); mark(); rerender();
     });
     $('bd-cancel').addEventListener('click', () => $('batch-dialog').close());
