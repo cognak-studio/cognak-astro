@@ -89,7 +89,7 @@ export default async function handler(req, res) {
     const { latest } = await readDecisions(token);
     return res.status(200).json({
       ok: true,
-      batch: { token, num: batch.num, name: batch.name, status: batch.status },
+      batch: { token, num: batch.num, name: batch.name, status: batch.status, internal: !!batch.internal },
       mock: state.mock || null,
       slots,
       decisions: latest,

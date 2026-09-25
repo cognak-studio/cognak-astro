@@ -186,6 +186,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="group-title" id="bd-title">New batch</div>
       <label class="q"><span class="q-title">Name</span><input class="txt" id="bd-name" placeholder="Homepage + Applications" /></label>
       <label class="q"><span class="q-title">Planned for</span><input class="txt" id="bd-date" type="date" /></label>
+      <label class="chk" style="margin-top:.6rem"><input type="checkbox" id="bd-internal" /> Internal review (COGNAK). Approve can carry a note too.</label>
       <p class="hint" id="bd-hint"></p>
       <div class="actions"><button class="sbtn p" id="bd-save">Save</button><button class="sbtn" id="bd-cancel">Cancel</button></div>
     </dialog>
@@ -320,6 +321,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* Placement note (seed `where`) and the pick description (pick.desc), 9/24. */
     .adm .mrow .who .where{ font-size:var(--fs-13); line-height:1.45; color:var(--ink-soft); margin-top:4px; max-width:72ch; }
     .adm .drawer .dwhere{ display:block; font-size:var(--fs-14); line-height:1.5; color:var(--ink-soft); margin-top:6px; max-width:72ch; }
+    .adm .drawer .rvbox{ margin-top:14px; font-size:var(--fs-14); line-height:1.5; color:var(--ink); }
+    .adm .drawer .rvh{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
+    .adm .drawer .rvhist{ margin-top:8px; color:var(--ink-soft); }
+    .adm .drawer .rvhist summary{ cursor:pointer; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; }
+    .adm .drawer .rvold{ display:flex; gap:12px; align-items:flex-start; margin-top:10px; }
+    .adm .drawer .rvold img{ width:96px; height:64px; object-fit:cover; border-radius:4px; flex:none; }
     .adm .drawer .descrow{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; }
     .adm .drawer .descrow label{ display:flex; flex-direction:column; gap:6px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .drawer .descrow input{ width:100%; box-sizing:border-box; font-family:inherit; text-transform:none; letter-spacing:.02em; font-size:var(--fs-13); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:9px 12px; background:#fff; }
@@ -809,12 +816,37 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       chevron: '<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
     };
     const ICON = (act, label) => '<button class="ibtn" data-act="' + act + '" title="' + esc(label) + '" aria-label="' + esc(label) + '">' + ICONS[act] + '</button>';
+    /* Review notes live on the IMAGE, not the slot (Pierce, 9/25). When a batch
+       goes away its decisions are copied onto each pick as pick.reviews, so
+       they follow the image through Swap and stay visible while it is in the
+       slot. When a reviewed image leaves the slot (replaced, trashed, cleared)
+       it moves to s.history with its notes: out of sight, not deleted.
+       Unreviewed images are just replaced, as before. Neither field is sent to
+       the review link (sitime-batch whitelists pick fields). */
+    const batchLabel = (b) => 'Batch ' + String(b.num).padStart(2, '0') + (b.name ? ' · ' + b.name : '');
+    function archiveDecisions(b) {
+      const m = byId(); const lat = (D[b.token] && D[b.token].latest) || {};
+      (b.slotIds || []).forEach((id) => {
+        const s = m.get(id); const d = lat[id]; if (!s || !d) return;
+        ['main', 'backup'].forEach((w) => {
+          const ev = d[w]; const p = s[w]; if (!ev || !p) return;
+          p.reviews = (p.reviews || []).filter((r) => r.token !== b.token);
+          p.reviews.push({ token: b.token, batch: batchLabel(b), internal: !!b.internal, decision: ev.decision, note: ev.note || '', at: ev.at || null });
+        });
+      });
+    }
+    function retirePick(s, which, why) {
+      const p = s[which]; if (!p) return;
+      if ((p.reviews || []).length) { s.history = [{ which, why, at: Date.now(), pick: clone(p) }].concat(s.history || []).slice(0, 20); }
+      s[which] = null;
+    }
     function deleteBatch(b) {
       const total = (b.slotIds || []).length;
       const c = batchCounts(b); const decided = c.a + c.d + c.h;
-      const msg = 'Delete batch ' + String(b.num).padStart(2, '0') + '? Its ' + total + ' slots go back to assigned.' + (decided ? ' ' + decided + ' decision' + (decided > 1 ? 's' : '') + ' already recorded will be discarded.' : '');
+      const msg = 'Delete batch ' + String(b.num).padStart(2, '0') + '? Its ' + total + ' slots go back to assigned.' + (decided ? ' The ' + decided + ' recorded decision' + (decided > 1 ? 's and their notes stay' : ' and its note stays') + ' with each image.' : '');
       if (!confirm(msg)) return;
       withUndo('Deleted batch ' + String(b.num).padStart(2, '0'), () => {
+        archiveDecisions(b);
         const m = byId(); (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; });
         S.batches = S.batches.filter((x) => x.token !== b.token); delete D[b.token];
         mark(); renderBatches(); renderStats();
@@ -828,7 +860,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const stat = !total ? 'Empty' : c.p === 0 ? 'Complete' : decided ? 'In review' : 'Ready';
         const cls = !total || !decided ? 'draft' : c.p === 0 ? 'approved' : 'held';
         const link = location.origin + '/workflow/sitime/' + b.token;
-        return '<div class="batchrow" data-b="' + b.token + '"><div><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
+        return '<div class="batchrow" data-b="' + b.token + '"><div><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + (b.internal ? ' <span class="mini">internal</span>' : '') + '</div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
           '<div><span class="mini">' + (!decided ? '—' : '<b class="a">' + c.a + ' ✓</b><b class="d">' + c.d + ' ✕</b><b class="h">' + c.h + ' ◦</b>' + (c.p ? '<b>' + c.p + ' left</b>' : '')) + '</span></div>' +
           '<div class="mini">' + (b.plannedFor ? fmtDate(b.plannedFor) : b.createdAt ? fmtDate(b.createdAt.slice(0, 10)) : '—') + '</div>' +
           '<div class="acts">' + ICON('open', 'Show slots') + ICON('review', 'Open for review') + ICON('copy', 'Copy link') + ICON('csv', 'Export CSV') + (me.role === 'admin' ? ICON('delete', 'Delete batch') : '') + '</div>' +
@@ -890,7 +922,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function openBatchDialog(b) {
       dialogBatch = b || null;
       $('bd-title').textContent = b ? 'Batch ' + String(b.num).padStart(2, '0') : 'New batch';
-      $('bd-name').value = b ? b.name : ''; $('bd-date').value = b ? (b.plannedFor || '') : '';
+      $('bd-name').value = b ? b.name : ''; $('bd-date').value = b ? (b.plannedFor || '') : ''; $('bd-internal').checked = !!(b && b.internal);
       $('bd-hint').textContent = b ? '' : (checked.size ? checked.size + ' checked slot' + (checked.size > 1 ? 's' : '') + ' will go in.' : 'Starts empty. Add slots from the Slots tab.');
       $('batch-dialog').showModal();
     }
@@ -904,10 +936,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('bd-cancel').addEventListener('click', () => $('batch-dialog').close());
     $('bd-save').addEventListener('click', () => {
       const name = $('bd-name').value.trim() || 'Untitled'; const date = $('bd-date').value || null;
-      if (dialogBatch) { dialogBatch.name = name; dialogBatch.plannedFor = date; }
+      const internal = $('bd-internal').checked;
+      if (dialogBatch) { dialogBatch.name = name; dialogBatch.plannedFor = date; if (internal) dialogBatch.internal = true; else delete dialogBatch.internal; }
       else {
         const num = (S.batches.reduce((a, b) => Math.max(a, b.num || 0), 0) || 0) + 1;
-        const b = { token: randomToken(10), num, name, scope: '', slotIds: [], status: 'open', createdAt: new Date().toISOString(), plannedFor: date };
+        const b = { token: randomToken(10), num, name, scope: '', slotIds: [], status: 'open', createdAt: new Date().toISOString(), plannedFor: date, ...(internal ? { internal: true } : {}) };
         const hadChecked = checked.size; const res = addCheckedTo(b); S.batches.push(b);
         $('batch-dialog').close(); mark(); renderBatches(); renderStats(); renderSlots();
         if (hadChecked) showAdded(b, res);
@@ -1110,8 +1143,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       /* SiTime's decision on THIS image, from its batch (Pierce, 9/24): shown
          on the tile so a finished slot reads as done without opening it. */
       const bt = batchOf(s); const dd = bt && D[bt.token] && D[bt.token].latest && D[bt.token].latest[s.id];
-      const dec = dd && dd[which] && dd[which].decision; const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'] }[dec];
-      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc(pick.desc || pick.title || '') + '" data-slot="' + s.id + '" data-which="' + which + '">' +
+      const lastRv = (pick.reviews || [])[(pick.reviews || []).length - 1];
+      const dec = (dd && dd[which] && dd[which].decision) || (lastRv && lastRv.decision); const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'] }[dec];
+      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc([pick.desc || pick.title || ''].concat((pick.reviews || []).map((r) => r.batch + ': ' + r.decision + (r.note ? ' — ' + r.note : ''))).join('\n')) + '" data-slot="' + s.id + '" data-which="' + which + '">' +
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '"' + fxStyle(pick) + '>' +
         '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
         (DEC ? '<span class="dec st ' + DEC[0] + '"><i></i>' + DEC[1] + '</span>' : '') +
@@ -1175,7 +1209,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const s = byId().get(btn.dataset.slot); const which = btn.dataset.which;
         if (btn.dataset.act === 'trash') {
           withUndo('Removed the ' + which + ' image from ' + s.name, () => {
-            s[which] = null; revealTile = null;
+            retirePick(s, which, 'Removed'); revealTile = null;
             if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
             mark(); renderSlots(); renderStats();
           });
@@ -1217,6 +1251,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<span class="lbl dsp-lbl">Shown as</span>' + ['hero', 'card'].map((v) => '<button class="sbtn ' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + (v === 'card' ? 'Review shows it as a tall card with text' : 'Review shows it full width behind the headline') + '">' + (v === 'hero' ? 'Hero' : 'Card') + (autoDisplay(s) === v ? ' <span class="mini">auto</span>' : '') + '</button>').join('') +
         '</div>' +
         '<div class="descrow">' + ['main', 'backup'].map((w) => '<label>' + (w === 'main' ? 'Main' : 'Backup') + ' · what the image is<input type="text" data-desc="' + w + '" maxlength="200" value="' + esc((s[w] && s[w].desc) || '') + '" placeholder="' + (s[w] ? 'One line, shown to SiTime under the image' : 'Pick a ' + w + ' first') + '"' + (s[w] ? '' : ' disabled') + '></label>').join('') + '</div>' +
+        reviewBlock(s) +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b style="margin-right:0">' + which + '</b>.</span></div>' +
@@ -1225,7 +1260,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich[s.id] = b.dataset.tgt; refreshDrawer(s.id); }));
       el.querySelectorAll('[data-dsp]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.dsp; if (v === autoDisplay(s)) delete s.display; else s.display = v; mark(); refreshDrawer(s.id); }));
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
-      el.querySelector('[data-clear]').addEventListener('click', () => { if (!s.main && !s.backup) return; withUndo('Cleared picks on ' + s.name, () => { s.main = null; s.backup = null; if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
+      el.querySelector('[data-clear]').addEventListener('click', () => { if (!s.main && !s.backup) return; withUndo('Cleared picks on ' + s.name, () => { retirePick(s, 'main', 'Cleared'); retirePick(s, 'backup', 'Cleared'); if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
       el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
       el.querySelector('[data-pv]').addEventListener('click', () => openPreview([s], s.page + ' · ' + s.name));
       el.querySelector('[data-brief]').addEventListener('change', (e) => { s.prompt = e.target.value; mark(); });
@@ -1248,6 +1283,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        behind the headline, 'card' = a tall card with copy on it. Card-type slots
        default to card from their name; s.display only exists when someone
        overrides that. Same rule lives in api/sitime-batch.js. */
+    function reviewBlock(s) {
+      const DL = { approve: 'Approved', deny: 'Denied', hold: 'Held' };
+      const line = (w, r) => '<div class="rv"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>';
+      const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).map((r) => line(w, r)));
+      const hist = s.history || [];
+      if (!cur.length && !hist.length) return '';
+      return '<div class="rvbox">' + (cur.length ? '<div class="rvh">Review notes</div>' + cur.join('') : '') +
+        (hist.length ? '<details class="rvhist"><summary>Earlier images · ' + hist.length + '</summary>' + hist.map((h) => '<div class="rvold"><img src="' + esc(h.pick.thumb || h.pick.url || '') + '"' + fxStyle(h.pick) + '><div><b>' + (h.which === 'main' ? 'Main' : 'Backup') + '</b> · ' + esc(h.why || '') + ' · ' + ago(h.at) + (h.pick.desc ? '<div>' + esc(h.pick.desc) + '</div>' : '') + ((h.pick.reviews || []).map((r) => '<div>' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>').join('')) + '</div></div>').join('') + '</details>' : '') + '</div>';
+    }
     function autoDisplay(s) { return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
     function displayOf(s) { return s.display === 'card' || s.display === 'hero' ? s.display : autoDisplay(s); }
     function targetOf(s) { return pkWhich[s.id] === 'backup' ? 'backup' : 'main'; }
@@ -1459,6 +1503,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        it, because the job is done. */
     function assign(slot, pick) {
       const which = targetOf(slot);
+      if (slot[which] && slot[which].url !== pick.url) retirePick(slot, which, 'Replaced');
       slot[which] = pick;
       if (slot.state === 'unreviewed' || slot.state === 'kept') slot.state = 'assigned';
       revealTile = null;
@@ -1789,8 +1834,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderRepl() {
       const m = byId(); const items = [];
       S.batches.forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
-      $('repl-list').innerHTML = items.length ? items.map(({ s, b, o }) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + o.outcome + '"><i></i>' + STATUS_LABEL[o.outcome] + '</span> in batch ' + String(b.num).padStart(2, '0') + (o.which === 'backup' ? ' (main and backup both)' : '') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '">Pick a replacement</button></div></div></div>').join('') : '<p class="hint">Nothing denied or held.</p>';
-      $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.re); s.batch = null; s.main = null; s.backup = null; s.state = 'assigned'; mark(); fx.page = s.pageId; pageIdx = 0; showTab('slots'); renderSlots(); openPicker(s.id, 'main'); }));
+      $('repl-list').innerHTML = items.length ? items.map(({ s, b, o }) => '<div class="qitem" style="margin-bottom:12px"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div style="flex:1"><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n"><span class="st ' + o.outcome + '"><i></i>' + STATUS_LABEL[o.outcome] + '</span> in batch ' + String(b.num).padStart(2, '0') + (o.which === 'backup' ? ' (main and backup both)' : '') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div><div class="actions" style="margin-top:8px"><button class="link" data-re="' + s.id + '" data-b="' + b.token + '">Pick a replacement</button></div></div></div>').join('') : '<p class="hint">Nothing denied or held.</p>';
+      $('repl-list').querySelectorAll('[data-re]').forEach((x) => x.addEventListener('click', () => {
+        /* Only the denied image(s) come out; an approved or held one stays.
+           Notes go onto the images first, so the removed one keeps its note in history. */
+        const s = m.get(x.dataset.re); const b = S.batches.find((y) => y.token === x.dataset.b);
+        if (b) archiveDecisions(b);
+        const d = (b && D[b.token] && D[b.token].latest && D[b.token].latest[s.id]) || {};
+        ['main', 'backup'].forEach((w) => { if (d[w] && d[w].decision === 'deny') retirePick(s, w, 'Denied in ' + (b ? batchLabel(b) : 'review')); });
+        if (!s.main && s.backup) { s.main = s.backup; s.backup = null; }
+        s.batch = null; if (s.state === 'unreviewed' || s.state === 'kept') s.state = 'assigned';
+        mark(); fx.page = s.pageId; pageIdx = 0; showTab('slots'); renderSlots(); openPicker(s.id, s.main ? 'backup' : 'main');
+      }));
     }
 
     /* ---------- handoff ---------- */

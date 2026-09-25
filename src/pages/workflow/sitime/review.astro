@@ -612,13 +612,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('oprev').addEventListener('click', () => { if (state.orig && state.orig.k > 0) { state.orig.k--; render(); } });
     $('onext').addEventListener('click', () => { const s = state.slots[state.i]; if (state.orig && s && state.orig.k < (s.original || []).length - 1) { state.orig.k++; render(); } });
 
-    /* Approve saves on the click -- no note. Deny and hold open the note box. */
+    /* Approve saves on the click -- no note. Deny and hold open the note box.
+       On an internal (COGNAK) batch approve opens the note box too, so a
+       reviewer can approve with a comment. */
+    const internalBatch = () => !!(state.batch && state.batch.internal);
     document.querySelectorAll('#pills .pill').forEach((p) => p.addEventListener('click', () => {
       document.querySelectorAll('#pills .pill').forEach((x) => x.classList.remove('on'));
       p.classList.add('on');
       state.pending = p.dataset.v;
       $('err').hidden = true;
-      if (state.pending === 'approve') { $('note').hidden = true; $('note-text').value = ''; submit(); return; }
+      if (state.pending === 'approve' && !internalBatch()) { $('note').hidden = true; $('note-text').value = ''; submit(); return; }
       $('note').hidden = false;
       $('note-text').focus({ preventScroll: true });
     }));
@@ -629,9 +632,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const s = state.slots[state.i];
       const which = viewed(s);
       const decision = state.pending;
-      const note = decision === 'approve' ? '' : $('note-text').value.trim();
+      const note = decision === 'approve' && !internalBatch() ? '' : $('note-text').value.trim();
       busy = true; $('submit').disabled = true; $('saving').hidden = false; $('err').hidden = true;
-      if (decision === 'approve') { $('decided').hidden = false; $('decided').textContent = 'Saving…'; }
+      if (decision === 'approve' && !internalBatch()) { $('decided').hidden = false; $('decided').textContent = 'Saving…'; }
       const r = await api('/api/sitime-decide', { token, pass, slotId: s.id, which, decision, note });
       busy = false; $('submit').disabled = false; $('saving').hidden = true;
       if (!r.ok) {
