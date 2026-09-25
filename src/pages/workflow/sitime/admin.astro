@@ -40,7 +40,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div>
       <p class="hint" id="gate-note">Your name and the passcode you were given.</p>
-      <div class="teamlogin"><input class="txt" id="tl-name" placeholder="Your name" autocomplete="name" /><input class="txt" id="tl-pass" type="password" placeholder="Passcode" autocomplete="off" /><button class="sbtn p" id="tl-go">Sign in</button></div>
+      <div class="teamlogin"><input class="txt" id="tl-name" placeholder="Your name" aria-label="Your name" autocomplete="name" /><input class="txt" id="tl-pass" type="password" placeholder="Passcode" aria-label="Passcode" autocomplete="current-password" /><button class="sbtn p" id="tl-go">Sign in</button></div>
       <p class="hint is-error" id="tl-err" hidden></p>
       <p class="hint" style="margin-top:14px">COGNAK admin: sign in on <a href="/send">/send</a>, then reload this page.</p>
       <button class="sbtn" id="tl-retry" hidden>Try saving again</button>
@@ -48,12 +48,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
 
     <div id="app" hidden>
-      <div class="tabs" id="tabs">
-        <a data-tab="batches" class="on">Batches<i id="n-batches">0</i></a>
-        <a data-tab="slots">Slots<i id="n-slots">0</i></a>
-        <a data-tab="replacements">Replacements<i id="n-repl">0</i></a>
-        <a data-tab="handoff">Handoff<i id="n-handoff">0</i></a>
-        <a data-tab="library">Library<i id="n-lib">0</i></a>
+      <div class="tabs" id="tabs" role="tablist">
+        <a data-tab="batches" class="on" role="tab" tabindex="0" aria-selected="true">Batches<i id="n-batches">0</i></a>
+        <a data-tab="slots" role="tab" tabindex="0" aria-selected="false">Slots<i id="n-slots">0</i></a>
+        <a data-tab="replacements" role="tab" tabindex="0" aria-selected="false">Replacements<i id="n-repl">0</i></a>
+        <a data-tab="handoff" role="tab" tabindex="0" aria-selected="false">Handoff<i id="n-handoff">0</i></a>
+        <a data-tab="library" role="tab" tabindex="0" aria-selected="false">Library<i id="n-lib">0</i></a>
         <span class="savestate" id="savestate"></span><span class="whoami" id="whoami"></span>
       </div>
 
@@ -338,8 +338,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        single click besides revealing them; the old click-to-assign / click-
        again-for-backup / click-again-to-clear cycle is gone. */
     .adm .tile-actions{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(15,13,18,.55); opacity:0; pointer-events:none; transition:opacity .12s var(--ease-standard); }
-    .adm .tile.is-open .tile-actions, .adm .tile.filled:hover .tile-actions{ opacity:1; pointer-events:auto; }
-    .adm .tile.is-open .cap, .adm .tile.filled:hover .cap{ opacity:0; }
+    .adm .tile.is-open .tile-actions, .adm .tile.filled:focus-within .tile-actions{ opacity:1; pointer-events:auto; }
+    .adm .tile.is-open .cap, .adm .tile.filled:focus-within .cap{ opacity:0; }
+    /* Hover reveal only where hover exists; on touch, a tap opens the tile
+       (is-open) and the sticky :hover no longer ghosts the buttons. */
+    @media (hover:hover){ .adm .tile.filled:hover .tile-actions{ opacity:1; pointer-events:auto; } .adm .tile.filled:hover .cap{ opacity:0; } }
     .adm .tact{ font:inherit; font-size:var(--fs-13); font-weight:500; padding:9px 16px; border-radius:999px; border:1px solid #fff; background:#fff; color:#1A1A1A; cursor:pointer; }
     .adm .tact:hover{ background:var(--accent); border-color:var(--accent); }
     .adm .tile-actions{ flex-wrap:wrap; align-content:center; padding:8px; }
@@ -369,7 +372,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .descrow input:disabled{ background:transparent; color:var(--ink-soft); }
     @media (max-width:900px){ .adm .drawer .descrow{ grid-template-columns:1fr; } }
     .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; gap:18px; }
-    .adm .mrow .chev{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; color:var(--ink-soft); flex:none; transition:transform .15s var(--ease-standard), color .15s var(--ease-standard); }
+    .adm .mrow .chev{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; padding:0; border:0; background:none; cursor:pointer; color:var(--ink-soft); flex:none; transition:transform .15s var(--ease-standard), color .15s var(--ease-standard); }
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
     .adm .srow.sel .mrow .chev{ transform:rotate(180deg); color:#1A1A1A; }
@@ -431,8 +434,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .lt{ position:relative; aspect-ratio:3/2; border-radius:6px; overflow:hidden; background:#EEE; }
     .adm .lt img{ width:100%; height:100%; object-fit:cover; display:block; }
     .adm .lt .used{ position:absolute; top:5px; left:5px; font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.08em; padding:2px 6px; border-radius:999px; background:#1A1A1A; color:#fff; }
-    .adm .lt .lt-acts{ position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:space-between; gap:6px; padding:6px; background:linear-gradient(to top, rgba(26,26,26,.72), rgba(26,26,26,0) 65%); opacity:0; transition:opacity .12s; }
-    .adm .lt:hover .lt-acts, .adm .lt:focus-within .lt-acts{ opacity:1; }
+    .adm .lt .lt-acts{ position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:space-between; gap:6px; padding:6px; background:linear-gradient(to top, rgba(26,26,26,.72), rgba(26,26,26,0) 65%); opacity:0; pointer-events:none; transition:opacity .12s; }
+    /* Invisible buttons must not take clicks: a tap on the lower edge of a
+       thumbnail used to hit Delete. On touch screens the actions just show. */
+    .adm .lt:hover .lt-acts, .adm .lt:focus-within .lt-acts{ opacity:1; pointer-events:auto; }
+    @media (hover:none){ .adm .lt .lt-acts{ opacity:1; pointer-events:auto; } }
     .adm .lt .lt-rep{ font:inherit; font-size:var(--fs-11); padding:4px 9px; border-radius:999px; border:1px solid rgba(255,255,255,.6); background:rgba(26,26,26,.55); color:#fff; cursor:pointer; }
     .adm .lt .lt-rep:hover{ background:#fff; color:#1A1A1A; }
     .adm .lt .cand-x{ position:static; }
@@ -963,10 +969,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('n-handoff').textContent = S.slots.filter(finalPick).length;
       $('n-lib').textContent = (S.library || []).length;
     }
-    document.querySelectorAll('#tabs a').forEach((a) => a.addEventListener('click', () => showTab(a.dataset.tab)));
+    /* The tabs are anchors without an href, so they were unreachable by
+       keyboard; they carry tabindex now and take Enter or Space. */
+    document.querySelectorAll('#tabs a').forEach((a) => { a.addEventListener('click', () => showTab(a.dataset.tab)); a.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showTab(a.dataset.tab); } }); });
     function showTab(t) {
       curTab = t;
-      document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === t));
+      document.querySelectorAll('#tabs a').forEach((a) => { a.classList.toggle('on', a.dataset.tab === t); a.setAttribute('aria-selected', String(a.dataset.tab === t)); });
       ['batches', 'slots', 'replacements', 'handoff', 'library'].forEach((k) => { $('tab-' + k).hidden = k !== t; });
       $('stats').hidden = t !== 'batches';
       if (t === 'batches') renderBatches(); if (t === 'slots') renderSlots(); if (t === 'replacements') renderRepl(); if (t === 'handoff') renderHandoff(); if (t === 'library') renderLib();
@@ -1190,6 +1198,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       hideUndo(); mark(); rerender();
     });
     $('bd-cancel').addEventListener('click', () => $('batch-dialog').close());
+    /* Enter in a dialog field saves, as a form would. */
+    const enterSaves = (dialog, btn) => $(dialog).addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); $(btn).click(); } });
+    enterSaves('batch-dialog', 'bd-save'); enterSaves('add-dialog', 'ad2-save');
     $('bd-save').addEventListener('click', () => {
       const name = $('bd-name').value.trim() || 'Untitled'; const date = $('bd-date').value || null;
       const internal = $('bd-internal').checked;
@@ -1395,7 +1406,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        candidate grid, so nothing about choosing an image lives under a fold. */
     function tileHtml(s, which) {
       const pick = s[which];
-      if (!pick) return '<div class="tile empty" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · generate · upload</span></div>';
+      if (!pick) return '<div class="tile empty" role="button" tabindex="0" data-slot="' + s.id + '" data-which="' + which + '"><span>Choose ' + which + '</span><span class="mini">Stock · SiTime library · generate · upload</span></div>';
       const open = revealTile && revealTile.slotId === s.id && revealTile.which === which;
       /* SiTime's decision on THIS image, from its batch (Pierce, 9/24): shown
          on the tile so a finished slot reads as done without opening it. */
@@ -1449,7 +1460,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
           '<div class="mrow">' + (me.role === 'admin' ? '<input type="checkbox" data-chk="' + s.id + '" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' : '<span></span>') + '<div class="who"><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + (s.edit ? '<span class="edited">' + esc(s.edit.by) + ' · ' + ago(s.edit.at) + '</span>' : '') + '</div>' +
           '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + DSP_LABEL[displayOf(s)] + '</span>' +
-          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><span class="chev" title="Brief and notes">' + ICONS.chevron + '</span></div></div></div>' +
+          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span><span class="mini">' + (b ? 'Batch ' + String(b.num).padStart(2, '0') : '—') + '</span><button type="button" class="chev" title="Open the slot" aria-label="Open the slot" aria-expanded="' + (open ? 'true' : 'false') + '">' + ICONS.chevron + '</button></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
       });
       $('slot-rows').innerHTML = rows.join('') || '<p class="hint">Nothing matches.</p>';
@@ -1468,6 +1479,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('slot-rows').querySelectorAll('.tile.empty').forEach((tl) => tl.addEventListener('click', (e) => {
         e.stopPropagation(); openPicker(tl.dataset.slot, tl.dataset.which);
       }));
+      /* Enter or Space on a focused tile or candidate card does what a click does. */
+      $('slot-rows').querySelectorAll('[role="button"]').forEach((el) => el.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); el.click(); } }));
       $('slot-rows').querySelectorAll('.tile.filled').forEach((tl) => tl.addEventListener('click', (e) => {
         e.stopPropagation();
         const slotId = tl.dataset.slot, which = tl.dataset.which;
@@ -1805,7 +1818,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (pick.source === 'stock') flags.push(extra.ai ? '<span class="flag ai">Generative AI</span>' : '<span class="flag real">Real photo</span>');
       if (extra.editorial) flags.push('<span class="flag ed">Editorial only</span>');
       if (extra.dims) flags.push('<span class="flag">' + esc(extra.dims) + '</span>');
-      return '<div class="cand ' + cls + (extra.ai ? ' warn' : '') + '" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
+      return '<div class="cand ' + cls + (extra.ai ? ' warn' : '') + '" role="button" tabindex="0" data-url="' + esc(pick.url) + '"><img loading="lazy" src="' + esc(pick.thumb || pick.url) + '">' +
         (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') +
         (pick.source === 'stock' ? '<button type="button" class="cand-x" data-remove-cand="' + esc(pick.url) + '" title="Remove this" aria-label="Remove this">' + ICONS.delete + '</button>' : '') +
         (extra.libId ? '<button type="button" class="cand-x" data-del-lib="' + esc(extra.libId) + '" title="Delete this upload" aria-label="Delete this upload">' + ICONS.delete + '</button>' : '') +
@@ -1973,7 +1986,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             ? '<div class="cand gen-empty gen-working"><span class="gw-dot"></span>Generating…</div>'
             : '<div class="cand gen-empty"><span class="gn">' + String(i + 1).padStart(2, '0') + '</span></div>';
           const cls = s.main && s.main.url === g.url ? 'main' : s.backup && s.backup.url === g.url ? 'backup' : '';
-          return '<div class="cand ' + cls + (working(i) ? ' gen-rerolling' : '') + '" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
+          return '<div class="cand ' + cls + (working(i) ? ' gen-rerolling' : '') + '" role="button" tabindex="0" data-url="' + esc(g.url) + '"><img loading="lazy" src="' + esc(g.thumb || g.url) + '">' + (cls ? '<span class="tag">' + cls.toUpperCase() + '</span>' : '') + '<button type="button" class="cand-x gen-refresh" data-gen-idx="' + i + '" title="Regenerate this one" aria-label="Regenerate this one"' + (busy ? ' disabled' : '') + '>' + ICONS.refresh + '</button></div>';
         });
         // ONE image per click, never a batch of five -- every call costs money
         // and most of these will never be used. The first empty card is the
@@ -2057,6 +2070,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         generateImages(s, { index: next });
       });
       el.querySelectorAll('[data-gen-idx]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); generateImages(s, { index: Number(b.dataset.genIdx) }); }));
+      el.querySelectorAll('.cand[role="button"]').forEach((c) => c.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === c) { e.preventDefault(); c.click(); } }));
       el.querySelectorAll('.cand').forEach((c) => c.addEventListener('click', () => {
         const url = c.dataset.url; if (!url) return; let pick = null;
         if (srcTab === 'stock') { const cc = s.candidates.find((x) => x.comp === url); pick = pickFrom('stock', cc); }
@@ -2501,6 +2515,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     $('tl-go').addEventListener('click', teamSignIn);
     $('tl-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') teamSignIn(); });
+    $('tl-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if ($('tl-pass').value) teamSignIn(); else $('tl-pass').focus(); } });
     let booted = false;
     async function boot() {
       const r = await api('/api/sitime-state');
