@@ -798,7 +798,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return slot.main ? 'assigned' : 'unassigned';
     }
     const STATUS_LABEL = { unassigned: 'Unassigned', assigned: 'Assigned', queued: 'In a batch', approved: 'Approved', denied: 'Denied', held: 'Held', unreviewed: 'Unreviewed', kept: 'Kept as is' };
-    function finalPick(slot) { const b = batchOf(slot); const o = b ? outcomeIn(slot, b) : null; return o && o.outcome === 'approved' ? (o.which === 'backup' ? slot.backup : slot.main) : null; }
+    /* Only a SiTime approval is final. Internal review (Michael) never reaches Handoff (Pierce, 9/25). */
+    function finalPick(slot) { const b = batchOf(slot); if (b && b.internal) return null; const o = b ? outcomeIn(slot, b) : null; return o && o.outcome === 'approved' ? (o.which === 'backup' ? slot.backup : slot.main) : null; }
 
     /* ---------- render: stats + tabs ---------- */
     function renderStats() {
@@ -808,14 +809,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('stats').innerHTML = [
         ['' + inScope, 'slots in scope'],
         ['' + S.slots.filter((s) => s.main && s.backup).length, 'main + backup assigned'],
-        ['' + n('approved'), 'approved'],
+        ['' + S.slots.filter(finalPick).length, 'approved by SiTime'],
         ['' + n('denied'), 'denied, need replacement', 'warn'],
         ['' + n('held'), 'held'],
       ].map((x) => '<div class="stat ' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('');
       $('n-batches').textContent = S.batches.length;
       $('n-slots').textContent = S.slots.length;
       $('n-repl').textContent = replItems().length;
-      $('n-handoff').textContent = n('approved');
+      $('n-handoff').textContent = S.slots.filter(finalPick).length;
       $('n-lib').textContent = (S.library || []).length;
     }
     document.querySelectorAll('#tabs a').forEach((a) => a.addEventListener('click', () => showTab(a.dataset.tab)));
