@@ -369,7 +369,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; cursor:pointer; }
     .adm .mrow input[type=checkbox]{ accent-color:#1A1A1A; width:15px; height:15px; margin:0; }
     .adm .mrow .who{ flex:1 1 260px; min-width:0; }
-    .adm .mrow .who .pg{ font-size:var(--fs-18); margin-bottom:6px; }
+    .adm .mrow .who .pg{ font-size:1.25rem; letter-spacing:-.01em; line-height:1.2; margin-bottom:4px; }
     .adm .mrow .who .sub{ line-height:1.45; }
     /* Placement note (seed `where`) and the pick description (pick.desc), 9/24. */
     .adm .mrow .who .where{ font-size:var(--fs-13); line-height:1.45; color:var(--ink-soft); margin-top:4px; max-width:72ch; }
@@ -396,7 +396,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
     .adm .srow.sel .mrow .chev{ transform:rotate(180deg); color:#1A1A1A; }
-    .adm .drawer-wrap{ background:#fff; padding:24px 20px 32px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:14px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
+    .adm .drawer-wrap{ background:#fff; padding:0 20px 32px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:14px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
+    /* Option C (Pierce, 9/26): the drawer reads as three bands under the row,
+       each behind a hairline: the slot line with its actions, the settings
+       (assign, shown as, notes, sources), then the picker. */
+    .adm .drawer .dhead{ padding:18px 0; margin-bottom:4px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .adm .drawer .srctabs{ padding-top:22px; border-top:1px solid var(--line); }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
     .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
@@ -726,6 +731,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       .adm .srow{ padding:16px 14px 14px; }
       .adm .drawer-wrap{ padding:18px 14px 24px; }
       .adm .fbar .search{ width:100%; }
+      .adm .mrow .end{ margin-left:0; width:100%; }
     }
   </style>
 
