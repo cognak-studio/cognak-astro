@@ -533,7 +533,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       } else {
         $('ocyc').hidden = true;
         $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
-        const LICN = { envato: 'Envato Elements comp · SiTime licenses it on its own Envato account', adobe: 'Comp shown, licensed after approval', sitime: 'From SiTime’s licensed library', own: 'SiTime’s own image', generated: 'AI-generated', other: '' };
+        const LICN = { envato: 'Envato Elements comp · SiTime licenses it on its own Envato account', adobe: 'Comp shown, licensed after approval', sitime: 'From SiTime’s library', own: 'From SiTime’s library', generated: 'AI-generated', other: '' };
         $('source-note').textContent = pick ? (pick.lic ? (LICN[pick.lic] || '') : pick.source === 'stock' ? LICN.adobe : pick.source === 'library' ? LICN.sitime : '') : '';
       }
 

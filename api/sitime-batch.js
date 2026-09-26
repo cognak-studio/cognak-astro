@@ -44,9 +44,10 @@ function originals(s) {
 /* Same rule as admin.astro licOf() (Pierce, 9/25): Envato comps need SiTime's own license. */
 function licOf(p) {
   if (!p) return null;
+  if (p.lic === 'own') return 'sitime';   // "SiTime owned" folded into the library (Pierce, 9/26)
   if (p.lic) return p.lic;
   if (p.source === 'stock') return 'adobe';
-  if (p.source === 'existing') return 'own';
+  if (p.source === 'existing') return 'sitime';
   if (p.source === 'generated') return 'generated';
   const n = String(p.name || p.title || p.path || '');
   if (/adobe[-_ ]?\d{6,}|_comp\.\w+$/i.test(n)) return 'adobe';
