@@ -64,6 +64,88 @@ function syncSlots(allSlots, parked) {
   return out.sort((a, b) => at(a) - at(b));
 }
 
+/* ---- internal review notes and the client role (Pierce, 9/25) ----
+   Michael's reviews travel on the images: pick.reviews (internal:true),
+   pick.solved (per batch token), and slot.history entries whose picks carry
+   those reviews. SiTime's sign-in must never receive them, and a client
+   save must never lose them. */
+const PICKS = ['main', 'backup'];
+const isInt = (r) => !!(r && r.internal);
+const url = (p) => (p && p.url) || null;
+
+function stripPick(p, visible) {
+  if (!p) return p;
+  const o = { ...p };
+  if (Array.isArray(o.reviews)) { o.reviews = o.reviews.filter((r) => !isInt(r)); if (!o.reviews.length) delete o.reviews; }
+  if (Array.isArray(o.solved)) { o.solved = o.solved.filter((x) => visible.has(x.token)); if (!o.solved.length) delete o.solved; }
+  return o;
+}
+/** The slot as the client may see it: no internal reviews anywhere on it. */
+function stripInternal(s, visible) {
+  const o = { ...s };
+  PICKS.forEach((w) => { if (o[w]) o[w] = stripPick(o[w], visible); });
+  if (Array.isArray(o.history)) {
+    o.history = o.history.filter((h) => (h.pick && h.pick.reviews || []).some((r) => !isInt(r)))   // an entry that exists only for an internal review is not shown
+      .map((h) => ({ ...h, why: (h.pick && h.pick.reviews || []).some(isInt) ? 'Replaced' : h.why, pick: stripPick(h.pick, visible) }));
+    if (!o.history.length) delete o.history;
+  }
+  return o;
+}
+/** Put the internal notes back onto a slot the client saved, from the stored slot. */
+function restoreInternal(s, c, current) {
+  const visible = new Set((current.batches || []).filter((b) => !b.internal).map((b) => b.token));
+  const hidden = (p) => ({ reviews: (p && p.reviews || []).filter(isInt), solved: (p && p.solved || []).filter((x) => !visible.has(x.token)) });
+  const merge = (p, h) => {
+    if (!p) return p;
+    const reviews = (p.reviews || []).filter((r) => !isInt(r)).concat(h.reviews);
+    const solved = (p.solved || []).filter((x) => visible.has(x.token)).concat(h.solved);
+    const o = { ...p };
+    if (reviews.length) o.reviews = reviews; else delete o.reviews;
+    if (solved.length) o.solved = solved; else delete o.solved;
+    return o;
+  };
+  const key = (h) => (h.which || '') + '|' + (url(h.pick) || '') + '|' + (h.at || '');
+  const curHist = Array.isArray(c.history) ? c.history : [];
+  const curKeys = new Map(curHist.map((h) => [key(h), h]));
+  // 1. history the client sent: its own new entries (restore any notes the
+  //    stored pick carried), plus stored entries it merely echoed back
+  let history = (Array.isArray(s.history) ? s.history : []).map((h) => {
+    const stored = curKeys.get(key(h));
+    if (stored) return { ...stored };
+    const from = PICKS.map((w) => c[w]).find((p) => p && url(p) === url(h.pick));
+    return from ? { ...h, pick: merge(h.pick, hidden(from)) } : h;
+  });
+  // 2. the picks themselves: same image as stored → carry its notes; a
+  //    different image → the stored one left the slot, and if it had internal
+  //    notes and the client made no history entry for it, make one
+  PICKS.forEach((w) => {
+    const p = s[w], q = c[w];
+    if (p && q && url(p) === url(q)) { s[w] = merge(p, hidden(q)); return; }
+    if (q && hidden(q).reviews.length && !history.some((h) => h.which === w && url(h.pick) === url(q))) {
+      history.unshift({ which: w, why: 'Replaced', at: Date.now(), pick: { ...q } });
+    }
+  });
+  // 3. stored entries the client never saw come back in their place
+  curHist.forEach((h, i) => { if (!history.some((x) => key(x) === key(h))) history.splice(Math.min(i, history.length), 0, { ...h }); });
+  history = history.slice(0, 20);
+  if (history.length) s.history = history; else delete s.history;
+}
+
+/** The state as this role may see it (GET, and the 409 conflict body). */
+function viewFor(who, state) {
+  if (who.role === 'admin') return state;
+  const out = { ...state, reviewPass: undefined };
+  if (who.role !== 'client') return out;
+  /* SiTime's own sign-in never sees COGNAK's internal reviews (Pierce, 9/25).
+     Batches, their decisions and the review log are dropped, and so are the
+     review notes copied onto the images themselves (pick.reviews, history,
+     solved). POST puts those back from the stored state, so a client save
+     never loses them. */
+  const visible = new Set((state.batches || []).filter((b) => !b.internal).map((b) => b.token));
+  return { ...out, batches: (state.batches || []).filter((b) => !b.internal), reviewLog: undefined,
+    slots: (state.slots || []).map((s) => stripInternal(s, visible)), retiredSlots: (state.retiredSlots || []).map((s) => stripInternal(s, visible)) };
+}
+
 export default async function handler(req, res) {
   const who = await requireEditor(req, res);
   if (!who) return;
@@ -93,14 +175,10 @@ export default async function handler(req, res) {
       const seedIds = new Set(livePages().map((p) => p.id));
       const custom = (state.customPages || []).filter((p) => p && p.id && !seedIds.has(p.id));
       const withPages = { ...state, pages: livePages().concat(custom), slots: liveSlots, retiredSlots: syncSlots.parked };
-      let out = who.role === 'admin' ? withPages : { ...withPages, reviewPass: undefined };
+      const out = viewFor(who, withPages);
       let decs = decisions;
-      /* SiTime's own sign-in never sees COGNAK's internal reviews (Pierce, 9/25).
-         Safe to strip: non-admin saves keep batches and reviewLog from the
-         stored state (POST below), so nothing stripped here is lost. */
       if (who.role === 'client') {
-        const hide = new Set((out.batches || []).filter((b) => b.internal).map((b) => b.token));
-        out = { ...out, batches: (out.batches || []).filter((b) => !b.internal), reviewLog: undefined };
+        const hide = new Set((withPages.batches || []).filter((b) => b.internal).map((b) => b.token));
         decs = Object.fromEntries(Object.entries(decisions).filter(([t]) => !hide.has(t)));
       }
       return res.status(200).json({ ok: true, state: out, decisions: decs, seeded, me: who, context: ctx });
@@ -138,7 +216,7 @@ export default async function handler(req, res) {
       // Only a NEWER stored version is a conflict. An older one just means the
       // listing has not caught up with this page's own last save yet.
       if (current && current.savedAt && base && current.savedAt > base) {
-        return res.status(409).json({ conflict: true, state: current });
+        return res.status(409).json({ conflict: true, state: viewFor(who, current) });   // same view as GET: no passcode for team, no internal notes for the client
       }
       if (who.role !== 'admin' && current) {
         state.batches = current.batches || [];
@@ -148,6 +226,15 @@ export default async function handler(req, res) {
         // Team may take a slot OUT of a batch (Pick a replacement) but never put
         // one into a batch.
         state.slots.forEach((s) => { const w = was.has(s.id) ? was.get(s.id) : null; s.batch = s.batch == null ? null : w; });
+        /* The client never received the internal review notes on the images
+           (see GET), so they are not in this document: put them back from the
+           stored state, image by image. Parked slots are not shown to the
+           client at all, so the stored ones stand. */
+        if (who.role === 'client') {
+          const cur = new Map((current.slots || []).map((s) => [s.id, s]));
+          state.slots.forEach((s) => { const c = cur.get(s.id); if (c) restoreInternal(s, c, current); });
+          syncSlots(current.slots, current.retiredSlots); state.retiredSlots = syncSlots.parked;   // the parked list as GET computes it, unstripped
+        }
       }
       // never let a save drop parked (retired) slot work
       if (current && Array.isArray(current.retiredSlots) && !Array.isArray(state.retiredSlots)) state.retiredSlots = current.retiredSlots;
