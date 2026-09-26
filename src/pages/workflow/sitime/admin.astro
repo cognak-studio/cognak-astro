@@ -212,6 +212,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="actions"><button class="sbtn p" id="ad2-save">Add slot</button><button class="sbtn" id="ad2-cancel">Cancel</button></div>
     </dialog>
 
+    <!-- in-page confirm, in place of the browser's confirm() -->
+    <dialog id="confirm-dialog" class="confirm">
+      <div class="group-title" id="cf-title">Confirm</div>
+      <div id="cf-msg"></div>
+      <div class="actions"><button type="button" class="sbtn p" id="cf-ok">Continue</button><button type="button" class="sbtn" id="cf-cancel">Cancel</button></div>
+    </dialog>
+
     <dialog id="batch-dialog">
       <div class="group-title" id="bd-title">New batch</div>
       <label class="q"><span class="q-title">Name</span><input class="txt" id="bd-name" placeholder="Homepage + Applications" /></label>
@@ -537,6 +544,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .ad-pick em{ font-style:normal; font-size:var(--fs-13); color:var(--ink-soft); }
     @media (hover:hover){ .adm .ad-pick:hover{ border-color:var(--ink); box-shadow:0 4px 14px rgba(var(--accent-rgb),.25); } }
     .adm dialog::backdrop{ background:rgba(26,26,26,.35); }
+    .adm dialog.confirm{ width:min(92vw,460px); }
+    .adm dialog.confirm .cf-p{ font-size:var(--fs-15); line-height:1.5; color:var(--ink); margin:0 0 .9rem; }
+    .adm dialog.confirm .actions{ margin-top:1.4rem; }
     /* display:flex only while open -- on the closed dialog it would beat the UA's display:none. */
     .adm dialog.pv{ width:min(96vw,1280px); height:min(94vh,1000px); max-width:none; max-height:none; padding:14px 14px 0; background:#F4F4F2; }
     .adm dialog.pv[open]{ display:flex; flex-direction:column; }
@@ -867,7 +877,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const wait = Math.min(30000, 3000 * Math.pow(2, saveFails - 1));
         $('savestate').textContent = 'Not saved · trying again in ' + Math.round(wait / 1000) + 's';
         clearTimeout(saveTimer); saveTimer = setTimeout(() => { dirty = true; save(); }, wait);
-        if (saveFails >= 2) showNotice('Your changes are not saving. Check your connection and keep this tab open; the page keeps trying.');
+        if (saveFails >= 2) showNotice('Your changes are not saving. Check your connection and keep this tab open; the page keeps trying.', 'save');
       }
       saving = false;
       if (dirty) save();
@@ -876,9 +886,30 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        autosave window, a save in flight, or edits waiting on a retry. */
     let saveFails = 0, unsaved = false;
     window.addEventListener('beforeunload', (e) => { if (dirty || saving || unsaved) { e.preventDefault(); e.returnValue = ''; } });
-    function showNotice(msg) { $('notice-msg').textContent = msg; $('notice').hidden = false; }
-    function hideNotice() { unsaved = false; $('notice').hidden = true; }
-    $('notice-x').addEventListener('click', () => { $('notice').hidden = true; });
+    /* One notice strip for two jobs: the sticky save warning, and short
+       messages that used to be browser alert()s (auto-hide). A save that
+       succeeds clears only its own warning. */
+    let noticeKind = null, noticeTimer = null;
+    function showNotice(msg, kind) {
+      noticeKind = kind || 'info'; $('notice-msg').textContent = msg; $('notice').hidden = false;
+      clearTimeout(noticeTimer); if (noticeKind !== 'save') noticeTimer = setTimeout(() => { $('notice').hidden = true; }, 9000);
+    }
+    function hideNotice() { if (noticeKind === 'save') { unsaved = false; $('notice').hidden = true; noticeKind = null; } }
+    const toast = (msg) => showNotice(String(msg).slice(0, 240), 'info');
+    $('notice-x').addEventListener('click', () => { $('notice').hidden = true; noticeKind = null; });
+    /* In-page confirm. Resolves true on the main button, false on Cancel or
+       Escape. Cancel takes focus, so Enter never deletes by accident. */
+    let cfResolve = null;
+    function askConfirm(msg, opts) {
+      opts = opts || {};
+      $('cf-title').textContent = opts.title || 'Confirm';
+      $('cf-msg').innerHTML = String(msg).split(/\n\n+/).map((t) => '<p class="cf-p">' + esc(t) + '</p>').join('');
+      $('cf-ok').textContent = opts.ok || 'Continue';
+      return new Promise((resolve) => { cfResolve = resolve; $('confirm-dialog').showModal(); $('cf-cancel').focus(); });
+    }
+    $('cf-ok').addEventListener('click', () => { const r = cfResolve; cfResolve = null; $('confirm-dialog').close(); if (r) r(true); });
+    $('cf-cancel').addEventListener('click', () => $('confirm-dialog').close());
+    $('confirm-dialog').addEventListener('close', () => { const r = cfResolve; cfResolve = null; if (r) r(false); });
     function needSignIn() {
       $('gate').hidden = false;
       $('gate-note').textContent = me.role === 'admin' ? 'Your session ended. Sign in on /send in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
@@ -1055,11 +1086,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       });
       S.reviewLog = [{ token: b.token, num: b.num, name: b.name, createdAt: b.createdAt || null, closedAt: Date.now(), closedBy: (me && me.name) || '', items }].concat((S.reviewLog || []).filter((x) => x.token !== b.token));
     }
-    function deleteBatch(b) {
+    async function deleteBatch(b) {
       const total = (b.slotIds || []).length;
       const c = batchCounts(b); const decided = c.a + c.d + c.h;
-      const msg = 'Delete batch ' + String(b.num).padStart(2, '0') + '? Its ' + total + ' slots go back to assigned.' + (decided ? ' The ' + decided + ' recorded decision' + (decided > 1 ? 's and their notes stay' : ' and its note stays') + ' with each image.' : '');
-      if (!confirm(msg)) return;
+      const msg = 'Its ' + total + ' slots go back to assigned.' + (decided ? ' The ' + decided + ' recorded decision' + (decided > 1 ? 's and their notes stay' : ' and its note stays') + ' with each image.' : '') + ' You get 12 seconds to undo.';
+      if (!(await askConfirm(msg, { title: 'Delete batch ' + String(b.num).padStart(2, '0'), ok: 'Delete batch' }))) return;
       withUndo('Deleted batch ' + String(b.num).padStart(2, '0'), () => {
         if (b.internal) logInternal(b);
         archiveDecisions(b);
@@ -1094,7 +1125,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const act = btn.dataset.act;
         if (act === 'open') { const d = row.querySelector('.bdetail'); d.hidden = !d.hidden; if (!d.hidden) renderBatchDetail(b, d); }
         if (act === 'review') {
-          if (!(b.slotIds || []).length) { alert('Add slots first.'); return; }
+          if (!(b.slotIds || []).length) { toast('Add slots to this batch first.'); return; }
           // open the tab inside the click so it isn't popup-blocked, point it once saved
           const w = window.open('about:blank', '_blank');
           flush().then(() => { if (w) w.location.href = link; else location.href = link; });
@@ -1852,11 +1883,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const locked = uses.filter((x) => batchOf(x));
       if (locked.length) {
         const b = batchOf(locked[0]);
-        alert('Can’t delete: ' + locked[0].page + ' · ' + locked[0].name + ' uses this image and is in Batch ' + String(b.num).padStart(2, '0') + '. Take the slot out of the batch first.');
+        toast('Can’t delete: ' + locked[0].page + ' · ' + locked[0].name + ' uses this image and is in Batch ' + String(b.num).padStart(2, '0') + '. Take the slot out of the batch first.');
         return;
       }
-      const msg = 'Delete ' + (l.name || 'this upload') + ' from the library?' + (l.tier !== 'upload' ? '\n\nThe file in Drive is not touched. Re-running the indexer would add it back.' : '') + (uses.length ? '\n\nIt will also be cleared from ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') + ': ' + uses.slice(0, 4).map((x) => x.page + ' · ' + x.name).join(', ') + (uses.length > 4 ? '…' : '') + '.' : '') + '\n\nIt stays in Library → Recently deleted for 30 days.';
-      if (!confirm(msg)) return;
+      const msg = (l.tier !== 'upload' ? 'The file in Drive is not touched. Re-running the indexer would add it back.\n\n' : '') + (uses.length ? 'It will also be cleared from ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') + ': ' + uses.slice(0, 4).map((x) => x.page + ' · ' + x.name).join(', ') + (uses.length > 4 ? '…' : '') + '.\n\n' : '') + 'It stays in Library → Recently deleted for 30 days.';
+      if (!(await askConfirm(msg, { title: 'Delete ' + (l.name || 'this upload') + ' from the library', ok: 'Delete' }))) return;
       withUndo('Deleted ' + (l.name || 'upload'), () => {
         const cleared = [];
         uses.forEach((x) => {
@@ -1906,13 +1937,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const idx = opts && typeof opts.index === 'number' ? opts.index : null;
       const count = idx === null ? 5 : 1;
       if (genBusy[slot.id] != null) return;
-      if (!(slot.prompt || '').trim()) { alert('Write a brief first — that’s what gets sent to the image generator.'); return; }
+      if (!(slot.prompt || '').trim()) { toast('Write a brief first. It is what gets sent to the image generator.'); return; }
       /* The index being generated, not just "busy": only that card shows
          the working state (Pierce, 9/23: every empty card read as generating). */
       genBusy[slot.id] = idx === null ? 'all' : idx; refreshDrawer(slot.id);
       try {
         const r = await api('/api/sitime-generate', { method: 'POST', body: { slotId: slot.id, prompt: slot.prompt || '', count } });
-        if (!r.ok || !r.data || !r.data.ok) { alert((r.data && r.data.error) || 'Generation failed (' + r.status + ').'); return; }
+        if (!r.ok || !r.data || !r.data.ok) { toast('Generation failed: ' + ((r.data && r.data.error) || 'HTTP ' + r.status)); return; }
         const images = r.data.images || [];
         if (idx === null) {
           slot.generated = images.map((im) => ({ id: im.id, url: im.url, thumb: im.url, at: im.at }));
@@ -1922,7 +1953,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         }
         mark(); renderSlots(); renderStats();
       } catch (e) {
-        alert('Generation failed: ' + (e && e.message ? e.message : e));
+        toast('Generation failed: ' + (e && e.message ? e.message : e));
       } finally {
         delete genBusy[slot.id]; refreshDrawer(slot.id);
       }
@@ -2090,7 +2121,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (srcTab === 'generated') { const g = (s.generated || []).find((x) => x.url === url); if (g) pick = pickFrom('generated', g); }
         if (pick) assign(s, pick);
       }));
-      const ps = el.querySelector('[data-paste]'); if (ps) ps.addEventListener('click', () => { const u = prompt('Adobe Stock comp URL (…ftcdn.net/jpg/…/1000_F_<id>_….jpg) or a Stock ID:'); if (!u) return; const m = u.match(/1000_F_(\d+)_/) || u.match(/^(\d{6,12})$/); const id = m ? m[1] : ''; const url = /^https?:/.test(u) ? u : ''; if (!url) { alert('Paste the comp image URL, not just the ID: the tool can’t fetch a comp from an ID alone.'); return; } s.candidates = s.candidates || []; if (!s.candidates.find((c) => c.comp === url)) s.candidates.unshift({ id, title: 'Pasted', comp: url, url: id ? 'https://stock.adobe.com/images/x/' + id : url, why: 'Added by COGNAK', ai: false, manual: true }); assign(s, pickFrom('stock', s.candidates[0])); });
       const lq = el.querySelector('[data-libq]'); if (lq) lq.addEventListener('input', (e) => { libQuery = e.target.value; libShown = 48; refreshDrawer(s.id); const nq = document.querySelector('[data-detail="' + s.id + '"] [data-libq]'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } });
       el.querySelectorAll('[data-g]').forEach((b) => b.addEventListener('click', () => { libGroup = b.dataset.g; libShown = 48; refreshDrawer(s.id); }));
       const lm = el.querySelector('[data-libmore]'); if (lm) lm.addEventListener('click', () => { libShown += 48; refreshDrawer(s.id); });
@@ -2330,7 +2360,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function replaceLibImage(libId, file) {
       const l = (S.library || []).find((x) => x.id === libId); if (!l) return;
       const uses = libUses(l); const inBatch = uses.filter((x) => batchOf(x));
-      if (inBatch.length && !confirm('This image is on ' + inBatch.length + ' slot' + (inBatch.length === 1 ? '' : 's') + ' already in a batch (' + inBatch.slice(0, 3).map((x) => x.page + ' · ' + x.name).join(', ') + (inBatch.length > 3 ? '…' : '') + '). The review will show the new image, including on anything already approved. Replace it?')) return;
+      if (inBatch.length && !(await askConfirm('This image is on ' + inBatch.length + ' slot' + (inBatch.length === 1 ? '' : 's') + ' already in a batch (' + inBatch.slice(0, 3).map((x) => x.page + ' · ' + x.name).join(', ') + (inBatch.length > 3 ? '…' : '') + '). The review will show the new image, including on anything already approved.', { title: 'Replace ' + (l.name || 'this image') + ' everywhere', ok: 'Replace' }))) return;
       lgBusy = libId; $('libgrid-status').textContent = 'Uploading ' + file.name + '…'; drawLibGrid();
       try {
         const nid = await sha1('replace/' + l.id + '/' + WEB_MAX + '/' + file.name + '/' + file.size + '/' + (file.lastModified || 0));
@@ -2365,7 +2395,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         /* Same guard as deleting an upload: a slot in a batch may be on
            screen with SiTime right now. */
         const bt = batchOf(s);
-        if (bt) { alert('Can’t remove: ' + s.page + ' · ' + s.name + ' is in Batch ' + String(bt.num).padStart(2, '0') + '. Take the slot out of the batch first.'); return; }
+        if (bt) { toast('Can’t remove: ' + s.page + ' · ' + s.name + ' is in Batch ' + String(bt.num).padStart(2, '0') + '. Take the slot out of the batch first.'); return; }
         withUndo('Removed the ' + which + ' image from ' + s.name, () => {
           retirePick(s, which, 'Removed');
           if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
@@ -2391,11 +2421,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('hist-list').innerHTML = rows.length ? rows.slice(0, 80).map((v, k) => { const drop = v.prev && (v.picks - v.prev.picks <= -3 || v.batches < v.prev.batches || v.batched - v.prev.batched <= -3 || v.library - v.prev.library <= -3); return '<div class="hrow' + (k === 0 ? ' cur' : '') + (drop ? ' drop' : '') + '"><div class="when"><b>' + fmt(v.savedAt) + '</b><span>' + esc(v.by) + (k === 0 ? ' · current' : '') + '</span></div><div class="what">' + [delta(v, 'picks', 'picks'), delta(v, 'batches', 'batches'), delta(v, 'batched', 'in batches'), delta(v, 'library', 'library')].join(' · ') + '</div><button class="sbtn" data-ver="' + v.savedAt + '">Restore</button></div>'; }).join('') : '<p class="hint">No saved versions yet. History starts with the next save.</p>';
       $('hist-list').querySelectorAll('[data-ver]').forEach((b) => b.addEventListener('click', async () => {
         const t = Number(b.dataset.ver);
-        if (!confirm('Restore the version from ' + fmt(t) + '? Everything saved after it is replaced for everyone. The current version stays in this list, so this can be undone.')) return;
+        if (!(await askConfirm('Everything saved after it is replaced, for everyone. The current version stays in this list, so this can be undone.', { title: 'Restore the version from ' + fmt(t), ok: 'Restore' }))) return;
         clearTimeout(saveTimer); dirty = false;
         b.textContent = 'Restoring…';
         const rr = await api('/api/sitime-state', { method: 'POST', body: { restore: t } });
-        if (!rr.ok) { alert((rr.data && rr.data.error) || 'Could not restore.'); b.textContent = 'Restore'; return; }
+        if (!rr.ok) { toast((rr.data && rr.data.error) || 'Could not restore.'); b.textContent = 'Restore'; return; }
         location.reload();
       }));
     }
@@ -2423,7 +2453,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     $('client-save').addEventListener('click', async () => {
       const pass = $('client-pass').value;
-      if (!pass.trim() && clientOn && !confirm('The field is blank. Turn SiTime access off and sign SiTime out?')) return;
+      if (!pass.trim() && clientOn && !(await askConfirm('The field is blank. SiTime access turns off and anyone signed in with it is signed out.', { title: 'Turn SiTime access off', ok: 'Turn off' }))) return;
       $('client-status').textContent = 'Saving…';
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', which: 'client', pass } });
       $('client-pass').value = '';
@@ -2432,7 +2462,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     });
     $('team-save').addEventListener('click', async () => {
       const pass = $('team-pass').value;
-      if (!pass.trim() && teamOn && !confirm('The field is blank. Turn team access off and sign everyone out?')) return;
+      if (!pass.trim() && teamOn && !(await askConfirm('The field is blank. Team access turns off and everyone signed in with it is signed out.', { title: 'Turn team access off', ok: 'Turn off' }))) return;
       $('team-status').textContent = 'Saving…';
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', pass } });
       $('team-pass').value = '';
