@@ -330,9 +330,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile .tag{ position:absolute; top:10px; left:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
     .adm .tile.is-backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
     .adm .tile.ai::after{ content:'AI'; position:absolute; top:10px; right:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
-    .adm .tile .lic{ position:absolute; left:10px; bottom:10px; z-index:2; padding:3px 9px; border-radius:999px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.1em; text-transform:uppercase; background:#FFE9C7; color:#6B4300; }
-    .adm .tile .lic.other{ background:#EEE; color:#555; }
-    .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0; transition:opacity .12s; }
+    .adm .tile .cap .lic{ flex:none; font-style:normal; padding:3px 8px; border-radius:999px; letter-spacing:.1em; text-transform:uppercase; background:rgba(255,255,255,.88); color:#575049; }
+    .adm .tile .cap .lic.envato{ background:#FFE9C7; color:#6B4300; }
+    .adm .tile .cap .lic.other{ background:#EEE; color:#555; }
+    .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; display:flex; align-items:center; gap:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); opacity:0; transition:opacity .12s; }
+    .adm .tile .cap > span{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .adm .tile.filled .cap{ opacity:1; }
     /* Click a filled tile to reveal these -- Swap re-opens the picker for just
        that slot, the trash icon clears just that slot. Nothing happens on a
@@ -367,7 +369,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .rvhist summary{ cursor:pointer; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; }
     .adm .drawer .rvold{ display:flex; gap:12px; align-items:flex-start; margin-top:10px; }
     .adm .drawer .rvold img{ width:96px; height:64px; object-fit:cover; border-radius:4px; flex:none; }
-    .adm .drawer .descrow{ display:grid; grid-template-columns:1fr; gap:16px; margin-top:14px; }
+    .adm .drawer .descrow{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px; }
+    .adm .drawer .descrow > label:first-child{ grid-column:1/-1; }
+    .adm .drawer .descrow select{ width:100%; box-sizing:border-box; font-family:inherit; text-transform:none; letter-spacing:.02em; font-size:var(--fs-13); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:8px 32px 8px 12px; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/12px; appearance:none; -webkit-appearance:none; }
+    .adm .drawer .descrow .srcsel .mini{ text-transform:none; letter-spacing:.02em; }
     .adm .drawer .descrow label{ display:flex; flex-direction:column; gap:6px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .drawer .descrow input{ width:100%; box-sizing:border-box; font-family:inherit; text-transform:none; letter-spacing:.02em; font-size:var(--fs-13); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:9px 12px; background:#fff; }
     .adm .drawer .descrow input:disabled{ background:transparent; color:var(--ink-soft); }
@@ -1171,7 +1176,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (/-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}-utc\.\w+$/i.test(n) || /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]* \d{1,2},? 20\d\d( \(\d+\))?\.\w+$/i.test(n) || /[a-z] 20\d\d\.\w+$/i.test(n)) return 'envato';
       return 'other';
     }
-    const LIC_CYCLE = ['envato', 'adobe', 'sitime', 'own', 'generated', 'other'];
+    const LIC_ORDER = ['adobe', 'envato', 'sitime', 'own', 'generated', 'other'];
     const DECIDED_BY = 'SiTime (group)';
     const isoAt = (ev) => (ev && ev.at) ? new Date(ev.at).toISOString() : '';
     const assetId = (p) => (p && p.source === 'stock') ? (p.id || '') : '';
@@ -1432,13 +1437,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
         (DEC ? '<span class="dec st ' + DEC[0] + '"><i></i>' + DEC[1] + '</span>' : '') +
         (INT ? '<span class="dec-int' + (DEC ? ' below' : '') + '" title="' + esc(intRv.batch + (intRv.note ? ' — ' + intRv.note : '')) + '">Internal · ' + INT + '</span>' : '') +
-        '<span class="cap">' + esc(pick.desc || pick.title || pick.id || '') + '</span>' +
-        (licOf(pick) === 'envato' || licOf(pick) === 'other' ? '<span class="lic ' + licOf(pick) + '" title="' + esc(LIC[licOf(pick)][1]) + '">' + esc(LIC[licOf(pick)][0]) + (licOf(pick) === 'envato' ? ' · SiTime licenses' : '') + '</span>' : '') +
+        /* Caption line: the source first (Pierce, 9/26: note it, no button for it; Envato and Other stand out, the rest are quiet), then the image's name. */
+        '<span class="cap"><i class="lic ' + licOf(pick) + '" title="' + esc(LIC[licOf(pick)][1]) + '">' + esc(LIC[licOf(pick)][0]) + (licOf(pick) === 'envato' ? ' · SiTime licenses' : '') + '</i><span>' + esc(pick.desc || pick.title || pick.id || '') + '</span></span>' +
         '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
         (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
         '<button class="tact" data-act="bw" data-slot="' + s.id + '" data-which="' + which + '" title="Toggle black and white">' + (pick.bw ? 'Color' : 'B&amp;W') + '</button>' +
         '<button class="tact" data-act="flip" data-slot="' + s.id + '" data-which="' + which + '" title="Flip horizontally">Flip</button>' +
-        '<button class="tact" data-act="lic" data-slot="' + s.id + '" data-which="' + which + '" title="Where this image comes from, for licensing. Click to change.">Source · ' + esc(LIC[licOf(pick)][0]) + '</button>' +
         '<button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
     }
     function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + tileHtml(s, 'backup') + '</div>'; }
@@ -1505,10 +1509,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           mark(); renderSlots(); renderStats();
         } else if (btn.dataset.act === 'replace') {
           revealTile = null; openPicker(s.id, which);
-        } else if (btn.dataset.act === 'lic') {
-          const p = s[which]; if (!p) return;
-          p.lic = LIC_CYCLE[(LIC_CYCLE.indexOf(licOf(p)) + 1) % LIC_CYCLE.length];
-          revealTile = { slotId: s.id, which }; mark(); renderSlots();
         } else if (btn.dataset.act === 'bw' || btn.dataset.act === 'flip') {
           const p = s[which]; if (!p) return;
           const k = btn.dataset.act; if (p[k]) delete p[k]; else p[k] = true;
@@ -1541,7 +1541,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
-        '<div class="descrow"><label>Additional notes · shown to SiTime under the image<input type="text" data-desc="1" maxlength="200" value="' + esc(slotDesc(s)) + '" placeholder="Optional"></label></div>' +
+        '<div class="descrow"><label>Additional notes · shown to SiTime under the image<input type="text" data-desc="1" maxlength="200" value="' + esc(slotDesc(s)) + '" placeholder="Optional"></label>' +
+        /* Where each image comes from, for licensing (pick.lic). Guessed from the file name; correct it here. */
+        ['main', 'backup'].map((w) => '<label class="srcsel">Source · ' + w + (s[w] ? '<select data-lic="' + w + '">' + LIC_ORDER.map((k) => '<option value="' + k + '"' + (licOf(s[w]) === k ? ' selected' : '') + '>' + esc(LIC[k][0]) + '</option>').join('') + '</select><span class="mini">' + esc(LIC[licOf(s[w])][1]) + '</span>' : '<span class="mini">No ' + w + ' yet</span>') + '</label>').join('') + '</div>' +
         reviewBlock(s) +
         '<div class="meta"><div><b>The brief</b>' + esc(s.rec || '') + '<textarea class="q2 brief-edit" data-brief="1" rows="3" placeholder="What should this image show? Editing this changes what Generate sends.">' + esc(s.prompt || '') + '</textarea></div>' +
         '<div><b>Search terms</b>One per line. Seeds the Stock search below.<textarea class="q2 terms-edit" data-terms="1" rows="3" placeholder="silicon wafer macro">' + esc((s.terms || []).join('\n')) + '</textarea></div></div>' +
@@ -1565,6 +1567,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       /* One description per slot (Pierce, 9/25): main and backup share it.
          Stored as s.desc; older per-pick descriptions (pick.desc) still show
          until the slot gets its own. */
+      el.querySelectorAll('[data-lic]').forEach((sel) => sel.addEventListener('change', () => { const p = s[sel.dataset.lic]; if (!p) return; p.lic = sel.value; mark(); renderSlots(); }));
       el.querySelector('[data-desc]').addEventListener('change', (e) => {
         const v = e.target.value.replace(/\s+/g, ' ').trim();
         if (v) s.desc = v; else delete s.desc;
