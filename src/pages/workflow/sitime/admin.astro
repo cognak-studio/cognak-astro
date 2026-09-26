@@ -562,6 +562,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .railhead{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:1; }
     .adm .railhead .link{ margin:0; }
     .adm .selbar .link{ margin:0; white-space:nowrap; }
+    .adm .railnote{ font-size:var(--fs-13); line-height:1.45; margin:2px 4px 12px; }
     .adm .rsec{ margin-bottom:4px; }
     .adm .rsec > button{ width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); background:none; border:0; padding:11px 4px; cursor:pointer; text-align:left; }
     .adm .rsec > button:hover{ color:var(--ink); }
@@ -723,6 +724,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let search = '';
     const PAGE = 8;
     let pageIdx = 0;
+    /* One line above the rail on SiTime's sign-in (Pierce, 9/26): the whole
+       inventory is listed, but only part of it is being worked. Edit here. */
+    const SCOPE_NOTE = 'Homepage and About Us are in progress. The other sections are listed for reference.';
 
     /* ---------- save (debounced, whole document) ---------- */
     let saveTimer = null, saving = false, dirty = false;
@@ -1352,7 +1356,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const sp = sectionProgress([].concat(...pages.values()));
         return '<div class="rsec ' + (open ? 'open' : '') + '"><button class="' + (fx.section === sec && !fx.page ? 'sel' : '') + '" data-sec="' + esc(sec) + '"><span class="sdot ' + sp.cls + '" title="' + esc(sp.title) + '"></span>' + esc(sec === '(unmapped)' ? 'Unsectioned' : sec) + '<b>' + n + '</b></button>' + inner + '</div>';
       }).join('');
-      $('rail').innerHTML = html || '<p class="hint">Nothing matches.</p>';
+      $('rail').innerHTML = (isClient() && SCOPE_NOTE ? '<p class="hint railnote">' + esc(SCOPE_NOTE) + '</p>' : '') + (html || '<p class="hint">Nothing matches.</p>');
       $('rail-count').textContent = list.length + ' slots';
       /* Clicking a section header shows that whole section on the right and
          opens its page list. Clicking the one already showing puts it back to
@@ -1537,7 +1541,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id, isClient() ? '' : s.action].filter(Boolean).join(' · ')) + '</span>' +
         '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
-        '<div class="tgtbar"><div class="tgrp"><span class="lbl">Setting</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
+        '<div class="tgtbar"><div class="tgrp"><span class="lbl">Assign to</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
