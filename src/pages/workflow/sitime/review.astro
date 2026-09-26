@@ -155,14 +155,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review{ --bg:#F4F4F2; --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B;
       --accent:#9B948A; --accent-rgb:155,148,138; --head:#575049; --deep:#1C1A17;
       --line:#E6E6E3; --line-strong:#CFCFCB; --ok:#5A9E00; --err:#E5231B;
-      max-width:1040px; margin:0 auto; padding:190px 6vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
+      /* Same frame as the admin page (Pierce, 9/26): one card width across the tool. */
+      max-width:1560px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .review .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .review .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .review .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
-    .review .card{ background:var(--card); border-radius:12px; padding:34px 34px 30px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; position:relative; }
+    .review .card{ background:var(--card); border-radius:12px; padding:38px 40px 34px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; position:relative; }
     .review .card + .card{ margin-top:22px; }
     .review .backlink{ position:relative; display:flex; width:fit-content; align-items:center; gap:.5rem;
-      margin:1.8rem 0 0 34px; color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:var(--fs-11);
+      margin:1.8rem 0 0 40px; color:var(--ink-soft); font-family:'Diatype Mono', monospace; font-size:var(--fs-11);
       line-height:1.3; letter-spacing:.16em; text-transform:uppercase; text-decoration:none;
       transition:color var(--dur-s) var(--ease-standard); }
     .review .backlink::before{ content:""; position:absolute; inset:-12px -10px; }
@@ -341,11 +342,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .summary .n{ color:var(--ink-soft); font-size:var(--fs-14); margin-top:3px; }
 
     @media (max-width:760px){
-      .review{ padding:150px 5vw 12vh; }
+      .review{ padding:150px 4vw 12vh; }
       .review .headline{ font-size:clamp(24px,7vw,42px); }
       .review .lede{ margin-left:0; }
-      .review .card{ padding:22px 18px 20px; }
-      .review .backlink{ margin-left:18px; }
+      .review .card{ padding:26px 20px 24px; }
+      .review .backlink{ margin-left:20px; }
       .review .pill{ padding:11px 18px; font-size:var(--fs-14); }
       .review .summary .row{ grid-template-columns:1fr; gap:4px; }
       /* On a phone the denial note is worth more than a stage that never
