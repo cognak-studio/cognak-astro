@@ -1455,18 +1455,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       /* SiTime's decision on THIS image, from its batch (Pierce, 9/24): shown
          on the tile so a finished slot reads as done without opening it. */
       const bt = batchOf(s); const dd = bt && D[bt.token] && D[bt.token].latest && D[bt.token].latest[s.id];
-      /* Badge = this image's decision in its CURRENT batch. Once a slot is in a
-         batch, earlier reviews never show here. Out of a batch, only a SiTime
-         (external) review shows: an internal review (Michael) leaves no badge
-         after its batch is deleted (Pierce, 9/25). Notes stay in the drawer. */
-      const extRv = (pick.reviews || []).filter((r) => !r.internal);
-      const lastRv = bt ? null : extRv[extRv.length - 1];
+      /* Badge = this image's decision in its CURRENT batch, nothing else. A
+         decision from a deleted batch stays on the image as a note (drawer,
+         Review notes) but no longer shows as a status: a hold made as a demo
+         on the 9/25 call kept reading "Held" after its batch was deleted. */
       const solved = bt ? isSolved(pick, bt) : false;
       /* Internal review stays visible as a quiet secondary tag, not a status
          badge (Pierce, 9/25: "display it some other way, it is useful"). */
       const intRv = isClient() ? null : (pick.reviews || []).filter((r) => r.internal).pop();
       const INT = intRv ? ({ approve: 'Approved', deny: 'Denied', hold: 'Held', solved: 'Solved' })[intRv.decision] : '';
-      const dec = solved ? 'solved' : bt ? (dd && dd[which] && dd[which].decision) : (lastRv && lastRv.decision); const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'], solved: ['approved', 'Solved'] }[dec];
+      const dec = solved ? 'solved' : bt ? (dd && dd[which] && dd[which].decision) : null; const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'], solved: ['approved', 'Solved'] }[dec];
       return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc([pick.desc || pick.title || ''].concat((pick.reviews || []).filter(seeRv).map((r) => r.batch + ': ' + r.decision + (r.note ? ' · ' + r.note : ''))).join('\n')) + '" data-slot="' + s.id + '" data-which="' + which + '">' +
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '"' + fxStyle(pick) + '>' +
         '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
