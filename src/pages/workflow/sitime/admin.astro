@@ -862,7 +862,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (merged) { renderStats(); if (!typing()) rerender(); }
         $('savestate').textContent = 'Verifying…';
         const ok = await verifySaved(r.data.savedAt);
-        $('savestate').textContent = (ok ? 'Saved' : 'Saved (unverified — wait a moment before opening a batch)') + (merged ? ' · merged with another editor' : '');
+        $('savestate').textContent = (ok ? 'Saved' : 'Saved (unverified; wait a moment before opening a batch)') + (merged ? ' · merged with another editor' : '');
       } else if (r.status === 401) {
         /* The session ended (passcode changed, or the cookie ran out). The
            edits stay on the page: the sign-in card comes back in place and the
@@ -1219,7 +1219,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function exportBatchCsv(b) {
       const m = byId();
       const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'additional_notes', 'treatment', 'note', 'license_source']];
-      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? (o.ev.by || DECIDED_BY) : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '', p && p.url ? LIC[licOf(p)][0] + ' — ' + LIC[licOf(p)][1] : '']); });
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? (o.ev.by || DECIDED_BY) : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '', p && p.url ? LIC[licOf(p)][0] + ': ' + LIC[licOf(p)][1] : '']); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
     function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
@@ -1467,11 +1467,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const intRv = isClient() ? null : (pick.reviews || []).filter((r) => r.internal).pop();
       const INT = intRv ? ({ approve: 'Approved', deny: 'Denied', hold: 'Held', solved: 'Solved' })[intRv.decision] : '';
       const dec = solved ? 'solved' : bt ? (dd && dd[which] && dd[which].decision) : (lastRv && lastRv.decision); const DEC = { approve: ['approved', 'Approved'], deny: ['denied', 'Denied'], hold: ['held', 'Held'], solved: ['approved', 'Solved'] }[dec];
-      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc([pick.desc || pick.title || ''].concat((pick.reviews || []).filter(seeRv).map((r) => r.batch + ': ' + r.decision + (r.note ? ' — ' + r.note : ''))).join('\n')) + '" data-slot="' + s.id + '" data-which="' + which + '">' +
+      return '<div class="tile filled is-' + which + (open ? ' is-open' : '') + (DEC ? ' dec-' + DEC[0] : '') + '" title="' + esc([pick.desc || pick.title || ''].concat((pick.reviews || []).filter(seeRv).map((r) => r.batch + ': ' + r.decision + (r.note ? ' · ' + r.note : ''))).join('\n')) + '" data-slot="' + s.id + '" data-which="' + which + '">' +
         '<img loading="lazy" src="' + esc(pick.thumb || pick.url) + '"' + fxStyle(pick) + '>' +
         '<span class="tag">' + which.toUpperCase() + (pick.bw ? ' · B&amp;W' : '') + (pick.flip ? ' · FLIPPED' : '') + '</span>' +
         (DEC ? '<span class="dec st ' + DEC[0] + '"><i></i>' + DEC[1] + '</span>' : '') +
-        (INT ? '<span class="dec-int' + (DEC ? ' below' : '') + '" title="' + esc(intRv.batch + (intRv.note ? ' — ' + intRv.note : '')) + '">Internal · ' + INT + '</span>' : '') +
+        (INT ? '<span class="dec-int' + (DEC ? ' below' : '') + '" title="' + esc(intRv.batch + (intRv.note ? ' · ' + intRv.note : '')) + '">Internal · ' + INT + '</span>' : '') +
         /* Caption line: the source first (Pierce, 9/26: note it, no button for it; Envato and Other stand out, the rest are quiet), then the image's name. */
         '<span class="cap"><i class="lic ' + licOf(pick) + '" title="' + esc(LIC[licOf(pick)][1]) + '">' + esc(LIC[licOf(pick)][0]) + (licOf(pick) === 'envato' ? ' · SiTime licenses' : '') + '</i><span>' + esc(pick.desc || pick.title || pick.id || '') + '</span></span>' +
         '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
@@ -1618,13 +1618,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        overrides that. Same rule lives in api/sitime-batch.js. */
     function reviewBlock(s) {
       const DL = { approve: 'Approved', deny: 'Denied', hold: 'Held', solved: 'Solved' };
-      const line = (w, r) => '<div class="rv"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>';
+      const line = (w, r) => '<div class="rv"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' · “' + esc(r.note) + '”' : '') + '</div>';
       const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).filter(seeRv).map((r) => line(w, r)));
       const hist = s.history || [];
       const whyOf = (h) => (isClient() && (h.pick.reviews || []).some((r) => r.internal) && !(h.pick.reviews || []).some((r) => !r.internal)) ? 'Replaced' : (h.why || '');
       if (!cur.length && !hist.length) return '';
       return '<div class="rvbox">' + (cur.length ? '<div class="rvh">Review notes</div>' + cur.join('') : '') +
-        (hist.length ? '<details class="rvhist"><summary>Earlier images · ' + hist.length + '</summary>' + hist.map((h) => '<div class="rvold"><img src="' + esc(h.pick.thumb || h.pick.url || '') + '"' + fxStyle(h.pick) + '><div><b>' + (h.which === 'main' ? 'Main' : 'Backup') + '</b> · ' + esc(whyOf(h)) + ' · ' + ago(h.at) + (h.pick.desc ? '<div>' + esc(h.pick.desc) + '</div>' : '') + ((h.pick.reviews || []).filter(seeRv).map((r) => '<div>' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' — “' + esc(r.note) + '”' : '') + '</div>').join('')) + '</div></div>').join('') + '</details>' : '') + '</div>';
+        (hist.length ? '<details class="rvhist"><summary>Earlier images · ' + hist.length + '</summary>' + hist.map((h) => '<div class="rvold"><img src="' + esc(h.pick.thumb || h.pick.url || '') + '"' + fxStyle(h.pick) + '><div><b>' + (h.which === 'main' ? 'Main' : 'Backup') + '</b> · ' + esc(whyOf(h)) + ' · ' + ago(h.at) + (h.pick.desc ? '<div>' + esc(h.pick.desc) + '</div>' : '') + ((h.pick.reviews || []).filter(seeRv).map((r) => '<div>' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' · “' + esc(r.note) + '”' : '') + '</div>').join('')) + '</div></div>').join('') + '</details>' : '') + '</div>';
     }
     /* How review shows a slot: hero (full width), card (tall card with copy),
        or through SiTime's logo burst / arm mask. Masks come from the seed
@@ -1823,7 +1823,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             const need = s.candidates.find((c) => !c.comp);
             if (need) { need.comp = comp; delete need.needsPreview; need.why = 'Added by ' + me.name; filled++; continue; }
           }
-          const c = { id: id, title: '', comp: comp, url: page || (id ? 'https://stock.adobe.com/images/x/' + id : ''), why: comp ? 'Added by ' + me.name : 'Link added — drag the image in to preview it', ai: false, manual: true };
+          const c = { id: id, title: '', comp: comp, url: page || (id ? 'https://stock.adobe.com/images/x/' + id : ''), why: comp ? 'Added by ' + me.name : 'Link added. Drag the image in to preview it', ai: false, manual: true };
           if (!comp) c.needsPreview = true;
           s.candidates.unshift(c); added++;
         } catch (e) { failed++; console.error(e); }
@@ -2168,7 +2168,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         /* The status lives outside the drawer: assign() re-renders it, which
            used to wipe the message -- a failed upload looked like nothing
            happened at all. */
-        upStatus[s.id] = { text: picked.length + ' uploaded' + (failed ? '. ' + failed + ' failed — ' + lastErr : '.'), err: !!failed };
+        upStatus[s.id] = { text: picked.length + ' uploaded' + (failed ? '. ' + failed + ' failed: ' + lastErr : '.'), err: !!failed };
         if (uf) uf.value = '';
         mark();
         if (!picked.length) { refreshDrawer(s.id); return; }
@@ -2295,7 +2295,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return new Promise((resolve, reject) => {
         const img = new Image(); const u = URL.createObjectURL(file);
         img.onload = () => resolve({ src: img, w: img.naturalWidth, h: img.naturalHeight, done: () => URL.revokeObjectURL(u) });
-        img.onerror = () => { URL.revokeObjectURL(u); reject(new Error('the browser could not read this image — use JPG or PNG (HEIC, TIFF and PSD will not load)')); };
+        img.onerror = () => { URL.revokeObjectURL(u); reject(new Error('the browser could not read this image. Use JPG or PNG (HEIC, TIFF and PSD will not load)')); };
         img.src = u;
       });
     }
@@ -2378,7 +2378,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         });
         $('libgrid-status').textContent = 'Replaced ' + (l.name || 'image') + (uses.length ? ' on ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') : '') + '.';
       } catch (e) {
-        console.error(e); $('libgrid-status').textContent = 'Replace failed — ' + ((e && e.message) || e || 'unknown error');
+        console.error(e); $('libgrid-status').textContent = 'Replace failed: ' + ((e && e.message) || e || 'unknown error');
       } finally { lgBusy = null; drawLibGrid(); }
     }
     function renderLib() {
