@@ -547,7 +547,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .upzone:hover .upt u{ text-decoration-color:currentColor; }
     .adm .upzone .upm{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); max-width:62ch; line-height:1.6; }
     .adm .upok{ display:block; margin-top:10px; }
-    .adm .batchrow{ display:grid; grid-template-columns:2fr 1fr 60px 110px 1.1fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:var(--fs-14); }
+    /* Each row is its own grid, so no column may size to its content: minmax(0,…) and a fixed actions
+       column keep the header and every row on the same lines (the buttons used to squeeze rows left). */
+    .adm .batchrow{ display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) 60px 110px minmax(0,1.1fr) minmax(0,1fr) 240px; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:var(--fs-14); }
     .adm:not(.team) .batchrow.head > div:first-child{ padding-left:20px; }   /* under the name text, not the grip */
     /* Name cell: grip beside the text, so a long name wraps under its own first line, not under the grip (Pierce, 9/27). */
     .adm .batchrow .bname{ display:flex; align-items:flex-start; gap:10px; min-width:0; }
