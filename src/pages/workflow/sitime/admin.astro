@@ -162,6 +162,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="group-title">Shared team passcode</div>
           <div class="grid3"><label class="q"><span class="q-title">Team passcode</span><input class="txt" id="team-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end" id="team-hint">The older way in, one passcode for the whole COGNAK team; whoever uses it types a name at sign-in. Same rights as a team person above. Changing it signs everyone on it out; blank turns it off. People with their own passcode don't need it.</p></div>
           <div class="actions"><button class="sbtn p" id="team-save">Set team passcode</button><span class="mini" id="team-status"></span></div>
+          <div class="actions" id="client-line" hidden><span class="mini">Old shared SiTime passcode is on.</span><button type="button" class="sbtn" id="client-off">Turn off</button></div>
         </div>
         <div class="group admin-only">
           <div class="group-title">Batch review passcode</div>
@@ -863,7 +864,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        takes the stored version. Objects are updated in place so open
        drawers keep pointing at live slots. */
     let base = null;
-    let me = { role: 'admin', name: 'Pierce' };
+    let me = null;   // set by boot() from the server; null means not signed in
     let curTab = 'batches';
     const J = (o) => JSON.stringify(o === undefined ? null : o);
     const clone = (o) => JSON.parse(JSON.stringify(o));
@@ -915,7 +916,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function stampEdits() {
       const bm = new Map(((base && base.slots) || []).map((x) => [x.id, x]));
-      S.slots.forEach((x) => { if (slotKey(x) !== slotKey(bm.get(x.id))) x.edit = { by: me.name, at: Date.now() }; });
+      S.slots.forEach((x) => { if (slotKey(x) !== slotKey(bm.get(x.id))) x.edit = { by: me?.name, at: Date.now() }; });
     }
     function rebase(server) {
       const B = base || {};
@@ -964,7 +965,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       }
       if (r.ok && r.data && r.data.savedAt) {
         base = JSON.parse(sent); base.savedAt = r.data.savedAt; S.savedAt = r.data.savedAt;
-        saveFails = 0; hideNotice();
+        saveFails = 0; unsaved = false; hideNotice();
         /* The server owns batch numbers; when it changed one (a new batch
            collided with an internal one the client cannot see), take it. */
         let renumbered = false;
@@ -1027,11 +1028,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('confirm-dialog').addEventListener('close', () => { const r = cfResolve; cfResolve = null; if (r) r(false); });
     function needSignIn() {
       $('gate').hidden = false;
-      $('gate-note').textContent = me.role === 'admin' ? 'Your session ended. Sign in on /send in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
-      $('tl-retry').hidden = me.role !== 'admin';
+      $('gate-note').textContent = me?.role === 'admin' ? 'Your session ended. Sign in on /send in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
+      $('tl-retry').hidden = me?.role !== 'admin';
       $('gate-admin').hidden = true;   // "reload this page" would lose the edits; the note above says what to do
       $('gate').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (me.role !== 'admin') $('tl-pass').focus({ preventScroll: true });
+      if (me?.role !== 'admin') $('tl-pass').focus({ preventScroll: true });
     }
     $('tl-retry').addEventListener('click', () => { $('gate').hidden = true; dirty = true; save(); });
 
@@ -1043,6 +1044,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (dirty && !saving) await save();
       while (saving) await new Promise((r) => setTimeout(r, 200));
     }
+    /* After flush(): a review reads the SAVED state, so don't open one on a failed save. */
+    function notSaved(w) {
+      if (!dirty && !unsaved) return false;
+      if (w) w.close();
+      showNotice('Your latest changes haven’t saved yet, so the review would open without them. Wait for “Saved” and try again.');
+      return true;
+    }
 
     /* ---------- derived ---------- */
     const byId = () => new Map(S.slots.map((s) => [s.id, s]));
@@ -1050,11 +1058,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        internal reviews. The server already drops internal batches, their
        decisions and the review log for that role; reviews copied onto picks
        are hidden here. */
-    const isClient = () => !!(me && me.role === 'client');
+    const isClient = () => !!(me && me?.role === 'client');
     /* Batches (Pierce, 9/27): anyone signed in can group slots into a batch and
        manage it. Internal (COGNAK) batches stay the admin's. The server holds
        the same line: a non-admin save never changes an internal batch. */
-    const canEditBatch = (b) => !!me && (me.role === 'admin' || !(b && b.internal));
+    const canEditBatch = (b) => !!me && (me?.role === 'admin' || !(b && b.internal));
     const seeRv = (r) => !(isClient() && r && r.internal);
     function batchOf(slot) { return slot.batch ? S.batches.find((b) => b.token === slot.batch) : null; }
     /* One rule for a slot's outcome, shared verbatim by admin.astro,
@@ -1142,7 +1150,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       document.querySelectorAll('#tabs a').forEach((a) => { a.classList.toggle('on', a.dataset.tab === t); a.setAttribute('aria-selected', String(a.dataset.tab === t)); });
       ['batches', 'slots', 'replacements', 'handoff', 'library', 'settings'].forEach((k) => { $('tab-' + k).hidden = k !== t; });
       $('stats').hidden = t !== 'batches';
-      if (t === 'batches') renderBatches(); if (t === 'slots') renderSlots(); if (t === 'replacements') renderRepl(); if (t === 'handoff') renderHandoff(); if (t === 'library') renderLib(); if (t === 'settings') loadPeople();
+      if (t === 'batches') renderBatches(); if (t === 'slots') renderSlots(); if (t === 'replacements') renderRepl(); if (t === 'handoff') renderHandoff(); if (t === 'library') renderLib(); if (t === 'settings') renderSettings();
     }
 
     /* ---------- batches ---------- */
@@ -1207,7 +1215,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             solved: sv ? { by: sv.by || '', at: sv.at || null } : null });
         });
       });
-      S.reviewLog = [{ token: b.token, num: b.num, name: b.name, createdAt: b.createdAt || null, closedAt: Date.now(), closedBy: (me && me.name) || '', items }].concat((S.reviewLog || []).filter((x) => x.token !== b.token));
+      S.reviewLog = [{ token: b.token, num: b.num, name: b.name, createdAt: b.createdAt || null, closedAt: Date.now(), closedBy: (me && me?.name) || '', items }].concat((S.reviewLog || []).filter((x) => x.token !== b.token));
     }
     async function deleteBatch(b) {
       const total = (b.slotIds || []).length;
@@ -1255,9 +1263,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           if (!(b.slotIds || []).length) { toast('Add slots to this batch first.'); return; }
           // open the tab inside the click so it isn't popup-blocked, point it once saved
           const w = window.open('about:blank', '_blank');
-          flush().then(() => { if (w) w.location.href = link; else location.href = link; });
+          flush().then(() => { if (notSaved(w)) return; if (w) w.location.href = link; else location.href = link; });
         }
-        if (act === 'copy') { navigator.clipboard.writeText(link); btn.classList.add('done'); setTimeout(() => btn.classList.remove('done'), 1500); }
+        if (act === 'copy') Promise.resolve().then(() => navigator.clipboard.writeText(link)).then(() => { btn.classList.add('done'); setTimeout(() => btn.classList.remove('done'), 1500); }).catch(() => toast('Copy failed. The link is ' + link));
         if (act === 'csv') exportBatchCsv(b);
         if (act === 'delete') deleteBatch(b);
       }));
@@ -1455,7 +1463,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const el = $('ad-body');
       el.querySelector('[data-ad="close"]').addEventListener('click', () => $('added-dialog').close());
       el.querySelector('[data-ad="view"]').addEventListener('click', () => { $('added-dialog').close(); showTab('batches'); const row = document.querySelector('.batchrow[data-b="' + b.token + '"]'); const d = row && row.querySelector('.bdetail'); if (d) { d.hidden = false; renderBatchDetail(b, d); row.scrollIntoView({ block: 'center' }); } });
-      el.querySelector('[data-ad="review"]').addEventListener('click', () => { if (!(b.slotIds || []).length) return; const w = window.open('about:blank', '_blank'); const link = location.origin + '/workflow/sitime/' + b.token; flush().then(() => { if (w) w.location.href = link; else location.href = link; }); $('added-dialog').close(); });
+      el.querySelector('[data-ad="review"]').addEventListener('click', () => { if (!(b.slotIds || []).length) return; const w = window.open('about:blank', '_blank'); const link = location.origin + '/workflow/sitime/' + b.token; flush().then(() => { if (notSaved(w)) return; if (w) w.location.href = link; else location.href = link; }); $('added-dialog').close(); });
       if (!$('added-dialog').open) $('added-dialog').showModal();
     }
     function chooseBatch(drafts) {
@@ -1815,7 +1823,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const editing = (w, i) => rvEdit && rvEdit.id === s.id && rvEdit.which === w && rvEdit.i === i;
       const line = (w, r, i) => '<div class="rv' + (editing(w, i) ? ' rv-editing' : '') + '"><span class="rv-t"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) +
         (editing(w, i) ? ' · <input class="rv-in" data-rvin="' + w + ':' + i + '" maxlength="400" value="' + esc(r.note || '') + '" placeholder="No note" aria-label="Review note">' : (r.note ? ' · “' + esc(r.note) + '”' : '')) + '</span>' +
-        (me.role === 'admin' ? '<span class="rv-acts">' + (editing(w, i) ? '<button type="button" class="link" data-rvsave="' + w + ':' + i + '">Save</button><button type="button" class="link" data-rvcancel="1">Cancel</button>' : '<button type="button" class="link" data-rvedit="' + w + ':' + i + '">Edit</button><button type="button" class="link" data-rvrm="' + w + ':' + i + '">Remove</button>') + '</span>' : '') + '</div>';
+        (me?.role === 'admin' ? '<span class="rv-acts">' + (editing(w, i) ? '<button type="button" class="link" data-rvsave="' + w + ':' + i + '">Save</button><button type="button" class="link" data-rvcancel="1">Cancel</button>' : '<button type="button" class="link" data-rvedit="' + w + ':' + i + '">Edit</button><button type="button" class="link" data-rvrm="' + w + ':' + i + '">Remove</button>') + '</span>' : '') + '</div>';
       const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).map((r, i) => [r, i]).filter(([r]) => seeRv(r)).map(([r, i]) => line(w, r, i)));
       const hist = s.history || [];
       const whyOf = (h) => (isClient() && (h.pick.reviews || []).some((r) => r.internal) && !(h.pick.reviews || []).some((r) => !r.internal)) ? 'Replaced' : (h.why || '');
@@ -2014,19 +2022,19 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             comp = (await uploadBlob('sitime/comps/' + key + '.' + web.ext, web.blob)).url;
           }
           const dup = s.candidates.find((c) => (id && c.id === id) || (comp && c.comp === comp));
-          if (dup) { if (comp && !dup.comp) { dup.comp = comp; delete dup.needsPreview; dup.why = 'Added by ' + me.name; filled++; } else dupes++; continue; }
+          if (dup) { if (comp && !dup.comp) { dup.comp = comp; delete dup.needsPreview; dup.why = 'Added by ' + me?.name; filled++; } else dupes++; continue; }
           // a picture with no ID completes the oldest link-only card if there is one
           if (comp && !id) {
             const need = s.candidates.find((c) => !c.comp);
-            if (need) { need.comp = comp; delete need.needsPreview; need.why = 'Added by ' + me.name; filled++; continue; }
+            if (need) { need.comp = comp; delete need.needsPreview; need.why = 'Added by ' + me?.name; filled++; continue; }
           }
-          const c = { id: id, title: '', comp: comp, url: page || (id ? 'https://stock.adobe.com/images/x/' + id : ''), why: comp ? 'Added by ' + me.name : 'Link added. Drag the image in to preview it', ai: false, manual: true };
+          const c = { id: id, title: '', comp: comp, url: page || (id ? 'https://stock.adobe.com/images/x/' + id : ''), why: comp ? 'Added by ' + me?.name : 'Link added. Drag the image in to preview it', ai: false, manual: true };
           if (!comp) c.needsPreview = true;
           s.candidates.unshift(c); added++;
         } catch (e) { failed++; console.error(e); }
       }
       mark();
-      addStatus[s.id] = [added ? added + ' added' : '', filled ? filled + ' preview' + (filled === 1 ? '' : 's') + ' filled' : '', dupes ? dupes + ' already here' : '', failed ? failed + ' failed (see console)' : ''].filter(Boolean).join(' · ') || 'Nothing new.';
+      addStatus[s.id] = [added ? added + ' added' : '', filled ? filled + ' preview' + (filled === 1 ? '' : 's') + ' filled' : '', dupes ? dupes + ' already here' : '', failed ? failed + ' failed, try again' : ''].filter(Boolean).join(' · ') || 'Nothing new.';
       renderSlots(); renderStats();
     }
     function pickFrom(source, obj) {
@@ -2092,7 +2100,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           if (x.backup && x.backup.url === l.url) { cleared.push({ id: x.id, which: 'backup', pick: x.backup }); x.backup = null; }
         });
         S.library = S.library.filter((x) => x.id !== libId);
-        S.trash = (S.trash || []).concat([{ item: l, deletedAt: Date.now(), by: me.name, cleared }]);
+        S.trash = (S.trash || []).concat([{ item: l, deletedAt: Date.now(), by: me?.name, cleared }]);
         mark(); rerender();
       });
     }
@@ -2110,7 +2118,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function purgeTrash() {
       const cut = Date.now() - 30 * 24 * 3600e3;
       const old = (S.trash || []).filter((t) => t.deletedAt < cut);
-      if (!old.length || me.role !== 'admin') return;
+      if (!old.length || me?.role !== 'admin') return;
       S.trash = S.trash.filter((t) => t.deletedAt >= cut); mark(); await flush();
       if (!/^Saved/.test($('savestate').textContent || '')) return;
       for (const t of old) await api('/api/sitime-delete', { method: 'POST', body: { urls: [t.item.url, t.item.thumb].filter(Boolean) } });
@@ -2218,7 +2226,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const q = libQuery.toLowerCase();
         const items = (S.library || []).filter((l) => (!libGroup || l.group === libGroup) && (!q || (l.name + ' ' + l.group).toLowerCase().includes(q)));
         return '<div class="srctabs"><input class="search" data-libq="1" placeholder="Search filenames" value="' + esc(libQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (libGroup === g ? 'on' : '') + '" data-g="' + esc(g) + '">' + (g || 'All') + '</button>').join('') + '</div>' +
-          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name, libId: l.tier === 'upload' ? l.id : null })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">' + (me.role === 'admin' ? 'The library is not indexed yet. Library tab, choose the Image Mapping folder.' : 'Nothing in the library yet. Use Upload to add images.') + '</p>');
+          ((S.library || []).length ? '<div class="cands">' + items.slice(0, libShown).map((l) => candCard(pickFrom('library', l), s, { label: l.group, text: l.name, libId: l.tier === 'upload' ? l.id : null })).join('') + (items.length > libShown ? '<button class="sbtn more" data-libmore="1">Show more (' + (items.length - libShown) + ')</button>' : '') + '</div>' : '<p class="hint">' + (me?.role === 'admin' ? 'The library is not indexed yet. Library tab, choose the Image Mapping folder.' : 'Nothing in the library yet. Use Upload to add images.') + '</p>');
       }
       if (srcTab === 'existing') {
         const ex = currentFor(s).map((e) => candCard(pickFrom('existing', e), s, { label: 'CURRENT', text: e.label }));
@@ -2435,7 +2443,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const setSolved = (el, on) => {
         const s = m.get(el.dataset.slot || el.dataset.solve || el.dataset.unsolve); const p = s && s[el.dataset.w]; if (!p) return;
         p.solved = (p.solved || []).filter((y) => y.token !== el.dataset.b);
-        if (on) p.solved.push({ token: el.dataset.b, at: Date.now(), by: (me && me.name) || '' });
+        if (on) p.solved.push({ token: el.dataset.b, at: Date.now(), by: (me && me?.name) || '' });
         if (!p.solved.length) delete p.solved;
         mark(); renderStats(); renderRepl();
       };
@@ -2558,7 +2566,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="lt' + (lgBusy === l.id ? ' busy' : '') + '" title="' + esc((l.name || '') + (l.group ? ' · ' + l.group : '') + (n ? ' · on ' + n + ' slot' + (n === 1 ? '' : 's') : '')) + '"><img loading="lazy" src="' + esc(l.thumb || l.url) + '" alt="">' +
           (n ? '<span class="used">' + n + '</span>' : '') +
           '<div class="lt-acts"><button type="button" class="lt-rep" data-lg-rep="' + esc(l.id) + '">Replace</button><button type="button" class="cand-x" data-lg-del="' + esc(l.id) + '" title="Delete" aria-label="Delete">' + ICONS.delete + '</button></div></div>';
-      }).join('') : '<p class="hint">' + (lib.length ? 'Nothing matches.' : me.role === 'admin' ? 'The library is empty. Index the Image Mapping folder below, or upload from a slot.' : 'The library is empty. Upload from a slot to add images.') + '</p>';
+      }).join('') : '<p class="hint">' + (lib.length ? 'Nothing matches.' : me?.role === 'admin' ? 'The library is empty. Index the Image Mapping folder below, or upload from a slot.' : 'The library is empty. Upload from a slot to add images.') + '</p>';
       $('libgrid-more').innerHTML = items.length > lgShown ? '<button class="sbtn" id="lg-more">Show more (' + (items.length - lgShown) + ')</button>' : '';
       if ($('lg-more')) $('lg-more').addEventListener('click', () => { lgShown += 240; drawLibGrid(); });
       $('libgrid').querySelectorAll('[data-lg-del]').forEach((b) => b.addEventListener('click', () => deleteUpload(b.dataset.lgDel)));
@@ -2578,10 +2586,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const orig = await uploadOriginal(nid, file);
         withUndo('Replaced ' + (l.name || 'image'), () => {
           const old = { ...l }; const oldUrl = l.url;
-          l.url = r1.url; l.thumb = r2.url; l.w = web.w; l.h = web.h; l.replacedWith = { file: file.name, at: Date.now(), by: me.name };
+          l.url = r1.url; l.thumb = r2.url; l.w = web.w; l.h = web.h; l.replacedWith = { file: file.name, at: Date.now(), by: me?.name };
           if (orig) l.orig = orig; else delete l.orig;
           uses.forEach((x) => ['main', 'backup'].forEach((w) => { if (x[w] && x[w].url === oldUrl) { x[w] = { ...x[w], url: l.url, thumb: l.thumb, title: l.name }; if (orig) x[w].orig = orig; else delete x[w].orig; } }));
-          S.trash = (S.trash || []).concat([{ item: { ...old, id: old.id + '-was-' + Date.now().toString(36), name: (old.name || 'Image') + ' (before replace)', tier: 'upload', group: 'Uploaded' }, deletedAt: Date.now(), by: me.name, cleared: [], replaced: true }]);
+          S.trash = (S.trash || []).concat([{ item: { ...old, id: old.id + '-was-' + Date.now().toString(36), name: (old.name || 'Image') + ' (before replace)', tier: 'upload', group: 'Uploaded' }, deletedAt: Date.now(), by: me?.name, cleared: [], replaced: true }]);
           mark(); rerender();
         });
         $('libgrid-status').textContent = 'Replaced ' + (l.name || 'image') + (uses.length ? ' on ' + uses.length + ' slot' + (uses.length === 1 ? '' : 's') : '') + '.';
@@ -2592,8 +2600,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderLib() {
       renderLibGrid();
       const n = (S.library || []).length; $('lib-status').textContent = n ? n + ' images indexed.' : 'Not indexed yet.';
-      $('mock-h1').value = S.mock?.h1 || ''; $('mock-p').value = S.mock?.p || ''; $('mock-cta').value = S.mock?.cta || ''; $('mock-card-h').value = S.mock?.cardH || ''; $('mock-card-p').value = S.mock?.cardP || '';
-      $('review-pass').value = S.reviewPass == null ? 'silicon' : S.reviewPass;
       const sourced = sourcedRows();
       $('sourced-count').textContent = sourced.length ? sourced.length + ' image' + (sourced.length === 1 ? '' : 's') : '';
       $('sourced-list').innerHTML = sourced.length ? sourced.map(({ s, which, p }) => '<div class="qitem"><img src="' + esc(p.thumb || p.url) + '"><div><div class="t">' + esc(s.page) + ' · ' + esc(s.name) + ' <span class="mini">(' + which + ')</span></div><div class="n">' + esc(p.source === 'stock' ? 'Adobe Stock' + (p.id ? ' · ' + p.id : '') : (p.title || p.path || 'Uploaded')) + '</div></div><button class="sbtn" data-unassign="' + s.id + ':' + which + '">Remove</button></div>').join('') : '<p class="hint">Nothing sourced from Stock or uploaded yet.</p>';
@@ -2626,15 +2632,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          the counts, so the list reads as events, not keystrokes. */
       const rows = []; h.forEach((v, k) => { const next = h[k + 1]; const same = rows.length && rows[rows.length - 1].by === v.by && ['picks', 'batches', 'library', 'batched', 'trash'].every((f) => rows[rows.length - 1][f] === v[f]); if (!same || k === 0) rows.push({ ...v, prev: next }); else rows[rows.length - 1].prev = next; });
       const fmt = (t) => new Date(t).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-      const delta = (v, f, label) => { const p = v.prev ? v.prev[f] : v[f]; const d = v[f] - p; return v[f] + ' ' + label + (d ? ' <span class="' + (d < 0 ? 'dn' : 'up') + '">(' + (d > 0 ? '+' : '') + d + ')</span>' : ''); };
+      const delta = (v, f, label) => { const p = v.prev ? v.prev[f] : v[f]; const d = v[f] - p; return v[f] + ' ' + label + (d ? ' <span class="' + (d < 0 ? 'hd-dn' : 'hd-up') + '">(' + (d > 0 ? '+' : '') + d + ')</span>' : ''); };
       $('hist-list').innerHTML = rows.length ? rows.slice(0, 80).map((v, k) => { const drop = v.prev && (v.picks - v.prev.picks <= -3 || v.batches < v.prev.batches || v.batched - v.prev.batched <= -3 || v.library - v.prev.library <= -3); return '<div class="hrow' + (k === 0 ? ' cur' : '') + (drop ? ' drop' : '') + '"><div class="when"><b>' + fmt(v.savedAt) + '</b><span>' + esc(v.by) + (k === 0 ? ' · current' : '') + '</span></div><div class="what">' + [delta(v, 'picks', 'picks'), delta(v, 'batches', 'batches'), delta(v, 'batched', 'in batches'), delta(v, 'library', 'library')].join(' · ') + '</div><button class="sbtn" data-ver="' + v.savedAt + '">Restore</button></div>'; }).join('') : '<p class="hint">No saved versions yet. History starts with the next save.</p>';
       $('hist-list').querySelectorAll('[data-ver]').forEach((b) => b.addEventListener('click', async () => {
         const t = Number(b.dataset.ver);
         if (!(await askConfirm('Everything saved after it is replaced, for everyone. The current version stays in this list, so this can be undone.', { title: 'Restore the version from ' + fmt(t), ok: 'Restore' }))) return;
+        const hadEdits = dirty || unsaved;
         clearTimeout(saveTimer); dirty = false;
         b.textContent = 'Restoring…';
         const rr = await api('/api/sitime-state', { method: 'POST', body: { restore: t } });
-        if (!rr.ok) { toast((rr.data && rr.data.error) || 'Could not restore.'); b.textContent = 'Restore'; return; }
+        if (!rr.ok) { if (hadEdits) mark(); toast((rr.data && rr.data.error) || 'Could not restore.'); b.textContent = 'Restore'; return; }   // put back the save it cancelled
         location.reload();
       }));
     }
@@ -2654,7 +2661,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const ROLE_LABEL = { client: 'SiTime', team: 'COGNAK team' };
     const fmtWhen = (ms) => ms ? new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + new Date(ms).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'Never';
     async function loadPeople() {
-      if (me.role !== 'admin') return;
+      if (me?.role !== 'admin') return;
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'users' } });
       if (!r.ok) { $('people-rows').innerHTML = '<tr><td colspan="5" class="hint">' + esc((r.data && r.data.error) || 'Could not load.') + '</td></tr>'; return; }
       people = r.data.users || []; peopleLoaded = true; renderPeople();
@@ -2680,14 +2687,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       tb.querySelectorAll('[data-pppass]').forEach((b) => b.addEventListener('click', async () => {
         const { u } = rowOf(b);
         if (!(await askConfirm('Their current passcode stops working and they are signed out. The new one shows once, here.', { title: 'New passcode for ' + u.name, ok: 'New passcode' }))) return;
-        const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'user-pass', id: u.id } });
+        b.disabled = true; const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'user-pass', id: u.id } }); b.disabled = false;
         if (!r.ok) { toast((r.data && r.data.error) || 'Could not do that.'); return; }
         Object.assign(u, r.data.user); renderPeople(); showPasscode(u.name, r.data.passcode);
       }));
       tb.querySelectorAll('[data-ppdel]').forEach((b) => b.addEventListener('click', async () => {
         const { u } = rowOf(b);
         if (!(await askConfirm('They are signed out and can no longer sign in. Nothing they picked or decided changes.', { title: 'Remove ' + u.name, ok: 'Remove' }))) return;
-        const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'user-delete', id: u.id } });
+        b.disabled = true; const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'user-delete', id: u.id } }); b.disabled = false;
         if (!r.ok) { toast((r.data && r.data.error) || 'Could not remove.'); return; }
         people = people.filter((x) => x.id !== u.id); renderPeople(); toast('Removed ' + u.name + '.');
       }));
@@ -2711,21 +2718,43 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     ['pp-name', 'pp-email'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addPerson(); } }));
 
     async function loadTeamState() {
-      if (me.role !== 'admin') return;
+      if (me?.role !== 'admin') return;
       const r = await api('/api/sitime-team');
-      if (r.ok && r.data) { teamOn = !!r.data.teamOn; showTeamState(); }
+      if (r.ok && r.data) { teamOn = !!r.data.teamOn; clientOn = !!r.data.clientOn; showTeamState(); showClientState(); }
     }
+    /* The old shared SiTime passcode (which:'client') lost its field in c9c8738; people have their own now. Show it only while it is on, with a way off. */
+    let clientOn = false;
+    function showClientState() { $('client-line').hidden = !clientOn; }
+    $('client-off').addEventListener('click', async () => {
+      if (!(await askConfirm('Anyone still signing in with the old shared SiTime passcode is signed out and can no longer use it. People with their own passcode are not affected.', { title: 'Turn off the old SiTime passcode', ok: 'Turn off' }))) return;
+      $('client-off').disabled = true;
+      const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', which: 'client', pass: '' } });
+      $('client-off').disabled = false;
+      if (!r.ok) { toast((r.data && r.data.error) || 'Could not turn it off.'); return; }
+      clientOn = false; showClientState(); toast('The old shared SiTime passcode is off.');
+    });
     $('team-save').addEventListener('click', async () => {
       const pass = $('team-pass').value;
       if (!pass.trim() && teamOn && !(await askConfirm('The field is blank. Team access turns off and everyone signed in with it is signed out.', { title: 'Turn team access off', ok: 'Turn off' }))) return;
-      $('team-status').textContent = 'Saving…';
+      $('team-status').textContent = 'Saving…'; $('team-save').disabled = true;
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', pass } });
-      $('team-pass').value = '';
+      $('team-save').disabled = false; $('team-pass').value = '';
       if (r.ok) { teamOn = !!r.data.teamOn; showTeamState(teamOn ? 'Team access is on. Anyone signed in with the old passcode is signed out.' : 'Team access is off.'); }
       else $('team-status').textContent = (r.data && r.data.error) || 'Could not save.';
     });
     $('review-pass').addEventListener('change', (e) => { S.reviewPass = e.target.value.trim(); mark(); });
-    ['mock-h1', 'mock-p', 'mock-cta', 'mock-card-h', 'mock-card-p'].forEach((id) => $(id).addEventListener('change', () => { S.mock = { h1: $('mock-h1').value, p: $('mock-p').value, cta: $('mock-cta').value, cardH: $('mock-card-h').value, cardP: $('mock-card-p').value }; mark(); }));
+    /* Settings fields are filled from S here, not in renderLib (they moved tabs 9/27 and loaded blank).
+       The 30s refresh lands here too: skip the field being typed in, and the People table mid-edit. */
+    const MOCK_KEYS = { 'mock-h1': 'h1', 'mock-p': 'p', 'mock-cta': 'cta', 'mock-card-h': 'cardH', 'mock-card-p': 'cardP' };
+    function renderSettings() {
+      const a = document.activeElement;
+      const fill = (id, v) => { if ($(id) !== a) $(id).value = v; };
+      Object.keys(MOCK_KEYS).forEach((id) => fill(id, S.mock?.[MOCK_KEYS[id]] || ''));
+      fill('review-pass', S.reviewPass == null ? 'silicon' : S.reviewPass);
+      showClientState();
+      if (!ppEdit && !(a && a.closest && a.closest('#people-table'))) loadPeople();
+    }
+    Object.keys(MOCK_KEYS).forEach((id) => $(id).addEventListener('change', () => { S.mock = { ...(S.mock || {}), [MOCK_KEYS[id]]: $(id).value }; mark(); }));
     $('lib-dir').addEventListener('change', async () => {
       const files = Array.from($('lib-dir').files).filter((f) => /\.(jpe?g|png)$/i.test(f.name));
       const wanted = files.filter((f) => { const p = f.webkitRelativePath; return /\/Digital-Web\//.test(p) || /(^|\/)MEMS-Products\//.test(p); }).filter((f) => !/\/(_index|__|\[Visual-Assets\]-Licensed-Image-Library)\//.test(f.webkitRelativePath) && !/^\[Visual-Assets\]/.test(f.webkitRelativePath.split('/')[1] || ''));
@@ -2748,7 +2777,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         }
         done++; $('lib-progress').textContent = done + ' / ' + wanted.length + (failed ? ' · ' + failed + ' failed' : '');
       }
-      mark(); renderLib(); renderStats(); $('lib-log').textContent = 'Done. ' + added + ' added' + (failed ? ', ' + failed + ' failed (see console)' : '') + '.';
+      mark(); renderLib(); renderStats(); $('lib-log').textContent = 'Done. ' + added + ' added' + (failed ? ', ' + failed + ' failed, try again' : '') + '.';
     });
 
     /* ---------- add a page / slot (Pierce, 9/25) ----------
@@ -2780,14 +2809,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const name = $('ad2-pname').value.trim(); const section = $('ad2-psec').value.trim() || 'About Us';
         let url = $('ad2-purl').value.trim(); if (!name) return err('Name the new page.');
         if (url && !url.startsWith('/')) url = '/' + url.replace(/^https?:\/\/[^/]+/, '');
-        page = { id: nextId('PG', (S.pages || []).concat(S.customPages || [])), name, section, url: url || '', type: 'Page', scope: '', briefStatus: '', status: 'Added in the tool', notes: '', parts: [], custom: true, addedBy: me.name, addedAt: new Date().toISOString() };
+        page = { id: nextId('PG', (S.pages || []).concat(S.customPages || [])), name, section, url: url || '', type: 'Page', scope: '', briefStatus: '', status: 'Added in the tool', notes: '', parts: [], custom: true, addedBy: me?.name, addedAt: new Date().toISOString() };
         S.customPages = (S.customPages || []).concat([page]); S.pages = (S.pages || []).concat([page]); _pmap = null;
       } else page = pageById().get($('ad2-page').value);
       if (!page) return err('Pick a page.');
       const disp = $('ad2-disp').value;
       const slot = { id: nextId('IMG', S.slots.concat(S.retiredSlots || [])), pageId: page.id, page: page.name, section: page.section, url: page.url || '', name: sname, priority: 'Medium',
-        rec: 'Added by ' + me.name + ' on ' + new Date().toLocaleDateString(), action: 'STOCK, LIBRARY OR GENERATE', gen: 'OPTIONAL', prompt: $('ad2-brief').value.trim(), terms: [], shared: false, existing: [], candidates: [],
-        main: null, backup: null, state: 'assigned', batch: null, license: null, notes: '', where: $('ad2-where').value.trim(), custom: true, addedBy: me.name, addedAt: new Date().toISOString() };
+        rec: 'Added by ' + me?.name + ' on ' + new Date().toLocaleDateString(), action: 'STOCK, LIBRARY OR GENERATE', gen: 'OPTIONAL', prompt: $('ad2-brief').value.trim(), terms: [], shared: false, existing: [], candidates: [],
+        main: null, backup: null, state: 'assigned', batch: null, license: null, notes: '', where: $('ad2-where').value.trim(), custom: true, addedBy: me?.name, addedAt: new Date().toISOString() };
       const auto = autoDisplay(slot); if (disp !== auto) slot.display = disp;
       S.slots.push(slot); _hay.clear();
       $('add-dialog').close(); fx.page = page.id; fx.section = ''; pageIdx = 0; openSlots.add(slot.id);
@@ -2813,13 +2842,19 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('gate').hidden = true;
       /* Signed in again mid-session: keep the page as it is and save it,
          instead of booting (which would replace the edits with the stored state). */
-      if (booted) { me.name = (r.data && r.data.name) || me.name; me.role = (r.data && r.data.role) || me.role; if (me.name) $('whoami').innerHTML = esc(me.name) + ' · <button type="button" id="signout">Sign out</button>'; dirty = true; save(); return; }
+      if (booted) { me = { ...(me || {}), name: (r.data && r.data.name) || me?.name, role: (r.data && r.data.role) || me?.role }; renderWhoami(); dirty = true; save(); return; }
       $('loading').hidden = false; boot();
     }
     $('tl-go').addEventListener('click', teamSignIn);
     $('tl-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') teamSignIn(); });
     $('tl-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); teamSignIn(); } });
     let booted = false;
+    /* Name + Sign out. Also redrawn after a mid-session re-sign-in, which used to leave a dead button. */
+    function renderWhoami() {
+      if (!me?.name) { $('whoami').innerHTML = ''; return; }
+      $('whoami').innerHTML = esc(me.name) + ' · <button type="button" id="signout">Sign out</button>';
+      $('signout').addEventListener('click', async () => { await flush(); await api('/api/sitime-team', { method: 'POST', body: { action: 'logout' } }); location.reload(); });
+    }
     async function boot() {
       const r = await api('/api/sitime-state');
       $('loading').hidden = true;
@@ -2828,11 +2863,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       S = r.data.state; D = r.data.decisions || {}; CTX = r.data.context || null;
       S.batches = S.batches || []; S.library = S.library || [];
       base = clone(S);
-      me = r.data.me || me;
+      me = r.data.me || null;
+      if (!me?.role) { $('gate').hidden = false; $('tl-pass').focus(); return; }   // no one signed in: never fall back to admin
       loadTeamState();
-      document.querySelector('.adm').classList.toggle('team', me.role !== 'admin');
+      document.querySelector('.adm').classList.toggle('team', me?.role !== 'admin');
       document.querySelector('.adm').classList.toggle('client', isClient());
-      if (me.role === 'admin') {
+      if (me?.role === 'admin') {
         $('headline').innerHTML = '<em>SiTime</em> images. Internal.';
         $('lede').textContent = 'Assign a main and a backup to each slot, group slots into a batch, then open the batch on a call with SiTime and record their decisions. Decisions land here; anything denied lands in Replacements.';
       }
@@ -2840,14 +2876,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         $('headline').innerHTML = '<em>SiTime</em> images.';
         $('lede').textContent = 'Pick a main and a backup for each slot, group slots into a batch, then open the batch from Batches to review it. Your edits save as you go and show your name.';
       }
-      if (me.role !== 'admin') {
+      if (me?.role !== 'admin') {
         if (!isClient()) $('lede').textContent = 'Pick a main and a backup for each slot, group slots into a batch, then open the batch from Batches to review it. Your edits save as you go and show your name.';
-        $('whoami').innerHTML = esc(me.name) + ' · <button type="button" id="signout">Sign out</button>';
-        $('signout').addEventListener('click', async () => { await flush(); await api('/api/sitime-team', { method: 'POST', body: { action: 'logout' } }); location.reload(); });
+        renderWhoami();
       }
       if (booted) return; booted = true;
       $('app').hidden = false; $('savestate').textContent = r.data.seeded ? 'Seeded' : 'Saved';
-      renderStats(); renderFilters(); showTab(me.role === 'admin' ? 'batches' : 'slots');
+      renderStats(); renderFilters(); showTab(me?.role === 'admin' ? 'batches' : 'slots');
       purgeTrash().catch(() => {});
       // refresh decisions every 60s while the page is open
       // refresh decisions every 60s, and straight away when coming back from a review tab
