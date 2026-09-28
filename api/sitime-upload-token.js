@@ -1,6 +1,7 @@
 /**
- * POST /api/sitime-upload-token — admin-only client-upload handshake for the
- * SiTime image tool (same pattern as deliver-upload-token.js). Two prefixes:
+ * POST /api/sitime-upload-token — client-upload handshake for the SiTime
+ * image tool (same pattern as deliver-upload-token.js). Anyone signed in to
+ * the tool (admin, team, client; sitimeAuth.mjs) may upload. Three prefixes:
  *
  *   sitime/library/<id>.jpg, sitime/library/t/<id>.jpg
  *     SiTime's own licensed library, pushed from the admin page's "Index the
@@ -11,6 +12,11 @@
  *     Generated or hand-picked images Pierce drops onto a slot.
  *
  * Nothing else. The function never sees the bytes.
+ *
+ * Only admin may overwrite an existing file (2026-09-27). Team and client
+ * uploads get a random suffix and never replace anything; the page keeps
+ * the url the upload returns, never the pathname it asked for, so that is
+ * invisible to it.
  */
 import { handleUpload } from '@vercel/blob/client';
 import { requireEditor } from './_lib/sitimeAuth.mjs';
@@ -23,7 +29,9 @@ export default async function handler(req, res) {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  if (!(await requireEditor(req, res))) return;
+  const who = await requireEditor(req, res);
+  if (!who) return;
+  const admin = who.role === 'admin';
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }
@@ -39,14 +47,12 @@ export default async function handler(req, res) {
         return {
           allowedContentTypes: ['image/jpeg', 'image/png', 'image/webp'],
           maximumSizeInBytes: MAX_BYTES,
-          addRandomSuffix: false,
-          allowOverwrite: true,
+          addRandomSuffix: !admin,
+          allowOverwrite: admin,
           validUntil: Date.now() + TOKEN_TTL_MS,
         };
       },
-      onUploadCompleted: async ({ blob }) => {
-        console.log('SiTime image uploaded:', blob.url);
-      },
+      onUploadCompleted: async () => {},
     });
     return res.status(200).json(jsonResponse);
   } catch (err) {

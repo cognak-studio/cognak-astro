@@ -9,10 +9,12 @@
  *
  *   sitime/state/<ms>.json
  *     The whole working state — pages, slots (with main/backup picks),
- *     batches, library index. Written ONLY by the admin page, which is one
- *     person, so a single versioned document is enough. Roughly 1MB.
+ *     batches, library index. Roughly 1MB. Several editors write it now
+ *     (admin, team, client -- 2026-09-27): every non-admin save must send
+ *     the savedAt it started from and gets a 409 if a newer version exists,
+ *     so the page merges and retries instead of overwriting (sitime-state.js).
  *
- *   sitime/decisions/<batchToken>/<ms>.json
+ *   sitime/decisions/<batchToken>/<ms>-<rand>.json   (older ones: <ms>.json)
  *     One file per decision the reviewer submits. Append-only, never
  *     merged into the state doc by the reviewer, so a reviewer clicking
  *     Approve at the same moment Pierce saves the admin page can never
@@ -23,6 +25,7 @@
  * share; anyone with the link can submit, which is how Pierce wants it
  * (SiTime decides as a group, one person clicks).
  */
+import crypto from 'node:crypto';
 import { put, list, del } from '@vercel/blob';
 
 const STATE_DIR = 'sitime/state/';
@@ -39,6 +42,10 @@ const H = 3600e3, DAY = 24 * H;
 const LOG_RE = /\/(\d{13})~p(\d+)~b(\d+)~l(\d+)~s(\d+)~t(\d+)~(.*)\.json$/;
 const DECISION_DIR = (token) => 'sitime/decisions/' + token + '/';
 const VERSION_RE = /\/(\d{13})\.json$/;
+/* Decision files carry a short random suffix (2026-09-27) so two reviewers in
+   the same millisecond never share a name; older files have none. Both sort
+   by time on the pathname: the 13-digit ms comes first. */
+const DECISION_RE = /\/(\d{13})(?:-[a-z0-9]{1,12})?\.json$/;
 
 export const TOKEN_RE = /^[a-z0-9]{8,16}$/;
 
@@ -136,7 +143,7 @@ export async function readStateAt(savedAt) {
 /** Append one reviewer decision to a batch. */
 export async function writeDecision(token, decision) {
   const at = Date.now();
-  const pathname = DECISION_DIR(token) + at + '.json';
+  const pathname = DECISION_DIR(token) + at + '-' + crypto.randomBytes(3).toString('hex') + '.json';
   await put(pathname, JSON.stringify({ ...decision, at }), {
     access: 'public',
     addRandomSuffix: false,
@@ -153,7 +160,7 @@ export async function writeDecision(token, decision) {
  */
 export async function readDecisions(token) {
   const blobs = (await listAll(DECISION_DIR(token)))
-    .filter((b) => VERSION_RE.test(b.pathname))
+    .filter((b) => DECISION_RE.test(b.pathname))
     .sort((a, b) => (a.pathname < b.pathname ? -1 : 1));
   const events = (await Promise.all(blobs.map(fetchJson))).filter(Boolean);
   const latest = {};

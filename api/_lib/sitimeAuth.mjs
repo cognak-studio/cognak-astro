@@ -31,12 +31,20 @@
  * as sitimeStore). Their cookie carries a fingerprint of that hash, so
  * changing a shared passcode signs everyone on it out.
  *
- * Failed team logins are counted in their own file, separate from the admin
+ * Failed team logins are counted in their own files, separate from the admin
  * limiter, so someone guessing the team passcode can never lock Pierce out
- * of /send.
+ * of /send. One blob per failure (2026-09-27), counted over the window, so
+ * two failures at once can never overwrite each other's count. Wrong review
+ * passcodes (sitime-batch / sitime-decide) are counted the same way under
+ * their own prefix.
+ *
+ * Last sign-in (2026-09-27) is NOT written into the people file: a sign-in
+ * rewriting the whole list could undo an add or re-issue Pierce made at the
+ * same moment. Each sign-in drops a marker under sitime/user-seen/<id>/ and
+ * the Settings list merges the newest one in (lastSeen()).
  */
 import crypto from 'node:crypto';
-import { put, list } from '@vercel/blob';
+import { put, list, del } from '@vercel/blob';
 import { isAdmin } from './adminAuth.mjs';
 import { clientIp } from './rateLimit.mjs';
 
@@ -46,6 +54,8 @@ const TEAM_DIR = 'sitime/team/';
 const CLIENT_DIR = 'sitime/client/';
 const USERS_DIR = 'sitime/users/';
 const ATTEMPT_DIR = 'sitime/team-attempts/';
+const REVIEW_ATTEMPT_DIR = 'sitime/review-attempts/';
+const SEEN_DIR = 'sitime/user-seen/';
 const WINDOW_MS = 15 * 60 * 1000;
 const MAX_FAILS = 8;
 export const TEAM_GEN_PER_DAY = 40;
@@ -54,9 +64,13 @@ const secret = () => process.env.ADMIN_SECRET || '';
 const hmac = (s) => crypto.createHmac('sha256', secret()).update(s).digest('base64url');
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
-async function newestJson(prefix) {
+async function listAll(prefix) {
   const out = []; let cursor;
   do { const p = await list({ prefix, limit: 1000, ...(cursor ? { cursor } : {}) }); out.push(...p.blobs); cursor = p.hasMore ? p.cursor : null; } while (cursor);
+  return out;
+}
+async function newestJson(prefix) {
+  const out = await listAll(prefix);
   const b = out.filter((x) => /\/\d{13}\.json$/.test(x.pathname)).sort((a, c) => (a.pathname < c.pathname ? 1 : -1))[0];
   if (!b) return null;
   const r = await fetch(b.url + '?_=' + Date.now(), { cache: 'no-store' });
@@ -138,6 +152,15 @@ export async function deleteUser(id) {
   await writeUsers(users.filter((x) => x.id !== id));
   return { ok: true };
 }
+/** { [userId]: ms } newest sign-in per person, from the user-seen markers (2026-09-27). */
+export async function lastSeen() {
+  const out = {};
+  (await listAll(SEEN_DIR)).forEach((b) => {
+    const m = b.pathname.match(/^sitime\/user-seen\/([^/]+)\/(\d{13})\.json$/);
+    if (m && !(out[m[1]] >= Number(m[2]))) out[m[1]] = Number(m[2]);
+  });
+  return out;
+}
 
 /* ---- cookie ---- */
 const sealed = (obj) => { const payload = Buffer.from(JSON.stringify({ ...obj, exp: Date.now() + SESSION_MS })).toString('base64url'); return [COOKIE + '=' + payload + '.' + hmac(payload), 'HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/', 'Max-Age=' + Math.floor(SESSION_MS / 1000)].join('; '); };
@@ -178,21 +201,30 @@ export async function requireEditor(req, res) {
   return who;
 }
 
-/* ---- login limiter (per IP, own file) ---- */
+/* ---- login limiter (per IP, one blob per failure, 2026-09-27) ---- */
 const ipKey = (req) => sha(String(clientIp(req)) + secret()).slice(0, 24);
+const ATTEMPT_RE = /\/(\d{13})-[a-f0-9]+\.json$/;
+/** Failures from this IP inside WINDOW_MS under `dir`; expired ones are cleared on the way (best effort). */
+async function recentFails(dir, req) {
+  const now = Date.now();
+  const blobs = await listAll(dir + ipKey(req) + '/');
+  const at = (b) => Number((b.pathname.match(ATTEMPT_RE) || [])[1] || 0);
+  const old = blobs.filter((b) => now - at(b) > WINDOW_MS).map((b) => b.url);
+  if (old.length) { try { await del(old); } catch (e) {} }
+  return blobs.filter((b) => now - at(b) <= WINDOW_MS).length;
+}
+async function recordFail(dir, req) {
+  const pathname = dir + ipKey(req) + '/' + Date.now() + '-' + crypto.randomBytes(4).toString('hex') + '.json';
+  try { await put(pathname, '{}', { access: 'public', addRandomSuffix: false, contentType: 'application/json' }); } catch (e) { console.error('sitime attempt log failed', e); }
+}
 export async function teamLogin(req, name, pass) {
   const now = Date.now();
-  const rec = (await newestJson(ATTEMPT_DIR)) || { ips: {} };
-  const ips = rec.ips || {};
-  Object.keys(ips).forEach((k) => { if (now - ips[k].first > WINDOW_MS) delete ips[k]; });
-  const k = ipKey(req);
-  if (ips[k] && ips[k].n >= MAX_FAILS) return { ok: false, status: 429, error: 'Too many tries. Wait 15 minutes.' };
+  if ((await recentFails(ATTEMPT_DIR, req)) >= MAX_FAILS) return { ok: false, status: 429, error: 'Too many tries. Wait 15 minutes.' };
   /* Personal passcodes first: the passcode alone says who this is. */
   const users = await readUsers();
   const u = users.find((x) => userMatches(x, pass));
   if (u) {
-    u.lastAt = now;
-    try { await writeUsers(users); } catch (e) {}
+    try { await put(SEEN_DIR + u.id + '/' + now + '.json', '{}', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }); } catch (e) {}
     return { ok: true, cookie: userCookie(u), name: u.name, role: cleanRole(u.role) };
   }
   const team = await readTeam(); const client = await readClient();
@@ -204,10 +236,32 @@ export async function teamLogin(req, name, pass) {
   if (sharedRole === 'team') return { ok: true, cookie: teamCookie(nm, team, 'team'), name: nm, role: 'team' };
   if (sharedRole === 'client') return { ok: true, cookie: teamCookie(nm, client, 'client'), name: nm, role: 'client' };
   {
-    ips[k] = ips[k] || { n: 0, first: now }; ips[k].n++;
-    try { await putJson(ATTEMPT_DIR, { ips }); } catch (e) {}
+    await recordFail(ATTEMPT_DIR, req);
     return { ok: false, status: 401, error: 'That passcode isn’t right.' };
   }
+}
+
+/* ---- review-link passcode (sitime-batch, sitime-decide) ----
+   Same rule as before: reviewPass unset means 'silicon' (Pierce, 2026-09-14),
+   blank means none, compared trimmed and case-insensitively. Now compared on
+   sha256 digests with timingSafeEqual, and wrong guesses are limited per IP
+   in their own files (2026-09-27): NOT via rateLimit.mjs, whose global lock
+   would let a guesser lock Pierce out of /send. An empty passcode (the page's
+   first load) is never counted. Returns null when the caller may pass, else
+   { status, body } to send. */
+const REVIEW_MAX_FAILS = 20;   // generous: SiTime reviews as a group, often from one office IP
+export async function reviewPassGate(req, state, pass, who) {
+  if (who) return null;   // anyone signed in to the tool skips it (Pierce, 9/25)
+  const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
+  if (!want) return null;
+  const got = String(pass || '').trim().toLowerCase();
+  if (!got) return { status: 401, body: { error: 'Passcode required.', needPass: true } };
+  let fails = 0; try { fails = await recentFails(REVIEW_ATTEMPT_DIR, req); } catch (e) { console.error('review attempt count failed', e); }   // a Blob hiccup never blocks a review
+  if (fails >= REVIEW_MAX_FAILS) return { status: 429, body: { error: 'Too many tries. Wait 15 minutes.' } };
+  const a = crypto.createHash('sha256').update(got).digest(); const b = crypto.createHash('sha256').update(want).digest();
+  if (crypto.timingSafeEqual(a, b)) return null;
+  await recordFail(REVIEW_ATTEMPT_DIR, req);
+  return { status: 401, body: { error: 'That passcode isn\u2019t right.', needPass: true } };
 }
 
 /* ---- generate cap for team ---- */
@@ -216,7 +270,10 @@ export async function teamGenerationsToday() {
   const { blobs } = await list({ prefix: 'sitime/gen-log/' + day + '/', limit: 1000 });
   return { day, n: blobs.length };
 }
+/** Returns the log blobs' urls so a reservation over the cap can be handed back (2026-09-27). */
 export async function logGeneration(who, count) {
   const day = new Date().toISOString().slice(0, 10);
-  await Promise.all(Array.from({ length: count }, (_, i) => put('sitime/gen-log/' + day + '/' + Date.now() + '-' + i + '.json', JSON.stringify({ by: who.name }), { access: 'public', addRandomSuffix: true, contentType: 'application/json' })));
+  const r = await Promise.all(Array.from({ length: count }, (_, i) => put('sitime/gen-log/' + day + '/' + Date.now() + '-' + i + '.json', JSON.stringify({ by: who.name }), { access: 'public', addRandomSuffix: true, contentType: 'application/json' })));
+  return r.map((b) => b.url);
 }
+export async function releaseGenerations(urls) { if (urls && urls.length) await del(urls); }

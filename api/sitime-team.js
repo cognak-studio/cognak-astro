@@ -16,7 +16,7 @@
  * See api/_lib/sitimeAuth.mjs.
  */
 import { isAdmin } from './_lib/adminAuth.mjs';
-import { sitimeEditor, teamLogin, clearTeamCookie, setTeamPass, readTeam, readClient, passMatches, readUsers, publicUser, addUser, editUser, resetUserPass, deleteUser } from './_lib/sitimeAuth.mjs';
+import { sitimeEditor, teamLogin, clearTeamCookie, setTeamPass, readTeam, readClient, passMatches, readUsers, publicUser, addUser, editUser, resetUserPass, deleteUser, lastSeen } from './_lib/sitimeAuth.mjs';
 
 export default async function handler(req, res) {
   try {
@@ -46,10 +46,17 @@ export default async function handler(req, res) {
       const on = !!String(body.pass || '').trim();
       return res.status(200).json({ ok: true, which, teamOn: which === 'team' ? on : undefined, clientOn: which === 'client' ? on : undefined });
     }
-    if (body.action === 'users') return res.status(200).json({ ok: true, users: (await readUsers()).map(publicUser) });
+    if (body.action === 'users') {
+      /* Last sign-in lives in its own markers now (2026-09-27); an older
+         lastAt on the record still shows if there is no marker yet. */
+      let seen = {}; try { seen = await lastSeen(); } catch (e) { console.error('sitime lastSeen failed', e); }
+      return res.status(200).json({ ok: true, users: (await readUsers()).map((u) => { const p = publicUser(u); if (seen[u.id] && !(p.lastAt >= seen[u.id])) p.lastAt = seen[u.id]; return p; }) });
+    }
     if (body.action === 'user-add') { const r = await addUser(body); if (r.error) return res.status(400).json({ error: r.error }); return res.status(200).json({ ok: true, ...r }); }
-    if (body.action === 'user-edit') { const r = await editUser(String(body.id || ''), body); if (r.error) return res.status(400).json({ error: r.error }); return res.status(200).json({ ok: true, ...r }); }
-    if (body.action === 'user-pass') { const r = await resetUserPass(String(body.id || '')); if (r.error) return res.status(400).json({ error: r.error }); return res.status(200).json({ ok: true, ...r }); }
+    // lastAt left out of these two: the record's copy is stale now, and the page merges the reply into the row it has (2026-09-27)
+    const noLast = (r) => { const { lastAt: _l, ...user } = r.user; return { ...r, user }; };
+    if (body.action === 'user-edit') { const r = await editUser(String(body.id || ''), body); if (r.error) return res.status(400).json({ error: r.error }); return res.status(200).json({ ok: true, ...noLast(r) }); }
+    if (body.action === 'user-pass') { const r = await resetUserPass(String(body.id || '')); if (r.error) return res.status(400).json({ error: r.error }); return res.status(200).json({ ok: true, ...noLast(r) }); }
     if (body.action === 'user-delete') { const r = await deleteUser(String(body.id || '')); if (r.error) return res.status(400).json({ error: r.error }); return res.status(200).json({ ok: true }); }
     return res.status(400).json({ error: 'Unknown action.' });
   } catch (err) {

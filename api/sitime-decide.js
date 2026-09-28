@@ -10,7 +10,7 @@
  * batch takes decisions from the moment it exists.
  */
 import { readState, writeDecision, TOKEN_RE } from './_lib/sitimeStore.mjs';
-import { sitimeEditor } from './_lib/sitimeAuth.mjs';
+import { sitimeEditor, reviewPassGate } from './_lib/sitimeAuth.mjs';
 
 const DECISIONS = new Set(['approve', 'deny', 'hold']);
 
@@ -41,9 +41,13 @@ export default async function handler(req, res) {
     /* Anyone signed in to the tool (Pierce, team, or SiTime's own sign-in)
        skips the review passcode (Pierce, 9/25). */
     const who = await sitimeEditor(req).catch(() => null);
-    const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
-    const got = String((body && body.pass) || '').trim().toLowerCase();
-    if (!who && want && got !== want) return res.status(401).json({ error: got ? 'That passcode isn\u2019t right.' : 'Passcode required.', needPass: true });
+    /* Internal (COGNAK) batches only open for admin and team (2026-09-27):
+       to SiTime's sign-in or the shared passcode they do not exist. */
+    if (batch.internal && !(who && (who.role === 'admin' || who.role === 'team'))) return res.status(404).json({ error: 'This link is not valid.' });
+    /* Same passcode rule, now a constant-time compare with wrong guesses
+       limited per IP (sitimeAuth.mjs reviewPassGate, 2026-09-27). */
+    const gate = await reviewPassGate(req, state, body && body.pass, who);
+    if (gate) return res.status(gate.status).json(gate.body);
     if (!(batch.slotIds || []).includes(slotId)) return res.status(400).json({ error: 'That image is not in this batch.' });
 
     /* A signed-in reviewer's name goes on the decision; the shared review link stays 'SiTime (group)'. */

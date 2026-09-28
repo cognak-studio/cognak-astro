@@ -4,7 +4,8 @@
  *   GET            → { ok, state, decisions }  (seeds from sitime-seed.json on first call)
  *   POST { state } → writes a new version      (whole document; the admin page is one person)
  *   POST { state, baseSavedAt } → 409 { conflict, state } if someone else saved
- *                    after baseSavedAt; the page merges and retries.
+ *                    after baseSavedAt; the page merges and retries. Required
+ *                    for team and client saves (2026-09-27): without it, 409.
  *   Team editors (sitimeAuth.mjs) may save, but batches, the review passcode
  *   and each slot's batch link are kept from the stored state -- those stay
  *   admin-only however the request is built.
@@ -15,7 +16,7 @@
  * files (see _lib/sitimeStore.mjs) and are never written here.
  */
 import { requireEditor } from './_lib/sitimeAuth.mjs';
-import { readState, writeState, readAllDecisions, stateHistory, readStateAt } from './_lib/sitimeStore.mjs';
+import { readState, writeState, readAllDecisions, stateHistory, readStateAt, TOKEN_RE } from './_lib/sitimeStore.mjs';
 import seed from './_lib/sitime-seed.json' with { type: 'json' };
 import ctx from './_lib/sitime-context.json' with { type: 'json' };
 
@@ -85,9 +86,15 @@ function stripPick(p, visible) {
   if (Array.isArray(o.solved)) { o.solved = o.solved.filter((x) => visible.has(x.token)); if (!o.solved.length) delete o.solved; }
   return o;
 }
+/* A slot pinned to an internal batch shows the client this placeholder, never
+   the batch's token (2026-09-27): it still reads as taken, and a client save
+   sending it back is put back to the stored token by POST. Not a valid token
+   (TOKEN_RE needs 8+), so it can never open anything. */
+const HIDDEN_BATCH = 'hidden';
 /** The slot as the client may see it: no internal reviews anywhere on it. */
 function stripInternal(s, visible) {
   const o = { ...s };
+  if (o.batch && !visible.has(o.batch)) o.batch = HIDDEN_BATCH;
   PICKS.forEach((w) => { if (o[w]) o[w] = stripPick(o[w], visible); });
   if (Array.isArray(o.history)) {
     o.history = o.history.filter((h) => (h.pick && h.pick.reviews || []).some((r) => !isInt(r)))   // an entry that exists only for an internal review is not shown
@@ -224,8 +231,10 @@ export default async function handler(req, res) {
       const current = await readState();
       const base = Number(body.baseSavedAt) || 0;
       // Only a NEWER stored version is a conflict. An older one just means the
-      // listing has not caught up with this page's own last save yet.
-      if (current && current.savedAt && base && current.savedAt > base) {
+      // listing has not caught up with this page's own last save yet. A team
+      // or client save without a base is a conflict too (2026-09-27): it
+      // cannot show it started from the stored version, so it merges first.
+      if (current && current.savedAt && (base ? current.savedAt > base : who.role !== 'admin')) {
         return res.status(409).json({ conflict: true, state: viewFor(who, current) });   // same view as GET: no passcode for team, no internal notes for the client
       }
       let renum = [];   // batches whose number the server changed on this save (non-admin only)
@@ -240,7 +249,8 @@ export default async function handler(req, res) {
         const curB = current.batches || [];
         const internal = curB.filter((b) => b && b.internal);
         const internalTok = new Set(internal.map((b) => b.token));
-        const sent = (Array.isArray(state.batches) ? state.batches : []).filter((b) => b && typeof b.token === 'string' && !internalTok.has(b.token)).map((b) => { const { internal: _i, ...rest } = b; return rest; });
+        const knownTok = new Set(curB.map((b) => b && b.token));
+        const sent = (Array.isArray(state.batches) ? state.batches : []).filter((b) => b && typeof b.token === 'string' && (TOKEN_RE.test(b.token) || knownTok.has(b.token)) && !internalTok.has(b.token)).map((b) => { const { internal: _i, ...rest } = b; return rest; });   // a new token must be a real one (2026-09-27)
         /* Batch numbers are the server's. A batch already stored keeps its
            stored number whatever the page sent (the page may still hold the
            number it picked before a save). A new batch keeps the number the
@@ -268,6 +278,10 @@ export default async function handler(req, res) {
         });
         // internal batches keep their own slot lists; a non-admin never edits them
         internal.forEach((b) => { (b.slotIds || []).forEach((id) => { const s = state.slots.find((x) => x.id === id); if (s) s.batch = b.token; }); });
+        // ...and a slot pinned to one cannot also be listed in a non-admin batch (2026-09-27)
+        const pinned = new Set(state.slots.filter((s) => s.batch && internalTok.has(s.batch)).map((s) => s.id));
+        internal.forEach((b) => (b.slotIds || []).forEach((id) => pinned.add(id)));
+        sent.forEach((b) => { if (Array.isArray(b.slotIds)) b.slotIds = b.slotIds.filter((id) => !pinned.has(id)); });
         /* The client never received the internal review notes on the images
            (see GET), so they are not in this document: put them back from the
            stored state, image by image. Parked slots are not shown to the

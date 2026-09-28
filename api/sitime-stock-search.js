@@ -34,7 +34,7 @@ async function searchAdobeStock(query, limit, apiKey) {
   const body = await r.json().catch(() => null);
   if (!r.ok) {
     const msg = (body && (body.message || (body.error && body.error.message))) || ('HTTP ' + r.status);
-    throw new Error('Adobe Stock: ' + msg);
+    throw new Error('Adobe Stock: ' + msg);   // logged below, never shown (2026-09-27)
   }
   return (body && (body.files || body.result)) || [];
 }
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
   if (!(await requireEditor(req, res))) return;
 
   const apiKey = process.env.ADOBE_STOCK_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'ADOBE_STOCK_API_KEY is not set in this project’s Vercel env vars.' });
+  if (!apiKey) { console.error('sitime-stock-search: ADOBE_STOCK_API_KEY is not set'); return res.status(500).json({ error: 'Image search isn’t set up.' }); }
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }
@@ -71,6 +71,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, results });
   } catch (err) {
     console.error('sitime-stock-search failed', err);
-    return res.status(502).json({ error: (err && err.message) ? err.message : 'Search failed.' });
+    return res.status(502).json({ error: 'The image service had a problem. Try again.' });
   }
 }

@@ -20,10 +20,13 @@
  * the "no hands, no light trails..." constraints are already baked in.
  */
 import { put } from '@vercel/blob';
-import { requireEditor, teamGenerationsToday, logGeneration, TEAM_GEN_PER_DAY } from './_lib/sitimeAuth.mjs';
+import { requireEditor, teamGenerationsToday, logGeneration, releaseGenerations, TEAM_GEN_PER_DAY } from './_lib/sitimeAuth.mjs';
 
 const MODEL = 'gemini-2.5-flash-image';
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/' + MODEL + ':generateContent';
+
+// What the page shows when the provider fails; the detail goes to the log only (2026-09-27).
+const PROVIDER_ERR = 'The image service had a problem. Try again.';
 
 const STYLE_SUFFIX = ' Photograph, not illustration or 3D render: real-world commercial/editorial technology photography, shot on a modern camera, natural or studio lighting, in sharp focus. Greater scale and life around the innovation, not a lab close-up of nothing. Rules: no hands holding anything, no light trails, no deep space (low Earth orbit only), do not shoot with an overall blue or cyan cast, no visible logos or text in the image, no camera watermarks.';
 
@@ -42,7 +45,8 @@ async function generateOne(prompt, apiKey) {
   const body = await r.json().catch(() => null);
   if (!r.ok) {
     const msg = (body && body.error && body.error.message) || ('HTTP ' + r.status);
-    throw new Error('Gemini: ' + msg);
+    console.error('Gemini error', r.status, msg);
+    throw new Error(PROVIDER_ERR);
   }
   const parts = (body && body.candidates && body.candidates[0] && body.candidates[0].content && body.candidates[0].content.parts) || [];
   const img = parts.find((p) => p.inlineData && p.inlineData.data);
@@ -59,7 +63,7 @@ export default async function handler(req, res) {
   if (!who) return;
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'GEMINI_API_KEY is not set in this project’s Vercel env vars.' });
+  if (!apiKey) { console.error('sitime-generate: GEMINI_API_KEY is not set'); return res.status(500).json({ error: 'Image generation isn’t set up.' }); }
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }
@@ -71,13 +75,25 @@ export default async function handler(req, res) {
   if (!prompt) return res.status(400).json({ error: 'Write a brief first.' });
 
   // Team members share a daily cap; it is COGNAK's Gemini bill.
-  if (who.role !== 'admin') {
-    const { n } = await teamGenerationsToday();
-    if (n + count > TEAM_GEN_PER_DAY) return res.status(429).json({ error: 'The team has used today’s ' + TEAM_GEN_PER_DAY + ' generated images. Ask Pierce, or try tomorrow.' });
-  }
+  /* Reserve first, then generate (2026-09-27): the log entries are written
+     before the provider is called and the day is counted again after, so
+     requests landing together cannot all slip under the cap. A reservation
+     that takes the day over the cap is handed back; one whose generation
+     then fails still counts. */
+  const capMsg = 'The team has used today’s ' + TEAM_GEN_PER_DAY + ' generated images. Ask Pierce, or try tomorrow.';
   const fullPrompt = prompt + STYLE_SUFFIX;
 
   try {
+    if (who.role !== 'admin') {
+      const { n } = await teamGenerationsToday();
+      if (n + count > TEAM_GEN_PER_DAY) return res.status(429).json({ error: capMsg });
+      let mine = [];
+      try { mine = await logGeneration(who, count); } catch (e) { console.error('gen log failed', e); }
+      if (mine.length && (await teamGenerationsToday()).n > TEAM_GEN_PER_DAY) {
+        try { await releaseGenerations(mine); } catch (e) { console.error('gen log release failed', e); }
+        return res.status(429).json({ error: capMsg });
+      }
+    }
     const results = await Promise.allSettled(Array.from({ length: count }, () => generateOne(fullPrompt, apiKey)));
     const ok = [];
     const errors = [];
@@ -86,7 +102,6 @@ export default async function handler(req, res) {
     }
     if (!ok.length) return res.status(502).json({ error: errors[0] || 'Generation failed.' });
 
-    if (who.role !== 'admin') { try { await logGeneration(who, ok.length); } catch (e) { console.error('gen log failed', e); } }
     const at = Date.now();
     const images = await Promise.all(ok.map(async (img, i) => {
       const ext = extFor(img.mimeType);
@@ -99,6 +114,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, images, partial: errors.length ? errors : undefined });
   } catch (err) {
     console.error('sitime-generate failed', err);
-    return res.status(502).json({ error: (err && err.message) ? err.message : 'Generation failed.' });
+    return res.status(502).json({ error: PROVIDER_ERR });
   }
 }
