@@ -17,7 +17,7 @@
  *                Digital-Web + MEMS files are resized in the browser and
  *                pushed to Blob
  *
- * Auth is the existing admin session (sign in on /send). State is one
+ * Auth is the existing admin session (sign in on /admin). State is one
  * versioned Blob document written only from here; reviewer decisions are
  * append-only events read back alongside it. See api/_lib/sitimeStore.mjs.
  */
@@ -42,7 +42,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <p class="hint" id="gate-note">The passcode you were given.</p>
       <div class="teamlogin"><input class="txt" id="tl-pass" type="password" placeholder="Passcode" aria-label="Passcode" autocomplete="current-password" autocapitalize="off" /><input class="txt" id="tl-name" placeholder="Your name" aria-label="Your name" autocomplete="name" hidden /><button class="sbtn p" id="tl-go">Sign in</button></div>
       <p class="hint is-error" id="tl-err" hidden></p>
-      <p class="hint" id="gate-admin" style="margin-top:14px">COGNAK admin: sign in on <a href="/send">/send</a>, then reload this page.</p>
+      <p class="hint" id="gate-admin" style="margin-top:14px">COGNAK admin? <a href="/admin?next=/workflow/sitime/admin">Sign in with your passkey</a> and you'll come straight back here.</p>
       <button class="sbtn" id="tl-retry" hidden>Try saving again</button>
     </div></div>
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
@@ -274,6 +274,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .q-title{ display:block; font-size:var(--fs-15); font-weight:500; margin-bottom:6px; }
     .adm .txt{ width:100%; font:inherit; font-size:var(--fs-15); color:var(--ink); background:var(--field); border:1px solid var(--line-strong); border-radius:8px; padding:10px 12px; outline:none; }
     .adm .txt:focus{ border-color:var(--accent); }
+    .adm select.txt{ appearance:none; -webkit-appearance:none; line-height:normal; padding-right:32px; background:var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/12px; }   /* the native menulist stood 2px taller than the inputs with its text lower; drawn like .sel instead, and line-height normal is what a text input renders at */
     .adm .grid3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; }
     .adm .tabs{ display:flex; gap:6px; margin:0 0 1.6rem 40px; align-items:center; flex-wrap:wrap; }
     .adm .tabs a{ font-size:var(--fs-15); padding:9px 16px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink); text-decoration:none; cursor:pointer; user-select:none; }
@@ -283,6 +284,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* SiTime's own sign-in: COGNAK working lists and inventory vocabulary stay out of view. */
     .adm.client .client-hide{ display:none !important; }
     .adm .whoami{ margin-left:14px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+    .adm .whoami:empty{ display:none; }   /* admin has no name line: its 14px margin left SAVED short of the card edge */
     .adm .whoami button{ font:inherit; background:none; border:0; padding:0; color:inherit; text-decoration:underline; cursor:pointer; letter-spacing:inherit; text-transform:inherit; }
     .adm .teamlogin{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; max-width:620px; }
     .adm #gate{ margin-bottom:1.6rem; }
@@ -306,8 +308,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .sbtn:disabled{ opacity:.4; cursor:not-allowed; }
     .adm .sbtn.danger{ color:#B00020; border-color:#F0B6BE; }
     .adm .tablewrap{ overflow-x:auto; }
+    .adm .hint + .tablewrap{ margin-top:1.4rem; }   /* same air as a card-head above a table (Batches) */
     .adm table{ width:100%; border-collapse:collapse; font-size:var(--fs-15); }
-    .adm th{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
+    .adm th{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; text-transform:uppercase; color:#757280; text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
     .adm td{ padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
     .adm th:first-child, .adm td:first-child{ padding-left:0; }
     .adm th:last-child, .adm td:last-child{ padding-right:0; }
@@ -354,7 +357,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile.dec-approved{ border-color:#6EB300; }
     .adm .tile.dec-denied img{ opacity:.45; }
     .adm .tile.is-main{ border-color:#1A1A1A; } .adm .tile.is-backup{ border-color:#1A1A1A; border-style:dashed; }
-    .adm .tile .tag{ position:absolute; top:10px; left:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
+    .adm .tile .tag{ position:absolute; top:10px; left:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; border:1px solid #1A1A1A; }   /* border: same height as the outlined BACKUP tag beside it */
     .adm .tile.is-backup .tag{ background:#fff; color:#1A1A1A; border:1px solid #1A1A1A; }
     .adm .tile.ai::after{ content:'AI'; position:absolute; top:10px; right:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
     .adm .tile .cap .lic{ flex:none; display:inline-flex; align-items:center; gap:6px; font-family:'Diatype Variable', sans-serif; font-style:normal; font-weight:500; font-size:var(--fs-11); letter-spacing:0; text-transform:none; line-height:1; padding:4px 9px 4px 6px; border-radius:999px; background:rgba(255,255,255,.94); color:#1A1A1A; }
@@ -464,6 +467,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm #sourced-list .qitem{ align-items:center; }
     .adm #sourced-list .qitem .sbtn{ margin-left:auto; flex-shrink:0; }
     .adm .qitem{ display:flex; gap:12px; align-items:flex-start; border:1px solid #E8E5EF; border-radius:8px; padding:12px; }
+    .adm .qitem > img, .adm .qitem > .thumb{ flex:none; }   /* a long title used to squeeze the thumbnail and shift the text */
     .adm .qitem img{ width:72px; height:48px; object-fit:cover; border-radius:4px; background:#ECEAF1; }
     .adm .qitem .t{ font-size:var(--fs-14); font-weight:500; }
     /* Internal reviews: one line per batch, live and closed alike, text flush with the cards; Show / Hide at the end instead of a marker. */
@@ -475,6 +479,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rvbatch[open] > summary .rv-toggle::after{ content:'Hide'; }
     .adm .rvbatch > div{ margin-top:10px; }
     .adm .qitem .n{ font-size:var(--fs-13); color:var(--ink-soft); margin-top:3px; line-height:1.4; }
+    .adm .qitem .n .st{ font-size:inherit; gap:6px; }   /* Denied / Held at the size of the sentence it starts */
     /* drawer */
     .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; }
     .adm .drawer .meta{ display:grid; grid-template-columns:1.5fr 1fr; gap:38px; font-size:var(--fs-14); line-height:1.6; color:var(--ink-soft); margin:1.4rem 0 2rem; }
@@ -519,7 +524,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cand img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; background:#ECEAF1; }
     .adm .cand .cb{ padding:10px 12px; font-size:var(--fs-12); line-height:1.35; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
     .adm .cand .cb b{ display:block; color:var(--ink); font-weight:500; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; margin-bottom:3px; }
-    .adm .cand .tag{ position:absolute; top:8px; left:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
+    .adm .cand .tag{ position:absolute; top:8px; left:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; border:1px solid #1A1A1A; }
     .adm .cand-x{ position:absolute; top:6px; right:6px; width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.6); background:rgba(26,26,26,.55); color:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
     .adm .cand-x svg{ width:13px; height:13px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     .adm .cand-x:hover{ background:#FF1E1E; border-color:#FF7070; }
@@ -561,13 +566,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .ibtn:hover{ background:var(--accent); border-color:var(--accent); color:var(--deep); }
     .adm .ibtn[data-act=delete]:hover{ background:#FF1E1E; border-color:#FF7070; color:#fff; }
     .adm .ibtn.done{ background:#9DFF00; border-color:#D9FF66; color:#152400; }
-    .adm .batchrow .grip{ display:inline-block; flex:none; width:10px; height:16px; margin-top:3px; color:var(--ink-soft); cursor:grab; user-select:none; opacity:.45; }
+    .adm .batchrow .grip{ display:inline-block; flex:none; width:10px; height:16px; margin-top:1px; color:var(--ink-soft); cursor:grab; user-select:none; opacity:.45; }
     .adm .batchrow .grip svg{ width:10px; height:16px; fill:currentColor; display:block; }
     @media (hover:hover){ .adm .batchrow:hover .grip{ opacity:1; } }
     .adm .batchrow.dragging{ opacity:.4; }
     .adm .batchrow.drop-before{ box-shadow:inset 0 2px 0 var(--head); }
     .adm .batchrow.drop-after{ box-shadow:inset 0 -2px 0 var(--head); }
-    .adm .batchrow.head{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); padding:0 0 12px; }
+    .adm .batchrow[data-b]{ cursor:pointer; }   /* the row opens its slots */
+    .adm .batchrow .bdetail{ cursor:auto; }
+    /* The Waiting on you group draws its own rule 2.6rem below: the last row's line on top of it read as an empty band between two dividers (Pierce, 9/28). */
+    .adm .batchrow:last-child{ border-bottom:none; }
+    .adm .batchrow.head{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; text-transform:uppercase; color:#757280; padding:0 0 12px; }
     .adm .bslots{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:10px 0 18px; }
     .adm .bslot{ border:1px solid #E8E5EF; border-radius:6px; padding:6px; font-size:var(--fs-12); color:var(--ink-soft); }
     .adm .bslot img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; background:#ECEAF1; display:block; margin-bottom:5px; }
@@ -576,6 +585,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .bslot .st{ font-size:var(--fs-11); gap:6px; margin-top:4px; }
     .adm .bslot .st i{ width:6px; height:6px; }
     .adm .bslot .link{ font-size:var(--fs-11); margin:3px 0 0; }
+    .adm .bdetail .actions .mini{ min-width:0; overflow-wrap:anywhere; }   /* the review link ran past the card on a phone */
     .adm dialog{ border:1px solid #E8E5EF; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
     /* undo toast (bottom centre, same pill language as the tabs) */
     .adm .undo{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:14px; background:var(--deep); color:#fff; border-radius:999px; padding:8px 8px 8px 22px; box-shadow:0 10px 30px rgba(0,0,0,.22); font-size:var(--fs-15); max-width:min(92vw,640px); }
@@ -617,6 +627,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm dialog.confirm .cf-chk{ margin:-.2rem 0 1.1rem; }
     /* People (Settings): the one-time passcode line and the row actions. */
     .adm .passline{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:12px 14px; background:#F5F3F9; border-radius:8px; }
+    .adm #client-line{ margin-top:12px; }   /* second action line under Set team passcode sat flush against it (0px) */
     .adm .passline[hidden]{ display:none !important; }   /* display:flex would beat [hidden] */
     .adm .passline .lbl-s, .adm .passline code{ line-height:1; }
     .adm .passline .hint{ line-height:1.4; }
@@ -652,6 +663,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rail{ position:sticky; top:110px; max-height:calc(100vh - 150px); overflow-y:auto; overscroll-behavior:contain; padding-right:8px; border-right:1px solid var(--line); }
     .adm .railhead{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; margin-bottom:8px; border-bottom:1px solid var(--line); position:sticky; top:0; background:#fff; z-index:1; }
     .adm .railhead .link{ margin:0; }
+    /* Beside the slot list the rail's count line shares a line with "Showing 1-8" and its 32px buttons: same content height, same center. */
+    @media (min-width:901px){ .adm .railhead{ min-height:43px; } }
     .adm .selbar .link{ margin:0; white-space:nowrap; }
     .adm .railnote{ font-size:var(--fs-13); line-height:1.45; margin:2px 4px 12px; }
     .adm .rsec{ margin-bottom:4px; }
@@ -774,7 +787,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
     .adm .cand .adobe{ display:block; padding:0 12px 12px; font-size:var(--fs-12); color:var(--head); text-decoration:underline; text-underline-offset:3px; }
 
-    @media (max-width:900px){ .adm .workspace{ grid-template-columns:minmax(0,1fr); } .adm .card-head .right, .adm .selbar{ flex-wrap:wrap; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; } }
+    @media (max-width:900px){ .adm .workspace{ grid-template-columns:minmax(0,1fr); } .adm .card-head .right, .adm .selbar{ flex-wrap:wrap; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; padding-right:0; } }
     @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
     /* Narrow screens. The batch table's header row reads as nonsense once the
        cells flow two to a row, so it goes; the drawer's title row and the
@@ -784,11 +797,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     @media (max-width:900px){
       .adm .batchrow.head{ display:none; }
       .adm .batchrow .acts{ justify-content:flex-start; grid-column:1/-1; }
+      /* Two cells to a line, the name had half the width beside an empty scope cell and wrapped at 390; it gets the whole line, and so does a scope. */
+      .adm .batchrow .bname, .adm .batchrow > .sub{ grid-column:1/-1; }
+      .adm .batchrow > .sub:empty{ display:none; }
       .adm .drawer .dhead{ flex-wrap:wrap; }
       .adm .drawer .dmeta{ white-space:normal; flex-basis:100%; }
       .adm .drawer .dacts{ justify-content:flex-start; }
       .adm .drawer .tgtbar{ flex-direction:column; align-items:flex-start; }
       .adm .card{ padding:26px 20px 24px; }
+      /* The passcode hints carry an inline grid-column:2/4 for the desktop row; one column here, or they squeeze the input to a sliver. */
+      .adm .grid3 > .hint{ grid-column:auto !important; }
     }
     @media (max-width:760px){
       .adm{ padding-top:150px; }
@@ -801,6 +819,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       .adm .drawer-wrap{ padding:18px 14px 24px; }
       .adm .fbar .search{ width:100%; }
       .adm .mrow .end{ margin-left:0; width:100%; justify-content:flex-start; gap:10px 12px; }
+      /* Version history: the date column was a fixed 170px, which left the summary a 49px sliver on a phone. Date and Restore on one line, the summary under them. */
+      .adm .hrow{ grid-template-columns:minmax(0,1fr) auto; grid-template-areas:'when act' 'what what'; row-gap:6px; }
+      .adm .hrow .when{ grid-area:when; } .adm .hrow .what{ grid-area:what; } .adm .hrow > .sbtn{ grid-area:act; }
     }
   </style>
 
@@ -1030,7 +1051,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('confirm-dialog').addEventListener('close', () => { const r = cfResolve; cfResolve = null; if (r) r(false); });
     function needSignIn() {
       $('gate').hidden = false;
-      $('gate-note').textContent = me?.role === 'admin' ? 'Your session ended. Sign in on /send in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
+      $('gate-note').textContent = me?.role === 'admin' ? 'Your session ended. Sign in at cognak.com/admin in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
       $('tl-retry').hidden = me?.role !== 'admin';
       $('gate-admin').hidden = true;   // "reload this page" would lose the edits; the note above says what to do
       $('gate').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1260,7 +1281,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('batch-list').querySelectorAll('button[data-act]').forEach((btn) => btn.addEventListener('click', (e) => {
         const row = e.target.closest('.batchrow'); const b = S.batches.find((x) => x.token === row.dataset.b); const link = location.origin + '/workflow/sitime/' + b.token;
         const act = btn.dataset.act;
-        if (act === 'open') { const d = row.querySelector('.bdetail'); d.hidden = !d.hidden; if (!d.hidden) renderBatchDetail(b, d); }
+        if (act === 'open') { const d = row.querySelector('.bdetail'); d.hidden = !d.hidden; btn.setAttribute('aria-expanded', String(!d.hidden)); if (!d.hidden) renderBatchDetail(b, d); }
         if (act === 'review') {
           if (!(b.slotIds || []).length) { toast('Add slots to this batch first.'); return; }
           // open the tab inside the click so it isn't popup-blocked, point it once saved
@@ -1271,6 +1292,23 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (act === 'csv') exportBatchCsv(b);
         if (act === 'delete') deleteBatch(b);
       }));
+      /* The whole row opens its slots, same as the Show slots button (Pierce, 9/28).
+         Buttons, links, the grip and the open detail keep their own clicks; a drag
+         from the grip never fires a click, so reordering is untouched. */
+      $('batch-list').querySelectorAll('.batchrow[data-b]').forEach((row) => {
+        const open = row.querySelector('button[data-act=open]'); if (!open) return;
+        open.setAttribute('aria-expanded', 'false');
+        row.tabIndex = 0;
+        row.addEventListener('click', (e) => {
+          if (e.target.closest('button, a, input, select, textarea, label, .grip, .bdetail')) return;
+          if (String(window.getSelection ? getSelection() : '').length) return;   // selecting text, not opening
+          open.click();
+        });
+        row.addEventListener('keydown', (e) => {
+          if (e.target !== row || (e.key !== 'Enter' && e.key !== ' ')) return;
+          e.preventDefault(); open.click();
+        });
+      });
       // waiting on you
       const m = byId(); const items = [];
       S.batches.forEach((b) => (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); if (o.outcome === 'denied' || o.outcome === 'held') items.push({ s, b, o }); }));
@@ -1282,6 +1320,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         (approvedUnlicensed ? '<div class="qitem"><div class="thumb empty" style="width:72px;height:48px"></div><div><div class="t">' + approvedUnlicensed + ' approved image' + (approvedUnlicensed > 1 ? 's' : '') + ' to license</div><div class="n">Approved Adobe and Envato comps still need a license. Handoff tab has the list and a field for the license number.</div></div></div>' : '') ||
         '<p class="hint">Nothing waiting.</p>';
     }
+    /* The site cursor only grows over a, button and .pill (cognak-global.js);
+       a batch row opens on click too, so it gets the same link cursor. Added on
+       load so it runs after that document handler, which would clear it. */
+    window.addEventListener('load', () => document.addEventListener('mouseover', (e) => {
+      const c = document.getElementById('cognak-cursor');
+      if (c && e.target.closest && e.target.closest('.adm .batchrow[data-b]') && !e.target.closest('.bdetail')) c.classList.add('is-link');
+    }));
     function wireBatchDrag() {
       const list = $('batch-list'); let dragTok = null;
       const rows = () => Array.from(list.querySelectorAll('.batchrow[data-b]'));
