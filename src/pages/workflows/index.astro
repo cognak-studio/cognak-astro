@@ -62,12 +62,18 @@ const TOOLS = [
     .wf .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .wf .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
     .wf .picker{ display:grid; grid-template-columns:1fr; gap:14px; }
-    .wf .pcard{ position:relative; display:block; text-decoration:none; color:var(--ink); background:#fff; border:1px solid #E8E5EF; border-radius:12px; padding:24px 24px 22px;
+    .wf .pcard{ position:relative; display:block; text-decoration:none; color:var(--ink); background:#fff; border:none; border-radius:12px; padding:24px 24px 22px;
       box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); transition:background var(--dur-sm) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
-    /* Hover is just a drop shadow, nothing else -- no background tint. Same
-       offsetY + |spread| >= blur rule (20+12 >= 30) keeps it grounded under
-       the card instead of haloing around it. */
-    .wf .pcard:hover{ box-shadow:0 1px 2px rgba(0,0,0,.04),0 20px 30px -12px rgba(var(--accent-rgb),.38); }
+    /* /brief's card edge in the tool's pale purple (Pierce, 9/28): lit corners, soft middle; brightens on hover, no drop glow. */
+    .wf .pcard::before{
+      content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:linear-gradient(135deg, rgba(106,92,138,.34) 0%, rgba(106,92,138,.10) 26%, rgba(232,229,239,.9) 50%, rgba(106,92,138,.10) 74%, rgba(106,92,138,.34) 100%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+              mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; opacity:.85;
+      transition:opacity var(--dur-sm) var(--ease-standard), filter var(--dur-sm) var(--ease-standard); }
+    .wf .pcard:hover{ background:#FBFAFD; }
+    .wf .pcard:hover::before{ opacity:1; filter:saturate(1.3) brightness(.95); }
     /* Like /brief (Pierce, 9/27): hover turns every word in the card the tool's purple, and the arrow slides. */
     .wf .pcard:hover .idx, .wf .pcard:hover .ptag, .wf .pcard:hover h3, .wf .pcard:hover p, .wf .pcard:hover .arrow{ color:var(--head); }
     .wf .pcard:active{ transform:scale(.995); }

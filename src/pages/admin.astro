@@ -224,7 +224,7 @@ const TOOLS = [
     .adm #dash{ max-width:600px; }
     .adm .tools{ display:grid; grid-template-columns:1fr; gap:12px; margin:0; padding:0; list-style:none; }
     .adm .tcard{ position:relative; display:flex; flex-direction:column; min-height:0; box-sizing:border-box;
-      text-decoration:none; color:var(--ink); background:var(--panel); border:1px solid var(--line);
+      text-decoration:none; color:var(--ink); background:var(--panel); border:none; box-shadow:0 2px 10px rgba(0,0,0,.18);
       border-radius:12px; padding:24px 24px 22px;
       transition:border-color var(--dur-sm) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard), background var(--dur-sm) var(--ease-standard); }
     @media (max-width:900px){ .adm .tcard{ min-height:0; padding:22px 20px 20px; } }
@@ -238,9 +238,18 @@ const TOOLS = [
       max-width:40ch; transition:color var(--dur-s) var(--ease-standard); }
     .adm .tcard .arrow{ position:absolute; bottom:20px; right:22px; color:var(--ink-soft);
       transition:transform var(--dur-sm) var(--ease-standard), color var(--dur-sm) var(--ease-standard); }
+    /* /brief's card edge (Pierce, 9/28: the same soft light, not a drop glow): a 1px ring lit at the
+       top-left and bottom-right corners, cooling to the ground across the middle; it brightens on hover. */
+    .adm .tcard::before{
+      content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:linear-gradient(135deg, rgba(159,80,255,.34) 0%, rgba(159,80,255,.10) 26%, rgba(23,21,26,.5) 50%, rgba(159,80,255,.10) 74%, rgba(159,80,255,.34) 100%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+              mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; opacity:.85;
+      transition:opacity var(--dur-sm) var(--ease-standard), filter var(--dur-sm) var(--ease-standard); }
     @media (hover:hover){
-      .adm .tcard:hover{ background:var(--panel-hi); border-color:rgba(159,80,255,.45);
-        box-shadow:0 22px 34px -18px rgba(139,31,255,.55); }
+      .adm .tcard:hover{ background:var(--panel-hi); }
+      .adm .tcard:hover::before{ opacity:1; filter:brightness(1.25); }
       .adm .tcard:hover h2, .adm .tcard:hover .arrow, .adm .tcard:hover .ttag{ color:var(--accent-text); }
       .adm .tcard:hover .arrow{ transform:translateX(4px); }
     }
