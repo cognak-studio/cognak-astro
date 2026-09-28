@@ -223,23 +223,30 @@ export async function teamLogin(req, name, pass) {
   /* Personal passcodes first: the passcode alone says who this is. */
   const users = await readUsers();
   const u = users.find((x) => userMatches(x, pass));
+  /* The first name works as a username (Pierce, 9/28): it must match the one
+     COGNAK set, ignoring case, accents and anything after the first word.
+     A mismatch reads exactly like a wrong password and counts as a failure. */
+  if (u && firstName(name) !== firstName(u.name)) { await recordFail(ATTEMPT_DIR, req); return { ok: false, status: 401, error: NO_MATCH }; }
   if (u) {
     try { await put(SEEN_DIR + u.id + '/' + now + '.json', '{}', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }); } catch (e) {}
     return { ok: true, cookie: userCookie(u), name: u.name, role: cleanRole(u.role) };
   }
   const team = await readTeam(); const client = await readClient();
-  if (!team.hash && !client.hash && !users.length) return { ok: false, status: 403, error: 'Access is off. Ask Pierce for a passcode.' };
+  if (!team.hash && !client.hash && !users.length) return { ok: false, status: 403, error: 'Access is off. Ask COGNAK for a password.' };
   /* Shared passcodes (older): the person types a name so edits and decisions carry it. */
   const nm = cleanName(name).slice(0, 40);
   const sharedRole = passMatches(team, pass) ? 'team' : passMatches(client, pass) ? 'client' : null;
-  if (sharedRole && !nm) return { ok: false, status: 400, needName: true, error: 'This is a shared passcode. Add your name so edits show who made them.' };
+  if (sharedRole && !nm) return { ok: false, status: 400, needName: true, error: 'This is a shared password. Add your first name so edits show who made them.' };
   if (sharedRole === 'team') return { ok: true, cookie: teamCookie(nm, team, 'team'), name: nm, role: 'team' };
   if (sharedRole === 'client') return { ok: true, cookie: teamCookie(nm, client, 'client'), name: nm, role: 'client' };
   {
     await recordFail(ATTEMPT_DIR, req);
-    return { ok: false, status: 401, error: 'That passcode isn’t right.' };
+    return { ok: false, status: 401, error: NO_MATCH };
   }
 }
+
+const NO_MATCH = 'That name and password don’t match.';
+const firstName = (s) => String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase().split(/\s+/)[0] || '';
 
 /* ---- review-link passcode (sitime-batch, sitime-decide) ----
    Same rule as before: reviewPass unset means 'silicon' (Pierce, 2026-09-14),

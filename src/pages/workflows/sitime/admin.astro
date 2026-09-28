@@ -39,10 +39,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <p class="lede" id="lede">Image picks and reviews for the new sitime.com.</p>
 
     <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div>
-      <p class="hint" id="gate-note">The passcode you were given.</p>
-      <div class="teamlogin"><input class="txt" id="tl-pass" type="password" placeholder="Passcode" aria-label="Passcode" autocomplete="current-password" autocapitalize="off" /><input class="txt" id="tl-name" placeholder="Your first name" aria-label="Your first name" autocomplete="given-name" hidden /><button class="sbtn p" id="tl-go">Sign in</button></div>
+      <p class="hint" id="gate-note">Your first name and the password we sent you.</p>
+      <div class="teamlogin"><input class="txt" id="tl-name" placeholder="First name" aria-label="First name" autocomplete="username" autocapitalize="words" /><input class="txt" id="tl-pass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" autocapitalize="off" /><button class="sbtn p" id="tl-go">Sign in</button></div>
       <p class="hint is-error" id="tl-err" hidden></p>
-      <p class="hint" id="gate-admin" style="margin-top:14px">COGNAK admin? <a href="/admin?next=/workflows/sitime/admin">Sign in with your passkey</a> and you'll come straight back here.</p>
       <button class="sbtn" id="tl-retry" hidden>Try saving again</button>
     </div></div>
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">Reading the state.</p></div></div>
@@ -1055,9 +1054,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('gate').hidden = false;
       $('gate-note').textContent = me?.role === 'admin' ? 'Your session ended. Sign in at cognak.com/admin in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
       $('tl-retry').hidden = me?.role !== 'admin';
-      $('gate-admin').hidden = true;   // "reload this page" would lose the edits; the note above says what to do
       $('gate').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (me?.role !== 'admin') $('tl-pass').focus({ preventScroll: true });
+      if (me?.role !== 'admin') { if (me?.name && !$('tl-name').value) $('tl-name').value = me.name; $(me?.name ? 'tl-pass' : 'tl-name').focus({ preventScroll: true }); }
     }
     $('tl-retry').addEventListener('click', () => { $('gate').hidden = true; dirty = true; save(); });
 
@@ -2880,14 +2878,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function teamSignIn() {
       $('tl-err').hidden = true;
       const pass = $('tl-pass').value;
-      if (!pass.trim()) { $('tl-err').textContent = 'Enter your passcode.'; $('tl-err').hidden = false; $('tl-pass').focus(); return; }
-      const name = $('tl-name').hidden ? '' : $('tl-name').value.trim();
-      if (!$('tl-name').hidden && !name) { $('tl-err').textContent = 'Add your first name, so edits show who made them.'; $('tl-err').hidden = false; $('tl-name').focus(); return; }
+      const name = $('tl-name').value.trim();   // a username: it must match the first name COGNAK set (Pierce, 9/28)
+      if (!name) { $('tl-err').textContent = 'Enter your first name.'; $('tl-err').hidden = false; $('tl-name').focus(); return; }
+      if (!pass.trim()) { $('tl-err').textContent = 'Enter your password.'; $('tl-err').hidden = false; $('tl-pass').focus(); return; }
       $('tl-go').disabled = true;
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'login', name, pass } });
       $('tl-go').disabled = false;
       if (!r.ok) {
-        if (r.data && r.data.needName) { $('tl-name').hidden = false; $('gate-note').textContent = 'This is a shared passcode. Add your first name so edits show who made them.'; $('tl-name').focus(); return; }
+        if (r.data && r.data.needName) { $('gate-note').textContent = 'This is a shared password. Add your first name so edits show who made them.'; $('tl-name').focus(); return; }
         $('tl-err').textContent = (r.data && r.data.error) || 'Could not sign in.'; $('tl-err').hidden = false; return;
       }
       $('gate').hidden = true;
@@ -2898,7 +2896,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     $('tl-go').addEventListener('click', teamSignIn);
     $('tl-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') teamSignIn(); });
-    $('tl-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); teamSignIn(); } });
+    $('tl-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if ($('tl-pass').value) teamSignIn(); else $('tl-pass').focus(); } });
     let booted = false;
     /* Name + Sign out. Also redrawn after a mid-session re-sign-in, which used to leave a dead button. */
     function renderWhoami() {
@@ -2909,13 +2907,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function boot() {
       const r = await api('/api/sitime-state');
       $('loading').hidden = true;
-      if (r.status === 401) { $('gate').hidden = false; $('tl-pass').focus(); return; }
+      if (r.status === 401) { $('gate').hidden = false; $('tl-name').focus(); return; }
       if (!r.ok || !r.data) { $('gate').hidden = false; $('gate').querySelector('.hint').textContent = (r.data && r.data.error) || 'Could not load.'; return; }
       S = r.data.state; D = r.data.decisions || {}; CTX = r.data.context || null;
       S.batches = S.batches || []; S.library = S.library || [];
       base = clone(S);
       me = r.data.me || null;
-      if (!me?.role) { $('gate').hidden = false; $('tl-pass').focus(); return; }   // no one signed in: never fall back to admin
+      if (!me?.role) { $('gate').hidden = false; $('tl-name').focus(); return; }   // no one signed in: never fall back to admin
       loadTeamState();
       document.querySelector('.adm').classList.toggle('team', me?.role !== 'admin');
       document.querySelector('.adm').classList.toggle('client', isClient());
