@@ -280,6 +280,7 @@ const TOOLS = [
     .adm .pk-list .pk-meta{ display:block; font-size:var(--fs-12); color:var(--ink-soft); margin-top:2px; }
     .adm .pk .actions{ justify-content:flex-start; margin-top:1rem; }
     .adm .note.is-ok{ color:var(--accent-text); }
+    .adm .pk-list .btn.is-armed{ color:#fff; background:#C8170F; border-color:#C8170F; }
     .adm .bounce-note{ margin:0 0 1.2rem; font-size:var(--fs-14); line-height:1.5; color:var(--err); max-width:60ch; }
     .adm .bounce-note:empty{ display:none; }
 
@@ -362,12 +363,12 @@ const TOOLS = [
   <div class="adm-glow" aria-hidden="true"></div>
   <script is:inline>
     /* The glow leans a little toward the pointer and eases there (Pierce, 9/28: "shift slightly,
-       like /studio or /schedule", which use UnicornStudio scenes). Up to ~40px, lerped; still for
+       like /studio or /schedule", which use UnicornStudio scenes). Up to ~120px (40 was too subtle on a glow this big), lerped; still for
        reduced motion and for touch, and idle once it has settled. */
     (function () {
       var g = document.querySelector('.adm-glow'); if (!g) return;
       if (matchMedia('(prefers-reduced-motion: reduce)').matches || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-      var MAX = 40, tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+      var MAX = 120, tx = 0, ty = 0, x = 0, y = 0, raf = 0;
       function step() {
         x += (tx - x) * 0.06; y += (ty - y) * 0.06;
         g.style.setProperty('--gx', x.toFixed(2) + 'px'); g.style.setProperty('--gy', y.toFixed(2) + 'px');
@@ -608,12 +609,25 @@ const TOOLS = [
         li.querySelector('.pk-meta').textContent = 'added ' + added + ' · ' + (k.lastUsedAt ? 'last used ' + new Date(k.lastUsedAt).toLocaleDateString() : 'never used') + (k.backedUp ? ' · synced' : ' · this device only');
         const del = li.querySelector('button');
         del.setAttribute('aria-label', 'Remove passkey ' + k.label);
+        /* Confirm in place, not with confirm(): Arc and other browsers can silently block native
+           dialogs, which read as "no" and left the row sitting there (Pierce, 9/28). First click
+           arms the button for 4s; the second removes and says so. */
+        let armed = 0;
         del.addEventListener('click', async () => {
-          const msg = keys.length === 1 ? 'Remove the last passkey? The password becomes the only way in again.' : 'Remove "' + k.label + '"? That device will no longer be able to sign in.';
-          if (!confirm(msg)) return;
-          del.disabled = true;
-          await api('/api/admin-passkey?action=delete', { method: 'POST', body: { id: k.id } });
+          const note = $('pk-note');
+          if (!armed) {
+            del.textContent = 'Confirm remove'; del.classList.add('is-armed');
+            note.textContent = keys.length === 1 ? 'This is your last passkey: after removing it, the password is the only way in.' : 'Click again to remove "' + k.label + '". That device will no longer be able to sign in.';
+            note.className = 'note';
+            armed = window.setTimeout(() => { armed = 0; del.textContent = 'Remove'; del.classList.remove('is-armed'); }, 4000);
+            return;
+          }
+          clearTimeout(armed); armed = 0;
+          del.disabled = true; del.textContent = 'Removing…';
+          const r = await api('/api/admin-passkey?action=delete', { method: 'POST', body: { id: k.id } });
+          if (!r.ok) { del.disabled = false; del.textContent = 'Remove'; del.classList.remove('is-armed'); note.textContent = (r.data && r.data.error) || 'Could not remove that passkey. Try again.'; note.className = 'note is-error'; return; }
           await renderPasskeys();
+          note.textContent = 'Removed "' + k.label + '".'; note.className = 'note is-ok';
         });
         list.appendChild(li);
       });
