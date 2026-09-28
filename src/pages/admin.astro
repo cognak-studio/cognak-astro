@@ -77,7 +77,8 @@ const TOOLS = [
     .adm-glow{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
     .adm-glow::before{ content:''; position:absolute; width:min(900px,120vw); height:min(900px,120vw);
       right:max(-420px,-40vw); top:12vh; border-radius:50%;
-      background:radial-gradient(closest-side, rgba(139,31,255,.16), rgba(139,31,255,.05) 55%, rgba(139,31,255,0)); }
+      background:radial-gradient(closest-side, rgba(139,31,255,.16), rgba(139,31,255,.05) 55%, rgba(139,31,255,0));
+      transform:translate3d(var(--gx,0px), var(--gy,0px), 0); will-change:transform; }
 
     /* Homepage palette. Contrast, measured on --panel (#1C1A21):
        ink 15.05, ink-soft 7.07, accent-text 7.84, purple (#9F50FF, headline
@@ -329,6 +330,26 @@ const TOOLS = [
   </script>
 
   <div class="adm-glow" aria-hidden="true"></div>
+  <script is:inline>
+    /* The glow leans a little toward the pointer and eases there (Pierce, 9/28: "shift slightly,
+       like /studio or /schedule", which use UnicornStudio scenes). Up to ~40px, lerped; still for
+       reduced motion and for touch, and idle once it has settled. */
+    (function () {
+      var g = document.querySelector('.adm-glow'); if (!g) return;
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      var MAX = 40, tx = 0, ty = 0, x = 0, y = 0, raf = 0;
+      function step() {
+        x += (tx - x) * 0.06; y += (ty - y) * 0.06;
+        g.style.setProperty('--gx', x.toFixed(2) + 'px'); g.style.setProperty('--gy', y.toFixed(2) + 'px');
+        raf = Math.abs(tx - x) > 0.05 || Math.abs(ty - y) > 0.05 ? requestAnimationFrame(step) : 0;
+      }
+      document.addEventListener('pointermove', function (e) {
+        tx = (e.clientX / innerWidth - 0.5) * 2 * MAX; ty = (e.clientY / innerHeight - 0.5) * 2 * MAX;
+        if (!raf) raf = requestAnimationFrame(step);
+      }, { passive: true });
+      document.addEventListener('mouseleave', function () { tx = 0; ty = 0; if (!raf) raf = requestAnimationFrame(step); });
+    })();
+  </script>
 
   <main id="cognak-main"><section class="adm">
 
