@@ -34,21 +34,17 @@ const PAGE = 'admin' as any;
 const TOOLS = [
   {
     href: '/send',
-    tag: 'Clients',
+    tag: 'Files',
     title: 'Send',
     desc: 'Deliver files to clients with a cognak.com link.',
   },
-  {
-    href: '/workflows/sitime/admin',
-    tag: 'SiTime',
-    title: 'Image review',
-    desc: 'Choose and approve images for the new site, slot by slot.',
-  },
+  /* Image review had its own card, but it is the one tool listed on /workflows, so the two
+     led to the same place (Pierce, 9/28). New client tools appear under Workflows. */
   {
     href: '/workflows',
-    tag: 'Index',
+    tag: 'Clients',
     title: 'Workflows',
-    desc: 'Every custom client workflow, in one place.',
+    desc: 'Custom tools for clients, like the SiTime image review.',
   },
 ];
 ---
@@ -263,7 +259,13 @@ const TOOLS = [
     .adm .dash-foot .btn{ margin-left:auto; }
     /* Passkeys, moved here from /send (Pierce, 9/28): sign-in lives on /admin, so its keys do too. */
     .adm .pk{ margin-top:1.6rem; padding:22px 24px; background:var(--panel); border:1px solid var(--line); border-radius:12px; }
-    .adm .pk-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 .4rem; }
+    .adm .pk-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin:0; }
+    /* Closed by default, like /send's old Sign-in security card: set-and-forget. */
+    .adm .pk-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .adm #pk-body{ margin-top:.9rem; }
+    .adm .collapse-toggle{ flex:0 0 auto; width:28px; height:28px; border-radius:999px; border:1px solid var(--line-strong); background:none; color:var(--ink-soft); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding:0; transition:border-color var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard); }
+    .adm .collapse-toggle:hover{ border-color:var(--accent-text); color:var(--ink); }
+    .adm .collapse-toggle .toggle-glyph{ font-family:'Diatype Mono', monospace; font-size:var(--fs-16); line-height:1; }
     .adm .pk-sub{ font-size:var(--fs-13); line-height:1.5; color:var(--ink-soft); margin:0 0 1rem; }
     .adm .pk-list{ list-style:none; margin:0; padding:0; }
     .adm .pk-list li{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid var(--line); }
@@ -448,12 +450,17 @@ const TOOLS = [
         ))}
       </ul>
       <section class="pk" aria-labelledby="pk-title">
-        <h2 class="pk-title" id="pk-title">Passkeys</h2>
+        <div class="pk-head">
+          <h2 class="pk-title" id="pk-title">Passkeys</h2>
+          <button type="button" class="collapse-toggle" id="pk-toggle" aria-expanded="false" aria-controls="pk-body" aria-label="Expand passkeys"><span class="toggle-glyph" aria-hidden="true">+</span></button>
+        </div>
+        <div id="pk-body" hidden>
         <p class="pk-sub">Each browser or device you sign in from. Add one here to sign in from a new browser; saving it to iCloud Keychain makes it work in Safari and on your iPhone too.</p>
         <p class="note" id="pk-note" role="status" aria-live="polite"></p>
         <ul class="pk-list" id="pk-list"></ul>
         <p class="note" id="pk-empty" hidden>No passkeys yet. The password is the only way in.</p>
         <div class="actions"><button type="button" class="btn btn-primary" id="pk-add">Add this device</button></div>
+        </div>
       </section>
       <div class="dash-foot">
         <button type="button" class="btn btn-ghost" id="signout-btn">Sign out</button>
@@ -605,6 +612,12 @@ const TOOLS = [
       });
       $('pk-add').textContent = keys.length ? 'Add another device' : 'Add this device';
     }
+    $('pk-toggle').addEventListener('click', () => {
+      const t = $('pk-toggle'); const b = $('pk-body'); const open = b.hidden;
+      b.hidden = !open; t.setAttribute('aria-expanded', String(open));
+      t.setAttribute('aria-label', open ? 'Collapse passkeys' : 'Expand passkeys');
+      t.querySelector('.toggle-glyph').textContent = open ? '−' : '+';
+    });
     $('pk-add').addEventListener('click', async () => {
       const note = $('pk-note'); const btn = $('pk-add');
       note.textContent = ''; note.className = 'note';
