@@ -90,7 +90,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise summary" id="summary" hidden>
       <div class="group">
-        <div class="group-title"><span id="sum-label">Batch</span><span class="sep">·</span><span>Complete</span><span class="bar"><i style="width:100%"></i></span></div>
+        <div class="group-title"><span id="sum-label">Batch</span><span class="sep">·</span><span>Complete</span><span class="bar"><i style="width:100%;background:linear-gradient(90deg,#C7BDDF 0%,rgb(122,82,224) 100%);box-shadow:0 0 8px 1px rgba(122,82,224,.6)"></i></span></div>
         <span class="q-title">That's the batch. Thank you.</span>
         <span class="q-sub">COGNAK has the decisions. Replacements for anything denied come in the next batch; held images stay parked until you say otherwise.</span>
         <div class="counts"><div><b id="c-ok">0</b><span>approved</span></div><div><b id="c-deny">0</b><span>denied</span></div><div><b id="c-hold">0</b><span>held</span></div></div>
@@ -172,8 +172,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .review .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
     .review .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; display:flex; align-items:center; gap:14px; }
-    .review .group-title .bar{ flex:1; height:2px; background:var(--line); border-radius:2px; overflow:hidden; max-width:260px; margin-left:auto; }
-    .review .group-title .bar i{ display:block; height:100%; width:6px; background:var(--accent); transition:width .3s var(--ease-standard); }
+    .review .group-title .bar{ flex:1; height:2px; background:var(--line); border-radius:2px; max-width:260px; margin-left:auto; }
+    .review .group-title .bar i{ display:block; height:100%; width:6px; border-radius:2px; background:var(--accent); transition:width .3s var(--ease-standard); }
     .review .q-title{ display:block; font-size:var(--fs-17); font-weight:500; line-height:1.3; color:var(--ink); }
     .review .q-sub{ display:block; font-size:var(--fs-14); line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:60ch; }
     .review .hint{ font-size:var(--fs-15); color:var(--ink-soft); margin:0; }
@@ -508,6 +508,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          a visible nub, so an untouched batch reads as "at the start" rather than
          as an empty rule with nothing in it. */
       $('bar').style.width = 'max(6px, ' + Math.round((done / state.slots.length) * 100) + '%)';
+      /* Like /brief's rail (Pierce, 9/28): the growing end deepens from the pale accent
+         (199,189,223) to a saturated purple (122,82,224) as the batch nears done, and glows more. */
+      { const t = state.slots.length ? done / state.slots.length : 0;
+        const end = 'rgb(' + Math.round(199 + (122 - 199) * t) + ',' + Math.round(189 + (82 - 189) * t) + ',' + Math.round(223 + (224 - 223) * t) + ')';
+        $('bar').style.background = 'linear-gradient(90deg, #C7BDDF 0%, ' + end + ' 100%)';
+        $('bar').style.boxShadow = '0 0 8px 1px rgba(122,82,224,' + (0.15 + 0.45 * t).toFixed(2) + ')'; }
       $('slot-title').textContent = s.page + ' · ' + s.name;
       $('slot-where').textContent = s.where || ''; $('slot-where').hidden = !s.where;
       $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? (backupCue ? 'Backup image, 2 of 2 for this slot.' : 'Backup image.') : s.single ? 'One image for this slot.' : (s.backup ? 'Main image.' : 'Main image. No backup for this one.'));
