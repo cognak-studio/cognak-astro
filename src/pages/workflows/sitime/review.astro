@@ -45,11 +45,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise" id="card" hidden>
       <div class="group">
-        <div class="group-title"><span id="batch-label">Batch</span><span class="bar"><i id="bar"></i></span></div>
+        <div class="group-title"><span id="batch-label">Batch</span><span class="left" id="left"></span><span class="bar"><i id="bar"></i></span></div>
         <div class="field">
           <span class="q-title" id="slot-title" tabindex="-1">Slot</span>
           <span class="q-sub q-where" id="slot-where" hidden></span>
           <span class="q-sub" id="slot-sub"></span>
+          <p class="cue" id="cue" role="status" hidden></p>
           <div class="pills" id="pills" role="group" aria-label="Decision">
             <button type="button" class="pill" data-v="approve">Approve</button>
             <button type="button" class="pill" data-v="deny">Deny</button>
@@ -221,6 +222,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .statusslot .handoff:not([hidden]) + .decided{ display:none !important; }
     .review .decided.is-err{ color:var(--err); }
     .review .decided b{ font-weight:500; color:var(--ink); }
+    /* Main denied -> the backup is up next: said above the buttons, full width, never truncated (Pierce, 9/28). */
+    .review .cue{ margin:16px 0 0; padding:12px 16px; border-radius:10px; background:#F1EEF8; border:1px solid var(--accent); color:var(--ink); font-size:var(--fs-15); line-height:1.5; }
+    .review .cue b{ font-weight:600; }
+    .review .cue .was{ display:block; margin-top:2px; font-size:var(--fs-13); color:var(--ink-soft); }
+    /* What's left, beside the batch name: backups waiting on a decision are counted out loud. */
+    .review .group-title .left{ letter-spacing:.14em; color:var(--head); white-space:nowrap; }
+    .review .group-title .left:empty{ display:none; }
+    .review .which button.cue-on{ animation:whichcue 1.2s var(--ease-standard) 2; }
+    @keyframes whichcue{ 0%,100%{ box-shadow:0 0 0 0 rgba(var(--accent-rgb),0); } 50%{ box-shadow:0 0 0 6px rgba(var(--accent-rgb),.6); } }
+    .review #hero-img.swapin{ animation:swapin .45s var(--ease-standard); }
+    @keyframes swapin{ from{ opacity:0; } to{ opacity:1; } }
+    @media (prefers-reduced-motion:reduce){ .review .which button.cue-on, .review #hero-img.swapin{ animation:none; } }
     .review .handoff{ margin:12px 0 0; padding:10px 14px; border-radius:8px; background:#FDF2F2; border:1px solid #F3D2D2; color:#8A2A2A; font-size:var(--fs-14); line-height:1.5; }
     .review .handoff b{ font-weight:600; }
 
@@ -481,14 +494,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const done = state.slots.filter((x) => outcome(x).outcome !== 'pending').length;
 
       $('batch-label').textContent = LP ? 'Preview' : 'Batch ' + String(state.batch.num || '').padStart(2, '0') + (state.batch.name ? ' · ' + state.batch.name : '');
-      $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length;
+      const backupCue = which === 'backup' && d.main && d.main.decision === 'deny' && !d.backup;
+      $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length + (backupCue ? ' · Backup' : '');
+      { const pend = state.slots.filter((x) => outcome(x).outcome === 'pending'); const bk = pend.filter((x) => outcome(x).which === 'backup').length;
+        $('left').textContent = !pend.length ? 'All decided' : pend.length + ' left' + (bk ? ' · ' + bk + (bk === 1 ? ' backup' : ' backups') : ''); }
       /* max(6px, …) is the /brief rail's rule: at zero decided the fill is still
          a visible nub, so an untouched batch reads as "at the start" rather than
          as an empty rule with nothing in it. */
       $('bar').style.width = 'max(6px, ' + Math.round((done / state.slots.length) * 100) + '%)';
       $('slot-title').textContent = s.page + ' · ' + s.name;
       $('slot-where').textContent = s.where || ''; $('slot-where').hidden = !s.where;
-      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image.' : (s.backup ? 'Main image.' : 'Main image. No backup for this one.'));
+      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? (backupCue ? 'Backup image, 2 of 2 for this slot.' : 'Backup image.') : (s.backup ? 'Main image.' : 'Main image. No backup for this one.'));
       const MARK = { approve: '✓', deny: '✕', hold: '◦' };
       document.querySelectorAll('#which button').forEach((btn) => {
         const w = btn.dataset.w; const ev = d[w];
@@ -565,10 +581,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       // with whatever note came with that denial, instead of the silent
       // hand-off reviewers were missing (subtitle alone was too easy to skim past).
       const mainEv = d.main;
+      $('handoff').hidden = true;   // replaced by the cue above the buttons (it was truncated to one line below them)
       if (which === 'backup' && mainEv && mainEv.decision === 'deny') {
-        $('handoff').hidden = false;
-        $('handoff').innerHTML = '<b>Main image denied' + (mainEv.note ? ':</b> “' + escapeHtml(mainEv.note) + '”' : '.</b>') + ' Reviewing the backup now.';
-      } else { $('handoff').hidden = true; }
+        $('cue').hidden = false;
+        $('cue').innerHTML = d.backup
+          ? '<b>Main image denied.</b> This is its backup.' + (mainEv.note ? '<span class="was">Main: “' + escapeHtml(mainEv.note) + '”</span>' : '')
+          : '<b>Main image denied. Now decide the backup:</b> approve, deny or hold it.' + (mainEv.note ? '<span class="was">Your note on the main: “' + escapeHtml(mainEv.note) + '”</span>' : '');
+      } else { $('cue').hidden = true; }
+      const bb = document.querySelector('#which button[data-w=backup]');
+      if (state.handed === s.id) { state.handed = null; void bb.offsetWidth; bb.classList.add('cue-on'); const im = $('hero-img'); im.classList.remove('swapin'); void im.offsetWidth; im.classList.add('swapin'); }
 
       $('prev').disabled = state.i === 0;
       $('next').disabled = state.i >= state.slots.length - 1;
@@ -652,7 +673,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function advance() {
       const s = state.slots[state.i];
       const o = outcome(s);
-      if (o.outcome === 'pending') { render(); return; } // main denied → backup now shows in place
+      if (o.outcome === 'pending') { state.handed = s.id; render(); return; } // main denied → backup now shows in place, flagged
       const j = firstPending(state.i + 1);
       if (j === -1) { showSummary(); return; }
       state.i = j; render();
@@ -723,6 +744,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('oprev').addEventListener('click', () => { if (state.orig && state.orig.k > 0) { state.orig.k--; render(); } });
     $('onext').addEventListener('click', () => { const s = state.slots[state.i]; if (state.orig && s && state.orig.k < (s.original || []).length - 1) { state.orig.k++; render(); } });
 
+    /* The backup tab's pulse clears itself when done, so a background re-render can't cut it short. */
+    document.querySelector('#which button[data-w=backup]').addEventListener('animationend', (e) => e.currentTarget.classList.remove('cue-on'));
     /* A comp URL that 404s shows the placeholder instead of a broken image. */
     $('hero-img').addEventListener('error', () => {
       if (!$('hero-img').getAttribute('src')) return;
