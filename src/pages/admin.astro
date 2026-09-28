@@ -117,12 +117,17 @@ const TOOLS = [
     .adm .acard{ max-width:440px; background:var(--panel); border:1px solid var(--line);
       border-radius:12px; padding:36px 34px 32px; box-shadow:0 2px 24px rgba(0,0,0,.28); }
     @media (max-width:600px){ .adm .acard{ max-width:none; padding:28px 20px 24px; } }
-    /* Centred, all of it (Pierce, 9/28, after trying the site's left layout): headline, a
-       balanced two-line lede, the sign-in card and the dashboard column. Static CSS, so it is
-       centred from the first paint and nothing moves after load. */
-    .adm .headline, .adm .lede{ text-align:center; margin-left:auto; margin-right:auto; }
-    .adm .lede{ max-width:40ch; text-wrap:balance; }
-    .adm .acard{ margin-left:auto; margin-right:auto; }
+    /* One centred 600px column (Pierce, 9/28): the header reads like every other page, headline
+       flush left and the lede offset 40px under it, in both states; the sign-in card, tool cards
+       and passkeys fill the same column, so everything shares one left edge. Static CSS: nothing
+       moves after load. */
+    .adm > *{ max-width:600px; margin-left:auto; margin-right:auto; }
+    .adm .headline, .adm .lede, .adm .acard, .adm .idle-note, .adm .bounce-note{ margin-left:auto; margin-right:auto; }
+    .adm .headline{ text-align:left; max-width:600px; }
+    .adm .lede{ text-align:left; text-wrap:pretty; max-width:600px; padding-left:40px; padding-right:4ch; box-sizing:border-box; }
+    @media (max-width:760px){ .adm .lede{ padding-left:0; } }
+    .adm .acard{ max-width:600px; }
+    .adm .idle-note{ max-width:600px; }
 
     .adm .signin-head{ display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:1.2rem; }
     .adm .signin-icon{ margin-bottom:1.1rem; }
@@ -219,7 +224,7 @@ const TOOLS = [
       box-shadow:0 0 10px rgba(159,80,255,.8); }
 
     /* One column, centred under the headline (Pierce, 9/28: "stack the admin cards"). */
-    .adm #dash{ max-width:600px; margin:0 auto; }
+    .adm #dash{ max-width:600px; }
     .adm .tools{ display:grid; grid-template-columns:1fr; gap:12px; margin:0; padding:0; list-style:none; }
     .adm .tcard{ position:relative; display:flex; flex-direction:column; min-height:0; box-sizing:border-box;
       text-decoration:none; color:var(--ink); background:var(--panel); border:none; box-shadow:0 2px 10px rgba(0,0,0,.18);
@@ -378,8 +383,8 @@ const TOOLS = [
 
   <main id="cognak-main"><section class="adm">
 
-    <h1 class="headline rise" id="adm-headline">Studio <em>admin</em>.</h1>
-    <p class="lede rise" id="adm-lede">Deliver files, review client work, and keep the studio's tools in one place.</p>
+    <h1 class="headline" id="adm-headline">Studio <em>admin</em>.</h1>
+    <p class="lede" id="adm-lede">Deliver files, review client work, and keep the studio's tools in one place.</p>
 
     <noscript><p class="note is-error">Signing in needs JavaScript. Turn it on and reload.</p></noscript>
 
