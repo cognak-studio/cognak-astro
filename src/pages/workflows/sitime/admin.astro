@@ -155,7 +155,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             <label class="q"><span class="q-title">Role</span><select class="txt" id="pp-role"><option value="client">SiTime</option><option value="team">COGNAK team</option></select></label>
           </div>
           <div class="actions"><button class="sbtn p" id="pp-add">Add person</button><span class="mini" id="pp-status"></span></div>
-          <div class="passline" id="pp-pass" hidden><span class="lbl-s">Password for <b id="pp-pass-name"></b></span><code id="pp-pass-code"></code><button type="button" class="sbtn" id="pp-pass-copy">Copy</button><span class="hint" style="margin:0">Shown once. Send it to them; a new one can be issued any time.</span></div>
         </div>
         <div class="group admin-only">
           <div class="group-title">Shared team password</div>
@@ -225,6 +224,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     </dialog>
 
     <!-- in-page confirm, in place of the browser's confirm() -->
+    <!-- A new password is shown once: a modal that only closes after it has been copied (Pierce, 9/28). -->
+    <dialog id="pass-dialog" class="confirm passmodal">
+      <div class="group-title">Password for <span id="pd-name"></span></div>
+      <p class="cf-p">Shown once. Copy it and send it to them with the sign-in link; you can issue a new one any time.</p>
+      <div class="pd-row"><code id="pd-code"></code><button type="button" class="sbtn" id="pd-copy">Copy</button></div>
+      <p class="hint pd-hint" id="pd-hint" role="status" aria-live="polite"></p>
+      <div class="actions"><button type="button" class="sbtn p" id="pd-done" disabled>Done</button></div>
+    </dialog>
     <dialog id="confirm-dialog" class="confirm">
       <div class="group-title" id="cf-title">Confirm</div>
       <div id="cf-msg"></div>
@@ -634,6 +641,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm dialog.confirm{ width:min(92vw,460px); }
     .adm dialog.confirm .cf-p{ font-size:var(--fs-15); line-height:1.5; color:var(--ink); margin:0 0 .9rem; }
     .adm dialog.confirm .cf-chk{ margin:-.2rem 0 1.1rem; }
+    .adm dialog.passmodal .pd-row{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:14px 16px; background:#F5F3F9; border-radius:8px; }
+    .adm dialog.passmodal code{ font-family:'Diatype Mono', monospace; font-size:var(--fs-20, 20px); letter-spacing:.08em; color:var(--ink); user-select:all; }
+    .adm dialog.passmodal .pd-hint{ margin:.7rem 0 0; min-height:1.2em; }
+    .adm dialog.passmodal .actions{ margin-top:1.2rem; }
     /* People (Settings): the one-time passcode line and the row actions. */
     .adm .passline{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:12px 14px; background:#F5F3F9; border-radius:8px; }
     .adm #client-line{ margin-top:12px; }   /* second action line under Set team passcode sat flush against it (0px) */
@@ -2769,11 +2780,23 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         people = people.filter((x) => x.id !== u.id); renderPeople(); toast('Removed ' + u.name + '.');
       }));
     }
+    /* The password modal: Done unlocks only once it has been copied (or, if the clipboard is
+       blocked, selected by hand), and Escape can't close it before that. */
+    let pdCopied = false;
     function showPasscode(name, code) {
-      $('pp-pass-name').textContent = name; $('pp-pass-code').textContent = code; $('pp-pass').hidden = false;
-      $('pp-pass').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      pdCopied = false;
+      $('pd-name').textContent = name; $('pd-code').textContent = code;
+      $('pd-hint').textContent = 'Copy the password to close this.'; $('pd-done').disabled = true; $('pd-copy').textContent = 'Copy';
+      $('pass-dialog').showModal(); $('pd-copy').focus();
     }
-    $('pp-pass-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('pp-pass-code').textContent); toast('Copied.'); } catch (e) { toast('Select the password and copy it.'); } });
+    function pdUnlock(msg) { pdCopied = true; $('pd-done').disabled = false; $('pd-hint').textContent = msg; $('pd-done').focus(); }
+    $('pd-copy').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText($('pd-code').textContent); $('pd-copy').textContent = 'Copied'; pdUnlock('Copied. Paste it into your email to them.'); }
+      catch (e) { const r = document.createRange(); r.selectNodeContents($('pd-code')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $('pd-hint').textContent = 'Copying is blocked here: it is selected, press Cmd+C.'; }
+    });
+    $('pd-code').addEventListener('copy', () => pdUnlock('Copied. Paste it into your email to them.'));
+    $('pd-done').addEventListener('click', () => { if (pdCopied) $('pass-dialog').close(); });
+    $('pass-dialog').addEventListener('cancel', (e) => { if (!pdCopied) e.preventDefault(); });
     async function addPerson() {
       const name = $('pp-name').value.trim();
       if (!name) { $('pp-status').textContent = 'A first name is needed.'; $('pp-name').focus(); return; }
