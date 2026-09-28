@@ -29,13 +29,16 @@ const COOKIE_NAME = 'cognak_admin';
    anything, tab closed or not. */
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
 
+/* Purpose-prefixed so no other cookie signed with ADMIN_SECRET in the same
+   payload.sig shape (the SiTime session, the passkey challenge) can be
+   renamed to cognak_admin and pass as an admin session (2026-09-27). */
 function sign(payloadB64) {
   const secret = process.env.ADMIN_SECRET || '';
-  return crypto.createHmac('sha256', secret).update(payloadB64).digest('base64url');
+  return crypto.createHmac('sha256', secret).update('admin-session:' + payloadB64).digest('base64url');
 }
 
 export function createSessionCookie() {
-  const payload = JSON.stringify({ exp: Date.now() + SESSION_MS });
+  const payload = JSON.stringify({ kind: 'admin', exp: Date.now() + SESSION_MS });
   const payloadB64 = Buffer.from(payload).toString('base64url');
   const token = payloadB64 + '.' + sign(payloadB64);
   return [
@@ -75,7 +78,7 @@ export function isAdmin(req) {
 
   try {
     const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8'));
-    return typeof payload.exp === 'number' && payload.exp > Date.now();
+    return payload.kind === 'admin' && typeof payload.exp === 'number' && payload.exp > Date.now();
   } catch (e) {
     return false;
   }
