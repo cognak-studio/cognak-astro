@@ -163,13 +163,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="actions"><button class="sbtn p" id="team-save">Set team passcode</button><span class="mini" id="team-status"></span></div>
         </div>
         <div class="group admin-only">
-          <div class="group-title">Shared SiTime passcode</div>
-          <div class="grid3"><label class="q"><span class="q-title">SiTime passcode</span><input class="txt" id="client-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end">The older way in for SiTime, one passcode for all of them; whoever uses it types a name at sign-in. Same rights as a SiTime person above. Must differ from the team passcode. Changing it signs everyone on it out; blank turns it off. People with their own passcode don't need it.</p></div>
-          <div class="actions"><button class="sbtn p" id="client-save">Set SiTime passcode</button><span class="mini" id="client-status"></span></div>
-        </div>
-        <div class="group admin-only">
-          <div class="group-title">Review link passcode</div>
-          <div class="grid3"><label class="q"><span class="q-title">Passcode</span><input class="txt" id="review-pass" placeholder="silicon" /></label><p class="hint" style="grid-column:2/4;align-self:end">Asked once per browser session on every review link, on top of the link itself. Blank turns it off.</p></div>
+          <div class="group-title">Batch review passcode</div>
+          <div class="grid3"><label class="q"><span class="q-title">Passcode</span><input class="txt" id="review-pass" placeholder="silicon" /></label><p class="hint" style="grid-column:2/4;align-self:end">Anyone who opens a batch review link without signing in enters this once per browser session. Signed-in people skip it. Blank turns it off.</p></div>
         </div>
         <div class="group admin-only">
           <div class="group-title">Mock copy</div>
@@ -298,6 +293,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .stat.warn b{ color:#D94A00; }
     .adm .card-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:1.4rem; flex-wrap:wrap; }
     .adm .card-head .right{ display:flex; align-items:center; gap:12px; }
+    /* The title carries a 1.6rem bottom margin on its own; inside a card-head the head owns the spacing, so the count or button centers on the title's text, not on title + margin (Pierce, 9/27). */
+    .adm .card-head > .group-title{ margin-bottom:0; }
     .adm .selbar{ display:inline-flex; align-items:center; gap:12px; }
     .adm .search{ font:inherit; font-size:var(--fs-14); padding:8px 12px; border:1px solid var(--line-strong); border-radius:999px; background:#fff; width:220px; outline:none; }
     .adm .filters{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -310,6 +307,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm table{ width:100%; border-collapse:collapse; font-size:var(--fs-15); }
     .adm th{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
     .adm td{ padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+    .adm th:first-child, .adm td:first-child{ padding-left:0; }
+    .adm th:last-child, .adm td:last-child{ padding-right:0; }
     .adm tr.sel td{ background:#F5F3F9; }
     .adm tr.clickable{ cursor:pointer; }
     .adm .pg{ font-weight:500; }
@@ -425,11 +424,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* Priority, display, status, checkbox, chevron: one group, right-aligned on the
        title line (min-height = the title's line box) and wrapping as a group. */
     .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:14px 18px; min-height:1.5rem; }
+    /* The pills, the status and the batch label sit on one visual line (Pierce, 9/27): every text item is a glyph-height box (line-height 1) so centering lands on the glyphs, the small labels share one style, the status is a notch smaller. */
+    .adm .mrow .end .pri, .adm .mrow .end .st, .adm .mrow .end .mini{ line-height:1; }
+    .adm .mrow .end .st{ font-size:var(--fs-13); }
+    .adm .mrow .end .mini{ font-size:var(--fs-10); letter-spacing:.08em; text-transform:uppercase; }
     .adm .mrow .chev{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; padding:0; border:0; background:none; cursor:pointer; color:var(--ink-soft); flex:none; transition:transform .15s var(--ease-standard), color .15s var(--ease-standard); }
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
     .adm .srow.sel .mrow .chev{ transform:rotate(180deg); color:#1A1A1A; }
-    .adm .drawer-wrap{ background:#fff; padding:0 20px 32px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:14px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
+    .adm .drawer-wrap{ background:#fff; padding:20px 20px 32px; border-radius:0 0 12px 12px; border:1px solid var(--line); border-top:none; margin-bottom:14px; box-shadow:0 14px 28px -10px rgba(26,26,26,.16); }
     /* Option C (Pierce, 9/26): the drawer reads as three bands under the row,
        each behind a hairline: the slot line with its actions, the settings
        (assign, shown as, notes, sources), then the picker. */
@@ -461,6 +464,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .qitem{ display:flex; gap:12px; align-items:flex-start; border:1px solid #E8E5EF; border-radius:8px; padding:12px; }
     .adm .qitem img{ width:72px; height:48px; object-fit:cover; border-radius:4px; background:#ECEAF1; }
     .adm .qitem .t{ font-size:var(--fs-14); font-weight:500; }
+    /* Internal reviews: one line per batch, live and closed alike, text flush with the cards; Show / Hide at the end instead of a marker. */
+    .adm .rvbatch{ margin:8px 0 14px; }
+    .adm .rvbatch > summary{ list-style:none; cursor:pointer; font-size:var(--fs-14); font-weight:500; line-height:1.4; }
+    .adm .rvbatch > summary::-webkit-details-marker{ display:none; }
+    .adm .rvbatch > summary .rv-toggle{ margin-left:10px; text-decoration:underline; text-underline-offset:3px; }
+    .adm .rvbatch > summary .rv-toggle::after{ content:'Show'; }
+    .adm .rvbatch[open] > summary .rv-toggle::after{ content:'Hide'; }
+    .adm .rvbatch > div{ margin-top:10px; }
     .adm .qitem .n{ font-size:var(--fs-13); color:var(--ink-soft); margin-top:3px; line-height:1.4; }
     /* drawer */
     .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; }
@@ -534,7 +545,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .upzone:hover .upt u{ text-decoration-color:currentColor; }
     .adm .upzone .upm{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); max-width:62ch; line-height:1.6; }
     .adm .upok{ display:block; margin-top:10px; }
-    .adm .batchrow{ display:grid; grid-template-columns:2fr 1fr 60px 110px 1.1fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:var(--fs-15); }
+    .adm .batchrow{ display:grid; grid-template-columns:2fr 1fr 60px 110px 1.1fr 1fr 1.6fr; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-size:var(--fs-14); }
+    .adm:not(.team) .batchrow.head > div:first-child{ padding-left:20px; }   /* under the name text, not the grip */
     /* Name cell: grip beside the text, so a long name wraps under its own first line, not under the grip (Pierce, 9/27). */
     .adm .batchrow .bname{ display:flex; align-items:flex-start; gap:10px; min-width:0; }
     .adm .batchrow .bname .bt{ min-width:0; line-height:1.35; }
@@ -597,6 +609,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm dialog.confirm .cf-chk{ margin:-.2rem 0 1.1rem; }
     /* People (Settings): the one-time passcode line and the row actions. */
     .adm .passline{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:12px 14px; background:#F5F3F9; border-radius:8px; }
+    .adm .passline[hidden]{ display:none !important; }   /* display:flex would beat [hidden] */
+    .adm .passline .lbl-s, .adm .passline code{ line-height:1; }
+    .adm .passline .hint{ line-height:1.4; }
     .adm .passline code{ font-family:'Diatype Mono', monospace; font-size:var(--fs-16); letter-spacing:.08em; color:var(--ink); }
     .adm #people-table td .link{ font-size:var(--fs-13); color:var(--ink-soft); }
     .adm #people-table td .link:hover{ color:var(--ink); }
@@ -1267,7 +1282,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const m = byId();
       el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (o.outcome === 'pending' ? 'queued' : o.outcome) + '"><i></i>' + (o.outcome === 'pending' ? 'Not yet decided' : STATUS_LABEL[o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (!o.ev && me.role === 'admin' ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
         '<div class="actions">' + (me.role === 'admin' ? '<button class="link" data-edit="1">Rename / reschedule</button><button class="link" data-del="1">Delete batch</button>' : '') + '<span class="mini">' + location.origin + '/workflow/sitime/' + b.token + '</span></div>';
-      el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', () => { const s = m.get(x.dataset.rm); withUndo('Took ' + s.name + ' out of batch ' + String(b.num).padStart(2, '0'), () => { b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }); }));
+      el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', async () => { const s = m.get(x.dataset.rm); if (!(await askConfirm('The slot goes back to assigned and leaves this batch\u2019s review link.', { title: 'Take ' + s.name + ' out of batch ' + String(b.num).padStart(2, '0'), ok: 'Take it out' }))) return; withUndo('Took ' + s.name + ' out of batch ' + String(b.num).padStart(2, '0'), () => { b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }); }));
       const ed = el.querySelector('[data-edit]'); if (ed) ed.addEventListener('click', () => openBatchDialog(b));
       const del = el.querySelector('[data-del]'); if (del) del.addEventListener('click', () => deleteBatch(b));
     }
@@ -1668,10 +1683,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         revealTile = (revealTile && revealTile.slotId === slotId && revealTile.which === which) ? null : { slotId, which };
         renderSlots();
       }));
-      $('slot-rows').querySelectorAll('.tact').forEach((btn) => btn.addEventListener('click', (e) => {
+      $('slot-rows').querySelectorAll('.tact').forEach((btn) => btn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const s = byId().get(btn.dataset.slot); const which = btn.dataset.which;
         if (btn.dataset.act === 'trash') {
+          if (!(await askConfirm('The ' + which + ' slot empties. The image stays in the library' + ((s[which] && (s[which].reviews || []).length) ? ', and its review notes move to Earlier images in the drawer' : '') + '.', { title: 'Remove the ' + which + ' from ' + s.name, ok: 'Remove' }))) return;
           withUndo('Removed the ' + which + ' image from ' + s.name, () => {
             retirePick(s, which, 'Removed'); revealTile = null;
             if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
@@ -1709,7 +1725,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const tabs = [['stock', 'Adobe Stock · ' + (s.candidates || []).length], ['library', 'SiTime library · ' + (S.library || []).length], ['existing', 'Current site · ' + currentFor(s).length], ['generated', 'Generated · ' + (s.generated || []).length], ['upload', 'Upload']];
 
       el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id].filter(Boolean).join(' · ')) + '</span>' +
-        '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup">Preview</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
+        '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup; the image can be reframed there">Preview/Edit</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="tgtbar"><div class="tgrp"><span class="lbl">Assign to</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
@@ -1726,15 +1742,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich[s.id] = b.dataset.tgt; refreshDrawer(s.id); }));
       el.querySelectorAll('[data-dsp]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.dsp; if (v === autoDisplay(s)) delete s.display; else s.display = v; mark(); refreshDrawer(s.id); }));
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
-      el.querySelector('[data-clear]').addEventListener('click', () => { if (!s.main && !s.backup) return; withUndo('Cleared picks on ' + s.name, () => { retirePick(s, 'main', 'Cleared'); retirePick(s, 'backup', 'Cleared'); if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
+      el.querySelector('[data-clear]').addEventListener('click', async () => { if (!s.main && !s.backup) return; if (!(await askConfirm('Main and backup both empty. The images stay in the library; any review notes move to Earlier images.', { title: 'Clear picks on ' + s.name, ok: 'Clear picks' }))) return; withUndo('Cleared picks on ' + s.name, () => { retirePick(s, 'main', 'Cleared'); retirePick(s, 'backup', 'Cleared'); if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
       el.querySelector('[data-close]').addEventListener('click', () => { openSlots.delete(s.id); renderSlots(); });
       const rms = el.querySelector('[data-rmslot]');
-      if (rms) rms.addEventListener('click', () => withUndo('Removed slot ' + s.name, () => {
+      if (rms) rms.addEventListener('click', async () => { if (!(await askConfirm('The slot and its picks go. If it was the last slot on a page someone added, the page goes too.', { title: 'Remove slot ' + s.name, ok: 'Remove slot' }))) return; withUndo('Removed slot ' + s.name, () => {
         S.slots = S.slots.filter((x) => x.id !== s.id); openSlots.delete(s.id);
         /* a page someone added goes with its last slot */
         if (!S.slots.some((x) => x.pageId === s.pageId)) { S.customPages = (S.customPages || []).filter((p) => p.id !== s.pageId); S.pages = S.pages.filter((p) => !(p.custom && p.id === s.pageId)); if (fx.page === s.pageId) fx.page = ''; _pmap = null; }
         mark(); renderSlots(); renderStats();
-      }));
+      }); });
       el.querySelector('[data-pv]').addEventListener('click', () => openPreview([s], s.page + ' · ' + s.name));
       /* One description per slot (Pierce, 9/25): main and backup share it.
          Stored as s.desc; older per-pick descriptions (pick.desc) still show
@@ -1753,7 +1769,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const rvSave = (key) => { const x = rvRef(key); const inp = el.querySelector('[data-rvin="' + key + '"]'); if (!x || !inp) return; const v = inp.value.replace(/\s+/g, ' ').trim(); rvEdit = null; if (v === (x.r.note || '')) { refreshDrawer(s.id); return; } withUndo('Edited a review note on ' + s.name, () => { x.r.note = v; mark(); renderSlots(); }); };
       el.querySelectorAll('[data-rvsave]').forEach((b) => b.addEventListener('click', () => rvSave(b.dataset.rvsave)));
       el.querySelectorAll('[data-rvin]').forEach((inp) => inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); rvSave(inp.dataset.rvin); } else if (e.key === 'Escape') { e.preventDefault(); rvEdit = null; refreshDrawer(s.id); } }));
-      el.querySelectorAll('[data-rvrm]').forEach((b) => b.addEventListener('click', () => { const x = rvRef(b.dataset.rvrm); if (!x) return; withUndo('Removed a review note on ' + s.name, () => { x.p.reviews.splice(x.i, 1); if (!x.p.reviews.length) delete x.p.reviews; rvEdit = null; mark(); renderSlots(); }); }));
+      el.querySelectorAll('[data-rvrm]').forEach((b) => b.addEventListener('click', async () => { const x = rvRef(b.dataset.rvrm); if (!x) return; if (!(await askConfirm('The line goes from this image\u2019s review notes.', { title: 'Remove this review note', ok: 'Remove' }))) return; withUndo('Removed a review note on ' + s.name, () => { x.p.reviews.splice(x.i, 1); if (!x.p.reviews.length) delete x.p.reviews; rvEdit = null; mark(); renderSlots(); }); }));
       el.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; refreshDrawer(s.id); }));
       wireSource(s, el);
     }
@@ -2073,10 +2089,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        or backup underneath with no confirm and no undo, including on a slot
        in a live batch. Now a candidate that is the current main or backup
        stays until it is replaced; anything else comes off with an Undo. */
-    function removeCandidate(slot, key) {
+    async function removeCandidate(slot, key) {
       const inUse = ['main', 'backup'].filter((w) => slot[w] && slot[w].url === key);
       if (inUse.length) { addStatus[slot.id] = 'That image is the ' + inUse.join(' and ') + '. Replace it on the tile first, then remove it here.'; refreshDrawer(slot.id); return; }
       const c = (slot.candidates || []).find((x) => (x.comp || x.id) === key);
+      if (!(await askConfirm('It leaves this slot\u2019s Adobe Stock list. It can be added again by pasting its link.', { title: 'Remove candidate ' + ((c && c.id) || ''), ok: 'Remove' }))) return;
       withUndo('Removed candidate ' + ((c && c.id) || '') + ' from ' + slot.name, () => {
         slot.candidates = (slot.candidates || []).filter((x) => (x.comp || x.id) !== key);
         mark(); renderSlots(); renderStats();
@@ -2377,12 +2394,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const open = items.filter((it) => it.b === b);
         const done = [];
         (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; ['main', 'backup'].forEach((w) => { const x = s[w] && (s[w].solved || []).find((y) => y.token === b.token); if (x) done.push({ s, which: w, x, ev: D[b.token] && D[b.token].latest && D[b.token].latest[id] && D[b.token].latest[id][w] }); }); });
-        html += '<div class="t" style="margin:8px 0 12px">' + B2(b) + ' <span class="mini">· open · ' + open.length + ' to do · ' + done.length + ' solved</span></div>' +
+        html += '<details class="rvbatch" open><summary>' + B2(b) + ' <span class="mini">· open · ' + open.length + ' to do · ' + done.length + ' solved</span><span class="mini rv-toggle"></span></summary><div>' +
           (open.length ? open.map(openRow).join('') : '<p class="hint">Nothing left to do.</p>') +
-          done.map(({ s, which, x, ev }) => solvedRow(s, b, which, x, ev)).join('');
+          done.map(({ s, which, x, ev }) => solvedRow(s, b, which, x, ev)).join('') + '</div></details>';
       });
       const past = (S.reviewLog || []).slice().sort((a, b) => (b.closedAt || 0) - (a.closedAt || 0));
-      html += past.map((l) => { const nS = l.items.filter((x) => x.solved).length; return '<details style="margin:8px 0 12px"><summary class="t" style="cursor:pointer">' + B2(l) + ' <span class="mini">· closed ' + (l.closedAt ? new Date(l.closedAt).toLocaleDateString() : '') + ' · ' + l.items.length + ' flagged · ' + nS + ' solved</span></summary><div style="margin-top:12px">' + (l.items.length ? l.items.map(pastRow).join('') : '<p class="hint">Nothing was flagged.</p>') + '</div></details>'; }).join('');
+      html += past.map((l) => { const nS = l.items.filter((x) => x.solved).length; return '<details class="rvbatch"><summary>' + B2(l) + ' <span class="mini">· closed ' + (l.closedAt ? new Date(l.closedAt).toLocaleDateString() : '') + ' · ' + l.items.length + ' flagged · ' + nS + ' solved</span><span class="mini rv-toggle"></span></summary><div>' + (l.items.length ? l.items.map(pastRow).join('') : '<p class="hint">Nothing was flagged.</p>') + '</div></details>'; }).join('');
       if (!isClient() && !live.length && !past.length) html += '<p class="hint">No internal reviews yet.</p>';
       $('repl-list').innerHTML = html;
       const setSolved = (el, on) => {
@@ -2550,13 +2567,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const sourced = sourcedRows();
       $('sourced-count').textContent = sourced.length ? sourced.length + ' image' + (sourced.length === 1 ? '' : 's') : '';
       $('sourced-list').innerHTML = sourced.length ? sourced.map(({ s, which, p }) => '<div class="qitem"><img src="' + esc(p.thumb || p.url) + '"><div><div class="t">' + esc(s.page) + ' · ' + esc(s.name) + ' <span class="mini">(' + which + ')</span></div><div class="n">' + esc(p.source === 'stock' ? 'Adobe Stock' + (p.id ? ' · ' + p.id : '') : (p.title || p.path || 'Uploaded')) + '</div></div><button class="sbtn" data-unassign="' + s.id + ':' + which + '">Remove</button></div>').join('') : '<p class="hint">Nothing sourced from Stock or uploaded yet.</p>';
-      $('sourced-list').querySelectorAll('[data-unassign]').forEach((b) => b.addEventListener('click', () => {
+      $('sourced-list').querySelectorAll('[data-unassign]').forEach((b) => b.addEventListener('click', async () => {
         const [id, which] = b.dataset.unassign.split(':');
         const s = byId().get(id); if (!s) return;
         /* Same guard as deleting an upload: a slot in a batch may be on
            screen with SiTime right now. */
         const bt = batchOf(s);
         if (bt) { toast('Can’t remove: ' + s.page + ' · ' + s.name + ' is in Batch ' + String(bt.num).padStart(2, '0') + '. Take the slot out of the batch first.'); return; }
+        if (!(await askConfirm('The ' + which + ' slot on ' + s.name + ' empties. The image itself stays.', { title: 'Remove the ' + which + ' from ' + s.name, ok: 'Remove' }))) return;
         withUndo('Removed the ' + which + ' image from ' + s.name, () => {
           retirePick(s, which, 'Removed');
           if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
@@ -2600,12 +2618,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('team-pass').placeholder = teamOn ? 'Set · type a new one to change it' : 'Not set';
       $('team-save').textContent = teamOn ? 'Change team passcode' : 'Set team passcode';
       $('team-status').textContent = msg || (teamOn == null ? '' : teamOn ? 'Team access is on.' : 'Team access is off.');
-    }
-    let clientOn = null;
-    function showClientState(msg) {
-      $('client-pass').placeholder = clientOn ? 'Set · type a new one to change it' : 'Not set';
-      $('client-save').textContent = clientOn ? 'Change SiTime passcode' : 'Set SiTime passcode';
-      $('client-status').textContent = msg || (clientOn == null ? '' : clientOn ? 'SiTime access is on.' : 'SiTime access is off.');
     }
     /* ---------- People (admin): personal passcodes ---------- */
     let people = []; let peopleLoaded = false; let ppEdit = null;
@@ -2671,17 +2683,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function loadTeamState() {
       if (me.role !== 'admin') return;
       const r = await api('/api/sitime-team');
-      if (r.ok && r.data) { teamOn = !!r.data.teamOn; clientOn = !!r.data.clientOn; showTeamState(); showClientState(); }
+      if (r.ok && r.data) { teamOn = !!r.data.teamOn; showTeamState(); }
     }
-    $('client-save').addEventListener('click', async () => {
-      const pass = $('client-pass').value;
-      if (!pass.trim() && clientOn && !(await askConfirm('The field is blank. SiTime access turns off and anyone signed in with it is signed out.', { title: 'Turn SiTime access off', ok: 'Turn off' }))) return;
-      $('client-status').textContent = 'Saving…';
-      const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', which: 'client', pass } });
-      $('client-pass').value = '';
-      if (r.ok) { clientOn = !!r.data.clientOn; showClientState(clientOn ? 'SiTime access is on. Anyone signed in with the old passcode is signed out.' : 'SiTime access is off.'); }
-      else $('client-status').textContent = (r.data && r.data.error) || 'Could not save.';
-    });
     $('team-save').addEventListener('click', async () => {
       const pass = $('team-pass').value;
       if (!pass.trim() && teamOn && !(await askConfirm('The field is blank. Team access turns off and everyone signed in with it is signed out.', { title: 'Turn team access off', ok: 'Turn off' }))) return;
