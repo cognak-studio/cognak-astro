@@ -1,8 +1,8 @@
 ---
 /**
- * /workflow/sitime/review — the SiTime image review page.
- * Reached as cognak.com/workflow/sitime/<batch-token> via a vercel.json
- * rewrite; also readable as /workflow/sitime/review?b=<token> under astro dev.
+ * /workflows/sitime/review — the SiTime image review page.
+ * Reached as cognak.com/workflows/sitime/<batch-token> via a vercel.json
+ * rewrite; also readable as /workflows/sitime/review?b=<token> under astro dev.
  *
  * One shared link per batch, no login: SiTime (Judy, Greg, Dela) decide as a
  * group and one person clicks, or COGNAK clicks on a call. Each screen shows
@@ -23,7 +23,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   page="workflow"
   title="Review images for sitime.com — COGNAK"
   description="Image review for the new sitime.com."
-  ogUrl="https://cognak.com/workflow/sitime/"
+  ogUrl="https://cognak.com/workflows/sitime/"
   noindex={true}
   pageBg="#F7F6FA"
 >
@@ -35,8 +35,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">One moment.</p></div></div>
 
-    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Passcode</div>
-      <label class="q" for="pass"><span class="q-title">Enter the review passcode.</span></label>
+    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Password</div>
+      <label class="q" for="pass"><span class="q-title">Enter the review password.</span></label>
       <div class="passrow"><input class="txt" id="pass" type="password" autocomplete="off" autocapitalize="off" /><button type="button" class="btn" id="pass-go">Continue</button></div>
       <p class="hint is-error" id="pass-err" hidden></p>
     </div></div>
@@ -45,11 +45,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise" id="card" hidden>
       <div class="group">
-        <div class="group-title"><span id="batch-label">Batch</span><span class="bar"><i id="bar"></i></span></div>
+        <div class="group-title"><span id="batch-label">Batch</span><span class="left" id="left"></span><span class="bar"><i id="bar"></i></span></div>
         <div class="field">
           <span class="q-title" id="slot-title" tabindex="-1">Slot</span>
           <span class="q-sub q-where" id="slot-where" hidden></span>
           <span class="q-sub" id="slot-sub"></span>
+          <p class="cue" id="cue" role="status" hidden></p>
           <div class="pills" id="pills" role="group" aria-label="Decision">
             <button type="button" class="pill" data-v="approve">Approve</button>
             <button type="button" class="pill" data-v="deny">Deny</button>
@@ -89,7 +90,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise summary" id="summary" hidden>
       <div class="group">
-        <div class="group-title"><span id="sum-label">Batch</span><span class="sep">·</span><span>Complete</span><span class="bar"><i style="width:100%"></i></span></div>
+        <div class="group-title"><span id="sum-label">Batch</span><span class="sep">·</span><span>Complete</span><span class="bar"><i style="width:100%;background:linear-gradient(90deg,#C7BDDF 0%,rgb(122,82,224) 100%);box-shadow:0 0 8px 1px rgba(122,82,224,.6)"></i></span></div>
         <span class="q-title">That's the batch. Thank you.</span>
         <span class="q-sub">COGNAK has the decisions. Replacements for anything denied come in the next batch; held images stay parked until you say otherwise.</span>
         <div class="counts"><div><b id="c-ok">0</b><span>approved</span></div><div><b id="c-deny">0</b><span>denied</span></div><div><b id="c-hold">0</b><span>held</span></div></div>
@@ -102,13 +103,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        arrow link as /brief's "Change project type", under the card on the
        left, lined up with the card's own labels. */}
     {/* Only for someone signed in to the tool; on the shared link it led to the sign-in gate. */}
-    <a class="backlink" id="backlink" href="/workflow/sitime/admin" hidden>&larr; Back to all batches</a>
+    <a class="backlink" id="backlink" href="/workflows/sitime/admin" hidden>&larr; Back to all batches</a>
 
     {/* Context (Pierce, 9/25): the whole page with this slot flashed in place. */}
     <div class="ctx" id="ctx" hidden role="dialog" aria-modal="true" aria-label="Where this image goes">
       <div class="ctx-bar">
         <div class="ctx-t"><b id="ctx-title"></b><span id="ctx-src"></span></div>
-        <div class="ctx-r"><button type="button" class="origbtn" id="ctx-put" aria-pressed="true">Show this image in place</button><button type="button" class="origbtn" id="ctx-close">Close</button></div>
+        <div class="ctx-r"><button type="button" class="origbtn" id="ctx-put" aria-pressed="true">Show this image in place</button><button type="button" class="origbtn" id="ctx-close">Close <span aria-hidden="true">✕</span></button></div>
       </div>
       <div class="ctx-scroll" id="ctx-scroll"><div class="ctx-page" id="ctx-page"><img id="ctx-img" alt=""><div class="ctx-box" id="ctx-box"><img id="ctx-pick" alt=""></div></div></div>
     </div>
@@ -171,8 +172,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .review .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
     .review .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.9rem; display:flex; align-items:center; gap:14px; }
-    .review .group-title .bar{ flex:1; height:2px; background:var(--line); border-radius:2px; overflow:hidden; max-width:260px; margin-left:auto; }
-    .review .group-title .bar i{ display:block; height:100%; width:6px; background:var(--accent); transition:width .3s var(--ease-standard); }
+    .review .group-title .bar{ flex:1; height:2px; background:var(--line); border-radius:2px; max-width:260px; margin-left:auto; }
+    .review .group-title .bar i{ display:block; height:100%; width:6px; border-radius:2px; background:var(--accent); transition:width .3s var(--ease-standard); }
     .review .q-title{ display:block; font-size:var(--fs-17); font-weight:500; line-height:1.3; color:var(--ink); }
     .review .q-sub{ display:block; font-size:var(--fs-14); line-height:1.4; color:var(--ink-soft); margin-top:.2rem; max-width:60ch; }
     .review .hint{ font-size:var(--fs-15); color:var(--ink-soft); margin:0; }
@@ -221,6 +222,18 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .statusslot .handoff:not([hidden]) + .decided{ display:none !important; }
     .review .decided.is-err{ color:var(--err); }
     .review .decided b{ font-weight:500; color:var(--ink); }
+    /* Main denied -> the backup is up next: said above the buttons, full width, never truncated (Pierce, 9/28). */
+    .review .cue{ margin:16px 0 0; padding:12px 16px; border-radius:10px; background:#F1EEF8; border:1px solid var(--accent); color:var(--ink); font-size:var(--fs-15); line-height:1.5; }
+    .review .cue b{ font-weight:600; }
+    .review .cue .was{ display:block; margin-top:2px; font-size:var(--fs-13); color:var(--ink-soft); }
+    /* What's left, beside the batch name: backups waiting on a decision are counted out loud. */
+    .review .group-title .left{ letter-spacing:.14em; color:var(--head); white-space:nowrap; }
+    .review .group-title .left:empty{ display:none; }
+    .review .which button.cue-on{ animation:whichcue 1.2s var(--ease-standard) 2; }
+    @keyframes whichcue{ 0%,100%{ box-shadow:0 0 0 0 rgba(var(--accent-rgb),0); } 50%{ box-shadow:0 0 0 6px rgba(var(--accent-rgb),.6); } }
+    .review #hero-img.swapin{ animation:swapin .45s var(--ease-standard); }
+    @keyframes swapin{ from{ opacity:0; } to{ opacity:1; } }
+    @media (prefers-reduced-motion:reduce){ .review .which button.cue-on, .review #hero-img.swapin{ animation:none; } }
     .review .handoff{ margin:12px 0 0; padding:10px 14px; border-radius:8px; background:#FDF2F2; border:1px solid #F3D2D2; color:#8A2A2A; font-size:var(--fs-14); line-height:1.5; }
     .review .handoff b{ font-weight:600; }
 
@@ -255,15 +268,21 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .st-hero.clean .scrim, .review .st-hero.clean .copy{ display:none; }
     .review .pills.off{ opacity:.35; pointer-events:none; }
     /* Context overlay (Pierce, 9/25) */
-    .ctx{ position:fixed; inset:0; z-index:200; background:rgba(28,26,23,.86); display:flex; flex-direction:column; }
+    /* Above the site's fixed nav (it sat over the bar and hid Close, Pierce 9/28). */
+    .ctx{ position:fixed; inset:0; z-index:2147483000; font-family:'Diatype Variable', sans-serif; background:rgba(28,26,23,.86); display:flex; flex-direction:column; }
     .ctx[hidden]{ display:none !important; }
-    .ctx-bar{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 24px; background:#fff; border-bottom:1px solid #E4E1DC; }
+    .ctx-bar{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 24px; background:#1C1A17; border-bottom:1px solid rgba(255,255,255,.12); }
+    @media (max-width:600px){ .ctx-bar{ flex-wrap:wrap; padding:12px 16px; gap:10px; } .ctx-t{ flex:1 1 100%; } .ctx-r{ flex:1 1 100%; justify-content:space-between; } .ctx .origbtn{ margin-left:0; } }
     .ctx-t{ display:flex; flex-direction:column; gap:2px; min-width:0; }
-    .ctx-t b{ font-weight:500; font-size:var(--fs-14); color:#1E1B26; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ctx-t span{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; color:#8A847B; }
+    .ctx-t b{ font-weight:500; font-size:var(--fs-14); color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ctx-t span{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.62); }
     .ctx-r{ display:flex; align-items:center; flex-shrink:0; }
     .ctx .origbtn{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; border:1px solid #D9D3E4; background:none; color:#6A5C8A; padding:9px 14px; border-radius:999px; cursor:pointer; margin-left:8px; }
-    .ctx .origbtn.on{ background:#1E1B26; border-color:#1E1B26; color:#fff; }
+    .ctx .origbtn{ border-color:rgba(255,255,255,.35); color:#fff; }
+    .ctx .origbtn.on{ background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.5); color:#fff; }
+    /* Close: a solid white pill in the corner, for anyone who doesn't know Escape (Pierce, 9/28). */
+    .ctx #ctx-close{ background:#fff; border-color:#fff; color:#1E1B26; font-family:'Diatype Variable', sans-serif; font-size:var(--fs-14); letter-spacing:0; text-transform:none; padding:9px 18px; margin-left:12px; }
+    .ctx #ctx-close:hover{ background:#EDE9F5; border-color:#EDE9F5; }
     .ctx-scroll{ flex:1; overflow:auto; padding:32px 16px 64px; }
     .ctx-page{ position:relative; width:min(1200px, 100%); margin:0 auto; box-shadow:0 12px 40px rgba(0,0,0,.35); background:#fff; }
     .ctx-page > img{ display:block; width:100%; height:auto; }
@@ -374,7 +393,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       [['mock-h1', 'h1'], ['mock-p', 'p'], ['mock-cta', 'cta'], ['mock-card-h', 'cardH'], ['mock-card-p', 'cardP']].forEach(([id, k]) => { if (m[k]) $(id).textContent = m[k]; });
     }
     function getToken() {
-      const m = location.pathname.match(/\/workflow\/sitime\/([a-z0-9]{8,16})\/?$/);
+      const m = location.pathname.match(/\/workflows\/sitime\/([a-z0-9]{8,16})\/?$/);
       if (m) return m[1];
       const q = new URLSearchParams(location.search).get('b');
       return q && /^[a-z0-9]{8,16}$/.test(q) ? q : '';
@@ -481,15 +500,25 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const done = state.slots.filter((x) => outcome(x).outcome !== 'pending').length;
 
       $('batch-label').textContent = LP ? 'Preview' : 'Batch ' + String(state.batch.num || '').padStart(2, '0') + (state.batch.name ? ' · ' + state.batch.name : '');
-      $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length;
+      const backupCue = which === 'backup' && d.main && d.main.decision === 'deny' && !d.backup;
+      $('progress').textContent = (state.i + 1) + ' of ' + state.slots.length + (backupCue ? ' · Backup' : '');
+      { const pend = state.slots.filter((x) => outcome(x).outcome === 'pending'); const bk = pend.filter((x) => outcome(x).which === 'backup').length;
+        $('left').textContent = !pend.length ? 'All decided' : pend.length + ' left' + (bk ? ' · ' + bk + (bk === 1 ? ' backup' : ' backups') : ''); }
       /* max(6px, …) is the /brief rail's rule: at zero decided the fill is still
          a visible nub, so an untouched batch reads as "at the start" rather than
          as an empty rule with nothing in it. */
       $('bar').style.width = 'max(6px, ' + Math.round((done / state.slots.length) * 100) + '%)';
+      /* Like /brief's rail (Pierce, 9/28): the growing end deepens from the pale accent
+         (199,189,223) to a saturated purple (122,82,224) as the batch nears done, and glows more. */
+      { const t = state.slots.length ? done / state.slots.length : 0;
+        const end = 'rgb(' + Math.round(199 + (122 - 199) * t) + ',' + Math.round(189 + (82 - 189) * t) + ',' + Math.round(223 + (224 - 223) * t) + ')';
+        $('bar').style.background = 'linear-gradient(90deg, #C7BDDF 0%, ' + end + ' 100%)';
+        $('bar').style.boxShadow = '0 0 8px 1px rgba(122,82,224,' + (0.15 + 0.45 * t).toFixed(2) + ')'; }
       $('slot-title').textContent = s.page + ' · ' + s.name;
       $('slot-where').textContent = s.where || ''; $('slot-where').hidden = !s.where;
-      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? 'Backup image.' : (s.backup ? 'Main image.' : 'Main image. No backup for this one.'));
+      $('slot-sub').textContent = (s.section ? s.section + ' · ' : '') + 'sitime.com' + (s.url || '') + ' · ' + (which === 'backup' ? (backupCue ? 'Backup image, 2 of 2 for this slot.' : 'Backup image.') : s.single ? 'One image for this slot.' : (s.backup ? 'Main image.' : 'Main image. No backup for this one.'));
       const MARK = { approve: '✓', deny: '✕', hold: '◦' };
+      $('which').hidden = !!s.single;   // a single-image slot has nothing to switch to
       document.querySelectorAll('#which button').forEach((btn) => {
         const w = btn.dataset.w; const ev = d[w];
         btn.classList.toggle('on', w === which);
@@ -565,10 +594,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       // with whatever note came with that denial, instead of the silent
       // hand-off reviewers were missing (subtitle alone was too easy to skim past).
       const mainEv = d.main;
+      $('handoff').hidden = true;   // replaced by the cue above the buttons (it was truncated to one line below them)
       if (which === 'backup' && mainEv && mainEv.decision === 'deny') {
-        $('handoff').hidden = false;
-        $('handoff').innerHTML = '<b>Main image denied' + (mainEv.note ? ':</b> “' + escapeHtml(mainEv.note) + '”' : '.</b>') + ' Reviewing the backup now.';
-      } else { $('handoff').hidden = true; }
+        $('cue').hidden = false;
+        $('cue').innerHTML = d.backup
+          ? '<b>Main image denied.</b> This is its backup.' + (mainEv.note ? '<span class="was">Main: “' + escapeHtml(mainEv.note) + '”</span>' : '')
+          : '<b>Main image denied. Now decide the backup:</b> approve, deny or hold it.' + (mainEv.note ? '<span class="was">Your note on the main: “' + escapeHtml(mainEv.note) + '”</span>' : '');
+      } else { $('cue').hidden = true; }
+      const bb = document.querySelector('#which button[data-w=backup]');
+      if (state.handed === s.id) { state.handed = null; void bb.offsetWidth; bb.classList.add('cue-on'); const im = $('hero-img'); im.classList.remove('swapin'); void im.offsetWidth; im.classList.add('swapin'); }
 
       $('prev').disabled = state.i === 0;
       $('next').disabled = state.i >= state.slots.length - 1;
@@ -652,7 +686,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function advance() {
       const s = state.slots[state.i];
       const o = outcome(s);
-      if (o.outcome === 'pending') { render(); return; } // main denied → backup now shows in place
+      if (o.outcome === 'pending') { state.handed = s.id; render(); return; } // main denied → backup now shows in place, flagged
       const j = firstPending(state.i + 1);
       if (j === -1) { showSummary(); return; }
       state.i = j; render();
@@ -683,6 +717,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        if that view is on); masked slots (burst/arm) only flash, since a
        rectangle over a masked shape would misstate the design. */
     let ctxPut = true;
+    /* #cognak-main is its own stacking context under the site nav, so no z-index lifts the
+       overlay out of it: hang it off <body> instead, or the nav covers its bar and Close. */
+    document.body.appendChild($('ctx'));
     function openCtx() {
       const s = state.slots[state.i]; const c = s && s.context; if (!c) return;
       const which = viewed(s); const pick = which === 'backup' ? s.backup : s.main;
@@ -723,6 +760,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('oprev').addEventListener('click', () => { if (state.orig && state.orig.k > 0) { state.orig.k--; render(); } });
     $('onext').addEventListener('click', () => { const s = state.slots[state.i]; if (state.orig && s && state.orig.k < (s.original || []).length - 1) { state.orig.k++; render(); } });
 
+    /* The backup tab's pulse clears itself when done, so a background re-render can't cut it short. */
+    document.querySelector('#which button[data-w=backup]').addEventListener('animationend', (e) => e.currentTarget.classList.remove('cue-on'));
     /* A comp URL that 404s shows the placeholder instead of a broken image. */
     $('hero-img').addEventListener('error', () => {
       if (!$('hero-img').getAttribute('src')) return;
@@ -819,7 +858,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       state.i = j; $('card').hidden = false; render();
     }
     $('pass-go').addEventListener('click', () => {
-      if (!$('pass').value) { $('pass-err').textContent = 'Enter the passcode.'; $('pass-err').hidden = false; $('pass').focus(); return; }
+      if (!$('pass').value) { $('pass-err').textContent = 'Enter the password.'; $('pass-err').hidden = false; $('pass').focus(); return; }
       pass = $('pass').value; $('pass-err').hidden = true; $('gate').hidden = true; $('loading').hidden = false; load(); });
     $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pass-go').click(); });
     document.addEventListener('visibilitychange', () => {

@@ -121,7 +121,8 @@ async function writeUsers(users) { await putJson(USERS_DIR, { users }); }
 /** What the admin page sees: never the hash. */
 export const publicUser = (u) => ({ id: u.id, name: u.name, email: u.email || '', role: u.role, createdAt: u.createdAt || null, passAt: u.passAt || null, lastAt: u.lastAt || null });
 export async function addUser(fields) {
-  const name = cleanName(fields.name); if (!name) return { error: 'A name is needed.' };
+  const name = cleanName(fields.name); if (!name) return { error: 'A first name is needed.' };
+  if (!EMAIL_RE.test(cleanEmail(fields.email))) return { error: 'An email is needed: it’s how they sign in.' };   // (2026-09-28)
   const users = await readUsers();
   const id = 'u' + crypto.randomBytes(5).toString('hex');
   const passcode = newPasscode(); const now = Date.now();
@@ -217,29 +218,44 @@ async function recordFail(dir, req) {
   const pathname = dir + ipKey(req) + '/' + Date.now() + '-' + crypto.randomBytes(4).toString('hex') + '.json';
   try { await put(pathname, '{}', { access: 'public', addRandomSuffix: false, contentType: 'application/json' }); } catch (e) { console.error('sitime attempt log failed', e); }
 }
-export async function teamLogin(req, name, pass) {
+export async function teamLogin(req, name, pass, email) {
   const now = Date.now();
   if ((await recentFails(ATTEMPT_DIR, req)) >= MAX_FAILS) return { ok: false, status: 429, error: 'Too many tries. Wait 15 minutes.' };
   /* Personal passcodes first: the passcode alone says who this is. */
   const users = await readUsers();
   const u = users.find((x) => userMatches(x, pass));
+  /* The first name works as a username (Pierce, 9/28): it must match the one
+     COGNAK set, ignoring case, accents and anything after the first word.
+     A mismatch reads exactly like a wrong password and counts as a failure. */
+  if (u && !loginMatches(u, email, name)) { await recordFail(ATTEMPT_DIR, req); return { ok: false, status: 401, error: NO_MATCH }; }
   if (u) {
     try { await put(SEEN_DIR + u.id + '/' + now + '.json', '{}', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }); } catch (e) {}
     return { ok: true, cookie: userCookie(u), name: u.name, role: cleanRole(u.role) };
   }
   const team = await readTeam(); const client = await readClient();
-  if (!team.hash && !client.hash && !users.length) return { ok: false, status: 403, error: 'Access is off. Ask Pierce for a passcode.' };
+  if (!team.hash && !client.hash && !users.length) return { ok: false, status: 403, error: 'Access is off. Ask COGNAK for a password.' };
   /* Shared passcodes (older): the person types a name so edits and decisions carry it. */
   const nm = cleanName(name).slice(0, 40);
   const sharedRole = passMatches(team, pass) ? 'team' : passMatches(client, pass) ? 'client' : null;
-  if (sharedRole && !nm) return { ok: false, status: 400, needName: true, error: 'This is a shared passcode. Add your name so edits show who made them.' };
+  if (sharedRole && !nm) return { ok: false, status: 400, needName: true, error: 'This is a shared password. Add your first name so edits show who made them.' };
   if (sharedRole === 'team') return { ok: true, cookie: teamCookie(nm, team, 'team'), name: nm, role: 'team' };
   if (sharedRole === 'client') return { ok: true, cookie: teamCookie(nm, client, 'client'), name: nm, role: 'client' };
   {
     await recordFail(ATTEMPT_DIR, req);
-    return { ok: false, status: 401, error: 'That passcode isn’t right.' };
+    return { ok: false, status: 401, error: NO_MATCH };
   }
 }
+
+const NO_MATCH = 'That email and password don’t match.';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/* Email + password (Pierce, 9/28): the email must be the one COGNAK saved, ignoring case and spaces.
+   Someone saved without an email can still use their first name, so no one is locked out. */
+function loginMatches(u, email, name) {
+  const e = String(email || '').trim().toLowerCase();
+  if (u.email) return !!e && e === String(u.email).trim().toLowerCase();
+  return !!firstName(email || name) && firstName(email || name) === firstName(u.name);
+}
+const firstName = (s) => String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase().split(/\s+/)[0] || '';
 
 /* ---- review-link passcode (sitime-batch, sitime-decide) ----
    Same rule as before: reviewPass unset means 'silicon' (Pierce, 2026-09-14),
@@ -255,13 +271,13 @@ export async function reviewPassGate(req, state, pass, who) {
   const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
   if (!want) return null;
   const got = String(pass || '').trim().toLowerCase();
-  if (!got) return { status: 401, body: { error: 'Passcode required.', needPass: true } };
+  if (!got) return { status: 401, body: { error: 'Password required.', needPass: true } };
   let fails = 0; try { fails = await recentFails(REVIEW_ATTEMPT_DIR, req); } catch (e) { console.error('review attempt count failed', e); }   // a Blob hiccup never blocks a review
   if (fails >= REVIEW_MAX_FAILS) return { status: 429, body: { error: 'Too many tries. Wait 15 minutes.' } };
   const a = crypto.createHash('sha256').update(got).digest(); const b = crypto.createHash('sha256').update(want).digest();
   if (crypto.timingSafeEqual(a, b)) return null;
   await recordFail(REVIEW_ATTEMPT_DIR, req);
-  return { status: 401, body: { error: 'That passcode isn\u2019t right.', needPass: true } };
+  return { status: 401, body: { error: 'That password isn\u2019t right.', needPass: true } };
 }
 
 /* ---- generate cap for team ---- */

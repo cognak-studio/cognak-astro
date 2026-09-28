@@ -9,7 +9,7 @@
  *   POST { action:'set', which, pass }   admin: a shared passcode; blank turns it off
  *   People (admin only, Pierce 9/27):
  *   POST { action:'users' }                          → { users }   (no hashes)
- *   POST { action:'user-add', name, email, role }    → { user, passcode }  passcode shown once
+ *   POST { action:'user-add', name, email (required), role }    → { user, passcode }  passcode shown once
  *   POST { action:'user-edit', id, name, email, role }
  *   POST { action:'user-pass', id }                  → { user, passcode }  new passcode, old session ends
  *   POST { action:'user-delete', id }
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = null; } }
     body = body || {};
     if (body.action === 'login') {
-      const r = await teamLogin(req, body.name, body.pass);
+      const r = await teamLogin(req, body.name, body.pass, body.email);
       if (!r.ok) return res.status(r.status).json({ error: r.error, ...(r.needName ? { needName: true } : {}) });
       res.setHeader('Set-Cookie', r.cookie);
       return res.status(200).json({ ok: true, name: r.name, role: r.role });
@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     if (body.action === 'set') {
       const which = body.which === 'client' ? 'client' : 'team';
       const other = which === 'client' ? await readTeam() : await readClient();
-      if (String(body.pass || '').trim() && passMatches(other, body.pass)) return res.status(400).json({ error: 'Use a different passcode from the ' + (which === 'client' ? 'team' : 'SiTime') + ' one.' });
+      if (String(body.pass || '').trim() && passMatches(other, body.pass)) return res.status(400).json({ error: 'Use a different password from the ' + (which === 'client' ? 'team' : 'SiTime') + ' one.' });
       await setTeamPass(body.pass, which);
       const on = !!String(body.pass || '').trim();
       return res.status(200).json({ ok: true, which, teamOn: which === 'team' ? on : undefined, clientOn: which === 'client' ? on : undefined });

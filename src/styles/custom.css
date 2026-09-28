@@ -845,7 +845,7 @@ body[data-page="schedule"] ::-moz-selection { background: #9F50FF; color: #1B142
     background: #fff;
     mix-blend-mode: difference;
     pointer-events: none;
-    z-index: 9999999;
+    z-index: 2147483647;   /* top of everything, incl. overlays hung off <body> above the nav (2026-09-28) */
     transform: translate(-50%, -50%);
     transition: width var(--dur-sm) var(--ease-standard), height var(--dur-sm) var(--ease-standard), background var(--dur-sm) var(--ease-standard), border var(--dur-sm) var(--ease-standard), opacity var(--dur-s) var(--ease-standard);
     display: flex;
@@ -5330,6 +5330,17 @@ select:focus-visible,
     border-radius: 2px;
 }
 
+/* Text fields, text boxes and dropdowns (Pierce, 2026-09-28): the ring sits ON the field's
+   border instead of 3px outside it, so focus reads as one stroke changing colour, not a second
+   ring around a highlighted border. Still a visible indicator in each page's focus colour
+   (WCAG 2.4.7). Buttons, links, checkboxes and anything without a border keep the outer ring. */
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=button]):not([type=submit]):not([type=reset]):not([type=color]):focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline-width: 1.5px !important;
+    outline-offset: -1px !important;
+}
+
 /* On light-background pages use a darker focus ring */
 .projects-archive a:focus-visible,
 .projects-archive button:focus-visible,
@@ -5944,7 +5955,7 @@ html.js .fourofour-btn.is-in {
 /* <picture> wrappers around body images are layout-transparent */
 #cognak-main picture { display: contents; }
 
-/* -- Workflow nav (/workflow/sitime/*, 2026-09-14; pale purple 2026-09-27):
+/* -- Workflow nav (/workflows/sitime/*, 2026-09-14; pale purple 2026-09-27):
    a lavender bar a shade darker than the page's #F7F6FA ground (matching
    how every other inner nav sits a notch off its own page bg), dark text,
    the /tools purple on the pulse dot. Opaque enough over scrolled content

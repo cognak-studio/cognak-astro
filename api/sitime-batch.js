@@ -23,7 +23,7 @@ const seedSlots = new Map((seed.slots || []).map((s) => [s.id, s]));
 /* Context (Pierce, 9/25): where each slot sits on its page. Page images are
    the newest page designs (Zaelab / COGNAK v3-1) or, for pages not designed
    yet, a full-page capture of the live site; rects are in 1920-wide page px.
-   Data: api/_lib/sitime-context.json, images in public/workflow/sitime/context/. */
+   Data: api/_lib/sitime-context.json, images in public/workflows/sitime/context/. */
 function contextOf(id) {
   const c = ctx.slots && ctx.slots[id]; const p = c && ctx.pages && ctx.pages[c.page];
   if (!c || !p) return null;
@@ -117,7 +117,8 @@ export default async function handler(req, res) {
       mask: (seedSlots.get(s.id) || {}).mask || null,
       desc: typeof s.desc === 'string' ? s.desc : '',
       main: img(s.main),
-      backup: img(s.backup),
+      backup: s.single ? null : img(s.backup),   // single-image slot: no backup, ever (2026-09-28)
+      single: !!s.single,
       original: originals(s),
       context: contextOf(s.id),
       display: ['hero', 'card', 'burst', 'arm'].includes(s.display) ? s.display : autoDisplay(s),

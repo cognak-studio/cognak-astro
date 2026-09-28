@@ -1,6 +1,6 @@
 ---
 /**
- * /workflow — the front door to COGNAK's client-facing tools. Linked from
+ * /workflows — the front door to COGNAK's client-facing tools. Linked from
  * the footer as "Workflows" (Pierce, 9/27); still noindex and not in the
  * sitemap. Typing "workflow" anywhere on the site also lands here
  * (public/js/cognak-global.js, same mechanism as "send").
@@ -15,7 +15,7 @@ const TOOLS = [
     /* Public page since 9/27 (footer link): the card says what the tool is, not what the project is. */
     title: 'Image review',
     desc: 'Choose and approve the images for a new website, slot by slot, with every decision kept in one place.',
-    href: '/workflow/sitime/admin',
+    href: '/workflows/sitime/admin',
     tag: 'Internal',
   },
 ];
@@ -24,7 +24,7 @@ const TOOLS = [
   page="workflow"
   title="Workflows — COGNAK"
   description="Custom workflows for clients. Small, purpose-built pages for clients that need bespoke solutions."
-  ogUrl="https://cognak.com/workflow/"
+  ogUrl="https://cognak.com/workflows/"
   noindex={true}
   pageBg="#F7F6FA"
 >
@@ -46,9 +46,9 @@ const TOOLS = [
 
   <style is:inline>
     html, body { background-color:#F7F6FA !important; }
-    /* No full-screen min-height (Pierce, 9/27): with one tool card it left a screenful of empty ground above the footer. */
+    /* No full-screen min-height (Pierce, 9/27): with one tool card it left a screenful of empty ground above the footer. 40vh below is ~80% of the old gap. */
     #cognak-main { position:relative; z-index:1; }
-    /* /workflow is the front door to the tools that live under it, not a
+    /* /workflows is the front door to the tools that live under it, not a
        peer of /projects or /schedule -- so it takes ITS interior pages'
        palette (admin.astro / review.astro's --head / --accent), matching
        what's one click away. Pale purple since 9/27 (Pierce, option A:
@@ -57,17 +57,23 @@ const TOOLS = [
     /* Focus ring follows this page's accent, not the sitewide brand purple. */
     .wf a:focus-visible, .wf button:focus-visible, .wf [tabindex]:focus-visible{ outline-color:var(--head) !important; }
     .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#6A5C8A; --accent:#C7BDDF; --accent-rgb:199,189,223;
-      max-width:1040px; margin:0 auto; padding:190px 6vw 120px; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
+      max-width:1040px; margin:0 auto; padding:190px 6vw 40vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .wf .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .wf .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .wf .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
     .wf .picker{ display:grid; grid-template-columns:1fr; gap:14px; }
-    .wf .pcard{ position:relative; display:block; text-decoration:none; color:var(--ink); background:#fff; border:1px solid #E8E5EF; border-radius:12px; padding:24px 24px 22px;
+    .wf .pcard{ position:relative; display:block; text-decoration:none; color:var(--ink); background:#fff; border:none; border-radius:12px; padding:24px 24px 22px;
       box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); transition:background var(--dur-sm) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
-    /* Hover is just a drop shadow, nothing else -- no background tint. Same
-       offsetY + |spread| >= blur rule (20+12 >= 30) keeps it grounded under
-       the card instead of haloing around it. */
-    .wf .pcard:hover{ box-shadow:0 1px 2px rgba(0,0,0,.04),0 20px 30px -12px rgba(var(--accent-rgb),.38); }
+    /* /brief's card edge in the tool's pale purple (Pierce, 9/28): lit corners, soft middle; brightens on hover, no drop glow. */
+    .wf .pcard::before{
+      content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:linear-gradient(135deg, rgba(106,92,138,.34) 0%, rgba(106,92,138,.10) 26%, rgba(232,229,239,.9) 50%, rgba(106,92,138,.10) 74%, rgba(106,92,138,.34) 100%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+              mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; opacity:.85;
+      transition:opacity var(--dur-sm) var(--ease-standard), filter var(--dur-sm) var(--ease-standard); }
+    .wf .pcard:hover{ background:#FBFAFD; }
+    .wf .pcard:hover::before{ opacity:1; filter:saturate(1.3) brightness(.95); }
     /* Like /brief (Pierce, 9/27): hover turns every word in the card the tool's purple, and the arrow slides. */
     .wf .pcard:hover .idx, .wf .pcard:hover .ptag, .wf .pcard:hover h3, .wf .pcard:hover p, .wf .pcard:hover .arrow{ color:var(--head); }
     .wf .pcard:active{ transform:scale(.995); }
@@ -78,6 +84,6 @@ const TOOLS = [
     .wf .pcard p{ font-size:var(--fs-14); line-height:1.45; color:var(--ink-soft); margin:0; max-width:60ch; transition:color var(--dur-s) var(--ease-standard); }
     .wf .pcard .arrow{ position:absolute; bottom:20px; right:24px; color:var(--ink-soft); transition:transform var(--dur-sm) var(--ease-standard), color var(--dur-sm) var(--ease-standard); }
     .wf .pcard:hover .arrow{ transform:translateX(4px); }
-    @media (max-width:760px){ .wf{ padding:150px 5vw 80px; } .wf .lede{ margin-left:0; } }
+    @media (max-width:760px){ .wf{ padding:150px 5vw 30vh; } .wf .lede{ margin-left:0; } }
   </style>
 </BaseLayout>
