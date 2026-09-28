@@ -912,12 +912,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     async function loadFiles() {
-      const res = await fetch('/api/deliver-get', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      });
+      let res;
       let data = null;
+      try {
+        res = await fetch('/api/deliver-get', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+      } catch (e) {
+        // Offline, DNS failure, or a blocker killed the request. Without this the
+        // rejection went unhandled and the client sat on "Loading your files…"
+        // indefinitely, with no way to tell it had failed.
+        $('receive-lede').textContent = 'We couldn’t reach the server. Check your connection, then reload this page.';
+        return;
+      }
       try { data = await res.json(); } catch (e) {}
       if (res.ok && data && data.ok) {
         renderFiles(data);

@@ -105,8 +105,20 @@
     var btnList  = document.getElementById('view-toggle-list');
     if (!btn || !grid || !list) return;
 
+    // localStorage throws (SecurityError) when storage is blocked: strict
+    // privacy settings, some in-app browsers, and third-party iframes such as
+    // an embed on pierceliefeld.com. Unguarded, that aborted this whole block
+    // and left the view toggle and the sort button dead.
+    function readView() {
+        try { return localStorage.getItem('cognak-projects-view') || 'list'; }
+        catch (e) { return 'list'; }
+    }
+    function saveView(v) {
+        try { localStorage.setItem('cognak-projects-view', v); } catch (e) { /* preference just won't persist */ }
+    }
+
     var mode = 'newest';
-    var view = localStorage.getItem('cognak-projects-view') || 'list';
+    var view = readView();
 
     function setPressed(grid) {
         btnGrid.setAttribute('aria-pressed', grid ? 'true' : 'false');
@@ -134,7 +146,7 @@
         btnGrid.classList.add('is-active');
         btnList.classList.remove('is-active');
         setPressed(true);
-        localStorage.setItem('cognak-projects-view', 'grid');
+        saveView('grid');
     });
 
     btnList.addEventListener('click', function() {
@@ -146,7 +158,7 @@
         btnList.classList.add('is-active');
         btnGrid.classList.remove('is-active');
         setPressed(false);
-        localStorage.setItem('cognak-projects-view', 'list');
+        saveView('list');
     });
 
     function comparator(a, b) {

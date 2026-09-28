@@ -1171,12 +1171,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     }
 
     async function api(path, opts) {
-      const res = await fetch(path, {
-        method: (opts && opts.method) || 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        body: opts && opts.body ? JSON.stringify(opts.body) : undefined,
-        credentials: 'same-origin',
-      });
+      let res;
+      try {
+        res = await fetch(path, {
+          method: (opts && opts.method) || 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          body: opts && opts.body ? JSON.stringify(opts.body) : undefined,
+          credentials: 'same-origin',
+        });
+      } catch (e) {
+        // Offline, DNS failure or a blocker: report it as a failed call (callers
+        // already branch on `ok`, and initGate() below assumes exactly this)
+        // instead of throwing out of every click handler.
+        return { ok: false, status: 0, data: { error: 'Connection problem. Check your connection and try again.' } };
+      }
       let json = null;
       try { json = await res.json(); } catch (e) { /* no body */ }
       return { ok: res.ok, status: res.status, data: json };
