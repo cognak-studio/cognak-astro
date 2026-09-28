@@ -121,12 +121,11 @@ const TOOLS = [
     .adm .acard{ max-width:440px; background:var(--panel); border:1px solid var(--line);
       border-radius:12px; padding:36px 34px 32px; box-shadow:0 2px 24px rgba(0,0,0,.28); }
     @media (max-width:600px){ .adm .acard{ max-width:none; padding:28px 20px 24px; } }
-    /* Centred from the first paint (Pierce, 9/28): keying it to the sign-in card appearing
-       made the text load left and then jump. The lede is narrowed and balanced so its two
-       lines sit under the headline. */
-    .adm .headline, .adm .lede{ text-align:center; margin-left:auto; margin-right:auto; }
-    .adm .lede{ max-width:40ch; text-wrap:balance; }
-    .adm .acard{ margin-left:auto; margin-right:auto; }
+    /* The site's usual layout (Pierce, 9/28): headline flush left, the lede offset 40px under it
+       like /workflows (flush on phones), and the card and dashboard on the same left edge. Static
+       CSS, so nothing shifts after load. */
+    .adm .lede{ max-width:52ch; text-wrap:pretty; margin-left:40px; }
+    @media (max-width:760px){ .adm .lede{ margin-left:0; } }
 
     .adm .signin-head{ display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:1.2rem; }
     .adm .signin-icon{ margin-bottom:1.1rem; }
@@ -222,7 +221,7 @@ const TOOLS = [
       box-shadow:0 0 10px rgba(159,80,255,.8); }
 
     /* One column, centred under the headline (Pierce, 9/28: "stack the admin cards"). */
-    .adm #dash{ max-width:600px; margin:0 auto; }
+    .adm #dash{ max-width:600px; }
     .adm .tools{ display:grid; grid-template-columns:1fr; gap:12px; margin:0; padding:0; list-style:none; }
     .adm .tcard{ position:relative; display:flex; flex-direction:column; min-height:0; box-sizing:border-box;
       text-decoration:none; color:var(--ink); background:var(--panel); border:1px solid var(--line);
