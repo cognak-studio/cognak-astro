@@ -121,7 +121,8 @@ async function writeUsers(users) { await putJson(USERS_DIR, { users }); }
 /** What the admin page sees: never the hash. */
 export const publicUser = (u) => ({ id: u.id, name: u.name, email: u.email || '', role: u.role, createdAt: u.createdAt || null, passAt: u.passAt || null, lastAt: u.lastAt || null });
 export async function addUser(fields) {
-  const name = cleanName(fields.name); if (!name) return { error: 'A name is needed.' };
+  const name = cleanName(fields.name); if (!name) return { error: 'A first name is needed.' };
+  if (!EMAIL_RE.test(cleanEmail(fields.email))) return { error: 'An email is needed: it’s how they sign in.' };   // (2026-09-28)
   const users = await readUsers();
   const id = 'u' + crypto.randomBytes(5).toString('hex');
   const passcode = newPasscode(); const now = Date.now();
@@ -217,7 +218,7 @@ async function recordFail(dir, req) {
   const pathname = dir + ipKey(req) + '/' + Date.now() + '-' + crypto.randomBytes(4).toString('hex') + '.json';
   try { await put(pathname, '{}', { access: 'public', addRandomSuffix: false, contentType: 'application/json' }); } catch (e) { console.error('sitime attempt log failed', e); }
 }
-export async function teamLogin(req, name, pass) {
+export async function teamLogin(req, name, pass, email) {
   const now = Date.now();
   if ((await recentFails(ATTEMPT_DIR, req)) >= MAX_FAILS) return { ok: false, status: 429, error: 'Too many tries. Wait 15 minutes.' };
   /* Personal passcodes first: the passcode alone says who this is. */
@@ -226,7 +227,7 @@ export async function teamLogin(req, name, pass) {
   /* The first name works as a username (Pierce, 9/28): it must match the one
      COGNAK set, ignoring case, accents and anything after the first word.
      A mismatch reads exactly like a wrong password and counts as a failure. */
-  if (u && firstName(name) !== firstName(u.name)) { await recordFail(ATTEMPT_DIR, req); return { ok: false, status: 401, error: NO_MATCH }; }
+  if (u && !loginMatches(u, email, name)) { await recordFail(ATTEMPT_DIR, req); return { ok: false, status: 401, error: NO_MATCH }; }
   if (u) {
     try { await put(SEEN_DIR + u.id + '/' + now + '.json', '{}', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' }); } catch (e) {}
     return { ok: true, cookie: userCookie(u), name: u.name, role: cleanRole(u.role) };
@@ -245,7 +246,15 @@ export async function teamLogin(req, name, pass) {
   }
 }
 
-const NO_MATCH = 'That name and password don’t match.';
+const NO_MATCH = 'That email and password don’t match.';
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/* Email + password (Pierce, 9/28): the email must be the one COGNAK saved, ignoring case and spaces.
+   Someone saved without an email can still use their first name, so no one is locked out. */
+function loginMatches(u, email, name) {
+  const e = String(email || '').trim().toLowerCase();
+  if (u.email) return !!e && e === String(u.email).trim().toLowerCase();
+  return !!firstName(email || name) && firstName(email || name) === firstName(u.name);
+}
 const firstName = (s) => String(s || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase().split(/\s+/)[0] || '';
 
 /* ---- review-link passcode (sitime-batch, sitime-decide) ----

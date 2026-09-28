@@ -39,8 +39,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <p class="lede" id="lede">Image picks and reviews for the new sitime.com.</p>
 
     <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Sign in</div>
-      <p class="hint" id="gate-note">Your first name and the password we sent you.</p>
-      <div class="teamlogin"><input class="txt" id="tl-name" placeholder="First name" aria-label="First name" autocomplete="username" autocapitalize="words" /><input class="txt" id="tl-pass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" autocapitalize="off" /><button class="sbtn p" id="tl-go">Sign in</button></div>
+      <p class="hint" id="gate-note">Your email and the password we sent you.</p>
+      <div class="teamlogin"><input class="txt" id="tl-email" type="email" placeholder="Email" aria-label="Email" autocomplete="username" autocapitalize="off" spellcheck="false" /><input class="txt" id="tl-pass" type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" autocapitalize="off" /><input class="txt" id="tl-name" placeholder="Your first name" aria-label="Your first name" autocomplete="given-name" hidden /><button class="sbtn p" id="tl-go">Sign in</button></div>
       <p class="hint is-error" id="tl-err" hidden></p>
       <button class="sbtn" id="tl-retry" hidden>Try saving again</button>
     </div></div>
@@ -1055,7 +1055,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('gate-note').textContent = me?.role === 'admin' ? 'Your session ended. Sign in at cognak.com/admin in another tab, then try saving again here; nothing on this page is lost.' : 'Your session ended. Sign in again to keep saving; nothing on this page is lost.';
       $('tl-retry').hidden = me?.role !== 'admin';
       $('gate').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (me?.role !== 'admin') { if (me?.name && !$('tl-name').value) $('tl-name').value = me.name; $(me?.name ? 'tl-pass' : 'tl-name').focus({ preventScroll: true }); }
+      if (me?.role !== 'admin') { if (me?.email && !$('tl-email').value) $('tl-email').value = me.email; $(me?.email ? 'tl-pass' : 'tl-email').focus({ preventScroll: true }); }
     }
     $('tl-retry').addEventListener('click', () => { $('gate').hidden = true; dirty = true; save(); });
 
@@ -2755,7 +2755,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('pp-pass-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('pp-pass-code').textContent); toast('Copied.'); } catch (e) { toast('Select the password and copy it.'); } });
     async function addPerson() {
       const name = $('pp-name').value.trim();
-      if (!name) { $('pp-status').textContent = 'A name is needed.'; $('pp-name').focus(); return; }
+      if (!name) { $('pp-status').textContent = 'A first name is needed.'; $('pp-name').focus(); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('pp-email').value.trim())) { $('pp-status').textContent = 'An email is needed: it’s how they sign in.'; $('pp-email').focus(); return; }
       $('pp-add').disabled = true; $('pp-status').textContent = 'Adding…';
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'user-add', name, email: $('pp-email').value.trim(), role: $('pp-role').value } });
       $('pp-add').disabled = false;
@@ -2878,14 +2879,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function teamSignIn() {
       $('tl-err').hidden = true;
       const pass = $('tl-pass').value;
-      const name = $('tl-name').value.trim();   // a username: it must match the first name COGNAK set (Pierce, 9/28)
-      if (!name) { $('tl-err').textContent = 'Enter your first name.'; $('tl-err').hidden = false; $('tl-name').focus(); return; }
+      const email = $('tl-email').value.trim();   // email + password (Pierce, 9/28)
+      if (!email) { $('tl-err').textContent = 'Enter your email.'; $('tl-err').hidden = false; $('tl-email').focus(); return; }
       if (!pass.trim()) { $('tl-err').textContent = 'Enter your password.'; $('tl-err').hidden = false; $('tl-pass').focus(); return; }
+      const name = $('tl-name').hidden ? '' : $('tl-name').value.trim();   // only for an old shared password
+      if (!$('tl-name').hidden && !name) { $('tl-err').textContent = 'Add your first name, so edits show who made them.'; $('tl-err').hidden = false; $('tl-name').focus(); return; }
       $('tl-go').disabled = true;
-      const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'login', name, pass } });
+      const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'login', email, name, pass } });
       $('tl-go').disabled = false;
       if (!r.ok) {
-        if (r.data && r.data.needName) { $('gate-note').textContent = 'This is a shared password. Add your first name so edits show who made them.'; $('tl-name').focus(); return; }
+        if (r.data && r.data.needName) { $('tl-name').hidden = false; $('gate-note').textContent = 'This is a shared password. Add your first name so edits show who made them.'; $('tl-name').focus(); return; }
         $('tl-err').textContent = (r.data && r.data.error) || 'Could not sign in.'; $('tl-err').hidden = false; return;
       }
       $('gate').hidden = true;
@@ -2896,7 +2899,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     $('tl-go').addEventListener('click', teamSignIn);
     $('tl-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') teamSignIn(); });
-    $('tl-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if ($('tl-pass').value) teamSignIn(); else $('tl-pass').focus(); } });
+    $('tl-email').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if ($('tl-pass').value) teamSignIn(); else $('tl-pass').focus(); } });
+    $('tl-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); teamSignIn(); } });
     let booted = false;
     /* Name + Sign out. Also redrawn after a mid-session re-sign-in, which used to leave a dead button. */
     function renderWhoami() {
@@ -2907,13 +2911,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function boot() {
       const r = await api('/api/sitime-state');
       $('loading').hidden = true;
-      if (r.status === 401) { $('gate').hidden = false; $('tl-name').focus(); return; }
+      if (r.status === 401) { $('gate').hidden = false; $('tl-email').focus(); return; }
       if (!r.ok || !r.data) { $('gate').hidden = false; $('gate').querySelector('.hint').textContent = (r.data && r.data.error) || 'Could not load.'; return; }
       S = r.data.state; D = r.data.decisions || {}; CTX = r.data.context || null;
       S.batches = S.batches || []; S.library = S.library || [];
       base = clone(S);
       me = r.data.me || null;
-      if (!me?.role) { $('gate').hidden = false; $('tl-name').focus(); return; }   // no one signed in: never fall back to admin
+      if (!me?.role) { $('gate').hidden = false; $('tl-email').focus(); return; }   // no one signed in: never fall back to admin
       loadTeamState();
       document.querySelector('.adm').classList.toggle('team', me?.role !== 'admin');
       document.querySelector('.adm').classList.toggle('client', isClient());
