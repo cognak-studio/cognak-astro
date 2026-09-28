@@ -224,13 +224,33 @@ export default async function handler(req, res) {
         return res.status(409).json({ conflict: true, state: viewFor(who, current) });   // same view as GET: no passcode for team, no internal notes for the client
       }
       if (who.role !== 'admin' && current) {
-        state.batches = current.batches || [];
+        /* Batches (Pierce, 9/27): anyone signed in may make, fill, rename,
+           reorder and delete batches. Internal (COGNAK) batches are the
+           admin's: they come back from the stored state untouched, a
+           non-admin document cannot claim one of their tokens or flag a batch
+           internal, and a slot sitting in one stays there. The review link
+           passcode and the internal review log are admin's too. */
+        const curB = current.batches || [];
+        const internal = curB.filter((b) => b && b.internal);
+        const internalTok = new Set(internal.map((b) => b.token));
+        const sent = (Array.isArray(state.batches) ? state.batches : []).filter((b) => b && typeof b.token === 'string' && !internalTok.has(b.token)).map((b) => { const { internal: _i, ...rest } = b; return rest; });
+        /* The client never sees internal batches, so a batch it numbers may
+           collide with one; give the newcomer the next free number. */
+        const known = new Set(curB.map((b) => b.token));
+        const used = new Set(internal.map((b) => b.num));
+        sent.forEach((b) => { if (!known.has(b.token) && used.has(b.num)) { let n = Math.max(0, ...curB.map((x) => x.num || 0), ...sent.map((x) => x.num || 0)) + 1; b.num = n; } used.add(b.num); });
+        state.batches = internal.concat(sent);
         state.reviewPass = current.reviewPass;
         state.reviewLog = current.reviewLog || [];
+        const validTok = new Set(state.batches.map((b) => b.token));
         const was = new Map((current.slots || []).map((s) => [s.id, s.batch || null]));
-        // Team may take a slot OUT of a batch (Pick a replacement) but never put
-        // one into a batch.
-        state.slots.forEach((s) => { const w = was.has(s.id) ? was.get(s.id) : null; s.batch = s.batch == null ? null : w; });
+        state.slots.forEach((s) => {
+          const w = was.has(s.id) ? was.get(s.id) : null;
+          if (w && internalTok.has(w)) { s.batch = w; return; }                 // in an internal batch: stays
+          if (s.batch && (!validTok.has(s.batch) || internalTok.has(s.batch))) s.batch = w && !internalTok.has(w) && validTok.has(w) ? w : null;
+        });
+        // internal batches keep their own slot lists; a non-admin never edits them
+        internal.forEach((b) => { (b.slotIds || []).forEach((id) => { const s = state.slots.find((x) => x.id === id); if (s) s.batch = b.token; }); });
         /* The client never received the internal review notes on the images
            (see GET), so they are not in this document: put them back from the
            stored state, image by image. Parked slots are not shown to the

@@ -6,8 +6,9 @@
  *   team   Michael, Ace, anyone Pierce gives the TEAM passcode to. A signed
  *          cookie scoped to the SiTime endpoints ONLY: it does not satisfy
  *          requireAdmin, so it never opens /send, deliveries or clients.
- *          Team can pick images, upload and generate (capped per day);
- *          batches and the passcodes stay admin-only (enforced in
+ *          Team can pick images, upload and generate (capped per day),
+ *          and make and manage batches (Pierce, 9/27); internal batches,
+ *          the passcodes and settings stay admin-only (enforced in
  *          sitime-state.js, not just hidden in the page).
  *
  *   client SiTime's own people (Pierce, 9/25), on a SEPARATE passcode:
