@@ -673,7 +673,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pcard .pu{ font-size:var(--fs-14); color:var(--ink-soft); margin-top:3px; }
     .adm .pcard .tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; }
     .adm .pcard .tg{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink-soft); }
-    .adm .pcard .tg.on{ background:#1A1A1A; border-color:#1A1A1A; color:#fff; }
     .adm .pcard .ex{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:flex-start; }
     .adm .pcard .ex img{ width:130px; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#ECEAF1; }
     .adm .pcard .exh{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-top:18px; }
@@ -1565,15 +1564,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (!p) { el.innerHTML = ''; el.hidden = true; return; }
       el.hidden = false;
       const slots = S.slots.filter((s) => s.pageId === p.id);
-      const cut = (t) => t && t.length > 54 ? t.slice(0, 52).replace(/[\s—·-]+$/, '') + '…' : t;
-      /* The status, type, v11 scope and Drupal tags are Ace's inventory
-         vocabulary; SiTime's sign-in sees only the slot count. */
-      const tags = (isClient() ? [slots.length + ' slot' + (slots.length === 1 ? '' : 's')] : [cut(p.status || p.briefStatus), p.type, p.scope ? 'v11: ' + p.scope : '', slots.length + ' slot' + (slots.length === 1 ? '' : 's'), (p.drupalImages || []).length ? 'Drupal export: yes' : 'Drupal export: no'])
-        .filter(Boolean).map((t, i) => '<span class="tg ' + (i === 0 && !isClient() ? 'on' : '') + '" title="' + esc(i === 0 && !isClient() ? (p.status || p.briefStatus || '') : t) + '">' + esc(t) + '</span>').join('');
+      /* One quiet pill, the launch scope from Ace's inventory (MVP, Post-MVP,
+         Not in v11, Legacy...), the only tag that changes what you do. The
+         status, type, slot-count and Drupal tags went 9/27 (Pierce): stale,
+         or already said elsewhere on the card. SiTime's sign-in sees none. */
+      const tags = (isClient() || !p.scope) ? '' : '<span class="tg" title="Launch scope, from the inventory">' + esc(p.scope) + '</span>';
       const cur = pageCurrent(p);
       const showAll = pcAll.has(p.id);
       const imgs = (showAll ? cur : cur.slice(0, 6)).map((c) => '<a class="exi" href="' + esc(c.url) + '" target="_blank" rel="noopener" title="' + esc(c.name) + '"><img loading="lazy" src="' + esc(c.url) + '" alt="">' + (c.hero ? '<span class="hb">Hero</span>' : '') + '</a>').join('');
-      el.innerHTML = '<div class="pcard"><button class="sbtn" data-addslot="1" style="float:right">Add a slot to this page</button><div class="pt">' + esc(p.name) + (p.custom ? ' <span class="mini">added by ' + esc(p.addedBy || 'the team') + '</span>' : '') + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div><div class="tags">' + tags + '</div>' +
+      el.innerHTML = '<div class="pcard"><button class="sbtn" data-addslot="1" style="float:right">Add a slot to this page</button><div class="pt">' + esc(p.name) + (p.custom ? ' <span class="mini">added by ' + esc(p.addedBy || 'the team') + '</span>' : '') + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div>' + (tags ? '<div class="tags">' + tags + '</div>' : '') +
         (cur.length ? '<div class="exh">Currently on sitime.com · ' + cur.length + ' image' + (cur.length === 1 ? '' : 's') + (cur.length > 6 ? ' · <button type="button" class="linkb" data-pcall="1">' + (showAll ? 'Show fewer' : 'Show all') + '</button>' : '') + '</div><div class="ex">' + imgs + '</div>' : '<div class="exh">Nothing on sitime.com for this page</div>') +
         (p.parts && p.parts.length ? '<div class="mini" style="margin-top:12px">Parts: ' + esc(p.parts.slice(0, 12).join(' · ')) + (p.parts.length > 12 ? ' +' + (p.parts.length - 12) : '') + '</div>' : '') +
         '</div>';
