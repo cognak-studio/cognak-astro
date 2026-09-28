@@ -151,8 +151,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="tablewrap"><table id="people-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead><tbody id="people-rows"><tr><td colspan="5" class="hint">Loading.</td></tr></tbody></table></div>
           <div class="grid3" style="margin-top:1.4rem">
             {/* readonly until focused: browsers ignore autocomplete="off" on a name + email pair and fill in the admin's own contact card (Pierce, 9/27). */}
-            <label class="q"><span class="q-title">Name</span><input class="txt" id="pp-name" placeholder="Nick Talbert" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" /></label>
-            <label class="q"><span class="q-title">Email</span><input class="txt" id="pp-email" type="text" inputmode="email" placeholder="ntalbert@sitime.com" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" /></label>
+            <label class="q"><span class="q-title">Name</span><input class="txt" id="pp-name" placeholder="Enter name" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" /></label>
+            <label class="q"><span class="q-title">Email</span><input class="txt" id="pp-email" type="text" inputmode="email" placeholder="Enter email" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" /></label>
             <label class="q"><span class="q-title">Role</span><select class="txt" id="pp-role"><option value="client">SiTime</option><option value="team">COGNAK team</option></select></label>
           </div>
           <div class="actions"><button class="sbtn p" id="pp-add">Add person</button><span class="mini" id="pp-status"></span></div>
