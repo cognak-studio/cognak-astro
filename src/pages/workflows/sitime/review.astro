@@ -109,7 +109,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <div class="ctx" id="ctx" hidden role="dialog" aria-modal="true" aria-label="Where this image goes">
       <div class="ctx-bar">
         <div class="ctx-t"><b id="ctx-title"></b><span id="ctx-src"></span></div>
-        <div class="ctx-r"><button type="button" class="origbtn" id="ctx-put" aria-pressed="true">Show this image in place</button><button type="button" class="origbtn" id="ctx-close">Close</button></div>
+        <div class="ctx-r"><button type="button" class="origbtn" id="ctx-put" aria-pressed="true">Show this image in place</button><button type="button" class="origbtn" id="ctx-close">Close <span aria-hidden="true">✕</span></button></div>
       </div>
       <div class="ctx-scroll" id="ctx-scroll"><div class="ctx-page" id="ctx-page"><img id="ctx-img" alt=""><div class="ctx-box" id="ctx-box"><img id="ctx-pick" alt=""></div></div></div>
     </div>
@@ -268,15 +268,21 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .st-hero.clean .scrim, .review .st-hero.clean .copy{ display:none; }
     .review .pills.off{ opacity:.35; pointer-events:none; }
     /* Context overlay (Pierce, 9/25) */
-    .ctx{ position:fixed; inset:0; z-index:200; background:rgba(28,26,23,.86); display:flex; flex-direction:column; }
+    /* Above the site's fixed nav (it sat over the bar and hid Close, Pierce 9/28). */
+    .ctx{ position:fixed; inset:0; z-index:2147483000; background:rgba(28,26,23,.86); display:flex; flex-direction:column; }
     .ctx[hidden]{ display:none !important; }
-    .ctx-bar{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 24px; background:#fff; border-bottom:1px solid #E4E1DC; }
+    .ctx-bar{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 24px; background:#1C1A17; border-bottom:1px solid rgba(255,255,255,.12); }
+    @media (max-width:600px){ .ctx-bar{ flex-wrap:wrap; padding:12px 16px; gap:10px; } .ctx-t{ flex:1 1 100%; } .ctx-r{ flex:1 1 100%; justify-content:space-between; } .ctx .origbtn{ margin-left:0; } }
     .ctx-t{ display:flex; flex-direction:column; gap:2px; min-width:0; }
-    .ctx-t b{ font-weight:500; font-size:var(--fs-14); color:#1E1B26; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ctx-t span{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; color:#8A847B; }
+    .ctx-t b{ font-weight:500; font-size:var(--fs-14); color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ctx-t span{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.62); }
     .ctx-r{ display:flex; align-items:center; flex-shrink:0; }
     .ctx .origbtn{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.14em; text-transform:uppercase; border:1px solid #D9D3E4; background:none; color:#6A5C8A; padding:9px 14px; border-radius:999px; cursor:pointer; margin-left:8px; }
-    .ctx .origbtn.on{ background:#1E1B26; border-color:#1E1B26; color:#fff; }
+    .ctx .origbtn{ border-color:rgba(255,255,255,.35); color:#fff; }
+    .ctx .origbtn.on{ background:rgba(255,255,255,.16); border-color:rgba(255,255,255,.5); color:#fff; }
+    /* Close: a solid white pill in the corner, for anyone who doesn't know Escape (Pierce, 9/28). */
+    .ctx #ctx-close{ background:#fff; border-color:#fff; color:#1E1B26; font-family:'Diatype Variable', sans-serif; font-size:var(--fs-14); letter-spacing:0; text-transform:none; padding:9px 18px; margin-left:12px; }
+    .ctx #ctx-close:hover{ background:#EDE9F5; border-color:#EDE9F5; }
     .ctx-scroll{ flex:1; overflow:auto; padding:32px 16px 64px; }
     .ctx-page{ position:relative; width:min(1200px, 100%); margin:0 auto; box-shadow:0 12px 40px rgba(0,0,0,.35); background:#fff; }
     .ctx-page > img{ display:block; width:100%; height:auto; }
@@ -704,6 +710,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        if that view is on); masked slots (burst/arm) only flash, since a
        rectangle over a masked shape would misstate the design. */
     let ctxPut = true;
+    /* #cognak-main is its own stacking context under the site nav, so no z-index lifts the
+       overlay out of it: hang it off <body> instead, or the nav covers its bar and Close. */
+    document.body.appendChild($('ctx'));
     function openCtx() {
       const s = state.slots[state.i]; const c = s && s.context; if (!c) return;
       const which = viewed(s); const pick = which === 'backup' ? s.backup : s.main;
