@@ -212,6 +212,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        (pick.desc), 9/24. The description line keeps its height when empty so
        the source line under it doesn't move between slots. */
     .review .q-where{ color:var(--ink); margin-top:.35rem; min-height:calc(2 * 1.4em); }
+    .review .q-where:not([hidden]) + #slot-sub{ margin-top:.55rem; }   /* the meta line breathes under the placement note (Pierce, 9/27) */
     .review .pdesc{ margin:12px 0 0; font-size:var(--fs-14); line-height:1.45; color:var(--ink); min-height:1.45em; max-width:80ch; }
     .review .statusslot{ min-height:46px; margin-top:14px; display:flex; flex-direction:column; justify-content:flex-start; }
     .review .statusslot .handoff{ margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
