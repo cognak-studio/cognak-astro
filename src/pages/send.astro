@@ -198,11 +198,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         </div>
       </div>
 
-      <p class="note pk-moved">Passkeys are managed on <a href="/admin">/admin</a>.</p>
-
-      <div class="actions signout-row">
-        <button type="button" class="btn btn-ghost" id="signout-btn">Sign out</button>
-      </div>
+      {/* Sign out and passkeys live on /admin (2026-09-28). */}
 
       {/* Save-client modal — reached from the client picker ("add … as a new
           client", or the chip on a saved client to change their photo). The
@@ -1155,7 +1151,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       toAdmin(reason === 'idle' ? '?next=/send&reason=idle' : '');
     }
 
-    $('signout-btn').addEventListener('click', () => signOut(''));
 
     /* Passkeys moved to /admin (2026-09-28): list, add and remove live there now. */
 
