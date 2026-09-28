@@ -216,6 +216,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     <dialog id="confirm-dialog" class="confirm">
       <div class="group-title" id="cf-title">Confirm</div>
       <div id="cf-msg"></div>
+      <label class="chk cf-chk" id="cf-checkrow" hidden><input type="checkbox" id="cf-check" /> <span id="cf-checklabel"></span></label>
       <div class="actions"><button type="button" class="sbtn p" id="cf-ok">Continue</button><button type="button" class="sbtn" id="cf-cancel">Cancel</button></div>
     </dialog>
 
@@ -270,7 +271,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .teamlogin{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; max-width:620px; }
     .adm #gate{ margin-bottom:1.6rem; }
     .adm .teamlogin .txt{ flex:1; min-width:160px; }
-    .adm .edited{ display:block; font-size:var(--fs-11); color:var(--ink-soft); margin-top:2px; }
     .adm .savestate{ margin-left:auto; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:2rem; }
     .adm .stat{ background:#fff; border:1px solid #ECECE9; border-radius:10px; padding:16px 18px; }
@@ -339,13 +339,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile.ai::after{ content:'AI'; position:absolute; top:10px; right:10px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); padding:3px 6px; border-radius:4px; background:#FFF3CD; color:#8A5A00; }
     .adm .tile .cap .lic{ flex:none; display:inline-flex; align-items:center; gap:6px; font-family:'Diatype Variable', sans-serif; font-style:normal; font-weight:500; font-size:var(--fs-11); letter-spacing:0; text-transform:none; line-height:1; padding:4px 9px 4px 6px; border-radius:999px; background:rgba(255,255,255,.94); color:#1A1A1A; }
     .adm .tile .cap .lic img, .adm .tile .cap .lic svg{ width:14px; height:14px; display:block; flex:none; }
-    .adm .tile .cap .lic.nomark::before{ content:''; width:8px; height:8px; margin:0 1px; border-radius:50%; background:var(--mark, #999); flex:none; }
+    .adm .tile .cap .lic.nomark{ padding-left:9px; }   /* mark file missing: name only, no stand-in dot */
     .adm .tile .cap .lic.m-upload{ color:#9F50FF; }
     .adm .tile .cap .lic.m-upload span{ color:#1A1A1A; }
     .adm .tile .cap .lic em{ font-style:normal; font-weight:400; color:#6B6B6B; }
     .adm .tile .cap .lic:not(.m-envato):not(.m-adobe):not(.m-istock):not(.m-shutterstock):not(.m-upload){ padding-left:9px; color:#575049; }
     .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; display:flex; align-items:center; gap:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); opacity:0; transition:opacity .12s; }
-    .adm .tile .cap > span{ min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    /* The image's name or note wraps (Pierce, 9/27), up to three lines so the picture stays visible. */
+    .adm .tile .cap > span{ min-width:0; white-space:normal; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; line-height:1.35; }
     .adm .tile.filled .cap{ opacity:1; }
     /* Click a filled tile to reveal these -- Swap re-opens the picker for just
        that slot, the trash icon clears just that slot. Nothing happens on a
@@ -366,7 +367,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile.empty{ border:1px dashed var(--line-strong); background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; color:var(--ink); font-size:var(--fs-14); font-weight:500; padding:12px; cursor:pointer; text-transform:capitalize; }
     .adm .tile.empty .mini{ font-size:var(--fs-10); text-transform:none; }
     .adm .tile.empty:hover{ border-color:var(--accent); border-style:solid; }
-    .adm .mrow{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; cursor:pointer; }
+    .adm .mrow{ display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap; cursor:pointer; }
     .adm .mrow input[type=checkbox]{ accent-color:#1A1A1A; width:15px; height:15px; margin:0; }
     .adm .mrow .who{ flex:1 1 260px; min-width:0; }
     .adm .mrow .who .pg{ font-size:1.25rem; letter-spacing:-.01em; line-height:1.2; margin-bottom:4px; }
@@ -376,6 +377,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .dwhere{ display:block; font-size:var(--fs-14); line-height:1.5; color:var(--ink-soft); margin-top:6px; max-width:72ch; }
     .adm .drawer .rvbox{ margin-top:14px; font-size:var(--fs-14); line-height:1.5; color:var(--ink); }
     .adm .drawer .rvh{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:4px; }
+    .adm .drawer .rv{ display:flex; align-items:baseline; gap:6px 14px; flex-wrap:wrap; }
+    .adm .drawer .rv .rv-t{ flex:1 1 320px; min-width:0; }
+    .adm .drawer .rv .rv-acts{ flex:none; margin-left:auto; }
+    .adm .drawer .rv .rv-acts .link{ font-size:var(--fs-13); color:var(--ink-soft); margin-right:12px; }
+    .adm .drawer .rv .rv-acts .link:last-child{ margin-right:0; }
+    .adm .drawer .rv .rv-acts .link:hover{ color:var(--ink); }
+    .adm .drawer .rv-in{ font:inherit; font-size:var(--fs-14); color:var(--ink); background:#fff; border:1px solid var(--line-strong); border-radius:6px; padding:5px 10px; width:min(100%, 440px); outline:none; vertical-align:baseline; }
+    .adm .drawer .rv-in:focus{ border-color:var(--accent); }
     .adm .drawer .rvhist{ margin-top:8px; color:var(--ink-soft); }
     .adm .drawer .rvhist summary{ cursor:pointer; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; }
     .adm .drawer .rvold{ display:flex; gap:12px; align-items:flex-start; margin-top:10px; }
@@ -391,7 +400,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .descrow input{ width:100%; box-sizing:border-box; font-family:inherit; text-transform:none; letter-spacing:.02em; font-size:var(--fs-13); color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:9px 12px; background:#fff; }
     .adm .drawer .descrow input:disabled{ background:transparent; color:var(--ink-soft); }
     @media (max-width:900px){ .adm .drawer .descrow{ grid-template-columns:1fr; } }
-    .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; gap:18px; }
+    /* Priority, display, status, checkbox, chevron: one group, right-aligned on the
+       title line (min-height = the title's line box) and wrapping as a group. */
+    .adm .mrow .end{ margin-left:auto; display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:14px 18px; min-height:1.5rem; }
     .adm .mrow .chev{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; padding:0; border:0; background:none; cursor:pointer; color:var(--ink-soft); flex:none; transition:transform .15s var(--ease-standard), color .15s var(--ease-standard); }
     .adm .mrow .chev svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .adm .srow:hover .mrow .chev{ color:#1A1A1A; }
@@ -558,6 +569,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm dialog::backdrop{ background:rgba(26,26,26,.35); }
     .adm dialog.confirm{ width:min(92vw,460px); }
     .adm dialog.confirm .cf-p{ font-size:var(--fs-15); line-height:1.5; color:var(--ink); margin:0 0 .9rem; }
+    .adm dialog.confirm .cf-chk{ margin:-.2rem 0 1.1rem; }
+    .adm dialog.confirm .cf-chk[hidden]{ display:none !important; }   /* .chk sets display with !important */
     .adm dialog.confirm .actions{ margin-top:1.4rem; }
     /* display:flex only while open -- on the closed dialog it would beat the UA's display:none. */
     .adm dialog.pv{ width:min(96vw,1280px); height:min(94vh,1000px); max-width:none; max-height:none; padding:14px 14px 0; background:#F4F4F2; }
@@ -644,7 +657,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        are 11px uppercase sans with light tracking. ---- */
     .adm .lbl-s{ display:block; font-family:'Diatype Variable', sans-serif; font-size:var(--fs-11); font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
     .adm .lbl-s .lbl-x{ font-weight:400; letter-spacing:.02em; text-transform:none; margin-left:8px; }
-    .adm .srow .pri, .adm .srow .mini, .adm .srow .edited, .adm .tile .tag, .adm .tile .cap, .adm .tile .dec-int,
+    .adm .srow .pri, .adm .srow .mini, .adm .tile .tag, .adm .tile .cap, .adm .tile .dec-int,
     .adm .drawer .lbl, .adm .drawer .dmeta, .adm .drawer .descrow label, .adm .drawer .descrow input, .adm .drawer .descrow select, .adm .drawer .descrow .mini,
     .adm .drawer .rvh, .adm .drawer .rvhist summary, .adm .drawer .srctabs .mini, .adm .cand .cb b, .adm .cand .flag, .adm .cand.noprev b, .adm .cand.gen-empty .gn, .adm .cand.gen-working,
     .adm .toolbar .tb-m, .adm .upzone .upm, .adm .addbox .ab-status, .adm .drawer .tgtbar .lbl{ font-family:'Diatype Variable', sans-serif; }
@@ -705,7 +718,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
     .adm .cand .adobe{ display:block; padding:0 12px 12px; font-size:var(--fs-12); color:var(--head); text-decoration:underline; text-underline-offset:3px; }
 
-    @media (max-width:900px){ .adm .workspace{ grid-template-columns:1fr; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; } }
+    @media (max-width:900px){ .adm .workspace{ grid-template-columns:minmax(0,1fr); } .adm .card-head .right, .adm .selbar{ flex-wrap:wrap; } .adm .rail{ position:static; max-height:320px; border-right:0; border-bottom:1px solid var(--line); padding-bottom:10px; } }
     @media (max-width:900px){ .adm .stats{ grid-template-columns:repeat(2,1fr); } .adm .grid3{ grid-template-columns:1fr; } .adm .drawer .meta{ grid-template-columns:1fr; } .adm .queue{ grid-template-columns:1fr; } .adm .lede{ margin-left:0; } .adm .tabs{ margin-left:0; } .adm .batchrow{ grid-template-columns:1fr 1fr; } }
     /* Narrow screens. The batch table's header row reads as nonsense once the
        cells flow two to a row, so it goes; the drawer's title row and the
@@ -731,7 +744,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       .adm .srow{ padding:16px 14px 14px; }
       .adm .drawer-wrap{ padding:18px 14px 24px; }
       .adm .fbar .search{ width:100%; }
-      .adm .mrow .end{ margin-left:0; width:100%; }
+      .adm .mrow .end{ margin-left:0; width:100%; justify-content:flex-start; gap:10px 12px; }
     }
   </style>
 
@@ -763,6 +776,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let openSlots = new Set();   // slot ids whose inline detail drawer (brief, note) is open -- several at once now, so "Expand all" means something
     let railOpen = new Set();    // section names expanded in the left rail
     const pkWhich = {};          // slotId -> 'main' | 'backup': which tile the next click in that row's picker fills
+    let rvEdit = null;   // { id, which, i } while a review note is being edited in a drawer
     let stockSlotId = null, stockQ = '', stockResults = [], stockBusy = false, stockErr = '';
     let stockSearchOpen = false;   // the live API search is hidden until Adobe access exists; the paste/drop box is the everyday path
     const addStatus = {};          // slotId -> the last 'n added' line; kept out here because addFinds re-renders the drawer it was written into // live Adobe Stock search state, reset when the picker switches to a different slot
@@ -939,14 +953,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* In-page confirm. Resolves true on the main button, false on Cancel or
        Escape. Cancel takes focus, so Enter never deletes by accident. */
     let cfResolve = null;
+    /* opts.check adds an unchecked option under the message; the promise then
+       resolves to { ok:true, checked } instead of true (false on cancel either way). */
     function askConfirm(msg, opts) {
       opts = opts || {};
       $('cf-title').textContent = opts.title || 'Confirm';
       $('cf-msg').innerHTML = String(msg).split(/\n\n+/).map((t) => '<p class="cf-p">' + esc(t) + '</p>').join('');
       $('cf-ok').textContent = opts.ok || 'Continue';
+      $('cf-checkrow').hidden = !opts.check; $('cf-check').checked = false; $('cf-checklabel').textContent = opts.check || '';
       return new Promise((resolve) => { cfResolve = resolve; $('confirm-dialog').showModal(); $('cf-cancel').focus(); });
     }
-    $('cf-ok').addEventListener('click', () => { const r = cfResolve; cfResolve = null; $('confirm-dialog').close(); if (r) r(true); });
+    $('cf-ok').addEventListener('click', () => { const r = cfResolve; cfResolve = null; const withCheck = !$('cf-checkrow').hidden; const checked = $('cf-check').checked; $('confirm-dialog').close(); if (r) r(withCheck ? { ok: true, checked } : true); });
     $('cf-cancel').addEventListener('click', () => $('confirm-dialog').close());
     $('confirm-dialog').addEventListener('close', () => { const r = cfResolve; cfResolve = null; if (r) r(false); });
     function needSignIn() {
@@ -1128,11 +1145,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     async function deleteBatch(b) {
       const total = (b.slotIds || []).length;
       const c = batchCounts(b); const decided = c.a + c.d + c.h;
-      const msg = 'Its ' + total + ' slots go back to assigned.' + (decided ? ' The ' + decided + ' recorded decision' + (decided > 1 ? 's and their notes stay' : ' and its note stays') + ' with each image.' : '') + ' You get 12 seconds to undo.';
-      if (!(await askConfirm(msg, { title: 'Delete batch ' + String(b.num).padStart(2, '0'), ok: 'Delete batch' }))) return;
+      const msg = 'Its ' + total + ' slots go back to assigned.' + (decided ? ' The ' + decided + ' recorded decision' + (decided > 1 ? 's and their notes stay' : ' and its note stays') + ' with each image, under Review notes in the slot, where each can be edited or removed.' : '') + ' You get 12 seconds to undo.';
+      /* A batch made as a test (Pierce, 9/27): one box discards its decisions
+         and notes with it, so nothing is left to clean up slot by slot. */
+      const ok = await askConfirm(msg, { title: 'Delete batch ' + String(b.num).padStart(2, '0'), ok: 'Delete batch', check: decided ? 'Discard its decisions and notes too' : '' });
+      if (!ok) return;
+      const discard = !!(ok && ok.checked);
       withUndo('Deleted batch ' + String(b.num).padStart(2, '0'), () => {
-        if (b.internal) logInternal(b);
-        archiveDecisions(b);
+        if (b.internal && !discard) logInternal(b);
+        if (!discard) archiveDecisions(b);
         const m = byId(); (b.slotIds || []).forEach((id) => { const s = m.get(id); if (s) s.batch = null; });
         S.batches = S.batches.filter((x) => x.token !== b.token); delete D[b.token];
         mark(); renderBatches(); renderStats();
@@ -1257,14 +1278,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        shutterstock.svg); until a file is there the chip shows a dot in the
        brand's color instead. An upload that is not one of those gets the
        upload arrow in COGNAK purple. */
-    const MARKS = { envato: ['Envato', 'envato.svg', '#81B441'], adobe: ['Adobe Stock', 'adobe-stock.svg', '#FA0F00'], istock: ['iStock', 'istock.svg', '#000000'], shutterstock: ['Shutterstock', 'shutterstock.svg', '#EE2B2C'] };
+    const MARKS = { envato: ['Envato', 'envato.svg'], adobe: ['Adobe Stock', 'adobe-stock.svg'], istock: ['iStock', 'istock.svg'], shutterstock: ['Shutterstock', 'shutterstock.svg'] };
     const UP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5m0 0L7.5 9.5M12 5l4.5 4.5M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     function sourceChip(p) {
       const k = licOf(p); const n = String(p.name || p.title || p.path || '');
       let key = k === 'sitime' ? (/istock/i.test(n) ? 'istock' : /shutterstock|[_-]ss\d{6,}/i.test(n) ? 'shutterstock' : null) : k;
       const m = MARKS[key];
       const tail = k === 'envato' ? '<em>SiTime licenses</em>' : '';
-      if (m) return '<i class="lic m-' + key + '" style="--mark:' + m[2] + '" title="' + esc(LIC[k][1]) + '"><img src="/media/sources/' + m[1] + '" alt="" data-mark="1"><span>' + m[0] + '</span>' + tail + '</i>';
+      if (m) return '<i class="lic m-' + key + '" title="' + esc(LIC[k][1]) + '"><img src="/media/sources/' + m[1] + '" alt="" data-mark="1"><span>' + m[0] + '</span>' + tail + '</i>';
       if (p.source === 'library' && p.tier === 'upload' && k === 'other') return '<i class="lic m-upload" title="Uploaded to the tool">' + UP_ICON + '<span>Uploaded</span></i>';
       return '<i class="lic m-' + k + '" title="' + esc(LIC[k][1]) + '"><span>' + esc(LIC[k][0]) + '</span></i>';
     }
@@ -1555,10 +1576,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const rows = shown.map((s) => {
         const st = status(s); const b = batchOf(s); const open = openSlots.has(s.id);
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
-          /* Title is the slot, the line under it is the page (and section when that differs). The checkbox sits at the right with the status, so the title, the tiles and the drawer share one left edge (Pierce, 9/26). */
-          '<div class="mrow"><div class="who"><div class="pg">' + esc(s.name) + '</div><div class="sub">' + esc(s.section && s.section !== s.page ? s.section + ' · ' + s.page : s.page) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + (s.edit ? '<span class="edited">' + esc(s.edit.by) + ' · ' + ago(s.edit.at) + '</span>' : '') + '</div>' +
-          '<span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + DSP_LABEL[displayOf(s)] + '</span>' +
-          '<div class="end"><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span>' + (b ? '<span class="mini">Batch ' + String(b.num).padStart(2, '0') + '</span>' : '') + (me.role === 'admin' ? '<input type="checkbox" data-chk="' + s.id + '" title="Select for a batch" aria-label="Select for a batch" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' : '') + '<button type="button" class="chev" title="Open the slot" aria-label="Open the slot" aria-expanded="' + (open ? 'true' : 'false') + '">' + ICONS.chevron + '</button></div></div></div>' +
+          /* Title is the slot, the line under it is the page (and section when that differs). Priority, display, status and the checkbox sit together at the right on the title line (Pierce, 9/27), so the title, the tiles and the drawer share one left edge. No "who · when" line: s.edit is kept for the record, not shown. */
+          '<div class="mrow"><div class="who"><div class="pg">' + esc(s.name) + '</div><div class="sub">' + esc(s.section && s.section !== s.page ? s.section + ' · ' + s.page : s.page) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + '</div>' +
+          '<div class="end"><span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + DSP_LABEL[displayOf(s)] + '</span><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span>' + (b ? '<span class="mini">Batch ' + String(b.num).padStart(2, '0') + '</span>' : '') + (me.role === 'admin' ? '<input type="checkbox" data-chk="' + s.id + '" title="Select for a batch" aria-label="Select for a batch" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' : '') + '<button type="button" class="chev" title="Open the slot" aria-label="Open the slot" aria-expanded="' + (open ? 'true' : 'false') + '">' + ICONS.chevron + '</button></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
       });
       $('slot-rows').innerHTML = rows.join('') || '<p class="hint">Nothing matches.</p>';
@@ -1661,6 +1681,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         if (v) s.desc = v; else delete s.desc;
         mark();
       });
+      /* Review notes (admin): edit a note in place, or remove the line. */
+      const rvRef = (key) => { const [w, i] = key.split(':'); const p = s[w]; const r = p && (p.reviews || [])[+i]; return r ? { w, i: +i, p, r } : null; };
+      el.querySelectorAll('[data-rvedit]').forEach((b) => b.addEventListener('click', () => { const x = rvRef(b.dataset.rvedit); if (!x) return; rvEdit = { id: s.id, which: x.w, i: x.i }; refreshDrawer(s.id); const inp = document.querySelector('[data-detail="' + s.id + '"] [data-rvin]'); if (inp) { inp.focus(); inp.select(); } }));
+      el.querySelectorAll('[data-rvcancel]').forEach((b) => b.addEventListener('click', () => { rvEdit = null; refreshDrawer(s.id); }));
+      const rvSave = (key) => { const x = rvRef(key); const inp = el.querySelector('[data-rvin="' + key + '"]'); if (!x || !inp) return; const v = inp.value.replace(/\s+/g, ' ').trim(); rvEdit = null; if (v === (x.r.note || '')) { refreshDrawer(s.id); return; } withUndo('Edited a review note on ' + s.name, () => { x.r.note = v; mark(); renderSlots(); }); };
+      el.querySelectorAll('[data-rvsave]').forEach((b) => b.addEventListener('click', () => rvSave(b.dataset.rvsave)));
+      el.querySelectorAll('[data-rvin]').forEach((inp) => inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); rvSave(inp.dataset.rvin); } else if (e.key === 'Escape') { e.preventDefault(); rvEdit = null; refreshDrawer(s.id); } }));
+      el.querySelectorAll('[data-rvrm]').forEach((b) => b.addEventListener('click', () => { const x = rvRef(b.dataset.rvrm); if (!x) return; withUndo('Removed a review note on ' + s.name, () => { x.p.reviews.splice(x.i, 1); if (!x.p.reviews.length) delete x.p.reviews; rvEdit = null; mark(); renderSlots(); }); }));
       el.querySelectorAll('[data-src]').forEach((b) => b.addEventListener('click', () => { srcTab = b.dataset.src; libShown = 48; refreshDrawer(s.id); }));
       wireSource(s, el);
     }
@@ -1670,8 +1698,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        overrides that. Same rule lives in api/sitime-batch.js. */
     function reviewBlock(s) {
       const DL = { approve: 'Approved', deny: 'Denied', hold: 'Held', solved: 'Solved' };
-      const line = (w, r) => '<div class="rv"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) + (r.note ? ' · “' + esc(r.note) + '”' : '') + '</div>';
-      const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).filter(seeRv).map((r) => line(w, r)));
+      /* Each line is a decision from a batch that has since been deleted. The
+         admin can edit the note or remove the line (Pierce, 9/27: a batch made
+         as a test on a call leaves its "Held" note behind). Both undo. */
+      const editing = (w, i) => rvEdit && rvEdit.id === s.id && rvEdit.which === w && rvEdit.i === i;
+      const line = (w, r, i) => '<div class="rv' + (editing(w, i) ? ' rv-editing' : '') + '"><span class="rv-t"><b>' + (w === 'main' ? 'Main' : 'Backup') + '</b> · ' + DL[r.decision] + ' in ' + esc(r.batch) +
+        (editing(w, i) ? ' · <input class="rv-in" data-rvin="' + w + ':' + i + '" maxlength="400" value="' + esc(r.note || '') + '" placeholder="No note" aria-label="Review note">' : (r.note ? ' · “' + esc(r.note) + '”' : '')) + '</span>' +
+        (me.role === 'admin' ? '<span class="rv-acts">' + (editing(w, i) ? '<button type="button" class="link" data-rvsave="' + w + ':' + i + '">Save</button><button type="button" class="link" data-rvcancel="1">Cancel</button>' : '<button type="button" class="link" data-rvedit="' + w + ':' + i + '">Edit</button><button type="button" class="link" data-rvrm="' + w + ':' + i + '">Remove</button>') + '</span>' : '') + '</div>';
+      const cur = ['main', 'backup'].flatMap((w) => ((s[w] && s[w].reviews) || []).map((r, i) => [r, i]).filter(([r]) => seeRv(r)).map(([r, i]) => line(w, r, i)));
       const hist = s.history || [];
       const whyOf = (h) => (isClient() && (h.pick.reviews || []).some((r) => r.internal) && !(h.pick.reviews || []).some((r) => !r.internal)) ? 'Replaced' : (h.why || '');
       if (!cur.length && !hist.length) return '';
