@@ -961,7 +961,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (r.ok && r.data && r.data.savedAt) {
         base = JSON.parse(sent); base.savedAt = r.data.savedAt; S.savedAt = r.data.savedAt;
         saveFails = 0; hideNotice();
-        if (merged) { renderStats(); if (!typing()) rerender(); }
+        /* The server owns batch numbers; when it changed one (a new batch
+           collided with an internal one the client cannot see), take it. */
+        let renumbered = false;
+        if (Array.isArray(r.data.renum) && r.data.renum.length) {
+          r.data.renum.forEach(({ token, num }) => { [S, base].forEach((doc) => { const b = (doc.batches || []).find((x) => x.token === token); if (b) { b.num = num; renumbered = true; } }); });
+        }
+        if (merged || renumbered) { renderStats(); if (!typing()) rerender(); }
         $('savestate').textContent = 'Verifying…';
         const ok = await verifySaved(r.data.savedAt);
         $('savestate').textContent = (ok ? 'Saved' : 'Saved (unverified; wait a moment before opening a batch)') + (merged ? ' · merged with another editor' : '');
@@ -1099,6 +1105,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return slot.main ? 'assigned' : 'unassigned';
     }
     const STATUS_LABEL = { unassigned: 'Unassigned', assigned: 'Assigned', queued: 'In a batch', approved: 'Approved', denied: 'Denied', held: 'Held', unreviewed: 'Unreviewed', kept: 'Kept as is' };
+    /* A slot sits in one batch at a time. When that batch is one the signed-in
+       person cannot see (a COGNAK internal review, from the client's seat), the
+       row says so instead of showing a dead checkbox with no reason. */
+    const HELD_BY_COGNAK = 'In a COGNAK review. COGNAK can release it for a SiTime batch.';
     /* Only a SiTime approval is final. Internal review (Michael) never reaches Handoff (Pierce, 9/25). */
     function finalPick(slot) { const b = batchOf(slot); if (b && b.internal) return null; const o = b ? outcomeIn(slot, b) : null; return o && o.outcome === 'approved' ? (o.which === 'backup' ? slot.backup : slot.main) : null; }
 
@@ -1406,7 +1416,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const internal = $('bd-internal').checked;
       if (dialogBatch) { dialogBatch.name = name; dialogBatch.plannedFor = date; if (internal) dialogBatch.internal = true; else delete dialogBatch.internal; }
       else {
-        const num = (S.batches.reduce((a, b) => Math.max(a, b.num || 0), 0) || 0) + 1;
+        /* Past every batch on this page and, for the client, past the internal
+           ones it cannot see (S.nextBatchNum comes from the server). */
+        const num = Math.max((S.batches.reduce((a, b) => Math.max(a, b.num || 0), 0) || 0) + 1, S.nextBatchNum || 0);
         const b = { token: randomToken(10), num, name, scope: '', slotIds: [], status: 'open', createdAt: new Date().toISOString(), plannedFor: date, ...(internal ? { internal: true } : {}) };
         const hadChecked = checked.size; const res = addCheckedTo(b); S.batches.push(b);
         $('batch-dialog').close(); mark(); renderBatches(); renderStats(); renderSlots();
@@ -1669,7 +1681,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
           /* Title is the slot, the line under it is the page (and section when that differs). Priority, display, status and the checkbox sit together at the right on the title line (Pierce, 9/27), so the title, the tiles and the drawer share one left edge. No "who · when" line: s.edit is kept for the record, not shown. */
           '<div class="mrow"><div class="who"><div class="pg">' + esc(s.name) + '</div><div class="sub">' + esc(s.section && s.section !== s.page ? s.section + ' · ' + s.page : s.page) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + '</div>' +
-          '<div class="end"><span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + DSP_LABEL[displayOf(s)] + '</span><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span>' + (b ? '<span class="mini">Batch ' + String(b.num).padStart(2, '0') + '</span>' : '') + '<input type="checkbox" data-chk="' + s.id + '" title="Select for a batch" aria-label="Select for a batch" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' + '<button type="button" class="chev" title="Open the slot" aria-label="Open the slot" aria-expanded="' + (open ? 'true' : 'false') + '">' + ICONS.chevron + '</button></div></div></div>' +
+          '<div class="end"><span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + DSP_LABEL[displayOf(s)] + '</span><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span>' + (b ? '<span class="mini">Batch ' + String(b.num).padStart(2, '0') + '</span>' : s.batch ? '<span class="mini" title="' + HELD_BY_COGNAK + '">COGNAK review</span>' : '') + '<input type="checkbox" data-chk="' + s.id + '" title="' + (s.batch && !b ? HELD_BY_COGNAK : 'Select for a batch') + '" aria-label="Select for a batch" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' + '<button type="button" class="chev" title="Open the slot" aria-label="Open the slot" aria-expanded="' + (open ? 'true' : 'false') + '">' + ICONS.chevron + '</button></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
       });
       $('slot-rows').innerHTML = rows.join('') || '<p class="hint">Nothing matches.</p>';

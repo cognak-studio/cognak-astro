@@ -147,7 +147,12 @@ function viewFor(who, state) {
      solved). POST puts those back from the stored state, so a client save
      never loses them. */
   const visible = new Set((state.batches || []).filter((b) => !b.internal).map((b) => b.token));
+  /* nextBatchNum lets the client number a new batch past the internal ones it
+     cannot see, so "Batch 04" reads the same on its screen, in the saved state
+     and on the review page. It is a hint for the page, never stored (POST
+     drops it). */
   return { ...out, batches: (state.batches || []).filter((b) => !b.internal), reviewLog: undefined,
+    nextBatchNum: Math.max(0, ...(state.batches || []).map((b) => b.num || 0)) + 1,
     slots: (state.slots || []).map((s) => stripInternal(s, visible)), retiredSlots: (state.retiredSlots || []).map((s) => stripInternal(s, visible)) };
 }
 
@@ -223,6 +228,8 @@ export default async function handler(req, res) {
       if (current && current.savedAt && base && current.savedAt > base) {
         return res.status(409).json({ conflict: true, state: viewFor(who, current) });   // same view as GET: no passcode for team, no internal notes for the client
       }
+      let renum = [];   // batches whose number the server changed on this save (non-admin only)
+      delete state.nextBatchNum;   // a GET hint for the page, never part of the stored state
       if (who.role !== 'admin' && current) {
         /* Batches (Pierce, 9/27): anyone signed in may make, fill, rename,
            reorder and delete batches. Internal (COGNAK) batches are the
@@ -234,11 +241,21 @@ export default async function handler(req, res) {
         const internal = curB.filter((b) => b && b.internal);
         const internalTok = new Set(internal.map((b) => b.token));
         const sent = (Array.isArray(state.batches) ? state.batches : []).filter((b) => b && typeof b.token === 'string' && !internalTok.has(b.token)).map((b) => { const { internal: _i, ...rest } = b; return rest; });
-        /* The client never sees internal batches, so a batch it numbers may
-           collide with one; give the newcomer the next free number. */
-        const known = new Set(curB.map((b) => b.token));
+        /* Batch numbers are the server's. A batch already stored keeps its
+           stored number whatever the page sent (the page may still hold the
+           number it picked before a save). A new batch keeps the number the
+           page picked unless an internal batch the client cannot see already
+           has it; then it gets the next free one. Either way the response says
+           what changed (renum) so the page can catch up without a reload. */
+        const knownNum = new Map(curB.map((b) => [b.token, b.num]));
         const used = new Set(internal.map((b) => b.num));
-        sent.forEach((b) => { if (!known.has(b.token) && used.has(b.num)) { let n = Math.max(0, ...curB.map((x) => x.num || 0), ...sent.map((x) => x.num || 0)) + 1; b.num = n; } used.add(b.num); });
+        sent.forEach((b) => {
+          const was = b.num;
+          if (knownNum.has(b.token)) b.num = knownNum.get(b.token);
+          else if (used.has(b.num)) b.num = Math.max(0, ...curB.map((x) => x.num || 0), ...sent.map((x) => x.num || 0)) + 1;
+          used.add(b.num);
+          if (b.num !== was) renum.push({ token: b.token, num: b.num });
+        });
         state.batches = internal.concat(sent);
         state.reviewPass = current.reviewPass;
         state.reviewLog = current.reviewLog || [];
@@ -257,14 +274,15 @@ export default async function handler(req, res) {
            client at all, so the stored ones stand. */
         if (who.role === 'client') {
           const cur = new Map((current.slots || []).map((s) => [s.id, s]));
-          state.slots.forEach((s) => { const c = cur.get(s.id); if (c) restoreInternal(s, c, current); });
+          const merged = { ...current, batches: state.batches };   // a batch the client made in this save counts as one it can see
+          state.slots.forEach((s) => { const c = cur.get(s.id); if (c) restoreInternal(s, c, merged); });
           syncSlots(current.slots, current.retiredSlots); state.retiredSlots = syncSlots.parked;   // the parked list as GET computes it, unstripped
         }
       }
       // never let a save drop parked (retired) slot work
       if (current && Array.isArray(current.retiredSlots) && !Array.isArray(state.retiredSlots)) state.retiredSlots = current.retiredSlots;
       const r = await writeState(state, who.name);
-      return res.status(200).json({ ok: true, savedAt: r.savedAt });
+      return res.status(200).json({ ok: true, savedAt: r.savedAt, ...(renum.length ? { renum } : {}) });
     } catch (err) {
       console.error('sitime-state POST failed', err);
       return res.status(502).json({ error: 'Could not save.' });
