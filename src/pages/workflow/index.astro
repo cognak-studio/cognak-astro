@@ -1,8 +1,9 @@
 ---
 /**
- * /workflow — the front door to COGNAK's client-facing tools. Unlisted:
- * not in the nav, footer or sitemap. Type "workflow" anywhere on the site
- * to get here (public/js/cognak-global.js, same mechanism as "send").
+ * /workflow — the front door to COGNAK's client-facing tools. Linked from
+ * the footer as "Workflows" (Pierce, 9/27); still noindex and not in the
+ * sitemap. Typing "workflow" anywhere on the site also lands here
+ * (public/js/cognak-global.js, same mechanism as "send").
  * One card per client tool; SiTime's image review is the first.
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -20,15 +21,15 @@ const TOOLS = [
 ---
 <BaseLayout
   page="workflow"
-  title="Workflow — COGNAK"
-  description="Internal."
+  title="Workflows — COGNAK"
+  description="Custom workflows for clients. Small purpose-built pages for the parts of a project that email handles badly."
   ogUrl="https://cognak.com/workflow/"
   noindex={true}
   pageBg="#F4F4F2"
 >
   <main id="cognak-main"><section class="wf">
-    <h1 class="headline"><em>Workflow</em> tools, one per client.</h1>
-    <p class="lede">Small purpose-built pages for the parts of a project that email handles badly. Each one lives on cognak.com, behind the studio sign-in, with a plain link for the client.</p>
+    <h1 class="headline">Custom <em>workflows</em> for clients.</h1>
+    <p class="lede">Small purpose-built pages for the parts of a project that email handles badly, made for one client and one job at a time. Each lives on cognak.com behind the studio sign-in, with a plain link for the client.</p>
     <div class="picker rise">
       {TOOLS.map((t, i) => (
         <a class="pcard" href={t.href}>

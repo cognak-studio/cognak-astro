@@ -5116,10 +5116,10 @@ a[href*="cookieyes.com"],
         opacity: var(--hero-halo-opacity, 1);
     }
 
-    /* Footer bottom, mobile: a 2-col/3-row grid rather than the desktop flex
-       row — at 4 items (copyright + Privacy Policy + Colophon + Tools) a single
-       inline line wraps mid-link on phones as narrow as 375px. Colophon/Tools
-       stack top-left, Privacy Policy sits bottom-left, copyright bottom-right —
+    /* Footer bottom, mobile: a 2-col/4-row grid rather than the desktop flex
+       row — at 5 items (copyright + Privacy Policy + Colophon + Tools + Workflows)
+       a single inline line wraps mid-link on phones as narrow as 375px.
+       Colophon/Tools/Workflows stack top-left, Privacy Policy sits bottom-left, copyright bottom-right —
        verified down to 320px with no horizontal overflow (see
        reference-mobile-horizontal-overflow for how that's checked).
        .footer-copy/.footer-legal are just desktop flex wrappers with no visual
@@ -5128,7 +5128,7 @@ a[href*="cookieyes.com"],
     .footer-bottom {
         display: grid !important;
         grid-template-columns: 1fr auto !important;
-        grid-template-rows: auto auto auto !important;
+        grid-template-rows: auto auto auto auto !important;
         row-gap: 8px !important;
     }
     .footer-copy,
@@ -5143,13 +5143,17 @@ a[href*="cookieyes.com"],
         grid-column: 1;
         grid-row: 2;
     }
-    .footer-privacy-link {
+    .footer-workflows-link {
         grid-column: 1;
         grid-row: 3;
     }
+    .footer-privacy-link {
+        grid-column: 1;
+        grid-row: 4;
+    }
     .footer-copy-text {
         grid-column: 2;
-        grid-row: 3;
+        grid-row: 4;
         justify-self: end;
         align-self: end;
         white-space: nowrap;
