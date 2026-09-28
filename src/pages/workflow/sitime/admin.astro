@@ -347,6 +347,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile .cap .lic.m-upload{ color:#9F50FF; }
     .adm .tile .cap .lic.m-upload span{ color:#1A1A1A; }
     .adm .tile .cap .lic em{ font-style:normal; font-weight:400; color:#6B6B6B; }
+    .adm .tile .cap .lic em.ls{ font-weight:500; }
+    .adm .tile .cap .lic em.ls-unlicensed{ color:#B00020; }
+    .adm .tile .cap .lic em.ls-licensed, .adm .tile .cap .lic em.ls-owned{ color:#4A8C00; }
     .adm .tile .cap .lic:not(.m-envato):not(.m-adobe):not(.m-istock):not(.m-shutterstock):not(.m-upload){ padding-left:9px; color:#575049; }
     .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; display:flex; align-items:center; gap:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); opacity:0; transition:opacity .12s; }
     /* The image's name or note wraps (Pierce, 9/27), up to three lines so the picture stays visible. */
@@ -1205,9 +1208,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       /* For SiTime this list is their own denials and holds, and the licensing
          reminder is COGNAK's job, so the heading and the card change. */
       $('waiting-group').querySelector('.group-title').textContent = isClient() ? 'Denied and held' : 'Waiting on you';
-      const approvedUnlicensed = isClient() ? 0 : S.slots.filter((s) => { const p = finalPick(s); return p && p.source === 'stock' && !(s.license && s.license.id); }).length;
+      const approvedUnlicensed = isClient() ? 0 : S.slots.filter((s) => { const p = finalPick(s); return p && licStatus(s, p) === 'unlicensed'; }).length;
       $('waiting').innerHTML = items.slice(0, 8).map(({ s, b, o }) => '<div class="qitem"><img src="' + esc((o.which === 'backup' ? s.backup : s.main)?.thumb || '') + '"><div><div class="t">' + esc(s.page + ' · ' + s.name) + '</div><div class="n">' + (o.outcome === 'denied' ? 'Denied' : 'Held') + ' in ' + String(b.num).padStart(2, '0') + '. ' + (o.ev && o.ev.note ? '“' + esc(o.ev.note) + '”' : 'No note.') + '</div></div></div>').join('') +
-        (approvedUnlicensed ? '<div class="qitem"><div class="thumb empty" style="width:72px;height:48px"></div><div><div class="t">' + approvedUnlicensed + ' approved Stock image' + (approvedUnlicensed > 1 ? 's' : '') + ' to license</div><div class="n">Approved comps are ready to license on Adobe Stock. Handoff tab has the list and a field for the license ID.</div></div></div>' : '') ||
+        (approvedUnlicensed ? '<div class="qitem"><div class="thumb empty" style="width:72px;height:48px"></div><div><div class="t">' + approvedUnlicensed + ' approved image' + (approvedUnlicensed > 1 ? 's' : '') + ' to license</div><div class="n">Approved Adobe and Envato comps still need a license. Handoff tab has the list and a field for the license number.</div></div></div>' : '') ||
         '<p class="hint">Nothing waiting.</p>';
     }
     function wireBatchDrag() {
@@ -1277,23 +1280,51 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return 'other';
     }
     const LIC_ORDER = ['adobe', 'envato', 'sitime', 'generated', 'other'];
+    /* License status on the caption chip (Pierce, 9/27): where the image is
+       from, then whether SiTime can use it. Unlicensed (red) = a comp that
+       still has to be bought or re-licensed by SiTime; Licensed / Owned
+       (green) = clear to use. Derived from the source, flipped to Licensed by
+       a license number in Handoff, and overridable per image in the drawer
+       (pick.license = 'unlicensed' | 'licensed' | 'owned'). */
+    const LS_LABEL = { unlicensed: 'Unlicensed', licensed: 'Licensed', owned: 'Owned' };
+    const isStockLibName = (p) => /istock|shutterstock|[_-]ss\d{6,}/i.test(String((p && (p.name || p.title || p.path)) || ''));
+    function licensedInHandoff(s, p) {
+      if (!s || !p || !(s.license && s.license.id)) return false;
+      const f = finalPick(s); const target = f || s.main;
+      return !!target && (target === p || (target.url && target.url === p.url));
+    }
+    function licStatus(s, p) {
+      if (!p) return null;
+      if (p.license && LS_LABEL[p.license]) return p.license;
+      const k = licOf(p);
+      if (k === 'envato' || k === 'adobe') return licensedInHandoff(s, p) ? 'licensed' : 'unlicensed';
+      if (k === 'sitime') return isStockLibName(p) ? 'licensed' : 'owned';
+      return null;
+    }
+    const autoLicStatus = (s, p) => licStatus(s, p && { ...p, license: undefined });
+    function licenseOptions(s, p) {
+      const a = autoLicStatus(s, p); const cur = p.license && LS_LABEL[p.license] ? p.license : 'auto';
+      return '<option value="auto"' + (cur === 'auto' ? ' selected' : '') + '>Automatic' + (a ? ' · ' + LS_LABEL[a] : '') + '</option>' + Object.keys(LS_LABEL).map((k) => '<option value="' + k + '"' + (cur === k ? ' selected' : '') + '>' + LS_LABEL[k] + '</option>').join('');
+    }
     /* The chip on the tile caption (Pierce, 9/26): the site's mark, then its
        name, in Diatype. Marks are the brands' own files, dropped into
        public/media/sources/ (envato.svg, adobe-stock.svg, istock.svg,
        shutterstock.svg); until a file is there the chip shows a dot in the
        brand's color instead. An upload that is not one of those gets the
        upload arrow in COGNAK purple. */
-    const MARKS = { envato: ['Envato', 'envato.svg'], adobe: ['Adobe Stock', 'adobe-stock.svg'], istock: ['iStock', 'istock.svg'], shutterstock: ['Shutterstock', 'shutterstock.svg'] };
+    const MARKS = { envato: ['Envato', 'envato.svg'], adobe: ['Adobe', 'adobe-stock.svg'], istock: ['iStock', 'istock.svg'], shutterstock: ['Shutterstock', 'shutterstock.svg'] };
     const UP_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5m0 0L7.5 9.5M12 5l4.5 4.5M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    function sourceChip(p) {
+    function sourceChip(p, s) {
       const k = licOf(p); const n = String(p.name || p.title || p.path || '');
       let key = k === 'sitime' ? (/istock/i.test(n) ? 'istock' : /shutterstock|[_-]ss\d{6,}/i.test(n) ? 'shutterstock' : null) : k;
       const m = MARKS[key];
-      const tail = k === 'envato' ? '<em>SiTime licenses</em>' : '';
+      const st = licStatus(s, p);
+      const tail = st ? '<em class="ls ls-' + st + '">' + LS_LABEL[st] + '</em>' : '';
       if (m) return '<i class="lic m-' + key + '" title="' + esc(LIC[k][1]) + '"><img src="/media/sources/' + m[1] + '" alt="" data-mark="1"><span>' + m[0] + '</span>' + tail + '</i>';
-      if (p.source === 'library' && p.tier === 'upload' && k === 'other') return '<i class="lic m-upload" title="Uploaded to the tool">' + UP_ICON + '<span>Uploaded</span></i>';
-      return '<i class="lic m-' + k + '" title="' + esc(LIC[k][1]) + '"><span>' + esc(LIC[k][0]) + '</span></i>';
+      if (p.source === 'library' && p.tier === 'upload' && k === 'other') return '<i class="lic m-upload" title="Uploaded to the tool">' + UP_ICON + '<span>Uploaded</span>' + tail + '</i>';
+      return '<i class="lic m-' + k + '" title="' + esc(LIC[k][1]) + '"><span>' + esc(CHIP_NAME[k] || LIC[k][0]) + '</span>' + tail + '</i>';
     }
+    const CHIP_NAME = { sitime: 'Library', generated: 'Generated', other: 'Other' };
     const DECIDED_BY = 'SiTime (group)';
     const isoAt = (ev) => (ev && ev.at) ? new Date(ev.at).toISOString() : '';
     const assetId = (p) => (p && p.source === 'stock') ? (p.id || '') : '';
@@ -1553,7 +1584,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         (DEC ? '<span class="dec st ' + DEC[0] + '"><i></i>' + DEC[1] + '</span>' : '') +
         (INT ? '<span class="dec-int' + (DEC ? ' below' : '') + '" title="' + esc(intRv.batch + (intRv.note ? ' · ' + intRv.note : '')) + '">Internal · ' + INT + '</span>' : '') +
         /* Caption line: the source first (Pierce, 9/26: note it, no button for it; Envato and Other stand out, the rest are quiet), then the image's name. */
-        '<span class="cap">' + sourceChip(pick) + '<span>' + esc(pick.desc || pick.title || pick.id || '') + '</span></span>' +
+        '<span class="cap">' + sourceChip(pick, s) + '<span>' + esc(pick.desc || pick.title || pick.id || '') + '</span></span>' +
         '<div class="tile-actions"><button class="tact" data-act="replace" data-slot="' + s.id + '" data-which="' + which + '">Replace</button>' +
         (which === 'main' && s.backup ? '<button class="tact" data-act="swap" data-slot="' + s.id + '" data-which="' + which + '" title="Make the backup the main">Swap</button>' : '') +
         '<button class="tact" data-act="bw" data-slot="' + s.id + '" data-which="' + which + '" title="Toggle black and white">' + (pick.bw ? 'Color' : 'B&amp;W') + '</button>' +
@@ -1659,7 +1690,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '</div>' +
         '<div class="descrow"><label class="lbl-s" for="desc-' + s.id + '">Additional notes<span class="lbl-x">Shown to SiTime under the image</span></label><textarea id="desc-' + s.id + '" data-desc="1" maxlength="400" rows="3" placeholder="Optional">' + esc(slotDesc(s)) + '</textarea>' +
         /* Where each image comes from, for licensing (pick.lic). Guessed from the file name; correct it here. */
-        ['main', 'backup'].map((w) => '<label class="srcsel lbl-s">Source · ' + w + (s[w] ? '<select data-lic="' + w + '">' + LIC_ORDER.map((k) => '<option value="' + k + '"' + (licOf(s[w]) === k ? ' selected' : '') + '>' + esc(LIC[k][0]) + '</option>').join('') + '</select><span class="mini">' + esc(LIC[licOf(s[w])][1]) + '</span>' : '<span class="mini">No ' + w + ' yet</span>') + '</label>').join('') + '</div>' +
+        ['main', 'backup'].map((w) => '<label class="srcsel lbl-s">Source · ' + w + (s[w] ? '<select data-lic="' + w + '">' + LIC_ORDER.map((k) => '<option value="' + k + '"' + (licOf(s[w]) === k ? ' selected' : '') + '>' + esc(LIC[k][0]) + '</option>').join('') + '</select><span class="mini">' + esc(LIC[licOf(s[w])][1]) + '</span>' : '<span class="mini">No ' + w + ' yet</span>') + '</label>' +
+          /* License status: automatic from the source (and a license number in Handoff), or set by hand. */
+          (s[w] ? '<label class="srcsel lbl-s">License · ' + w + '<select data-lstat="' + w + '">' + licenseOptions(s, s[w]) + '</select><span class="mini">' + (s[w].license ? 'Set by hand. Automatic would say ' + (LS_LABEL[autoLicStatus(s, s[w])] || 'nothing') + '.' : 'Automatic, from the source' + (licensedInHandoff(s, s[w]) ? ' and the license number in Handoff' : '') + '.') + '</span></label>' : '')).join('') + '</div>' +
         reviewBlock(s) +
         '<div class="srctabs">' + tabs.map((t) => '<button class="sbtn ' + (srcTab === t[0] ? 'on' : '') + '" data-src="' + t[0] + '">' + t[1] + '</button>').join('') + '<span class="mini">Click an image to set the <b style="margin-right:0">' + which + '</b>.</span></div>' +
         sourceBody(s);
@@ -1681,6 +1714,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          Stored as s.desc; older per-pick descriptions (pick.desc) still show
          until the slot gets its own. */
       el.querySelectorAll('[data-lic]').forEach((sel) => sel.addEventListener('change', () => { const p = s[sel.dataset.lic]; if (!p) return; p.lic = sel.value; mark(); renderSlots(); }));
+      el.querySelectorAll('[data-lstat]').forEach((sel) => sel.addEventListener('change', () => { const p = s[sel.dataset.lstat]; if (!p) return; if (sel.value === 'auto') delete p.license; else p.license = sel.value; mark(); renderSlots(); }));
       el.querySelector('[data-desc]').addEventListener('change', (e) => {
         const v = e.target.value.replace(/\s+/g, ' ').trim();
         if (v) s.desc = v; else delete s.desc;
@@ -2354,8 +2388,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* ---------- handoff ---------- */
     function renderHandoff() {
       const rows = S.slots.map((s) => ({ s, p: finalPick(s), b: batchOf(s) })).filter((x) => x.p);
-      $('handoff-rows').innerHTML = rows.map(({ s, p, b }) => '<tr><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div><div class="mini">' + esc((s.pageId || '') + ' · ' + s.id) + '</div></td><td>' + thumbCell(p) + '</td><td>' + esc(p.source) + '</td><td class="sub">' + (p.source === 'stock' ? (p.id ? '<a href="https://stock.adobe.com/images/x/' + esc(p.id) + '" target="_blank" rel="noopener">' + esc(p.id) + '</a>' : '—') : esc(p.source === 'library' ? p.path : p.title || '')) + '</td><td><input class="txt" data-lic="' + s.id + '" value="' + esc(s.license && s.license.id || '') + '" placeholder="' + (p.source === 'stock' ? 'License #' : 'n/a') + '"></td><td class="mini">' + (b ? String(b.num).padStart(2, '0') : '') + '</td></tr>').join('') || '<tr><td colspan="6" class="hint">Nothing approved yet.</td></tr>';
-      $('handoff-rows').querySelectorAll('[data-lic]').forEach((i) => i.addEventListener('change', (e) => { const s = byId().get(i.dataset.lic); s.license = { id: e.target.value.trim(), at: new Date().toISOString() }; mark(); }));
+      $('handoff-rows').innerHTML = rows.map(({ s, p, b }) => '<tr><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div><div class="mini">' + esc((s.pageId || '') + ' · ' + s.id) + '</div></td><td>' + thumbCell(p) + '</td><td>' + esc(p.source) + '</td><td class="sub">' + (p.source === 'stock' ? (p.id ? '<a href="https://stock.adobe.com/images/x/' + esc(p.id) + '" target="_blank" rel="noopener">' + esc(p.id) + '</a>' : '—') : esc(p.source === 'library' ? p.path : p.title || '')) + '</td><td><input class="txt" data-lic="' + s.id + '" value="' + esc(s.license && s.license.id || '') + '" placeholder="' + (licStatus(s, p) === 'unlicensed' || (s.license && s.license.id) ? 'License #' : 'n/a') + '"></td><td class="mini">' + (b ? String(b.num).padStart(2, '0') : '') + '</td></tr>').join('') || '<tr><td colspan="6" class="hint">Nothing approved yet.</td></tr>';
+      $('handoff-rows').querySelectorAll('[data-lic]').forEach((i) => i.addEventListener('change', (e) => { const s = byId().get(i.dataset.lic); const id = e.target.value.trim(); s.license = id ? { id, at: new Date().toISOString() } : null; mark(); }));
     }
     $('export-handoff').addEventListener('click', () => {
       const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'license', 'batch']];

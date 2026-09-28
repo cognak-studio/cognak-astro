@@ -18,7 +18,7 @@ old file for that role moves to _superseded/ (never deleted). picks-log.csv
 gets source_file and desc filled per row, and rows added for new picks.
 Treated finals (B&W etc.) at the slot folder's root are not touched.
 
-Signs in with the team passcode (Library > Team access):
+Signs in with the team passcode (Settings > Team access):
   SITIME_TEAM_PASS=... python3 scripts/sitime-sync-imagery.py [--sitime DIR] [--dry-run]
 """
 import argparse, csv, http.cookiejar, json, os, re, shutil, sys, urllib.request
@@ -150,7 +150,7 @@ def main():
         sys.exit('No Site Imagery folder at ' + imagery)
     pw = os.environ.get('SITIME_TEAM_PASS', '').strip()
     if not pw:
-        sys.exit('Set SITIME_TEAM_PASS to the team passcode (admin > Library > Team access).')
+        sys.exit('Set SITIME_TEAM_PASS to the team passcode (admin > Settings > Team access).')
     try:
         api('/api/sitime-team', {'action': 'login', 'name': 'Imagery sync', 'pass': pw})
         data = api('/api/sitime-state')
