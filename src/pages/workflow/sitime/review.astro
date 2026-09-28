@@ -31,7 +31,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   <main id="cognak-main"><section class="review">
 
     <h1 class="headline"><em>Review</em> the images.</h1>
-    <p class="lede">Approve, deny or hold each image. Deny or hold asks for a note. Denying the main shows its backup in the same place.</p>
+    <p class="lede">Approve, deny or hold each image. Deny or hold lets you add a note. Denying the main shows its backup in the same place.</p>
 
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">One moment.</p></div></div>
 
@@ -41,13 +41,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <p class="hint is-error" id="pass-err" hidden></p>
     </div></div>
 
-    <div class="card rise" id="invalid" hidden><div class="group"><div class="group-title">This link</div><p class="hint" id="invalid-note">This link isn't complete. Open it again from the Batches tab.</p></div></div>
+    <div class="card rise" id="invalid" hidden><div class="group"><div class="group-title">This link</div><p class="hint" id="invalid-note">This link isn't complete. Ask COGNAK for the review link.</p></div></div>
 
     <div class="card rise" id="card" hidden>
       <div class="group">
         <div class="group-title"><span id="batch-label">Batch</span><span class="bar"><i id="bar"></i></span></div>
         <div class="field">
-          <span class="q-title" id="slot-title">Slot</span>
+          <span class="q-title" id="slot-title" tabindex="-1">Slot</span>
           <span class="q-sub q-where" id="slot-where" hidden></span>
           <span class="q-sub" id="slot-sub"></span>
           <div class="pills" id="pills" role="group" aria-label="Decision">
@@ -154,7 +154,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     .review{ --bg:#F7F6FA; --card:#FFFFFF; --field:#FAF9FC; --ink:#1A1A1A; --ink-soft:#6B6B6B;
       --accent:#C7BDDF; --accent-rgb:199,189,223; --head:#6A5C8A; --deep:#1E1B26;
-      --line:#E8E5EF; --line-strong:#D3CFDD; --ok:#5A9E00; --err:#E5231B;
+      --line:#E8E5EF; --line-strong:#D3CFDD; --ok:#5A9E00; --err:#C8170F;
       /* Same frame as the admin page (Pierce, 9/26): one card width across the tool. */
       max-width:1560px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .review .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
@@ -187,12 +187,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .pill[data-v=approve]{ --fill:#AAFF00; --stroke:#D9FF66; --on-ink:#152400; --glow:170,255,0; }
     .review .pill[data-v=hold]{ --fill:#FF7A00; --stroke:#FFB24D; --on-ink:#2A1200; --glow:255,122,0; }
     .review .pill[data-v=deny]{ --fill:#FF1E1E; --stroke:#FF7070; --on-ink:#fff; --glow:255,30,30; }
-    @media (hover:hover){ .review .pill:hover{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); } }
+    @media (hover:hover){ .review .pill:hover:not(:disabled){ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); } }
     .review .pill.on{ background:var(--fill); color:var(--on-ink); border-color:var(--stroke); box-shadow:0 0 24px rgba(var(--glow),.38); }
+    .review .pill:disabled{ opacity:.35; cursor:not-allowed; }
     .review .note{ margin-top:14px; }
     .review .note textarea{ width:100%; height:84px; resize:vertical; font:inherit; font-size:var(--fs-15); color:var(--ink); background:var(--field); border:1px solid var(--line-strong); border-radius:8px; padding:12px 14px; outline:none; }
     .review .note textarea:focus{ border-color:var(--accent); }
-    .review .note textarea::placeholder{ color:#9A9A96; }
+    .review .note textarea::placeholder{ color:#767672; }
     .review .actions{ display:flex; align-items:center; gap:18px; margin-top:14px; flex-wrap:wrap; }
     .review .btn{ font:inherit; font-size:var(--fs-16); font-weight:500; display:inline-flex; align-items:center; gap:.6rem; border-radius:999px; padding:14px 28px; background:var(--accent); color:var(--deep); border:1px solid var(--accent); cursor:pointer; transition:filter var(--dur-s) var(--ease-standard); }
     .review .btn:hover:not(:disabled){ filter:brightness(1.06); }
@@ -218,6 +219,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .statusslot .handoff{ margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .review .statusslot .decided{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .review .statusslot .handoff:not([hidden]) + .decided{ display:none !important; }
+    .review .decided.is-err{ color:var(--err); }
     .review .decided b{ font-weight:500; color:var(--ink); }
     .review .handoff{ margin:12px 0 0; padding:10px 14px; border-radius:8px; background:#FDF2F2; border:1px solid #F3D2D2; color:#8A2A2A; font-size:var(--fs-14); line-height:1.5; }
     .review .handoff b{ font-weight:600; }
@@ -355,6 +357,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       .review .statusslot{ min-height:0; }
       .review .statusslot .handoff, .review .statusslot .decided{ white-space:normal; }
       .review .origbtn{ margin-left:0; }
+      /* iOS zooms on focus under 16px. */
+      .review .txt, .review .note textarea{ font-size:16px; }
     }
   </style>
 
@@ -376,10 +380,16 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       return q && /^[a-z0-9]{8,16}$/.test(q) ? q : '';
     }
 
+    /* Never throws: a dropped connection or a 20s stall comes back as status 0. */
     async function api(path, body) {
-      const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}), credentials: 'same-origin' });
-      let json = null; try { json = await res.json(); } catch (e) {}
-      return { ok: res.ok, status: res.status, data: json };
+      const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 20000);
+      try {
+        const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}), credentials: 'same-origin', signal: ac.signal });
+        let json = null; try { json = await res.json(); } catch (e) {}
+        return { ok: res.ok, status: res.status, data: json };
+      } catch (e) {
+        return { ok: false, status: 0, data: { error: 'Connection problem. Check your connection and try again.' } };
+      } finally { clearTimeout(t); }
     }
 
     function fit() {
@@ -513,10 +523,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('bwbtn').textContent = bwOn ? 'Show color' : 'Show B&W';
       $('bwbtn').classList.toggle('on', bwOn);
       $('pills').classList.toggle('off', !!og);
+      document.querySelectorAll('#pills .pill').forEach((p) => { p.disabled = !(pick && pick.url); });   // nothing to decide on without an image
       $('ctxbtn').hidden = !s.context;
       if (og) document.querySelectorAll('#which button').forEach((btn) => btn.classList.remove('on'));
       const heroUrl = og ? og.url : ((pick && pick.url) || '');
       $('hero-img').src = heroUrl; $('hero-img').hidden = !heroUrl; $('noimg').hidden = !!heroUrl;
+      $('hero-img').alt = heroUrl ? s.name : ''; $('noimg').textContent = 'No image assigned to this slot yet';
       /* COGNAK's treatment on the pick (B&W, flipped); never on the current-site original. */
       $('hero-img').style.filter = !og && bwOn ? 'grayscale(1)' : '';
       applyFrame(s, og ? null : pick);
@@ -533,7 +545,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         $('oprev').disabled = oi === 0; $('onext').disabled = oi >= origs.length - 1;
       } else {
         $('ocyc').hidden = true;
-        $('source').innerHTML = pick ? (pick.ref + (pick.link ? ' · <a href="' + pick.link + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
+        $('source').innerHTML = pick ? (escapeHtml(pick.ref || '') + (pick.link && /^https?:\/\//i.test(pick.link) ? ' · <a href="' + escapeHtml(pick.link) + '" target="_blank" rel="noopener">View source ↗</a>' : '')) : '';
         const LICN = { envato: 'Envato Elements comp · SiTime licenses it on its own Envato account', adobe: 'Comp shown, licensed after approval', sitime: 'From SiTime’s library', own: 'From SiTime’s library', generated: 'AI-generated', other: '' };
         $('source-note').textContent = pick ? (pick.lic ? (LICN[pick.lic] || '') : pick.source === 'stock' ? LICN.adobe : pick.source === 'library' ? LICN.sitime : '') : '';
       }
@@ -543,6 +555,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('note').hidden = true; $('note-text').value = ''; $('err').hidden = true;
       state.pending = null;
       const ev = d[which];
+      $('decided').classList.remove('is-err');
       if (ev) {
         $('decided').hidden = false;
         $('decided').innerHTML = 'Decided: <b>' + ({ approve: 'Approved', deny: 'Denied', hold: 'Held' })[ev.decision] + '</b>' + (ev.note ? ' · “' + escapeHtml(ev.note) + '”' : '') + '. Choose again to change it.';
@@ -710,6 +723,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('oprev').addEventListener('click', () => { if (state.orig && state.orig.k > 0) { state.orig.k--; render(); } });
     $('onext').addEventListener('click', () => { const s = state.slots[state.i]; if (state.orig && s && state.orig.k < (s.original || []).length - 1) { state.orig.k++; render(); } });
 
+    /* A comp URL that 404s shows the placeholder instead of a broken image. */
+    $('hero-img').addEventListener('error', () => {
+      if (!$('hero-img').getAttribute('src')) return;
+      $('hero-img').hidden = true; $('noimg').textContent = 'Image couldn\u2019t load'; $('noimg').hidden = false;
+    });
+    /* A background re-read must not wipe a deny/hold note mid-typing. */
+    const noteBusy = () => !!state.pending || !!$('note-text').value.trim();
+
     /* Approve saves on the click -- no note. Deny and hold open the note box.
        On an internal (COGNAK) batch approve opens the note box too, so a
        reviewer can approve with a comment. */
@@ -731,19 +752,26 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const which = viewed(s);
       const decision = state.pending;
       const note = decision === 'approve' && !internalBatch() ? '' : $('note-text').value.trim();
+      const quick = decision === 'approve' && !internalBatch();
       busy = true; $('submit').disabled = true; $('saving').hidden = false; $('err').hidden = true;
-      if (decision === 'approve' && !internalBatch()) { $('decided').hidden = false; $('decided').textContent = 'Saving…'; }
+      if (quick) { $('decided').hidden = false; $('decided').textContent = 'Saving…'; }
       const r = await api('/api/sitime-decide', { token, pass, slotId: s.id, which, decision, note });
       busy = false; $('submit').disabled = false; $('saving').hidden = true;
       if (!r.ok) {
+        const msg = (r.data && r.data.error) || 'Could not save that. Try again.';
+        if (quick) {   // no note box for a plain approve: the error goes where "Saving…" was
+          state.pending = null; document.querySelectorAll('#pills .pill').forEach((x) => { x.classList.remove('on'); x.setAttribute('aria-pressed', 'false'); });
+          $('handoff').hidden = true; $('decided').hidden = false; $('decided').classList.add('is-err'); $('decided').textContent = msg; return;
+        }
         $('note').hidden = false;
-        $('err').textContent = (r.data && r.data.error) || 'Could not save that. Try again.'; $('err').hidden = false; return;
+        $('err').textContent = msg; $('err').hidden = false; return;
       }
       if (!state.decisions[s.id]) state.decisions[s.id] = {};
       state.decisions[s.id][which] = { decision, note, at: Date.now() };
       delete state.view[s.id];   // let the stage follow the outcome again
-      await resync();
-      advance();
+      advance();   // don't wait on the re-read; it merges in behind
+      if (!$('card').hidden) $('slot-title').focus({ preventScroll: true }); else $('review-again').focus({ preventScroll: true });
+      resync().then(() => { if (!$('card').hidden && !noteBusy()) render(); });
     }
     $('submit').addEventListener('click', submit);
     $('skip').addEventListener('click', () => { const j = firstPending(state.i + 1); if (j === -1 || j === state.i) { render(); return; } state.i = j; render(); });
@@ -790,10 +818,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (j === -1) { $('card').hidden = false; render(); showSummary(); return; }
       state.i = j; $('card').hidden = false; render();
     }
-    $('pass-go').addEventListener('click', () => { pass = $('pass').value; $('pass-err').hidden = true; $('gate').hidden = true; $('loading').hidden = false; load(); });
+    $('pass-go').addEventListener('click', () => {
+      if (!$('pass').value) { $('pass-err').textContent = 'Enter the passcode.'; $('pass-err').hidden = false; $('pass').focus(); return; }
+      pass = $('pass').value; $('pass-err').hidden = true; $('gate').hidden = true; $('loading').hidden = false; load(); });
     $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pass-go').click(); });
     document.addEventListener('visibilitychange', () => {
-      if (!LP && !document.hidden && state.batch) resync().then(() => { if (!$('card').hidden) render(); });
+      if (!LP && !document.hidden && state.batch) resync().then(() => { if (!$('card').hidden && !noteBusy()) render(); });
     });
     load();
   })();
