@@ -1067,12 +1067,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       if (dirty && !saving) await save();
       while (saving) await new Promise((r) => setTimeout(r, 200));
     }
-    /* After flush(): a review reads the SAVED state, so don't open one on a failed save. */
-    function notSaved(w) {
-      if (!dirty && !unsaved) return false;
-      if (w) w.close();
-      showNotice('Your latest changes haven’t saved yet, so the review would open without them. Wait for “Saved” and try again.');
-      return true;
+    /* After flush(): a review reads the SAVED state. Never block it (a stale
+       unsaved flag after a sign-out closed the tab on Pierce, 9/28); just say
+       so when this page still has edits the review won't show yet. */
+    function notSaved() {
+      if (dirty || unsaved) showNotice('Some of your latest changes haven’t saved yet, so the review may not show them. It will once this page says “Saved”.');
+      return false;
     }
 
     /* ---------- derived ---------- */
