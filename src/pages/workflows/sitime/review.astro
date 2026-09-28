@@ -35,8 +35,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     <div class="card rise" id="loading"><div class="group"><div class="group-title">Loading</div><p class="hint">One moment.</p></div></div>
 
-    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Passcode</div>
-      <label class="q" for="pass"><span class="q-title">Enter the review passcode.</span></label>
+    <div class="card rise" id="gate" hidden><div class="group"><div class="group-title">Password</div>
+      <label class="q" for="pass"><span class="q-title">Enter the review password.</span></label>
       <div class="passrow"><input class="txt" id="pass" type="password" autocomplete="off" autocapitalize="off" /><button type="button" class="btn" id="pass-go">Continue</button></div>
       <p class="hint is-error" id="pass-err" hidden></p>
     </div></div>
@@ -851,7 +851,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       state.i = j; $('card').hidden = false; render();
     }
     $('pass-go').addEventListener('click', () => {
-      if (!$('pass').value) { $('pass-err').textContent = 'Enter the passcode.'; $('pass-err').hidden = false; $('pass').focus(); return; }
+      if (!$('pass').value) { $('pass-err').textContent = 'Enter the password.'; $('pass-err').hidden = false; $('pass').focus(); return; }
       pass = $('pass').value; $('pass-err').hidden = true; $('gate').hidden = true; $('loading').hidden = false; load(); });
     $('pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('pass-go').click(); });
     document.addEventListener('visibilitychange', () => {

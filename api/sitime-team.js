@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     if (body.action === 'set') {
       const which = body.which === 'client' ? 'client' : 'team';
       const other = which === 'client' ? await readTeam() : await readClient();
-      if (String(body.pass || '').trim() && passMatches(other, body.pass)) return res.status(400).json({ error: 'Use a different passcode from the ' + (which === 'client' ? 'team' : 'SiTime') + ' one.' });
+      if (String(body.pass || '').trim() && passMatches(other, body.pass)) return res.status(400).json({ error: 'Use a different password from the ' + (which === 'client' ? 'team' : 'SiTime') + ' one.' });
       await setTeamPass(body.pass, which);
       const on = !!String(body.pass || '').trim();
       return res.status(200).json({ ok: true, which, teamOn: which === 'team' ? on : undefined, clientOn: which === 'client' ? on : undefined });

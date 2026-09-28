@@ -262,13 +262,13 @@ export async function reviewPassGate(req, state, pass, who) {
   const want = String((state.reviewPass == null ? 'silicon' : state.reviewPass) || '').trim().toLowerCase();
   if (!want) return null;
   const got = String(pass || '').trim().toLowerCase();
-  if (!got) return { status: 401, body: { error: 'Passcode required.', needPass: true } };
+  if (!got) return { status: 401, body: { error: 'Password required.', needPass: true } };
   let fails = 0; try { fails = await recentFails(REVIEW_ATTEMPT_DIR, req); } catch (e) { console.error('review attempt count failed', e); }   // a Blob hiccup never blocks a review
   if (fails >= REVIEW_MAX_FAILS) return { status: 429, body: { error: 'Too many tries. Wait 15 minutes.' } };
   const a = crypto.createHash('sha256').update(got).digest(); const b = crypto.createHash('sha256').update(want).digest();
   if (crypto.timingSafeEqual(a, b)) return null;
   await recordFail(REVIEW_ATTEMPT_DIR, req);
-  return { status: 401, body: { error: 'That passcode isn\u2019t right.', needPass: true } };
+  return { status: 401, body: { error: 'That password isn\u2019t right.', needPass: true } };
 }
 
 /* ---- generate cap for team ---- */

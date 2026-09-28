@@ -146,7 +146,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="card rise tab admin-only" id="tab-settings" hidden>
         <div class="group admin-only">
           <div class="card-head"><div class="group-title">People</div><span class="mini" id="people-count"></span></div>
-          <p class="hint">Each person signs in with their own passcode, and their name goes on what they do. SiTime people can pick, upload, add slots, make batches and review; they never see internal reviews. The COGNAK team can do the same and sees internal batches. Issuing a new passcode signs that person out.</p>
+          <p class="hint">Each person signs in with their own password, and their name goes on what they do. SiTime people can pick, upload, add slots, make batches and review; they never see internal reviews. The COGNAK team can do the same and sees internal batches. Issuing a new password signs that person out.</p>
           <div class="tablewrap"><table id="people-table"><thead><tr><th>First name</th><th>Email</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead><tbody id="people-rows"><tr><td colspan="5" class="hint">Loading.</td></tr></tbody></table></div>
           <div class="grid3" style="margin-top:1.4rem">
             {/* readonly until focused: browsers ignore autocomplete="off" on a name + email pair and fill in the admin's own contact card (Pierce, 9/27). */}
@@ -155,17 +155,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             <label class="q"><span class="q-title">Role</span><select class="txt" id="pp-role"><option value="client">SiTime</option><option value="team">COGNAK team</option></select></label>
           </div>
           <div class="actions"><button class="sbtn p" id="pp-add">Add person</button><span class="mini" id="pp-status"></span></div>
-          <div class="passline" id="pp-pass" hidden><span class="lbl-s">Passcode for <b id="pp-pass-name"></b></span><code id="pp-pass-code"></code><button type="button" class="sbtn" id="pp-pass-copy">Copy</button><span class="hint" style="margin:0">Shown once. Send it to them; a new one can be issued any time.</span></div>
+          <div class="passline" id="pp-pass" hidden><span class="lbl-s">Password for <b id="pp-pass-name"></b></span><code id="pp-pass-code"></code><button type="button" class="sbtn" id="pp-pass-copy">Copy</button><span class="hint" style="margin:0">Shown once. Send it to them; a new one can be issued any time.</span></div>
         </div>
         <div class="group admin-only">
-          <div class="group-title">Shared team passcode</div>
-          <div class="grid3"><label class="q"><span class="q-title">Team passcode</span><input class="txt" id="team-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end" id="team-hint">The older way in, one passcode for the whole COGNAK team; whoever uses it types a name at sign-in. Same rights as a team person above. Changing it signs everyone on it out; blank turns it off. People with their own passcode don't need it.</p></div>
-          <div class="actions"><button class="sbtn p" id="team-save">Set team passcode</button><span class="mini" id="team-status"></span></div>
-          <div class="actions" id="client-line" hidden><span class="mini">Old shared SiTime passcode is on.</span><button type="button" class="sbtn" id="client-off">Turn off</button></div>
+          <div class="group-title">Shared team password</div>
+          <div class="grid3"><label class="q"><span class="q-title">Team password</span><input class="txt" id="team-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end" id="team-hint">The older way in, one password for the whole COGNAK team; whoever uses it types a name at sign-in. Same rights as a team person above. Changing it signs everyone on it out; blank turns it off. People with their own password don't need it.</p></div>
+          <div class="actions"><button class="sbtn p" id="team-save">Set team password</button><span class="mini" id="team-status"></span></div>
+          <div class="actions" id="client-line" hidden><span class="mini">Old shared SiTime password is on.</span><button type="button" class="sbtn" id="client-off">Turn off</button></div>
         </div>
         <div class="group admin-only">
-          <div class="group-title">Batch review passcode</div>
-          <div class="grid3"><label class="q"><span class="q-title">Passcode</span><input class="txt" id="review-pass" placeholder="silicon" /></label><p class="hint" style="grid-column:2/4;align-self:end">Anyone who opens a batch review link without signing in enters this once per browser session. Signed-in people skip it. Blank turns it off.</p></div>
+          <div class="group-title">Batch review password</div>
+          <div class="grid3"><label class="q"><span class="q-title">Password</span><input class="txt" id="review-pass" placeholder="silicon" /></label><p class="hint" style="grid-column:2/4;align-self:end">Anyone who opens a batch review link without signing in enters this once per browser session. Signed-in people skip it. Blank turns it off.</p></div>
         </div>
         <div class="group admin-only">
           <div class="group-title">Mock copy</div>
@@ -2702,7 +2702,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let teamOn = null;
     function showTeamState(msg) {
       $('team-pass').placeholder = teamOn ? 'Set · type a new one to change it' : 'Not set';
-      $('team-save').textContent = teamOn ? 'Change team passcode' : 'Set team passcode';
+      $('team-save').textContent = teamOn ? 'Change team password' : 'Set team password';
       $('team-status').textContent = msg || (teamOn == null ? '' : teamOn ? 'Team access is on.' : 'Team access is off.');
     }
     /* ---------- People (admin): personal passcodes ---------- */
@@ -2720,8 +2720,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('people-count').textContent = rows.length ? rows.length + (rows.length === 1 ? ' person' : ' people') : '';
       $('people-rows').innerHTML = rows.length ? rows.map((u) => ppEdit === u.id
         ? '<tr data-u="' + u.id + '"><td><input class="txt" data-pp="name" value="' + esc(u.name) + '" aria-label="First name" autocomplete="off"></td><td><input class="txt" data-pp="email" type="text" inputmode="email" value="' + esc(u.email) + '" aria-label="Email" autocomplete="off"></td><td><select class="txt" data-pp="role" aria-label="Role"><option value="client"' + (u.role === 'client' ? ' selected' : '') + '>SiTime</option><option value="team"' + (u.role === 'team' ? ' selected' : '') + '>COGNAK team</option></select></td><td class="sub">' + fmtWhen(u.lastAt) + '</td><td class="pp-acts"><button type="button" class="link" data-ppsave="1">Save</button><button type="button" class="link" data-ppcancel="1">Cancel</button></td></tr>'
-        : '<tr data-u="' + u.id + '"><td>' + esc(u.name) + '</td><td class="sub">' + esc(u.email || '') + '</td><td><span class="pp-role">' + ROLE_LABEL[u.role] + '</span></td><td class="sub">' + fmtWhen(u.lastAt) + '</td><td class="pp-acts"><button type="button" class="link" data-ppedit="1">Edit</button><button type="button" class="link" data-pppass="1">New passcode</button><button type="button" class="link" data-ppdel="1">Remove</button></td></tr>').join('')
-        : '<tr><td colspan="5" class="hint">No one yet. Add a person below; their passcode shows once.</td></tr>';
+        : '<tr data-u="' + u.id + '"><td>' + esc(u.name) + '</td><td class="sub">' + esc(u.email || '') + '</td><td><span class="pp-role">' + ROLE_LABEL[u.role] + '</span></td><td class="sub">' + fmtWhen(u.lastAt) + '</td><td class="pp-acts"><button type="button" class="link" data-ppedit="1">Edit</button><button type="button" class="link" data-pppass="1">New password</button><button type="button" class="link" data-ppdel="1">Remove</button></td></tr>').join('')
+        : '<tr><td colspan="5" class="hint">No one yet. Add a person below; their password shows once.</td></tr>';
       const tb = $('people-rows');
       const rowOf = (el) => { const tr = el.closest('tr'); return { tr, u: people.find((x) => x.id === tr.dataset.u) }; };
       tb.querySelectorAll('[data-ppedit]').forEach((b) => b.addEventListener('click', () => { ppEdit = rowOf(b).u.id; renderPeople(); const i = tb.querySelector('[data-pp="name"]'); if (i) i.focus(); }));
@@ -2735,7 +2735,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       tb.querySelectorAll('[data-pp]').forEach((i) => i.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); const s = i.closest('tr').querySelector('[data-ppsave]'); if (s) s.click(); } else if (e.key === 'Escape') { ppEdit = null; renderPeople(); } }));
       tb.querySelectorAll('[data-pppass]').forEach((b) => b.addEventListener('click', async () => {
         const { u } = rowOf(b);
-        if (!(await askConfirm('Their current passcode stops working and they are signed out. The new one shows once, here.', { title: 'New passcode for ' + u.name, ok: 'New passcode' }))) return;
+        if (!(await askConfirm('Their current password stops working and they are signed out. The new one shows once, here.', { title: 'New password for ' + u.name, ok: 'New password' }))) return;
         b.disabled = true; const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'user-pass', id: u.id } }); b.disabled = false;
         if (!r.ok) { toast((r.data && r.data.error) || 'Could not do that.'); return; }
         Object.assign(u, r.data.user); renderPeople(); showPasscode(u.name, r.data.passcode);
@@ -2752,7 +2752,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('pp-pass-name').textContent = name; $('pp-pass-code').textContent = code; $('pp-pass').hidden = false;
       $('pp-pass').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-    $('pp-pass-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('pp-pass-code').textContent); toast('Copied.'); } catch (e) { toast('Select the passcode and copy it.'); } });
+    $('pp-pass-copy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('pp-pass-code').textContent); toast('Copied.'); } catch (e) { toast('Select the password and copy it.'); } });
     async function addPerson() {
       const name = $('pp-name').value.trim();
       if (!name) { $('pp-status').textContent = 'A name is needed.'; $('pp-name').focus(); return; }
@@ -2775,12 +2775,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let clientOn = false;
     function showClientState() { $('client-line').hidden = !clientOn; }
     $('client-off').addEventListener('click', async () => {
-      if (!(await askConfirm('Anyone still signing in with the old shared SiTime passcode is signed out and can no longer use it. People with their own passcode are not affected.', { title: 'Turn off the old SiTime passcode', ok: 'Turn off' }))) return;
+      if (!(await askConfirm('Anyone still signing in with the old shared SiTime password is signed out and can no longer use it. People with their own password are not affected.', { title: 'Turn off the old SiTime password', ok: 'Turn off' }))) return;
       $('client-off').disabled = true;
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', which: 'client', pass: '' } });
       $('client-off').disabled = false;
       if (!r.ok) { toast((r.data && r.data.error) || 'Could not turn it off.'); return; }
-      clientOn = false; showClientState(); toast('The old shared SiTime passcode is off.');
+      clientOn = false; showClientState(); toast('The old shared SiTime password is off.');
     });
     $('team-save').addEventListener('click', async () => {
       const pass = $('team-pass').value;
@@ -2788,7 +2788,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('team-status').textContent = 'Saving…'; $('team-save').disabled = true;
       const r = await api('/api/sitime-team', { method: 'POST', body: { action: 'set', pass } });
       $('team-save').disabled = false; $('team-pass').value = '';
-      if (r.ok) { teamOn = !!r.data.teamOn; showTeamState(teamOn ? 'Team access is on. Anyone signed in with the old passcode is signed out.' : 'Team access is off.'); }
+      if (r.ok) { teamOn = !!r.data.teamOn; showTeamState(teamOn ? 'Team access is on. Anyone signed in with the old password is signed out.' : 'Team access is off.'); }
       else $('team-status').textContent = (r.data && r.data.error) || 'Could not save.';
     });
     $('review-pass').addEventListener('change', (e) => { S.reviewPass = e.target.value.trim(); mark(); });
