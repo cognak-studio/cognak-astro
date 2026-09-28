@@ -4856,19 +4856,6 @@ a[href*="cookieyes.com"],
     }
 }
 
-/* Reserve room under the footer while the fixed cookie banner is showing, so it
-   never covers the footer's last row (Privacy Policy + copyright on phones, the
-   Projects / Studio links on desktop Studio and Projects). BaseLayout.astro sets
-   html.cognak-cookie-open when the banner appears and clears it on Accept/Decline. */
-html.cognak-cookie-open .main-footer {
-    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
-}
-@media (max-width: 720px) {
-    html.cognak-cookie-open .main-footer {
-        padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
-    }
-}
-
 /* ── Footer privacy policy link ── */
 /* Spacing between these now comes from .footer-legal's flex gap, not margin
    (a margin-left here would double up with the gap and misalign wrapped rows). */
