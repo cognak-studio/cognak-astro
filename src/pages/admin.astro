@@ -206,8 +206,9 @@ const TOOLS = [
     .adm .actions .btn{ min-width:0; }
     @media (max-width:600px){ .adm #gate .actions .btn{ width:100%; } }
 
-    .adm a:focus-visible, .adm button:focus-visible, .adm input:focus-visible{
+    .adm a:focus-visible, .adm button:focus-visible{
       outline:2px solid var(--accent-text) !important; outline-offset:3px; }
+    .adm input:focus-visible{ outline-color:var(--accent-text) !important; }   /* on the border: see custom.css */
 
     /* ---------------------------------------------------------- dashboard --- */
     .adm .dash-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:1.1rem; }
