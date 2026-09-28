@@ -1570,20 +1570,30 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
          or already said elsewhere on the card. SiTime's sign-in sees none. */
       const tags = (isClient() || !p.scope) ? '' : '<span class="tg" title="Launch scope, from the inventory">' + esc(p.scope) + '</span>';
       const cur = pageCurrent(p);
+      /* Collapsed by default, and again whenever a different page is opened
+         (Pierce, 9/27): the current-site images only unfold on Show. */
+      const open = pcOpen === p.id;
       const showAll = pcAll.has(p.id);
       const imgs = (showAll ? cur : cur.slice(0, 6)).map((c) => '<a class="exi" href="' + esc(c.url) + '" target="_blank" rel="noopener" title="' + esc(c.name) + '"><img loading="lazy" src="' + esc(c.url) + '" alt="">' + (c.hero ? '<span class="hb">Hero</span>' : '') + '</a>').join('');
-      el.innerHTML = '<div class="pcard"><button class="sbtn" data-addslot="1" style="float:right">Add a slot to this page</button><div class="pt">' + esc(p.name) + (p.custom ? ' <span class="mini">added by ' + esc(p.addedBy || 'the team') + '</span>' : '') + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div>' + (tags ? '<div class="tags">' + tags + '</div>' : '') +
-        (cur.length ? '<div class="exh">Currently on sitime.com · ' + cur.length + ' image' + (cur.length === 1 ? '' : 's') + (cur.length > 6 ? ' · <button type="button" class="linkb" data-pcall="1">' + (showAll ? 'Show fewer' : 'Show all') + '</button>' : '') + '</div><div class="ex">' + imgs + '</div>' : '<div class="exh">Nothing on sitime.com for this page</div>') +
-        (p.parts && p.parts.length ? '<div class="mini" style="margin-top:12px">Parts: ' + esc(p.parts.slice(0, 12).join(' · ')) + (p.parts.length > 12 ? ' +' + (p.parts.length - 12) : '') + '</div>' : '') +
+      const sep = ' <span class="exsep">·</span> ';
+      el.innerHTML = '<div class="pcard' + (open ? ' is-open' : '') + '"><button class="sbtn" data-addslot="1" style="float:right">Add a slot to this page</button><div class="pt">' + esc(p.name) + (p.custom ? ' <span class="mini">added by ' + esc(p.addedBy || 'the team') + '</span>' : '') + '</div><div class="pu">sitime.com' + esc(p.url || '') + '</div>' + (tags ? '<div class="tags">' + tags + '</div>' : '') +
+        (cur.length
+          ? '<div class="exh">Currently on sitime.com' + sep + cur.length + ' image' + (cur.length === 1 ? '' : 's') + sep + (open ? ((cur.length > 6 ? '<button type="button" class="linkb" data-pcall="1">' + (showAll ? 'Show fewer' : 'Show all') + '</button>' + sep : '') + '<button type="button" class="linkb" data-pcopen="1" aria-expanded="true">Hide</button>') : '<button type="button" class="linkb" data-pcopen="1" aria-expanded="false">Show</button>') + '</div>' +
+            (open ? '<div class="ex">' + imgs + '</div>' : '')
+          : '<div class="exh">Nothing on sitime.com for this page</div>') +
+        (open && p.parts && p.parts.length ? '<div class="mini" style="margin-top:12px">Parts: ' + esc(p.parts.slice(0, 12).join(' · ')) + (p.parts.length > 12 ? ' +' + (p.parts.length - 12) : '') + '</div>' : '') +
         '</div>';
       el.querySelector('[data-addslot]').addEventListener('click', () => openAddDialog(p.id));
       const tg = el.querySelector('[data-pcall]');
       if (tg) tg.addEventListener('click', () => { if (pcAll.has(p.id)) pcAll.delete(p.id); else pcAll.add(p.id); renderPageCard(); });
+      const op = el.querySelector('[data-pcopen]');
+      if (op) op.addEventListener('click', () => { pcOpen = open ? null : p.id; renderPageCard(); });
     }
     /* What the page shows on sitime.com today, hero first: page.current from
        the 9/23 crawl of the live site (scripts/sitime-crawl-current.py), else
        Ace's Drupal export. [{url, hero, name}] */
     var pcAll = new Set();
+    var pcOpen = null;   // the one page whose current-site images are unfolded
     function pageCurrent(p) {
       if (!p) return [];
       const raw = p.current || (p.drupalImages || []).map((u) => [u, u === p.drupalHero ? 1 : 0]);
