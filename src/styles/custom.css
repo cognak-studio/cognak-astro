@@ -2797,7 +2797,10 @@ html.pv-grid .projects-list,
     font-family: 'Diatype Mono', monospace;
     font-size: var(--fs-12);
     font-weight: 400;
-    color: #6d6d6d;
+    /* #6d6d6d was 4.19:1 on the #EAE5F2 list (AA needs 4.5). Nudged to #606060,
+       a touch past the floor, so the grade below can reach 4.5 and still read
+       as the quieter of the two. */
+    color: #606060;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -2809,9 +2812,11 @@ html.pv-grid .projects-list,
     color: var(--cognak-purple-text);
 }
 }
-/* Cognac age grade appended to the tag — one shade quieter than the tag itself. */
+/* Cognac age grade appended to the tag — one shade quieter than the tag itself.
+   0.71 is the floor for AA (4.5:1) on both the #EAE5F2 list and the white
+   project page; it was 0.34 (~1.9:1, illegible). Don't go lighter. */
 .list-item-vintage {
-    color: rgba(58, 49, 59, 0.34);
+    color: rgba(58, 49, 59, 0.71);
     transition: color var(--dur-xs) var(--ease-standard);
 }
 @media (hover: hover) {
@@ -3217,7 +3222,9 @@ html.pv-grid .projects-list,
     font-size: clamp(19px, 2vw, 28px);
     font-weight: 400;
     line-height: 1.3;
-    color: rgba(255,255,255,0.28);
+    /* Inactive tab. Below 1200px the label is under 24px, so it's small text and
+       needs 4.5:1 (0.46 over #17151a); it was 0.28 (~2.5:1). */
+    color: rgba(255,255,255,0.46);
     background: none;
     border: none;
     padding: 0;
@@ -3232,7 +3239,13 @@ html.pv-grid .projects-list,
     border-radius: 2px;
 }
 .studio-tab:hover {
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.75);
+}
+/* From 1200px the label is 24px+, which counts as large text and only needs
+   3:1 (0.34 = 3.2:1), so the desktop keeps its quiet look. */
+@media (min-width: 1200px) {
+    .studio-tab { color: rgba(255,255,255,0.34); }
+    .studio-tab:hover { color: rgba(255,255,255,0.55); }
 }
 .studio-tab--active {
     color: #FFB2E4;
@@ -3313,7 +3326,7 @@ html.pv-grid .projects-list,
     font-family: 'Diatype Mono', monospace;
     font-size: var(--fs-10);
     line-height: 1.7;
-    color: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.46); /* AA (4.5:1) on #17151a; was 0.25 */
     white-space: pre;
     pointer-events: none;
     opacity: 0;
@@ -4106,9 +4119,10 @@ body.pagers-idle a[rel="next"]:focus-visible {
 /* Cask grade, styled to match .list-item-vintage on /projects exactly — the
    same mark should not read as a bordered purple badge in one place and a quiet
    grey note in another. Mono 12px / 0.08em / uppercase from .list-item-tag,
-   rgba(58,49,59,0.34) from .list-item-vintage, no border and no chip.
-   Deliberately NOT the page accent: at 0.34 alpha it sits a shade behind the
-   category above it, which is the hierarchy it has in the archive list too. */
+   rgba(58,49,59,0.71) from .list-item-vintage, no border and no chip.
+   Deliberately NOT the page accent: it sits a shade behind the category above
+   it, which is the hierarchy it has in the archive list too. 0.71 is the AA
+   floor (4.5:1 on white); it was 0.34. */
 .template-single-project .project-vintage {
     /* INLINE-BLOCK, not block: the hover note is positioned at
        `left: calc(100% + 16px)`, and as a block this element spans the whole
@@ -4123,7 +4137,7 @@ body.pagers-idle a[rel="next"]:focus-visible {
     font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(58, 49, 59, 0.34);
+    color: rgba(58, 49, 59, 0.71);
     white-space: nowrap;
 }
 
@@ -4196,7 +4210,7 @@ body.pagers-idle a[rel="next"]:focus-visible {
     font-size: var(--fs-11);
     letter-spacing: 0.06em;
     text-transform: none;
-    color: rgba(58, 49, 59, 0.42);
+    color: rgba(58, 49, 59, 0.68); /* AA (4.5:1) on white; was 0.42 */
     opacity: 0;
     /* Slides in FROM the grade, so it reads as the grade explaining itself
        rather than a tooltip arriving from nowhere. translateY(-50%) has to be
@@ -4240,7 +4254,7 @@ html.pv-grid .projects-grade-note,
     font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(58, 49, 59, 0.32);
+    color: rgba(58, 49, 59, 0.71); /* same AA floor as .list-item-vintage it explains; was 0.32 */
 }
 @media (max-width: 720px) {
     /* The grades themselves are hidden on mobile (.list-item-tag display:none),
@@ -4989,7 +5003,7 @@ html.cognak-cookie-open .main-footer {
 .privacy-body code * {
     font-family: 'Diatype Mono', monospace !important;
     font-size: var(--fs-13) !important;
-    color: #815275 !important;
+    color: #784c6d !important; /* AA (4.5:1) on the tinted chip; #815275 was 4.05 */
     background: rgba(129,82,117,0.1) !important;
     padding: 2px 6px !important;
     border-radius: 3px !important;
