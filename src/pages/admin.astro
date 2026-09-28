@@ -221,9 +221,10 @@ const TOOLS = [
     .adm .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--purple);
       box-shadow:0 0 10px rgba(159,80,255,.8); }
 
-    .adm .tools{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; margin:0; padding:0; list-style:none; }
-    @media (max-width:900px){ .adm .tools{ grid-template-columns:1fr; } }
-    .adm .tcard{ position:relative; display:flex; flex-direction:column; min-height:200px; box-sizing:border-box;
+    /* One column, centred under the headline (Pierce, 9/28: "stack the admin cards"). */
+    .adm #dash{ max-width:600px; margin:0 auto; }
+    .adm .tools{ display:grid; grid-template-columns:1fr; gap:12px; margin:0; padding:0; list-style:none; }
+    .adm .tcard{ position:relative; display:flex; flex-direction:column; min-height:0; box-sizing:border-box;
       text-decoration:none; color:var(--ink); background:var(--panel); border:1px solid var(--line);
       border-radius:12px; padding:24px 24px 22px;
       transition:border-color var(--dur-sm) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard), background var(--dur-sm) var(--ease-standard); }
@@ -233,8 +234,7 @@ const TOOLS = [
     .adm .tcard .ttag{ position:absolute; top:24px; right:24px; text-transform:uppercase; }
     @media (max-width:900px){ .adm .tcard .ttag{ top:22px; right:20px; } }
     .adm .tcard h2{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; line-height:1.2;
-      margin:3.4rem 0 .45rem; color:var(--ink); transition:color var(--dur-s) var(--ease-standard); }
-    @media (max-width:900px){ .adm .tcard h2{ margin-top:1.6rem; } }
+      margin:1.4rem 0 .45rem; color:var(--ink); transition:color var(--dur-s) var(--ease-standard); }
     .adm .tcard p{ font-size:var(--fs-14); line-height:1.5; color:var(--ink-soft); margin:0; padding-right:1.6rem;
       max-width:40ch; transition:color var(--dur-s) var(--ease-standard); }
     .adm .tcard .arrow{ position:absolute; bottom:20px; right:22px; color:var(--ink-soft);
@@ -253,6 +253,16 @@ const TOOLS = [
     .adm .dash-foot .hint a{ color:var(--accent-text); text-decoration:underline; text-underline-offset:3px;
       text-decoration-color:rgba(199,155,255,.4); }
     .adm .dash-foot .btn{ margin-left:auto; }
+    /* Passkeys, moved here from /send (Pierce, 9/28): sign-in lives on /admin, so its keys do too. */
+    .adm .pk{ margin-top:1.6rem; padding:22px 24px; background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+    .adm .pk-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 .4rem; }
+    .adm .pk-sub{ font-size:var(--fs-13); line-height:1.5; color:var(--ink-soft); margin:0 0 1rem; }
+    .adm .pk-list{ list-style:none; margin:0; padding:0; }
+    .adm .pk-list li{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid var(--line); }
+    .adm .pk-list .pk-name{ font-size:var(--fs-15); color:var(--ink); }
+    .adm .pk-list .pk-meta{ display:block; font-size:var(--fs-12); color:var(--ink-soft); margin-top:2px; }
+    .adm .pk .actions{ justify-content:flex-start; margin-top:1rem; }
+    .adm .note.is-ok{ color:var(--accent-text); }
     .adm .bounce-note{ margin:0 0 1.2rem; font-size:var(--fs-14); line-height:1.5; color:var(--err); max-width:60ch; }
     .adm .bounce-note:empty{ display:none; }
 
@@ -429,8 +439,15 @@ const TOOLS = [
           </li>
         ))}
       </ul>
+      <section class="pk" aria-labelledby="pk-title">
+        <h2 class="pk-title" id="pk-title">Passkeys</h2>
+        <p class="pk-sub">Each browser or device you sign in from. Add one here to sign in from a new browser; saving it to iCloud Keychain makes it work in Safari and on your iPhone too.</p>
+        <p class="note" id="pk-note" role="status" aria-live="polite"></p>
+        <ul class="pk-list" id="pk-list"></ul>
+        <p class="note" id="pk-empty" hidden>No passkeys yet. The password is the only way in.</p>
+        <div class="actions"><button type="button" class="btn btn-primary" id="pk-add">Add this device</button></div>
+      </section>
       <div class="dash-foot">
-        <p class="hint">Passkeys are managed in <a href="/send">Send</a> → Sign-in security.</p>
         <button type="button" class="btn btn-ghost" id="signout-btn">Sign out</button>
       </div>
     </div>
@@ -550,7 +567,60 @@ const TOOLS = [
       }
     }
 
+    /* ---- passkeys (moved from /send, 9/28): same endpoints, same wording ---- */
+    async function renderPasskeys() {
+      const r = await api('/api/admin-passkey?action=list');
+      if (!r.ok) return;
+      const keys = (r.data && r.data.passkeys) || [];
+      const list = $('pk-list'); list.innerHTML = '';
+      $('pk-empty').hidden = keys.length > 0;
+      if (r.data && r.data.fallbackEnabled && keys.length) {
+        $('pk-note').textContent = 'ADMIN_PASSWORD_FALLBACK is on, so the password still works. Turn it off in Vercel to make passkeys the only way in.';
+        $('pk-note').className = 'note is-error';
+      }
+      keys.forEach((k) => {
+        const li = document.createElement('li');
+        li.innerHTML = '<div><span class="pk-name"></span><span class="pk-meta"></span></div><button type="button" class="btn btn-ghost">Remove</button>';
+        li.querySelector('.pk-name').textContent = k.label;
+        const added = k.createdAt ? new Date(k.createdAt).toLocaleDateString() : '';
+        li.querySelector('.pk-meta').textContent = 'added ' + added + ' · ' + (k.lastUsedAt ? 'last used ' + new Date(k.lastUsedAt).toLocaleDateString() : 'never used') + (k.backedUp ? ' · synced' : ' · this device only');
+        const del = li.querySelector('button');
+        del.setAttribute('aria-label', 'Remove passkey ' + k.label);
+        del.addEventListener('click', async () => {
+          const msg = keys.length === 1 ? 'Remove the last passkey? The password becomes the only way in again.' : 'Remove "' + k.label + '"? That device will no longer be able to sign in.';
+          if (!confirm(msg)) return;
+          del.disabled = true;
+          await api('/api/admin-passkey?action=delete', { method: 'POST', body: { id: k.id } });
+          await renderPasskeys();
+        });
+        list.appendChild(li);
+      });
+      $('pk-add').textContent = keys.length ? 'Add another device' : 'Add this device';
+    }
+    $('pk-add').addEventListener('click', async () => {
+      const note = $('pk-note'); const btn = $('pk-add');
+      note.textContent = ''; note.className = 'note';
+      if (typeof window.PublicKeyCredential === 'undefined') { note.textContent = 'This browser does not support passkeys.'; note.className = 'note is-error'; return; }
+      const label = prompt('Name this device (e.g. "MacBook Pro", "iPhone")', 'This device');
+      if (label === null) return;
+      btn.disabled = true;
+      try {
+        const optRes = await api('/api/admin-passkey?action=register-options');
+        if (!optRes.ok) throw new Error((optRes.data && optRes.data.error) || 'Could not start adding this device.');
+        const { startRegistration } = await webauthn();
+        const response = await startRegistration({ optionsJSON: optRes.data });
+        const verify = await api('/api/admin-passkey?action=register-verify', { method: 'POST', body: { response, label } });
+        if (!verify.ok) throw new Error((verify.data && verify.data.error) || 'Could not add this device.');
+        note.textContent = 'Added.'; note.className = 'note is-ok';
+        await renderPasskeys();
+      } catch (err) {
+        const msg = err && err.name === 'NotAllowedError' ? '' : (err && err.message) || 'Could not add this device.';
+        note.textContent = msg; note.className = msg ? 'note is-error' : 'note';
+      } finally { btn.disabled = false; }
+    });
+
     function showDash(instant) {
+      renderPasskeys();
       $('idle-note').textContent = '';
       if (instant || gate.hidden) reveal(dash);
       else swap(gate, dash);

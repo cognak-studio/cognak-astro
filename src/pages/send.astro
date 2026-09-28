@@ -198,36 +198,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         </div>
       </div>
 
-      <div class="acard rise" id="security-card">
-        {/* Collapsible, added 2026-07-28 — this card is set-and-forget most
-            visits (check the device list once, then never touch it again),
-            so it can fold away instead of always claiming a full card's
-            worth of vertical space above Sign out. group-title moved out of
-            .group and into its own header row so the +/- toggle can sit at
-            top-right of the CARD, not just the text baseline. Body content
-            is one wrapper so hidden can collapse/expand it all at once —
-            safe now that .send [hidden] actually works (see the sign-in gate
-            comment above for why that wasn't always true). */}
-        <div class="card-head">
-          <div class="group-title">Sign-in security</div>
-          {/* Starts collapsed (Pierce, 2026-07-28: "make registered devices
-              default to collapsed") -- the passkey list is something you
-              check on, not something you need on every visit to the
-              dashboard, so it stays out of the way until asked for. */}
-          <button type="button" class="collapse-toggle" id="security-toggle"
-                  aria-expanded="false" aria-controls="security-body" aria-label="Expand sign-in security">
-            <span class="toggle-glyph" aria-hidden="true">&plus;</span>
-          </button>
-        </div>
-        <div class="group" id="security-body" hidden>
-          <p class="note" id="pk-note" role="status" aria-live="polite"></p>
-          <ul class="shares" id="pk-list"></ul>
-          <p class="note" id="pk-empty">No passkeys yet — the password is currently the only way in.</p>
-          <div class="actions">
-            <button type="button" class="btn btn-primary" id="pk-add">Add this device</button>
-          </div>
-        </div>
-      </div>
+      <p class="note pk-moved">Passkeys are managed on <a href="/admin">/admin</a>.</p>
 
       <div class="actions signout-row">
         <button type="button" class="btn btn-ghost" id="signout-btn">Sign out</button>
@@ -1170,7 +1141,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       // client photo rather than the one snapshotted into the manifest.
       await loadClients();
       renderShares((r.ok && r.data && r.data.shares) || []);
-      renderPasskeys();
       resetIdle();
       syncScroll();
       return true;
@@ -1187,119 +1157,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     $('signout-btn').addEventListener('click', () => signOut(''));
 
-    /* ------------------------------------------------------- passkeys --- */
-    /* The browser half of WebAuthn comes from esm.sh on demand, the same way
-       the Blob uploader does — no build step, and nothing downloaded unless
-       you actually use a passkey. */
-    let _webauthn = null;
-    function webauthn() {
-      if (!_webauthn) {
-        _webauthn = import('https://esm.sh/@simplewebauthn/browser@13').catch((e) => {
-          _webauthn = null;
-          throw new Error('Passkey support could not load. Check your connection.');
-        });
-      }
-      return _webauthn;
-    }
-
-    /* Sign-in (passkey / password fallback) moved to /admin — see admin.astro.
-       webauthn() above is still used here to enrol new devices. */
-
-    async function renderPasskeys() {
-      const r = await api('/api/admin-passkey?action=list');
-      if (!r.ok) return;
-      const list = $('pk-list');
-      const keys = (r.data && r.data.passkeys) || [];
-      list.innerHTML = '';
-      $('pk-empty').hidden = keys.length > 0;
-
-      if (r.data && r.data.fallbackEnabled && keys.length) {
-        const note = $('pk-note');
-        note.textContent =
-          'ADMIN_PASSWORD_FALLBACK is on, so the password still works. Turn it off in Vercel to make passkeys the only way in.';
-        note.className = 'note is-error';
-      }
-
-      keys.forEach((k) => {
-        const li = document.createElement('li');
-        li.className = 'srow';
-        li.innerHTML =
-          '<div class="srow-main"><div class="srow-client"></div><div class="srow-meta"></div></div>' +
-          '<div class="srow-actions">' +
-          '<button type="button" class="btn btn-ghost btn-danger" data-action="pk-del">Remove</button>' +
-          '</div>';
-        li.querySelector('.srow-client').textContent = k.label;
-        const added = k.createdAt ? new Date(k.createdAt).toLocaleDateString() : '';
-        const used = k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : 'never used';
-        // "last used never used" read as a typo; drop the prefix when unused.
-        li.querySelector('.srow-meta').textContent =
-          'added ' + added + ' · ' + (k.lastUsedAt ? 'last used ' + used : 'never used') +
-          (k.backedUp ? ' · synced' : ' · this device only');
-        li.querySelector('[data-action="pk-del"]').setAttribute('aria-label', 'Remove passkey ' + k.label);
-        li.querySelector('[data-action="pk-del"]').addEventListener('click', async () => {
-          const last = keys.length === 1;
-          const msg = last
-            ? 'Remove the last passkey? The password becomes the only way in again.'
-            : 'Remove "' + k.label + '"? That device will no longer be able to sign in.';
-          if (!confirm(msg)) return;
-          await api('/api/admin-passkey?action=delete', { method: 'POST', body: { id: k.id } });
-          await renderPasskeys();
-        });
-        list.appendChild(li);
-      });
-
-      /* The button stays whatever happens: it enrols the device you're ON, so
-         on your phone it's the only way to add the phone. Once something is
-         registered the wording shifts to "another" so it doesn't look like it
-         didn't take the first time. */
-      $('pk-add').textContent = keys.length ? 'Add another device' : 'Add this device';
-    }
-
-    /* Sign-in security card collapse/expand — set-and-forget content that
-       doesn't need to claim vertical space on every visit. */
-    $('security-toggle').addEventListener('click', () => {
-      const toggle = $('security-toggle');
-      const body = $('security-body');
-      const collapsing = !body.hidden;
-      body.hidden = collapsing;
-      toggle.setAttribute('aria-expanded', String(!collapsing));
-      toggle.setAttribute('aria-label', collapsing ? 'Expand sign-in security' : 'Collapse sign-in security');
-      toggle.querySelector('.toggle-glyph').textContent = collapsing ? '+' : '−';
-    });
-
-    $('pk-add').addEventListener('click', async () => {
-      const note = $('pk-note');
-      const btn = $('pk-add');
-      note.textContent = '';
-      note.className = 'note';
-      if (typeof window.PublicKeyCredential === 'undefined') {
-        note.textContent = 'This browser does not support passkeys.';
-        note.className = 'note is-error';
-        return;
-      }
-      const label = prompt('Name this device (e.g. "MacBook Pro", "iPhone")', 'This device');
-      if (label === null) return;
-      btn.disabled = true;
-      try {
-        const optRes = await api('/api/admin-passkey?action=register-options');
-        if (!optRes.ok) throw new Error((optRes.data && optRes.data.error) || 'Could not start enrolment.');
-        const { startRegistration } = await webauthn();
-        const response = await startRegistration({ optionsJSON: optRes.data });
-        const verify = await api('/api/admin-passkey?action=register-verify', {
-          method: 'POST', body: { response, label },
-        });
-        if (!verify.ok) throw new Error((verify.data && verify.data.error) || 'Could not add this device.');
-        note.textContent = 'Added. The password will stop working on the next sign-in.';
-        note.className = 'note is-ok';
-        await renderPasskeys();
-      } catch (err) {
-        const msg = err && err.name === 'NotAllowedError' ? '' : (err && err.message) || 'Could not add this device.';
-        note.textContent = msg;
-        note.className = msg ? 'note is-error' : 'note';
-      } finally {
-        btn.disabled = false;
-      }
-    });
+    /* Passkeys moved to /admin (2026-09-28): list, add and remove live there now. */
 
     /* Idle sign-out. The server cookie also expires at 1 week, so this is the
        courtesy half — it clears the dashboard off the screen and says why,
