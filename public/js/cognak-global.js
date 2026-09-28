@@ -848,3 +848,36 @@
         }
     });
 })();
+
+/* ── Type "admin" anywhere to open /admin ─────────────────────────────────── */
+/* Same mechanism as "send" and "workflow" above. /admin is the studio sign-in
+   and dashboard (links out to /send and the workflow tools); it is unlisted
+   and noindex, so this is the way in without a bookmark (2026-09-27). Ignored
+   while typing in a field, and no other keyword contains "admin", so the three
+   buffers can't trip each other. */
+(function () {
+    var WORD = 'admin';
+    var buf = '';
+    var timer = 0;
+    function isTyping(el) {
+        if (!el) return false;
+        if (el.isContentEditable) return true;
+        var tag = el.tagName;
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    }
+    document.addEventListener('keydown', function (e) {
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (isTyping(e.target)) return;
+        if (e.key.length !== 1) return;
+        buf = (buf + e.key.toLowerCase()).slice(-WORD.length);
+        clearTimeout(timer);
+        timer = setTimeout(function () { buf = ''; }, 1200);
+        if (buf === WORD) {
+            buf = '';
+            clearTimeout(timer);
+            if (window.location.pathname.replace(/\/$/, '') !== '/admin') {
+                window.location.href = '/admin';
+            }
+        }
+    });
+})();
