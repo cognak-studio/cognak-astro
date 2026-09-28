@@ -26,7 +26,7 @@ const TOOLS = [
   description="Custom workflows for clients. Small, purpose-built pages for clients that need bespoke solutions."
   ogUrl="https://cognak.com/workflow/"
   noindex={true}
-  pageBg="#F4F4F2"
+  pageBg="#F7F6FA"
 >
   <main id="cognak-main"><section class="wf">
     <h1 class="headline">Custom <em>workflows</em> for clients.</h1>
@@ -45,21 +45,23 @@ const TOOLS = [
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#F4F4F2 !important; }
+    html, body { background-color:#F7F6FA !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
     /* /workflow is the front door to the tools that live under it, not a
        peer of /projects or /schedule -- so it takes ITS interior pages'
-       graygreen (admin.astro / review.astro's --head / --accent), matching
-       what's one click away instead of the sitewide purple. */
+       palette (admin.astro / review.astro's --head / --accent), matching
+       what's one click away. Pale purple since 9/27 (Pierce, option A:
+       ground #F7F6FA, buttons #C7BDDF, headline #6A5C8A); the sitewide
+       vivid purple stays out of the tool. */
     /* Focus ring follows this page's accent, not the sitewide brand purple. */
     .wf a:focus-visible, .wf button:focus-visible, .wf [tabindex]:focus-visible{ outline-color:var(--head) !important; }
-    .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#575049; --accent:#9B948A; --accent-rgb:155,148,138;
+    .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#6A5C8A; --accent:#C7BDDF; --accent-rgb:199,189,223;
       max-width:1040px; margin:0 auto; padding:190px 6vw 22vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .wf .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .wf .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .wf .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
     .wf .picker{ display:grid; grid-template-columns:1fr; gap:14px; }
-    .wf .pcard{ position:relative; display:block; text-decoration:none; color:var(--ink); background:#fff; border:1px solid #ECECE9; border-radius:12px; padding:24px 24px 22px;
+    .wf .pcard{ position:relative; display:block; text-decoration:none; color:var(--ink); background:#fff; border:1px solid #E8E5EF; border-radius:12px; padding:24px 24px 22px;
       box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); transition:background var(--dur-sm) var(--ease-standard), box-shadow var(--dur-sm) var(--ease-standard); }
     /* Hover is just a drop shadow, nothing else -- no background tint. Same
        offsetY + |spread| >= blur rule (20+12 >= 30) keeps it grounded under

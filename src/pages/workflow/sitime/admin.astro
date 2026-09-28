@@ -29,7 +29,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   description="Internal."
   ogUrl="https://cognak.com/workflow/sitime/admin"
   noindex={true}
-  pageBg="#F4F4F2"
+  pageBg="#F7F6FA"
 >
   <main id="cognak-main"><section class="adm">
 
@@ -249,7 +249,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   </section></main>
 
   <style is:inline>
-    html, body { background-color:#F4F4F2 !important; }
+    html, body { background-color:#F7F6FA !important; }
     #cognak-main { position:relative; z-index:1; min-height:100vh; min-height:100dvh; }
     .adm label, .adm legend { display:block !important; }
     /* The sitewide focus ring is the brand purple (#9F50FF, custom.css), which
@@ -259,12 +259,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm a:focus-visible, .adm button:focus-visible, .adm input:focus-visible,
     .adm textarea:focus-visible, .adm select:focus-visible, .adm [tabindex]:focus-visible,
     .adm dialog:focus-visible, .adm .sbtn:focus-visible{ outline-color:var(--head) !important; }
-    .adm{ --card:#FFFFFF; --field:#FAFAF9; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#9B948A; --head:#575049; --deep:#1C1A17; --line:#E6E6E3; --line-strong:#CFCFCB;
+    /* Palette (Pierce, 9/27, option A "Whisper"): a barely-there lavender ground,
+       white cards, the color only in primary buttons, the headline word and
+       links. Same tokens on review.astro and /workflow. */
+    .adm{ --card:#FFFFFF; --field:#FAF9FC; --ink:#1A1A1A; --ink-soft:#6B6B6B; --accent:#C7BDDF; --head:#6A5C8A; --deep:#1E1B26; --line:#E8E5EF; --line-strong:#D3CFDD;
       max-width:1560px; margin:0 auto; padding:190px 4vw 18vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .adm .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .adm .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .adm .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 2.4rem 40px; }
-    .adm .card{ background:var(--card); border-radius:12px; padding:38px 40px 34px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #ECECE9; }
+    .adm .card{ background:var(--card); border-radius:12px; padding:38px 40px 34px; box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 40px rgba(0,0,0,.07); border:1px solid #E8E5EF; }
     .adm .group{ border-top:1px solid var(--line); padding-top:2.2rem; margin-top:2.6rem; }
     .adm .group:first-child{ border-top:none; padding-top:0; margin-top:0; }
     .adm .group-title{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:1.6rem; }
@@ -289,7 +292,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .teamlogin .txt{ flex:1; min-width:160px; }
     .adm .savestate{ margin-left:auto; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
     .adm .stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:2rem; }
-    .adm .stat{ background:#fff; border:1px solid #ECECE9; border-radius:10px; padding:16px 18px; }
+    .adm .stat{ background:#fff; border:1px solid #E8E5EF; border-radius:10px; padding:16px 18px; }
     .adm .stat b{ display:block; font-size:1.9rem; font-weight:500; letter-spacing:-.02em; line-height:1; }
     .adm .stat span{ display:block; font-size:var(--fs-13); color:var(--ink-soft); margin-top:8px; }
     .adm .stat.warn b{ color:#D94A00; }
@@ -307,13 +310,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm table{ width:100%; border-collapse:collapse; font-size:var(--fs-15); }
     .adm th{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); text-align:left; padding:0 10px 12px; font-weight:400; border-bottom:1px solid var(--line); white-space:nowrap; }
     .adm td{ padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
-    .adm tr.sel td{ background:#F7F6F3; }
+    .adm tr.sel td{ background:#F5F3F9; }
     .adm tr.clickable{ cursor:pointer; }
     .adm .pg{ font-weight:500; }
     .adm .sub{ font-size:var(--fs-13); color:var(--ink-soft); }
     .adm .pri{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
     .adm .pri.p-high{ background:#1A1A1A; color:#fff; padding:4px 9px; border-radius:999px; }
-    .adm .pri.p-medium{ background:#E6E6E3; color:#1A1A1A; padding:4px 9px; border-radius:999px; }
+    .adm .pri.p-medium{ background:#EAE6F1; color:#1A1A1A; padding:4px 9px; border-radius:999px; }
     .adm .pri.p-low{ border:1px solid var(--line-strong); color:var(--ink-soft); padding:3px 8px; border-radius:999px; }
     .adm .pri.p-reuse{ border:1px dashed var(--line-strong); color:var(--ink-soft); padding:3px 8px; border-radius:999px; }
     .adm .fbar{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:-.4rem 0 2rem; }
@@ -331,7 +334,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        drawer-wrap right below. Border-width stays 1px in both states so the
        colour-only transition never nudges layout by a pixel. */
     .adm .srow{ padding:22px 20px 20px; border-radius:12px; border:1px solid var(--line); margin-bottom:14px; transition:background .15s var(--ease-standard), border-color .15s var(--ease-standard); }
-    .adm .srow:not(.sel):hover{ background:#FAFAF8; border-color:var(--line-strong); }
+    .adm .srow:not(.sel):hover{ background:#FBFAFD; border-color:var(--line-strong); }
     /* Selected keeps the exact same stroke (width + colour) as a resting
        card -- no more darkening the border to signal "open." The card reads
        as open instead by its whiter fill and the drop shadow living on
@@ -340,7 +343,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .srow.sel{ background:#fff; border-color:var(--line); border-bottom:none; border-radius:12px 12px 0 0; margin-bottom:0; padding-bottom:0; }
     /* Two tiles per row now -- Main, Backup -- not a candidate strip. */
     .adm .tiles{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:18px; margin-bottom:20px; }
-    .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; max-height:300px; background:#EEE; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
+    .adm .tile{ position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10; max-height:300px; background:#ECEAF1; border:2px solid transparent; transition:border-color .12s var(--ease-standard); }
     .adm .tile img{ width:100%; height:100%; object-fit:cover; display:block; }
     .adm .tile.filled{ cursor:pointer; }
     .adm .tile.filled:hover{ border-color:var(--accent); }
@@ -362,7 +365,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tile .cap .lic em.ls{ font-weight:500; }
     .adm .tile .cap .lic em.ls-unlicensed{ color:#B00020; }
     .adm .tile .cap .lic em.ls-licensed, .adm .tile .cap .lic em.ls-owned{ color:#4A8C00; }
-    .adm .tile .cap .lic:not(.m-envato):not(.m-adobe):not(.m-istock):not(.m-shutterstock):not(.m-upload){ padding-left:9px; color:#575049; }
+    .adm .tile .cap .lic:not(.m-envato):not(.m-adobe):not(.m-istock):not(.m-shutterstock):not(.m-upload){ padding-left:9px; color:#6A5C8A; }
     .adm .tile .cap{ position:absolute; left:0; right:0; bottom:0; padding:22px 10px 8px; display:flex; align-items:center; gap:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; color:#fff; background:linear-gradient(transparent, rgba(0,0,0,.65)); opacity:0; transition:opacity .12s; }
     /* The image's name or note wraps (Pierce, 9/27), up to three lines so the picture stays visible. */
     .adm .tile .cap > span{ min-width:0; white-space:normal; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; line-height:1.35; }
@@ -433,11 +436,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .dhead{ padding:18px 0; margin-bottom:4px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
     .adm .drawer .srctabs{ padding-top:22px; border-top:1px solid var(--line); }
     .adm .drawer-wrap .drawer{ border-top:none; padding-top:0; margin-top:0; }
-    .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#EEE; border:1px solid #E1E1DE; display:block; }
+    .adm .thumb{ width:64px; height:40px; object-fit:cover; border-radius:4px; background:#ECEAF1; border:1px solid #E1E1DE; display:block; }
     .adm .thumb.empty{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .st{ display:inline-flex; align-items:center; gap:7px; font-size:var(--fs-14); white-space:nowrap; }
     .adm .st i{ position:relative; width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
-    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#9B948A; }
+    .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#A99BC8; }
     .adm .st.approved i{ background:#AAFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
     /* A finished batch is the one thing worth catching the eye across a long
        list, so only THAT dot gets the sitewide availability-dot blip ring
@@ -455,17 +458,17 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .queue{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .adm #sourced-list .qitem{ align-items:center; }
     .adm #sourced-list .qitem .sbtn{ margin-left:auto; flex-shrink:0; }
-    .adm .qitem{ display:flex; gap:12px; align-items:flex-start; border:1px solid #ECECE9; border-radius:8px; padding:12px; }
-    .adm .qitem img{ width:72px; height:48px; object-fit:cover; border-radius:4px; background:#EEE; }
+    .adm .qitem{ display:flex; gap:12px; align-items:flex-start; border:1px solid #E8E5EF; border-radius:8px; padding:12px; }
+    .adm .qitem img{ width:72px; height:48px; object-fit:cover; border-radius:4px; background:#ECEAF1; }
     .adm .qitem .t{ font-size:var(--fs-14); font-weight:500; }
     .adm .qitem .n{ font-size:var(--fs-13); color:var(--ink-soft); margin-top:3px; line-height:1.4; }
     /* drawer */
     .adm .drawer .dhead{ display:flex; justify-content:space-between; align-items:center; gap:24px; flex-wrap:wrap; }
     .adm .drawer .meta{ display:grid; grid-template-columns:1.5fr 1fr; gap:38px; font-size:var(--fs-14); line-height:1.6; color:var(--ink-soft); margin:1.4rem 0 2rem; }
     .adm .drawer .meta b{ color:var(--ink); font-weight:500; display:block; margin-bottom:6px; }
-    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.04em; color:#575049; line-height:1.5; }
-    .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E6E6E3; border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
-    .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; aspect-ratio:3/2; cursor:default; color:var(--ink-soft); font-size:var(--fs-12); background:#FAFAF8; border-style:dashed; border-color:#E6E6E3; }
+    .adm .drawer .meta .q2{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.04em; color:#6A5C8A; line-height:1.5; }
+    .adm .drawer .meta textarea.brief-edit{ width:100%; box-sizing:border-box; border:1px solid #E8E5EF; border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
+    .adm .cand.gen-empty{ display:flex; align-items:center; justify-content:center; aspect-ratio:3/2; cursor:default; color:var(--ink-soft); font-size:var(--fs-12); background:#FBFAFD; border-style:dashed; border-color:#E8E5EF; }
     .adm .cand.gen-empty .gn{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.12em; color:#BDBDB8; }
     .adm .cand.gen-working{ border-style:solid; border-color:var(--accent); color:var(--head); gap:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.12em; text-transform:uppercase;
       background:linear-gradient(100deg,#F4F2ED 30%,#FBFAF7 50%,#F4F2ED 70%) 0 0/300% 100%; animation:gen-sheen 1.6s linear infinite; }
@@ -486,7 +489,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .srctabs{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
     /* Library grid (Pierce, 9/24): small thumbnails, Replace / Delete on hover. */
     .adm .libgrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(112px, 1fr)); gap:8px; }
-    .adm .lt{ position:relative; aspect-ratio:3/2; border-radius:6px; overflow:hidden; background:#EEE; }
+    .adm .lt{ position:relative; aspect-ratio:3/2; border-radius:6px; overflow:hidden; background:#ECEAF1; }
     .adm .lt img{ width:100%; height:100%; object-fit:cover; display:block; }
     .adm .lt .used{ position:absolute; top:5px; left:5px; font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.08em; padding:2px 6px; border-radius:999px; background:#1A1A1A; color:#fff; }
     .adm .lt .lt-acts{ position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:space-between; gap:6px; padding:6px; background:linear-gradient(to top, rgba(26,26,26,.72), rgba(26,26,26,0) 65%); opacity:0; pointer-events:none; transition:opacity .12s; }
@@ -499,8 +502,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .lt .cand-x{ position:static; }
     .adm .lt.busy::after{ content:'Replacing…'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.8); font-size:var(--fs-12); color:var(--ink); }
     .adm .cands{ display:grid; grid-template-columns:repeat(auto-fill,minmax(224px,1fr)); gap:20px; }
-    .adm .cand{ border:1px solid #E6E6E3; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
-    .adm .cand img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; background:#EEE; }
+    .adm .cand{ border:1px solid #E8E5EF; border-radius:8px; overflow:hidden; background:#fff; position:relative; cursor:pointer; }
+    .adm .cand img{ width:100%; aspect-ratio:3/2; object-fit:cover; display:block; background:#ECEAF1; }
     .adm .cand .cb{ padding:10px 12px; font-size:var(--fs-12); line-height:1.35; color:var(--ink-soft); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
     .adm .cand .cb b{ display:block; color:var(--ink); font-weight:500; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.06em; margin-bottom:3px; }
     .adm .cand .tag{ position:absolute; top:8px; left:8px; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.12em; padding:4px 8px; border-radius:999px; background:#1A1A1A; color:#fff; }
@@ -550,10 +553,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .batchrow.drop-after{ box-shadow:inset 0 -2px 0 var(--head); }
     .adm .batchrow.head{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); padding:0 0 12px; }
     .adm .bslots{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin:10px 0 18px; }
-    .adm .bslot{ border:1px solid #ECECE9; border-radius:6px; padding:6px; font-size:var(--fs-12); color:var(--ink-soft); }
-    .adm .bslot img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; background:#EEE; display:block; margin-bottom:5px; }
+    .adm .bslot{ border:1px solid #E8E5EF; border-radius:6px; padding:6px; font-size:var(--fs-12); color:var(--ink-soft); }
+    .adm .bslot img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; background:#ECEAF1; display:block; margin-bottom:5px; }
     .adm .bslot b{ display:block; color:var(--ink); font-weight:500; font-size:var(--fs-12); }
-    .adm dialog{ border:1px solid #ECECE9; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
+    .adm dialog{ border:1px solid #E8E5EF; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
     /* undo toast (bottom centre, same pill language as the tabs) */
     .adm .undo{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:14px; background:var(--deep); color:#fff; border-radius:999px; padding:8px 8px 8px 22px; box-shadow:0 10px 30px rgba(0,0,0,.22); font-size:var(--fs-15); max-width:min(92vw,640px); }
     .adm .undo[hidden]{ display:none; }
@@ -579,7 +582,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .ad-h{ font-size:1.5rem; line-height:1.2; font-weight:400; letter-spacing:-.01em; color:var(--ink); margin-bottom:8px; }
     .adm .ad-strip{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:18px 0 22px; }
     .adm .ad-t{ font-size:var(--fs-12); color:var(--ink-soft); line-height:1.3; min-width:0; }
-    .adm .ad-t img, .adm .ad-t .ph{ display:block; width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:6px; background:#EEE; margin-bottom:6px; }
+    .adm .ad-t img, .adm .ad-t .ph{ display:block; width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:6px; background:#ECEAF1; margin-bottom:6px; }
     .adm .ad-t .ph{ background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .ad-t span{ display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .adm .ad-more{ display:flex; align-items:center; justify-content:center; aspect-ratio:4/3; border-radius:6px; border:1px solid var(--line); font-size:var(--fs-14); color:var(--ink-soft); }
@@ -593,7 +596,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm dialog.confirm .cf-p{ font-size:var(--fs-15); line-height:1.5; color:var(--ink); margin:0 0 .9rem; }
     .adm dialog.confirm .cf-chk{ margin:-.2rem 0 1.1rem; }
     /* People (Settings): the one-time passcode line and the row actions. */
-    .adm .passline{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:12px 14px; background:#F7F6F3; border-radius:8px; }
+    .adm .passline{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:12px 14px; background:#F5F3F9; border-radius:8px; }
     .adm .passline code{ font-family:'Diatype Mono', monospace; font-size:var(--fs-16); letter-spacing:.08em; color:var(--ink); }
     .adm #people-table td .link{ font-size:var(--fs-13); color:var(--ink-soft); }
     .adm #people-table td .link:hover{ color:var(--ink); }
@@ -603,11 +606,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm dialog.confirm .cf-chk[hidden]{ display:none !important; }   /* .chk sets display with !important */
     .adm dialog.confirm .actions{ margin-top:1.4rem; }
     /* display:flex only while open -- on the closed dialog it would beat the UA's display:none. */
-    .adm dialog.pv{ width:min(96vw,1280px); height:min(94vh,1000px); max-width:none; max-height:none; padding:14px 14px 0; background:#F4F4F2; }
+    .adm dialog.pv{ width:min(96vw,1280px); height:min(94vh,1000px); max-width:none; max-height:none; padding:14px 14px 0; background:#F7F6FA; }
     .adm dialog.pv[open]{ display:flex; flex-direction:column; }
     .adm .pv-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 4px 12px; }
     .adm .pv-head .group-title{ margin:0; }
-    .adm #pv-frame{ flex:1; width:100%; border:0; background:#F4F4F2; }
+    .adm #pv-frame{ flex:1; width:100%; border:0; background:#F7F6FA; }
     .adm dialog:focus{ outline:none; }
     /* The site's custom cursor (#cognak-cursor) is a fixed element on the
        page layer; a <dialog> renders in the browser's top layer above it, so
@@ -636,12 +639,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rsec .sdot.part{ background:#F3D456; border:1px solid #C9A81E; }
     .adm .rsec .sdot.done{ background:#AAFF00; border:1px solid #6EB300; }
     .adm .rsec.open > button{ color:var(--ink); }
-    .adm .rsec > button.sel{ color:var(--ink); background:#F5F3EF; }
+    .adm .rsec > button.sel{ color:var(--ink); background:#F5F3F9; }
     .adm .rsec > button.sel b{ opacity:1; }
     .adm .rpages{ padding:0 0 8px 4px; }
     .adm .rpage{ display:block; width:100%; text-align:left; font:inherit; font-size:var(--fs-14); line-height:1.4; color:var(--ink); background:none; border:0; border-left:2px solid transparent; padding:9px 10px; cursor:pointer; border-radius:0 6px 6px 0; }
-    .adm .rpage:hover{ background:#F7F6F3; }
-    .adm .rpage.on{ border-left-color:#1A1A1A; background:#F5F3EF; font-weight:500; }
+    .adm .rpage:hover{ background:#F5F3F9; }
+    .adm .rpage.on{ border-left-color:#1A1A1A; background:#F5F3F9; font-weight:500; }
     .adm .rpage i{ font-style:normal; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); color:var(--ink-soft); margin-left:6px; }
     .adm .rpage .dot{ display:inline-block; width:6px; height:6px; border-radius:50%; background:#C9C9C4; margin-right:6px; vertical-align:1px; }
     .adm .rpage .dot.done{ background:#9DFF00; border:1px solid #6EB300; }
@@ -656,7 +659,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .pcard .tg{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.1em; text-transform:uppercase; padding:4px 9px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink-soft); }
     .adm .pcard .tg.on{ background:#1A1A1A; border-color:#1A1A1A; color:#fff; }
     .adm .pcard .ex{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:flex-start; }
-    .adm .pcard .ex img{ width:130px; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#EEE; }
+    .adm .pcard .ex img{ width:130px; aspect-ratio:16/10; object-fit:cover; border-radius:6px; border:1px solid var(--line); background:#ECEAF1; }
     .adm .pcard .exh{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); margin-top:18px; }
     .adm .pcard .exh .linkb{ font:inherit; letter-spacing:inherit; text-transform:inherit; background:none; border:0; padding:0; color:var(--head); text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
     .adm .pcard .ex .exi{ position:relative; display:block; }
@@ -675,7 +678,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .addbox .ab-input{ width:100%; box-sizing:border-box; font:inherit; font-size:var(--fs-14); min-height:64px; resize:vertical; border:1px solid var(--line-strong); border-radius:8px; padding:10px 12px; background:#fff; outline:none; }
     .adm .addbox .ab-input:focus{ border-color:var(--accent); }
     .adm .addbox .ab-status{ display:block; margin-top:8px; }
-    .adm .cand.noprev{ border-style:dashed; background:#FAFAF8; display:flex; align-items:center; justify-content:center; min-height:200px; text-align:center; cursor:default; }
+    .adm .cand.noprev{ border-style:dashed; background:#FBFAFD; display:flex; align-items:center; justify-content:center; min-height:200px; text-align:center; cursor:default; }
     .adm .cand.noprev.drop{ border-style:solid; border-color:var(--accent); background:#F4F2ED; }
     .adm .cand.noprev .np-body{ padding:16px; }
     .adm .cand.noprev b{ display:block; font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.06em; color:var(--ink); margin-bottom:8px; }
@@ -739,12 +742,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer [data-dsp] .mini{ margin-left:4px; opacity:.7; }
     .adm .drawer .tgt{ display:inline-flex; align-items:center; gap:8px; font:inherit; font-size:var(--fs-14); padding:5px 12px 5px 5px; border-radius:999px; border:1px solid var(--line-strong); background:#fff; cursor:pointer; }
     .adm .drawer .tgt.on{ border-color:#1A1A1A; box-shadow:inset 0 0 0 1px #1A1A1A; }
-    .adm .drawer .tgt img{ width:40px; height:26px; object-fit:cover; border-radius:4px; background:#EEE; }
+    .adm .drawer .tgt img{ width:40px; height:26px; object-fit:cover; border-radius:4px; background:#ECEAF1; }
     .adm .drawer .tgt .ph{ width:40px; height:26px; border-radius:4px; background:repeating-linear-gradient(45deg,#F2F2EF,#F2F2EF 4px,#E8E8E4 4px,#E8E8E4 8px); }
     .adm .drawer .meta textarea.terms-edit{ width:100%; box-sizing:border-box; border:1px solid var(--line); border-radius:6px; padding:11px 13px; resize:vertical; min-height:150px; background:#fff; margin-top:8px; }
     .adm .cand .meta2{ display:flex; gap:6px; flex-wrap:wrap; padding:0 12px 10px; }
     .adm .cand .flag{ font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.08em; text-transform:uppercase; padding:3px 6px; border-radius:999px; border:1px solid var(--line); color:var(--ink-soft); }
-    .adm .cand .flag.real{ color:#575049; border-color:#D7D1C7; }
+    .adm .cand .flag.real{ color:#6A5C8A; border-color:#D9D3E4; }
     .adm .cand .flag.ai{ background:#FFF3CD; color:#8A5A00; border-color:#F0E0AE; }
     .adm .cand .flag.ed{ background:#FBE9EA; color:#B00020; border-color:#F0B6BE; }
     .adm .cand .adobe{ display:block; padding:0 12px 12px; font-size:var(--fs-12); color:var(--head); text-decoration:underline; text-underline-offset:3px; }
