@@ -121,9 +121,12 @@ const TOOLS = [
     .adm .acard{ max-width:440px; background:var(--panel); border:1px solid var(--line);
       border-radius:12px; padding:36px 34px 32px; box-shadow:0 2px 24px rgba(0,0,0,.28); }
     @media (max-width:600px){ .adm .acard{ max-width:none; padding:28px 20px 24px; } }
-    /* Signed out, the page is just the sign-in: centre it (Pierce, 9/28). The dashboard keeps its left edge. */
-    .adm:has(#gate:not([hidden])) .headline, .adm:has(#gate:not([hidden])) .lede{ text-align:center; margin-left:auto; margin-right:auto; }
-    .adm:has(#gate:not([hidden])) .acard{ margin-left:auto; margin-right:auto; }
+    /* Centred from the first paint (Pierce, 9/28): keying it to the sign-in card appearing
+       made the text load left and then jump. The lede is narrowed and balanced so its two
+       lines sit under the headline. */
+    .adm .headline, .adm .lede{ text-align:center; margin-left:auto; margin-right:auto; }
+    .adm .lede{ max-width:40ch; text-wrap:balance; }
+    .adm .acard{ margin-left:auto; margin-right:auto; }
 
     .adm .signin-head{ display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:1.2rem; }
     .adm .signin-icon{ margin-bottom:1.1rem; }
