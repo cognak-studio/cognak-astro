@@ -57,6 +57,11 @@ function syncSlots(allSlots, parked) {
     if (i == null) return s;
     const sd = seed.slots[i]; const o = { ...s };
     SEED_OWNED.forEach((k) => { if (k in sd) o[k] = sd[k]; else delete o[k]; });
+    /* Search terms come from the seed once per termsV (Pierce, 9/27: the
+       queries were rewritten from the chosen images). A newer termsV in the
+       seed replaces whatever the slot had; after that, edits in the drawer
+       stick until the seed bumps the version again. */
+    if (sd.termsV && (o.termsV || 0) < sd.termsV) { o.terms = (sd.terms || []).slice(); o.termsV = sd.termsV; }
     return o;
   });
   seed.slots.forEach((sd) => { if (!have.has(sd.id)) out.push(sd); });

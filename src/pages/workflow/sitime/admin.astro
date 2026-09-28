@@ -678,7 +678,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .descrow select{ font-family:'Diatype Variable', sans-serif; letter-spacing:0; }
     /* the search-terms box: the one mono field */
     .adm .drawer .termsbox{ margin-bottom:18px; }
-    .adm .drawer .termsbox .terms-edit{ width:100%; box-sizing:border-box; font-family:'Diatype Mono', monospace; font-size:var(--fs-12); line-height:1.6; border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:#fff; resize:vertical; min-height:64px; }
+    .adm .drawer .termsbox .terms-edit{ width:100%; box-sizing:border-box; font-family:'Diatype Mono', monospace; font-size:var(--fs-12); line-height:1.6; border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:#fff; color:var(--ink); outline:none; }
+    .adm .drawer .termsbox .terms-edit:focus{ border-color:var(--accent); }
     .adm .drawer .srctabs{ margin-top:22px; }
     .adm .drawer .srctabs .mini{ font-size:var(--fs-12); letter-spacing:0; }
 
@@ -2101,7 +2102,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           (stockResults.length ? '<div class="cands">' + searchCards + '</div><p class="mini" style="margin:2px 0 18px">Click a result to add it here and assign it.</p>' : '');
         /* One box (Pierce, 9/26): the search terms, in mono, above the add box.
            They feed the Adobe Stock link, the live search and Generate. */
-        const termsBox = '<div class="termsbox"><label class="lbl-s" for="terms-' + s.id + '">Search terms</label><textarea class="terms-edit" id="terms-' + s.id + '" data-terms="1" rows="2" placeholder="One per line. Used for the Adobe Stock link and for Generate.">' + esc((s.terms || []).join('\n')) + '</textarea></div>';
+        /* One line (Pierce, 9/27): the query for Adobe Stock and the prompt for Generate. Older multi-term lists show joined. */
+        const termsBox = '<div class="termsbox"><label class="lbl-s" for="terms-' + s.id + '">Search terms</label><input class="terms-edit" id="terms-' + s.id + '" data-terms="1" type="text" maxlength="200" placeholder="What to look for. Used for the Adobe Stock search and for Generate." value="' + esc((s.terms || []).join(', ')) + '"></div>';
         return termsBox + addbox + searchRow + '<div class="cands">' + cands.join('') + '</div>';
       }
       if (srcTab === 'library') {
@@ -2152,7 +2154,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       el.querySelectorAll('[data-remove-cand]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); removeCandidate(s, b.dataset.removeCand); }));
       el.querySelectorAll('[data-del-lib]').forEach((b) => b.addEventListener('click', (ev) => { ev.stopPropagation(); deleteUpload(b.dataset.delLib); }));
       el.querySelectorAll('.cand .adobe').forEach((a) => a.addEventListener('click', (ev) => ev.stopPropagation()));
-      const tb = el.querySelector('[data-terms]'); if (tb) tb.addEventListener('change', (e) => { s.terms = e.target.value.split('\n').map((t) => t.trim()).filter(Boolean); _hay.delete(s.id); stockSlotId = null; mark(); refreshDrawer(s.id); });
+      const tb = el.querySelector('[data-terms]'); if (tb) tb.addEventListener('change', (e) => { const v = e.target.value.replace(/\s+/g, ' ').trim(); s.terms = v ? [v] : []; _hay.delete(s.id); stockSlotId = null; mark(); refreshDrawer(s.id); });
       const sq = el.querySelector('[data-stockq]'); const sg = el.querySelector('[data-stockgo]');
       if (sq) sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); searchStock(s, sq.value); } });
       if (sg) sg.addEventListener('click', () => searchStock(s, sq ? sq.value : ''));
