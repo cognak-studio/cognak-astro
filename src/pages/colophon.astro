@@ -1102,12 +1102,14 @@ try {
         var gh = vh * 0.82;
         var scale = gh / (meta.maxy - meta.miny);
         var gw = (meta.maxx - meta.minx) * scale;
-        // Clamped so the glyph never fully leaves the viewport on the
-        // narrower end of the desktop breakpoint (it's a faint z-index:0
-        // background behind the text either way, so slight overlap there is
-        // fine, matches how it already briefly overlapped near vw~900 before).
-        // Shifted 300px further left (Pierce's call) from the locked position.
-        var cx = vw > 900 ? Math.min(contentRight + GAP + gw / 2, vw - 24) - 300 : vw * 0.5;
+        // Beside the text column, tucked 300px back over its right edge
+        // (Pierce's call). When the window is too narrow for that, the glyph
+        // keeps to the RIGHT side of the viewport instead of sliding toward
+        // the middle: the old clamp subtracted the 300 after clamping, which
+        // at ~1000px wide parked it over the center of the copy (Pierce,
+        // 9/27). Under 900 it centers, as before.
+        var left = Math.min(contentRight + GAP - 300, vw - 24 - gw);
+        var cx = vw > 900 ? left + gw / 2 : vw * 0.5;
         var cy = vh * 0.52;
         return {
           scale: scale,
