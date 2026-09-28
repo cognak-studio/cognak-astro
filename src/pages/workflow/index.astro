@@ -46,7 +46,7 @@ const TOOLS = [
 
   <style is:inline>
     html, body { background-color:#F7F6FA !important; }
-    /* No full-screen min-height (Pierce, 9/27): with one tool card it left a screenful of empty ground above the footer. */
+    /* No full-screen min-height (Pierce, 9/27): with one tool card it left a screenful of empty ground above the footer. 40vh below is ~80% of the old gap. */
     #cognak-main { position:relative; z-index:1; }
     /* /workflow is the front door to the tools that live under it, not a
        peer of /projects or /schedule -- so it takes ITS interior pages'
@@ -57,7 +57,7 @@ const TOOLS = [
     /* Focus ring follows this page's accent, not the sitewide brand purple. */
     .wf a:focus-visible, .wf button:focus-visible, .wf [tabindex]:focus-visible{ outline-color:var(--head) !important; }
     .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#6A5C8A; --accent:#C7BDDF; --accent-rgb:199,189,223;
-      max-width:1040px; margin:0 auto; padding:190px 6vw 120px; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
+      max-width:1040px; margin:0 auto; padding:190px 6vw 40vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
     .wf .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .wf .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .wf .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
@@ -78,6 +78,6 @@ const TOOLS = [
     .wf .pcard p{ font-size:var(--fs-14); line-height:1.45; color:var(--ink-soft); margin:0; max-width:60ch; transition:color var(--dur-s) var(--ease-standard); }
     .wf .pcard .arrow{ position:absolute; bottom:20px; right:24px; color:var(--ink-soft); transition:transform var(--dur-sm) var(--ease-standard), color var(--dur-sm) var(--ease-standard); }
     .wf .pcard:hover .arrow{ transform:translateX(4px); }
-    @media (max-width:760px){ .wf{ padding:150px 5vw 80px; } .wf .lede{ margin-left:0; } }
+    @media (max-width:760px){ .wf{ padding:150px 5vw 30vh; } .wf .lede{ margin-left:0; } }
   </style>
 </BaseLayout>
