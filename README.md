@@ -21,7 +21,7 @@ Run these from the project folder (or use the double-click launchers).
 | Start a new project               | `npm run new -- "Project Name"`                    |
 | Make its share image              | `npm run og`                                       |
 | Compress big gallery images       | `npm run optimize`                                 |
-| Check for mistakes before pushing | `npm run check`                                    |
+| Check for mistakes before pushing | `npm run check` (full build; fails on bad frontmatter, missing images, broken imports) |
 | Publish changes                   | Commit + push in **GitHub Desktop** (auto-deploys) |
 | Manual deploy (fallback)          | `npm run deploy`                                   |
 

@@ -10,7 +10,7 @@
     "new": "node scripts/new-project.mjs",
     "og": "python3 scripts/generate-og.py",
     "optimize": "node scripts/optimize-images.mjs",
-    "check": "astro check",
+    "check": "astro build",
     "deploy": "npx vercel --prod",
     "astro": "astro"
   },
