@@ -244,6 +244,13 @@
         mode = (mode === 'newest') ? 'alpha' : 'newest';
         btn.dataset.mode = mode;
         btn.setAttribute('aria-label', mode === 'newest' ? 'Sort: newest first' : 'Sort: alphabetical');
+        // The a-b-c typing animation runs on the document clock even while its
+        // icon is display:none, so revealing it mid-cycle showed the letters
+        // jumping in at whatever phase the clock was at. Start it from zero.
+        if (mode === 'alpha') {
+            var alphaSvg = btn.querySelector('.sort-icon-alpha svg');
+            if (alphaSvg && alphaSvg.setCurrentTime) alphaSvg.setCurrentTime(0);
+        }
         sortItems(true);
         initLazyLoad();
     });
