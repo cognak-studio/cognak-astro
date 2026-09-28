@@ -27,3 +27,6 @@ yarn-error.log*
 _to_delete/
 
 __pycache__/
+
+# FUSE/network-mount leftovers (stray copies of files that got committed by accident)
+.fuse_hidden*
