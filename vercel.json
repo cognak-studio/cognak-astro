@@ -37,6 +37,11 @@
       "permanent": true
     },
     {
+      "source": "/workflow/",
+      "destination": "/workflows",
+      "permanent": true
+    },
+    {
       "source": "/workflow/:path*",
       "destination": "/workflows/:path*",
       "permanent": true
