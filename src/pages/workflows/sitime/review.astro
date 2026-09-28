@@ -269,7 +269,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .review .pills.off{ opacity:.35; pointer-events:none; }
     /* Context overlay (Pierce, 9/25) */
     /* Above the site's fixed nav (it sat over the bar and hid Close, Pierce 9/28). */
-    .ctx{ position:fixed; inset:0; z-index:2147483000; background:rgba(28,26,23,.86); display:flex; flex-direction:column; }
+    .ctx{ position:fixed; inset:0; z-index:2147483000; font-family:'Diatype Variable', sans-serif; background:rgba(28,26,23,.86); display:flex; flex-direction:column; }
     .ctx[hidden]{ display:none !important; }
     .ctx-bar{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 24px; background:#1C1A17; border-bottom:1px solid rgba(255,255,255,.12); }
     @media (max-width:600px){ .ctx-bar{ flex-wrap:wrap; padding:12px 16px; gap:10px; } .ctx-t{ flex:1 1 100%; } .ctx-r{ flex:1 1 100%; justify-content:space-between; } .ctx .origbtn{ margin-left:0; } }

@@ -845,7 +845,7 @@ body[data-page="schedule"] ::-moz-selection { background: #9F50FF; color: #1B142
     background: #fff;
     mix-blend-mode: difference;
     pointer-events: none;
-    z-index: 9999999;
+    z-index: 2147483647;   /* top of everything, incl. overlays hung off <body> above the nav (2026-09-28) */
     transform: translate(-50%, -50%);
     transition: width var(--dur-sm) var(--ease-standard), height var(--dur-sm) var(--ease-standard), background var(--dur-sm) var(--ease-standard), border var(--dur-sm) var(--ease-standard), opacity var(--dur-s) var(--ease-standard);
     display: flex;
