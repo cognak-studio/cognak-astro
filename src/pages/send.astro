@@ -464,6 +464,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     .send .card-head{ display:flex; align-items:center; justify-content:space-between;
       margin-bottom:1.9rem; }
     .send .card-head .group-title{ margin-bottom:0; }
+    .send .card-head{ cursor:pointer; }
     .send .collapse-toggle{ flex:0 0 auto; width:28px; height:28px; border-radius:999px;
       display:inline-flex; align-items:center; justify-content:center; padding:0;
       background:none; color:var(--ink-soft); border:1px solid var(--line-strong);
@@ -1491,6 +1492,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       toggle.setAttribute('aria-expanded', String(!collapsing));
       toggle.setAttribute('aria-label', collapsing ? 'Expand sign-in security' : 'Collapse sign-in security');
       toggle.querySelector('.toggle-glyph').textContent = collapsing ? '+' : '−';
+    });
+
+    // The whole header row (title included) opens and closes the card, not just
+    // the small +/- button. The button stays the keyboard/screen-reader control.
+    $('security-toggle').closest('.card-head').addEventListener('click', (e) => {
+      if (e.target.closest('#security-toggle')) return;
+      $('security-toggle').click();
     });
 
     $('pk-add').addEventListener('click', async () => {

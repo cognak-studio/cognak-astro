@@ -4845,6 +4845,17 @@ a[href*="cookieyes.com"],
     }
 }
 
+/* Touch: Accept/Decline are ~14px tall. Grow the tappable area to ~44px with an
+   invisible pseudo-element; nothing moves or changes visually. */
+@media (pointer: coarse) {
+    .cognak-cookie-opt { position: relative; }
+    .cognak-cookie-opt::after {
+        content: '';
+        position: absolute;
+        inset: -15px -8px;
+    }
+}
+
 /* Reserve room under the footer while the fixed cookie banner is showing, so it
    never covers the footer's last row (Privacy Policy + copyright on phones, the
    Projects / Studio links on desktop Studio and Projects). BaseLayout.astro sets
