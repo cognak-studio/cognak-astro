@@ -5895,7 +5895,7 @@ html.js .fourofour-btn.is-in {
 /* <picture> wrappers around body images are layout-transparent */
 #cognak-main picture { display: contents; }
 
-/* -- Workflow nav (/workflow/sitime/*, 2026-09-14; pale purple 2026-09-27):
+/* -- Workflow nav (/workflows/sitime/*, 2026-09-14; pale purple 2026-09-27):
    a lavender bar a shade darker than the page's #F7F6FA ground (matching
    how every other inner nav sits a notch off its own page bg), dark text,
    the /tools purple on the pulse dot. Opaque enough over scrolled content

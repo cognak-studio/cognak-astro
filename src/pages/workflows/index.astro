@@ -1,6 +1,6 @@
 ---
 /**
- * /workflow — the front door to COGNAK's client-facing tools. Linked from
+ * /workflows — the front door to COGNAK's client-facing tools. Linked from
  * the footer as "Workflows" (Pierce, 9/27); still noindex and not in the
  * sitemap. Typing "workflow" anywhere on the site also lands here
  * (public/js/cognak-global.js, same mechanism as "send").
@@ -15,7 +15,7 @@ const TOOLS = [
     /* Public page since 9/27 (footer link): the card says what the tool is, not what the project is. */
     title: 'Image review',
     desc: 'Choose and approve the images for a new website, slot by slot, with every decision kept in one place.',
-    href: '/workflow/sitime/admin',
+    href: '/workflows/sitime/admin',
     tag: 'Internal',
   },
 ];
@@ -24,7 +24,7 @@ const TOOLS = [
   page="workflow"
   title="Workflows — COGNAK"
   description="Custom workflows for clients. Small, purpose-built pages for clients that need bespoke solutions."
-  ogUrl="https://cognak.com/workflow/"
+  ogUrl="https://cognak.com/workflows/"
   noindex={true}
   pageBg="#F7F6FA"
 >
@@ -48,7 +48,7 @@ const TOOLS = [
     html, body { background-color:#F7F6FA !important; }
     /* No full-screen min-height (Pierce, 9/27): with one tool card it left a screenful of empty ground above the footer. 40vh below is ~80% of the old gap. */
     #cognak-main { position:relative; z-index:1; }
-    /* /workflow is the front door to the tools that live under it, not a
+    /* /workflows is the front door to the tools that live under it, not a
        peer of /projects or /schedule -- so it takes ITS interior pages'
        palette (admin.astro / review.astro's --head / --accent), matching
        what's one click away. Pale purple since 9/27 (Pierce, option A:

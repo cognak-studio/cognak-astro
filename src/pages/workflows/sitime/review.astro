@@ -1,8 +1,8 @@
 ---
 /**
- * /workflow/sitime/review — the SiTime image review page.
- * Reached as cognak.com/workflow/sitime/<batch-token> via a vercel.json
- * rewrite; also readable as /workflow/sitime/review?b=<token> under astro dev.
+ * /workflows/sitime/review — the SiTime image review page.
+ * Reached as cognak.com/workflows/sitime/<batch-token> via a vercel.json
+ * rewrite; also readable as /workflows/sitime/review?b=<token> under astro dev.
  *
  * One shared link per batch, no login: SiTime (Judy, Greg, Dela) decide as a
  * group and one person clicks, or COGNAK clicks on a call. Each screen shows
@@ -23,7 +23,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
   page="workflow"
   title="Review images for sitime.com — COGNAK"
   description="Image review for the new sitime.com."
-  ogUrl="https://cognak.com/workflow/sitime/"
+  ogUrl="https://cognak.com/workflows/sitime/"
   noindex={true}
   pageBg="#F7F6FA"
 >
@@ -102,7 +102,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        arrow link as /brief's "Change project type", under the card on the
        left, lined up with the card's own labels. */}
     {/* Only for someone signed in to the tool; on the shared link it led to the sign-in gate. */}
-    <a class="backlink" id="backlink" href="/workflow/sitime/admin" hidden>&larr; Back to all batches</a>
+    <a class="backlink" id="backlink" href="/workflows/sitime/admin" hidden>&larr; Back to all batches</a>
 
     {/* Context (Pierce, 9/25): the whole page with this slot flashed in place. */}
     <div class="ctx" id="ctx" hidden role="dialog" aria-modal="true" aria-label="Where this image goes">
@@ -374,7 +374,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       [['mock-h1', 'h1'], ['mock-p', 'p'], ['mock-cta', 'cta'], ['mock-card-h', 'cardH'], ['mock-card-p', 'cardP']].forEach(([id, k]) => { if (m[k]) $(id).textContent = m[k]; });
     }
     function getToken() {
-      const m = location.pathname.match(/\/workflow\/sitime\/([a-z0-9]{8,16})\/?$/);
+      const m = location.pathname.match(/\/workflows\/sitime\/([a-z0-9]{8,16})\/?$/);
       if (m) return m[1];
       const q = new URLSearchParams(location.search).get('b');
       return q && /^[a-z0-9]{8,16}$/.test(q) ? q : '';

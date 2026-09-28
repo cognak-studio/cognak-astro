@@ -819,7 +819,7 @@
     });
 })();
 
-/* ── Type "workflow" anywhere to open /workflow ───────────────────────────── */
+/* ── Type "workflow" anywhere to open /workflows ───────────────────────────── */
 /* Same mechanism as "send" above: the client tools index is unlisted, and this
    is how Pierce gets there without a bookmark (2026-09-14). */
 (function () {
@@ -842,8 +842,8 @@
         if (buf === WORD) {
             buf = '';
             clearTimeout(timer);
-            if (window.location.pathname.replace(/\/$/, '') !== '/workflow') {
-                window.location.href = '/workflow';
+            if (window.location.pathname.replace(/\/$/, '') !== '/workflows') {
+                window.location.href = '/workflows';
             }
         }
     });

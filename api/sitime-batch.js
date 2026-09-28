@@ -23,7 +23,7 @@ const seedSlots = new Map((seed.slots || []).map((s) => [s.id, s]));
 /* Context (Pierce, 9/25): where each slot sits on its page. Page images are
    the newest page designs (Zaelab / COGNAK v3-1) or, for pages not designed
    yet, a full-page capture of the live site; rects are in 1920-wide page px.
-   Data: api/_lib/sitime-context.json, images in public/workflow/sitime/context/. */
+   Data: api/_lib/sitime-context.json, images in public/workflows/sitime/context/. */
 function contextOf(id) {
   const c = ctx.slots && ctx.slots[id]; const p = c && ctx.pages && ctx.pages[c.page];
   if (!c || !p) return null;

@@ -6,7 +6,7 @@
  *
  * Replaces the sign-in gate that used to sit at the top of /send: /send now
  * bounces signed-out visitors here with ?next=/send, and the SiTime admin does
- * the same with ?next=/workflow/sitime/admin. Same endpoints and the same
+ * the same with ?next=/workflows/sitime/admin. Same endpoints and the same
  * cognak_admin session cookie as before (api/admin-login.js,
  * api/admin-passkey.js, api/admin-logout.js) — nothing server-side changed.
  *
@@ -39,13 +39,13 @@ const TOOLS = [
     desc: 'Deliver files to clients with a cognak.com link.',
   },
   {
-    href: '/workflow/sitime/admin',
+    href: '/workflows/sitime/admin',
     tag: 'SiTime',
     title: 'Image review',
     desc: 'Choose and approve images for the new site, slot by slot.',
   },
   {
-    href: '/workflow',
+    href: '/workflows',
     tag: 'Index',
     title: 'Workflows',
     desc: 'Every custom client workflow, in one place.',

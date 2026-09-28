@@ -1,6 +1,6 @@
 /**
  * api/_lib/sitimeStore.mjs — storage for the SiTime image approval tool
- * (/workflow/sitime). Same rules as manifestStore.mjs, same reason: a Blob
+ * (/workflows/sitime). Same rules as manifestStore.mjs, same reason: a Blob
  * overwrite at a fixed path can serve stale content for up to ~60s, so
  * nothing here is ever overwritten. Every write is a new file; every read
  * lists a prefix and takes the lexicographically newest.

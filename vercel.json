@@ -26,11 +26,21 @@
       "destination": "/receive"
     },
     {
-      "source": "/workflow/sitime/:token",
-      "destination": "/workflow/sitime/review"
+      "source": "/workflows/sitime/:token",
+      "destination": "/workflows/sitime/review"
     }
   ],
   "redirects": [
+    {
+      "source": "/workflow",
+      "destination": "/workflows",
+      "permanent": true
+    },
+    {
+      "source": "/workflow/:path*",
+      "destination": "/workflows/:path*",
+      "permanent": true
+    },
     {
       "source": "/uploads/2026/05/cropped-org-logo-32x32.png",
       "destination": "/favicon-32x32.png",
