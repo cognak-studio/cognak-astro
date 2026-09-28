@@ -451,6 +451,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .st i{ position:relative; width:8px; height:8px; border-radius:50%; display:inline-block; background:#C9C9C4; }
     .adm .st.assigned i{ background:#1A1A1A; } .adm .st.queued i{ background:#A99BC8; }
     .adm .st.approved i{ background:#AAFF00; border:1px solid #6EB300; } .adm .st.denied i{ background:#FF1E1E; } .adm .st.held i{ background:#FF7A00; }
+    /* Pending has its own yellow (Pierce, 9/28): it had borrowed lavender on tiles and Held's orange on batches. */
+    .adm .st.pending i{ background:#FFC400; border:1px solid #D9A400; }
     /* A finished batch is the one thing worth catching the eye across a long
        list, so only THAT dot gets the sitewide availability-dot blip ring
        (.avail-dot in custom.css). Scoped to .batchrow on purpose -- the slot
@@ -588,6 +590,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .bslot .st{ font-size:var(--fs-11); gap:6px; margin-top:4px; }
     .adm .bslot .st i{ width:6px; height:6px; }
     .adm .bslot .link{ font-size:var(--fs-11); margin:3px 0 0; }
+    /* Tile status in its colour, words and dot (text shades darkened to read on white). Remove is red. */
+    .adm .bslot .st.pending{ color:#8F6B00; } .adm .bslot .st.approved{ color:#4A8200; }
+    .adm .bslot .st.denied{ color:#C8170F; } .adm .bslot .st.held{ color:#B35300; }
+    .adm .bslot .link[data-rm]{ color:#C8170F; text-decoration-color:rgba(200,23,15,.35); }
     .adm .bdetail .actions .mini{ min-width:0; overflow-wrap:anywhere; }   /* the review link ran past the card on a phone */
     .adm dialog{ border:1px solid #E8E5EF; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
     /* undo toast (bottom centre, same pill language as the tabs) */
@@ -1275,7 +1281,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const total = (b.slotIds || []).length;
         const decided = c.a + c.d + c.h + c.bk;
         const stat = !total ? 'Empty' : c.p === 0 ? 'Complete' : decided ? 'In review' : 'Ready';
-        const cls = !total || !decided ? 'draft' : c.p === 0 ? 'approved' : 'held';
+        const cls = !total || !decided ? 'draft' : c.p === 0 ? 'approved' : 'pending';   // In review: pending yellow, not Held's orange
         const link = location.origin + '/workflows/sitime/' + b.token;
         return '<div class="batchrow" data-b="' + b.token + '"><div class="bname">' + (canEditBatch(b) ? '<span class="grip" title="Drag to reorder" aria-hidden="true"><svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.4"/><circle cx="7" cy="3" r="1.4"/><circle cx="3" cy="8" r="1.4"/><circle cx="7" cy="8" r="1.4"/><circle cx="3" cy="13" r="1.4"/><circle cx="7" cy="13" r="1.4"/></svg></span>' : '') + '<span class="bt"><b>' + String(b.num).padStart(2, '0') + '</b> · ' + esc(b.name) + (b.internal ? ' <span class="mini">internal</span>' : '') + '</span></div><div class="sub">' + esc(b.scope || '') + '</div><div>' + total + '</div><div><span class="st ' + cls + '"><i></i>' + stat + '</span></div>' +
           '<div><span class="mini decs">' + (!decided ? '—' : [c.a && '<b class="a">' + c.a + ' ✓</b>', c.d && '<b class="d">' + c.d + ' ✕</b>', c.h && '<b class="h">' + c.h + ' ◦</b>', c.bk && '<b class="bk" title="Main image denied; the backup still needs a decision">' + c.bk + ' need backup</b>', (c.p - c.bk) && '<b>' + (c.p - c.bk) + ' left</b>'].filter(Boolean).join('')) + '</span></div>' +
@@ -1361,7 +1367,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function renderBatchDetail(b, el) {
       const m = byId();
-      el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + (o.outcome === 'pending' ? 'queued' : o.outcome) + '"><i></i>' + (o.outcome === 'pending' ? 'Not yet decided' : STATUS_LABEL[o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (!o.ev && canEditBatch(b) ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
+      el.innerHTML = '<div class="bslots">' + (b.slotIds || []).map((id) => { const s = m.get(id); if (!s) return ''; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main; return '<div class="bslot"><img src="' + esc(p?.thumb || '') + '"><b>' + esc(s.page) + '</b>' + esc(s.name) + '<div><span class="st ' + o.outcome + '"><i></i>' + (o.outcome === 'pending' ? 'Not yet decided' : STATUS_LABEL[o.outcome]) + '</span></div>' + (o.ev && o.ev.note ? '<div>“' + esc(o.ev.note) + '”</div>' : '') + (!o.ev && canEditBatch(b) ? '<button class="link" data-rm="' + s.id + '">Remove</button>' : '') + '</div>'; }).join('') + '</div>' +
         '<div class="actions">' + (canEditBatch(b) ? '<button class="link" data-edit="1">Rename / reschedule</button><button class="link" data-del="1">Delete batch</button>' : '') + '<span class="mini">' + location.origin + '/workflows/sitime/' + b.token + '</span></div>';
       el.querySelectorAll('[data-rm]').forEach((x) => x.addEventListener('click', async () => { const s = m.get(x.dataset.rm); if (!(await askConfirm('The slot goes back to assigned and leaves this batch\u2019s review link.', { title: 'Take ' + s.name + ' out of batch ' + String(b.num).padStart(2, '0'), ok: 'Take it out' }))) return; withUndo('Took ' + s.name + ' out of batch ' + String(b.num).padStart(2, '0'), () => { b.slotIds = b.slotIds.filter((i) => i !== s.id); s.batch = null; mark(); renderBatches(); renderStats(); }); }));
       const ed = el.querySelector('[data-edit]'); if (ed) ed.addEventListener('click', () => openBatchDialog(b));
