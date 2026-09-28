@@ -54,6 +54,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <a data-tab="replacements" role="tab" tabindex="0" aria-selected="false">Replacements<i id="n-repl">0</i></a>
         <a data-tab="handoff" role="tab" tabindex="0" aria-selected="false">Handoff<i id="n-handoff">0</i></a>
         <a data-tab="library" role="tab" tabindex="0" aria-selected="false">Library<i id="n-lib">0</i></a>
+        <a data-tab="settings" class="admin-only" role="tab" tabindex="0" aria-selected="false">Settings</a>
         <span class="savestate" id="savestate"></span><span class="whoami" id="whoami"></span>
       </div>
 
@@ -141,11 +142,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <p class="hint">Deleted images, and the originals of replaced ones, stay here for 30 days before the file is removed for good. Restore puts the image back in the library and back on any slot it was cleared from, if that slot is still empty.</p>
           <div class="queue" id="trash-list"></div>
         </div>
-        <div class="group admin-only">
-          <div class="card-head"><div class="group-title">Version history</div><button class="sbtn" id="hist-load">Show versions</button></div>
-          <p class="hint">Every save is kept: all of the last 48 hours, then one an hour for two weeks, then one a day for 90 days. If a lot of picks or a batch disappear, find the last version before the drop and restore it. A restore is saved as a new version, so it can be undone from this same list. Reviewer decisions are stored separately and are never affected.</p>
-          <div class="hist" id="hist-list"></div>
-        </div>
+      </div>
+      <!-- Settings (admin): access, passcodes, mock copy, recovery. Moved out of Library 9/27 (Pierce). -->
+      <div class="card rise tab admin-only" id="tab-settings" hidden>
         <div class="group admin-only">
           <div class="group-title">Team access</div>
           <div class="grid3"><label class="q"><span class="q-title">Team passcode</span><input class="txt" id="team-pass" type="password" placeholder="Not set" autocomplete="new-password" /></label><p class="hint" style="grid-column:2/4;align-self:end" id="team-hint">Lets Michael or Ace sign in here with their name to pick and upload images. They cannot make or delete batches, change passcodes, or reach anything outside this tool. Generated images are capped at 40 a day across the team. Changing it signs everyone out; blank turns team access off.</p></div>
@@ -172,6 +171,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
             <label class="q"><span class="q-title">Card text</span><input class="txt" id="mock-card-p" placeholder="Replacing 14 quartz parts with one MEMS platform across the radar stack." /></label>
             <p class="hint" style="align-self:end">The Event label and its icon stay fixed at the top of every card.</p>
           </div>
+        </div>
+        <div class="group admin-only">
+          <div class="card-head"><div class="group-title">Version history</div><button class="sbtn" id="hist-load">Show versions</button></div>
+          <p class="hint">Every save is kept: all of the last 48 hours, then one an hour for two weeks, then one a day for 90 days. If a lot of picks or a batch disappear, find the last version before the drop and restore it. A restore is saved as a new version, so it can be undone from this same list. Reviewer decisions are stored separately and are never affected.</p>
+          <div class="hist" id="hist-list"></div>
         </div>
       </div>
     </div>
@@ -1073,7 +1077,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function showTab(t) {
       curTab = t;
       document.querySelectorAll('#tabs a').forEach((a) => { a.classList.toggle('on', a.dataset.tab === t); a.setAttribute('aria-selected', String(a.dataset.tab === t)); });
-      ['batches', 'slots', 'replacements', 'handoff', 'library'].forEach((k) => { $('tab-' + k).hidden = k !== t; });
+      ['batches', 'slots', 'replacements', 'handoff', 'library', 'settings'].forEach((k) => { $('tab-' + k).hidden = k !== t; });
       $('stats').hidden = t !== 'batches';
       if (t === 'batches') renderBatches(); if (t === 'slots') renderSlots(); if (t === 'replacements') renderRepl(); if (t === 'handoff') renderHandoff(); if (t === 'library') renderLib();
     }
