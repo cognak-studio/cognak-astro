@@ -103,19 +103,56 @@ function stripInternal(s, visible) {
   }
   return o;
 }
+/* Recently deleted (2026-09-27): a library image deleted while on a slot keeps
+   the picks it was cleared from in trash[].cleared, reviews and solved and
+   all, so the client view strips those too. Entries are keyed as the admin
+   page keys them (item id + deletedAt). */
+const trashKey = (t) => (t && t.item && t.item.id) + ':' + (t && t.deletedAt);
+function stripTrash(t, visible) {
+  if (!t || typeof t !== 'object') return t;
+  const o = { ...t };
+  if (o.item) o.item = stripPick(o.item, visible);
+  if (Array.isArray(o.cleared)) o.cleared = o.cleared.map((c) => (c && c.pick ? { ...c, pick: stripPick(c.pick, visible) } : c));
+  return o;
+}
+const visibleOf = (st) => new Set((st.batches || []).filter((b) => !b.internal).map((b) => b.token));
+const hiddenOf = (p, visible) => ({ reviews: (p && p.reviews || []).filter(isInt), solved: (p && p.solved || []).filter((x) => !visible.has(x.token)) });
+function mergeHidden(p, h, visible) {
+  if (!p) return p;
+  const reviews = (p.reviews || []).filter((r) => !isInt(r)).concat(h.reviews);
+  const solved = (p.solved || []).filter((x) => visible.has(x.token)).concat(h.solved);
+  const o = { ...p };
+  if (reviews.length) o.reviews = reviews; else delete o.reviews;
+  if (solved.length) o.solved = solved; else delete o.solved;
+  return o;
+}
+/** Put the internal notes back into the trash the client saved (2026-09-27). */
+function restoreTrash(state, current) {
+  const curT = Array.isArray(current.trash) ? current.trash : [];
+  if (!Array.isArray(state.trash)) { if (curT.length) state.trash = curT; return; }   // never let a client save drop the trash
+  const visible = visibleOf(current);
+  const cur = new Map(curT.map((t) => [trashKey(t), t]));
+  // an entry the client echoed back is the stored one (it cannot edit them);
+  // one it made in this save has nothing internal to restore
+  state.trash = state.trash.map((t) => (cur.has(trashKey(t)) ? { ...cur.get(trashKey(t)) } : t));
+  // an entry the client restored put its stripped picks back on slots: carry
+  // the stored notes onto them, unless restoreInternal already had that image
+  const kept = new Set(state.trash.map(trashKey));
+  const was = new Map((current.slots || []).map((s) => [s.id, s]));
+  const slots = new Map((state.slots || []).map((s) => [s.id, s]));
+  curT.filter((t) => !kept.has(trashKey(t))).forEach((t) => (t.cleared || []).forEach((c) => {
+    const s = c && c.pick && slots.get(c.id); if (!s || !PICKS.includes(c.which)) return;
+    const p = s[c.which], w = was.get(c.id);
+    if (!p || url(p) !== url(c.pick) || (w && w[c.which] && url(w[c.which]) === url(p))) return;
+    const h = hiddenOf(c.pick, visible);
+    if (h.reviews.length || h.solved.length) s[c.which] = mergeHidden(p, h, visible);
+  }));
+}
 /** Put the internal notes back onto a slot the client saved, from the stored slot. */
 function restoreInternal(s, c, current) {
-  const visible = new Set((current.batches || []).filter((b) => !b.internal).map((b) => b.token));
-  const hidden = (p) => ({ reviews: (p && p.reviews || []).filter(isInt), solved: (p && p.solved || []).filter((x) => !visible.has(x.token)) });
-  const merge = (p, h) => {
-    if (!p) return p;
-    const reviews = (p.reviews || []).filter((r) => !isInt(r)).concat(h.reviews);
-    const solved = (p.solved || []).filter((x) => visible.has(x.token)).concat(h.solved);
-    const o = { ...p };
-    if (reviews.length) o.reviews = reviews; else delete o.reviews;
-    if (solved.length) o.solved = solved; else delete o.solved;
-    return o;
-  };
+  const visible = visibleOf(current);
+  const hidden = (p) => hiddenOf(p, visible);
+  const merge = (p, h) => mergeHidden(p, h, visible);
   const key = (h) => (h.which || '') + '|' + (url(h.pick) || '') + '|' + (h.at || '');
   const curHist = Array.isArray(c.history) ? c.history : [];
   const curKeys = new Map(curHist.map((h) => [key(h), h]));
@@ -160,7 +197,8 @@ function viewFor(who, state) {
      drops it). */
   return { ...out, batches: (state.batches || []).filter((b) => !b.internal), reviewLog: undefined,
     nextBatchNum: Math.max(0, ...(state.batches || []).map((b) => b.num || 0)) + 1,
-    slots: (state.slots || []).map((s) => stripInternal(s, visible)), retiredSlots: (state.retiredSlots || []).map((s) => stripInternal(s, visible)) };
+    slots: (state.slots || []).map((s) => stripInternal(s, visible)), retiredSlots: (state.retiredSlots || []).map((s) => stripInternal(s, visible)),
+    ...(Array.isArray(state.trash) ? { trash: state.trash.map((t) => stripTrash(t, visible)) } : {}) };   // (2026-09-27)
 }
 
 export default async function handler(req, res) {
@@ -290,6 +328,7 @@ export default async function handler(req, res) {
           const cur = new Map((current.slots || []).map((s) => [s.id, s]));
           const merged = { ...current, batches: state.batches };   // a batch the client made in this save counts as one it can see
           state.slots.forEach((s) => { const c = cur.get(s.id); if (c) restoreInternal(s, c, merged); });
+          restoreTrash(state, current);   // trash[].cleared picks carry them too (2026-09-27)
           syncSlots(current.slots, current.retiredSlots); state.retiredSlots = syncSlots.parked;   // the parked list as GET computes it, unstripped
         }
       }
