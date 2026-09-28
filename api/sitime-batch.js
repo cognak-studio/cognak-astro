@@ -117,7 +117,8 @@ export default async function handler(req, res) {
       mask: (seedSlots.get(s.id) || {}).mask || null,
       desc: typeof s.desc === 'string' ? s.desc : '',
       main: img(s.main),
-      backup: img(s.backup),
+      backup: s.single ? null : img(s.backup),   // single-image slot: no backup, ever (2026-09-28)
+      single: !!s.single,
       original: originals(s),
       context: contextOf(s.id),
       display: ['hero', 'card', 'burst', 'arm'].includes(s.display) ? s.display : autoDisplay(s),

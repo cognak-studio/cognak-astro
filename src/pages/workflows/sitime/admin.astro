@@ -93,7 +93,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
               <div id="page-card"></div>
               <div class="card-head">
                 <span class="mini" id="pg-count"></span>
-                <div class="right"><span class="selbar"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><button type="button" class="link" id="check-all-pages" hidden></button><span class="mini" id="checked-count"></span><button class="sbtn" id="preview-checked" disabled title="See the checked slots in the review mockup without adding them to a batch">Preview</button><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
+                <div class="right"><span class="selbar"><label class="chk"><input type="checkbox" id="check-all" /> Select these</label><button type="button" class="link" id="check-all-pages" hidden></button><span class="mini" id="checked-count"></span><button class="sbtn" id="preview-checked" disabled title="See the checked slots in the review mockup without adding them to a batch">Preview</button><button class="sbtn" id="mark-single" disabled title="Headshots, product images: one file per slot, no backup">Single image</button><button class="sbtn p" id="add-to-batch" disabled>Add to batch</button></span><button class="sbtn" id="pg-prev">Prev</button><button class="sbtn" id="pg-next">Next</button></div>
               </div>
               <div class="srows" id="slot-rows"></div>
               <p class="hint pager-foot" id="slot-more"></p>
@@ -389,6 +389,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tact.trash{ width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; background:transparent; color:#fff; }
     .adm .tact.trash svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     .adm .tact.trash:hover{ background:#FF1E1E; border-color:#FF7070; color:#fff; }
+    .adm .tile.single-note{ cursor:default; background:#FAF9FC; }
+    .adm .single-chk{ margin-left:10px; white-space:nowrap; }
     .adm .tile.empty{ border:1px dashed var(--line-strong); background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; color:var(--ink); font-size:var(--fs-14); font-weight:500; padding:12px; cursor:pointer; text-transform:capitalize; }
     .adm .tile.empty .mini{ font-size:var(--fs-10); text-transform:none; }
     .adm .tile.empty:hover{ border-color:var(--accent); border-style:solid; }
@@ -1077,6 +1079,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     /* ---------- derived ---------- */
     const byId = () => new Map(S.slots.map((s) => [s.id, s]));
+    /* Single-image slots (Pierce, 9/28): headshots and product renders map one file to one
+       place for the Zaelab/AEM handoff. No backup, ever; a backup already on the slot is kept
+       but ignored, so turning Single off brings it back. */
+    const isSingle = (s) => !!(s && s.single);
     /* SiTime's own sign-in (role 'client', Pierce 9/25) never sees COGNAK's
        internal reviews. The server already drops internal batches, their
        decisions and the review log for that role; reviews copied onto picks
@@ -1110,7 +1116,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function outcomeIn(slot, batch) {
       const d = batch && D[batch.token] && D[batch.token].latest && D[batch.token].latest[slot.id];
       const ev = (w) => { const e = d && d[w]; return e && isSolved(slot[w], batch) ? Object.assign({}, e, { decision: 'approve' }) : e; };
-      return resolveOutcome(ev('main'), ev('backup'), !!slot.backup);
+      return resolveOutcome(ev('main'), ev('backup'), !!slot.backup && !isSingle(slot));
     }
     /* Internal review (Michael, 9/25): he denies BACKUPS too, so SiTime sees
        stronger pairs. One approve winning the slot would hide those, so an
@@ -1719,7 +1725,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<button class="tact" data-act="flip" data-slot="' + s.id + '" data-which="' + which + '" title="Flip horizontally">Flip</button>' +
         '<button class="tact trash" data-act="trash" data-slot="' + s.id + '" data-which="' + which + '" title="Remove ' + which + '" aria-label="Remove ' + which + '">' + ICONS.delete + '</button></div></div>';
     }
-    function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + tileHtml(s, 'backup') + '</div>'; }
+    function tilesFor(s) { return '<div class="tiles">' + tileHtml(s, 'main') + (isSingle(s) ? '<div class="tile empty single-note"><span>Single image</span><span class="mini">One file for this slot, no backup</span></div>' : tileHtml(s, 'backup')) + '</div>'; }
     /* Per-pick treatment (Pierce, 9/24): B&W and horizontal flip are stored on
        the pick ({bw, flip}) and applied at display time -- tiles, the drawer,
        Handoff and the reviewer all show the treated image, and both CSVs
@@ -1813,13 +1819,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id].filter(Boolean).join(' · ')) + '</span>' +
         '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup; the image can be reframed there">Preview/Edit</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
-        '<div class="tgtbar"><div class="tgrp"><span class="lbl">Assign to</span>' + tgtBtn(s, 'main') + tgtBtn(s, 'backup') +
+        '<div class="tgtbar"><div class="tgrp"><span class="lbl">Assign to</span>' + tgtBtn(s, 'main') + (isSingle(s) ? '' : tgtBtn(s, 'backup')) + '<label class="chk single-chk" title="One image for this slot, no backup (headshots, product images)"><input type="checkbox" data-single="1"' + (isSingle(s) ? ' checked' : '') + '> Single image</label>' +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
         '<div class="descrow"><label class="lbl-s" for="desc-' + s.id + '">Additional notes<span class="lbl-x">Shown to SiTime under the image</span></label><textarea id="desc-' + s.id + '" data-desc="1" maxlength="400" rows="3" placeholder="Optional">' + esc(slotDesc(s)) + '</textarea>' +
         /* Where each image comes from, for licensing (pick.lic). Guessed from the file name; correct it here. */
-        ['main', 'backup'].map((w) => '<label class="srcsel lbl-s">Source · ' + w + (s[w] ? '<select data-lic="' + w + '">' + LIC_ORDER.map((k) => '<option value="' + k + '"' + (licOf(s[w]) === k ? ' selected' : '') + '>' + esc(LIC[k][0]) + '</option>').join('') + '</select><span class="mini">' + esc(LIC[licOf(s[w])][1]) + '</span>' : '<span class="mini">No ' + w + ' yet</span>') + '</label>' +
+        ['main', 'backup'].filter((w) => w === 'main' || !isSingle(s)).map((w) => '<label class="srcsel lbl-s">Source · ' + w + (s[w] ? '<select data-lic="' + w + '">' + LIC_ORDER.map((k) => '<option value="' + k + '"' + (licOf(s[w]) === k ? ' selected' : '') + '>' + esc(LIC[k][0]) + '</option>').join('') + '</select><span class="mini">' + esc(LIC[licOf(s[w])][1]) + '</span>' : '<span class="mini">No ' + w + ' yet</span>') + '</label>' +
           /* License status: automatic from the source (and a license number in Handoff), or set by hand. */
           (s[w] ? '<label class="srcsel lbl-s">License · ' + w + '<select data-lstat="' + w + '">' + licenseOptions(s, s[w]) + '</select><span class="mini">' + (s[w].license ? 'Set by hand. Automatic would say ' + (LS_LABEL[autoLicStatus(s, s[w])] || 'nothing') + '.' : 'Automatic, from the source' + (licensedInHandoff(s, s[w]) ? ' and the license number in Handoff' : '') + '.') + '</span></label>' : '')).join('') + '</div>' +
         reviewBlock(s) +
@@ -1827,6 +1833,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         sourceBody(s);
 
       el.querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich[s.id] = b.dataset.tgt; refreshDrawer(s.id); }));
+      el.querySelector('[data-single]').addEventListener('change', (e) => { s.single = e.target.checked || undefined; if (s.single) pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); });
       el.querySelectorAll('[data-dsp]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.dsp; if (v === autoDisplay(s)) delete s.display; else s.display = v; mark(); refreshDrawer(s.id); }));
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
       el.querySelector('[data-clear]').addEventListener('click', async () => { if (!s.main && !s.backup) return; if (!(await askConfirm('Main and backup both empty. The images stay in the library; any review notes move to Earlier images.', { title: 'Clear picks on ' + s.name, ok: 'Clear picks' }))) return; withUndo('Cleared picks on ' + s.name, () => { retirePick(s, 'main', 'Cleared'); retirePick(s, 'backup', 'Cleared'); if (s.id.startsWith('EX-')) s.state = 'unreviewed'; pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); }); });
@@ -1888,7 +1895,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     const slotDesc = (s) => s.desc || (s.main && s.main.desc) || '';
     function autoDisplay(s) { if (s.mask === 'burst' || s.mask === 'arm') return s.mask; return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
     function displayOf(s) { return DSP.includes(s.display) ? s.display : autoDisplay(s); }
-    function targetOf(s) { return pkWhich[s.id] === 'backup' ? 'backup' : 'main'; }
+    function targetOf(s) { return pkWhich[s.id] === 'backup' && !isSingle(s) ? 'backup' : 'main'; }
     function tgtBtn(s, which) {
       const p = s[which];
       return '<button class="tgt ' + (targetOf(s) === which ? 'on' : '') + '" data-tgt="' + which + '">' + (p ? '<img src="' + esc(p.thumb || p.url) + '"' + fxStyle(p) + '>' : '<span class="ph"></span>') + which[0].toUpperCase() + which.slice(1) + '</button>';
@@ -1931,7 +1938,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         btn.dataset.every = every ? '1' : '';
       }
     }
-    function updateChecked() { syncCheckAll(); $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('preview-checked').disabled = !checked.size; $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
+    function updateChecked() { syncCheckAll(); $('checked-count').textContent = checked.size ? checked.size + ' checked' : ''; $('add-to-batch').disabled = !checked.size; $('preview-checked').disabled = !checked.size; { const m = byId(); const all = checked.size && [...checked].every((id) => isSingle(m.get(id))); $('mark-single').disabled = !checked.size; $('mark-single').textContent = all ? 'Allow backup' : 'Single image'; } $('checked-hint').textContent = checked.size ? checked.size + ' checked in Slots' : ''; }
     function visibleSlots() { const l = filtered(); return fx.page ? l : l.slice(pageIdx * PAGE, pageIdx * PAGE + PAGE); }
     $('check-all-pages').addEventListener('click', (e) => {
       const every = e.currentTarget.dataset.every === '1';
@@ -1953,6 +1960,14 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const allOpen = vis.length && vis.every((s) => openSlots.has(s.id));
       vis.forEach((s) => allOpen ? openSlots.delete(s.id) : openSlots.add(s.id));
       renderSlots();
+    });
+    /* Bulk: all checked single already -> allow backups again; otherwise make them all single. */
+    $('mark-single').addEventListener('click', () => {
+      const m = byId(); const ids = [...checked].filter((id) => m.get(id)); if (!ids.length) return;
+      const on = !ids.every((id) => isSingle(m.get(id)));
+      ids.forEach((id) => { const x = m.get(id); x.single = on || undefined; if (on) pkWhich[id] = 'main'; });
+      mark(); renderSlots(); renderStats(); updateChecked();
+      toast(ids.length + (ids.length === 1 ? ' slot' : ' slots') + (on ? ' set to a single image.' : ' can take a backup again.'));
     });
     $('add-to-batch').addEventListener('click', () => {
       /* Any batch still waiting on decisions can take more slots. */
@@ -1986,7 +2001,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     }
     function openPreview(slots, title) {
       if (!slots.length) return;
-      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', desc: s.desc || '', mask: s.mask || null, main: pvImg(s.main), backup: pvImg(s.backup), original: pvOriginals(s), context: pvContext(s), display: displayOf(s) })) };
+      window.__sitimePreview = { title, mock: S.mock || null, slots: slots.map((s) => ({ id: s.id, page: s.page, section: s.section, url: s.url, name: s.name, where: s.where || '', desc: s.desc || '', mask: s.mask || null, main: pvImg(s.main), backup: isSingle(s) ? null : pvImg(s.backup), single: isSingle(s), original: pvOriginals(s), context: pvContext(s), display: displayOf(s) })) };
       $('pv-title').textContent = 'Preview · ' + title;
       $('pv-frame').src = '/workflows/sitime/review?preview=local&t=' + Date.now();
       if (!$('pv-dialog').open) $('pv-dialog').showModal();
@@ -2522,11 +2537,11 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('handoff-rows').querySelectorAll('[data-lic]').forEach((i) => i.addEventListener('change', (e) => { const s = byId().get(i.dataset.lic); const id = e.target.value.trim(); s.license = id ? { id, at: new Date().toISOString() } : null; mark(); }));
     }
     $('export-handoff').addEventListener('click', () => {
-      const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'license', 'batch']];
+      const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'license', 'batch', 'single_image']];
       S.slots.forEach((s) => {
         const p = finalPick(s); if (!p) return;
         const b = batchOf(s); const o = b ? outcomeIn(s, b) : null; const ev = o && o.ev;
-        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? (ev.by || DECIDED_BY) : '', p.source, assetId(p), refOf(p), p.url, treatment(p), (s.license && s.license.id) || '', b ? String(b.num).padStart(2, '0') : '']);
+        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? (ev.by || DECIDED_BY) : '', p.source, assetId(p), refOf(p), p.url, treatment(p), (s.license && s.license.id) || '', b ? String(b.num).padStart(2, '0') : '', isSingle(s) ? 'yes' : 'no']);
       });
       downloadCsv('sitime-approved-images.csv', rows);
     });
