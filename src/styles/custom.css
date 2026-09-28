@@ -5005,7 +5005,7 @@ a[href*="cookieyes.com"],
     .home-hero-time {
         display: block;
         position: absolute;
-        top: 20px;
+        top: 42px; /* matches inner-page Projects/Studio text */
         z-index: 99999;
         pointer-events: none;
         white-space: nowrap;
@@ -5019,14 +5019,14 @@ a[href*="cookieyes.com"],
     }
     /* Location — top left */
     .home-hero-loc {
-        left: 20px;
+        left: 24px; /* logo's left edge */
     }
     /* Time — top right, inline so time/dot/temp sit on one line */
     .home-hero-time {
         display: flex;
         align-items: center;
         gap: 6px;
-        right: 20px;
+        right: 34px; /* "Studio" text's right edge */
         text-align: right;
     }
     /* Dot between time and temp — hidden until temp value arrives */
