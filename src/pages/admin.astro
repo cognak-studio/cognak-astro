@@ -118,13 +118,13 @@ const TOOLS = [
       border-radius:12px; padding:36px 34px 32px; box-shadow:0 2px 24px rgba(0,0,0,.28); }
     @media (max-width:600px){ .adm .acard{ max-width:none; padding:28px 20px 24px; } }
     /* One centred 600px column (Pierce, 9/28): the header reads like every other page, headline
-       flush left and the lede offset 40px under it, in both states; the sign-in card, tool cards
+       flush left and the lede flush left under it (Pierce, 9/28), in both states; the sign-in card, tool cards
        and passkeys fill the same column, so everything shares one left edge. Static CSS: nothing
        moves after load. */
     .adm > *{ max-width:600px; margin-left:auto; margin-right:auto; }
     .adm .headline, .adm .lede, .adm .acard, .adm .idle-note, .adm .bounce-note{ margin-left:auto; margin-right:auto; }
     .adm .headline{ text-align:left; max-width:600px; }
-    .adm .lede{ text-align:left; text-wrap:pretty; max-width:600px; padding-left:40px; padding-right:4ch; box-sizing:border-box; }
+    .adm .lede{ text-align:left; text-wrap:pretty; max-width:600px; padding-left:0; padding-right:4ch; box-sizing:border-box; }
     @media (max-width:760px){ .adm .lede{ padding-left:0; } }
     .adm .acard{ max-width:600px; }
     .adm .idle-note{ max-width:600px; }

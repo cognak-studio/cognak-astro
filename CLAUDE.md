@@ -69,7 +69,7 @@ Settled in a 2026-09 QA sweep. Do not report them as issues.
 
 **Design rules**
 - Diatype only (Diatype Variable / Diatype Mono), everywhere. Exceptions: 'Onest' inside the SiTime website mock on the review page (their font), and Material Icons. Anything moved to `<body>` (overlays, modals) must set `font-family` itself.
-- Page headers: headline 274px from the top of the page (every page matches), flush left, with the lede offset 40px under it (flush on phones). /admin puts this inside a centred 600px column. Headlines don't slide in.
+- Page headers: headline 274px from the top of the page (every page matches), flush left, with the lede offset 40px under it (flush on phones; /admin is flush left everywhere). /admin puts this inside a centred 600px column. Headlines don't slide in.
 - In a headline, the word that names the page gets the colour (`<em>`): "Studio <em>admin</em>.", "Custom <em>workflows</em> for clients."
 - Cards (/brief, /admin, /workflows): no solid border. A 1px masked ring lit at the top-left and bottom-right corners, which brightens on hover, and the text turns the accent colour. No drop-shadow glow.
 - Focus on text fields is one stroke on the field's own border (sitewide rule in custom.css), not a second ring. Buttons and links keep the outer ring.
