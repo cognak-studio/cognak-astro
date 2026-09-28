@@ -454,6 +454,7 @@ import '../styles/site.css';
         function dismiss() {
           el.style.opacity = '0';
           el.style.pointerEvents = 'none';
+          document.documentElement.classList.remove('cognak-cookie-open');
           setTimeout(function () { el.style.display = 'none'; }, 400);
         }
         document.getElementById('cognak-accept').addEventListener('click', function () {
@@ -474,10 +475,18 @@ import '../styles/site.css';
             if (revealed) return;
             revealed = true;
             el.classList.add('cognak-cookie--visible');
+            // Lets custom.css reserve room under the footer so this fixed
+            // banner never sits on top of its last row (Privacy Policy on phones).
+            document.documentElement.classList.add('cognak-cookie-open');
             window.removeEventListener('scroll', reveal);
           }
           if (window.scrollY > 0) { reveal(); }
           else { window.addEventListener('scroll', reveal, { passive: true }); }
+          // The banner is invisible (and inert to the mouse) until the first
+          // scroll, but its buttons are still in the tab order. A keyboard user
+          // who tabs onto it before scrolling would be focused on nothing, so
+          // focus reveals it too.
+          el.addEventListener('focusin', reveal);
         }
       })();
     </script>

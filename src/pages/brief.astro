@@ -1628,7 +1628,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           if(!first)first=fld;
         }
       });
-      if(first)first.scrollIntoView({behavior:'smooth',block:'center'});
+      if(first){
+        first.scrollIntoView({behavior:'smooth',block:'center'});
+        /* Move focus too, so keyboard and screen-reader users land on the
+           problem instead of staying on the Submit button. preventScroll
+           because the smooth scroll above is already in flight. */
+        var target=first.querySelector('input:not([type=hidden]):not([type=file]),textarea,button');
+        if(target){ try{ target.focus({preventScroll:true}); }catch(e){} }
+      }
       return ok;
     }
 

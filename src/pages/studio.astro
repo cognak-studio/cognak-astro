@@ -379,6 +379,8 @@ body[data-page="studio"] #cognak-cursor.is-view-projects #cognak-cursor-label { 
         var items = logos.map(function(logo) {
             var a = document.createElement('span');
             a.className = 'logo-ring-item' + (logo.cls ? ' ' + logo.cls : '');
+            // aria-label is ignored on a role-less span; role="img" makes it count.
+            a.setAttribute('role', 'img');
             a.setAttribute('aria-label', logo.label);
             a.innerHTML = logo.svg;
             var vb = /viewBox="\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)/.exec(logo.svg);
@@ -568,8 +570,14 @@ body[data-page="studio"] #cognak-cursor.is-view-projects #cognak-cursor-label { 
 (function() {
     var nav = document.querySelector('.home-bottom-bar.inner-page-nav');
     if (!nav) return;
-    // Move nav to <html> to escape any transform applied to <body> by the WebGL script
-    document.documentElement.appendChild(nav);
+    // Move nav to <html> to escape any transform applied to <body> by the WebGL script.
+    // Insert it BEFORE <body>, not after: appended last, it came after the whole page
+    // and footer in tab and screen-reader order, so keyboard users hit the header nav
+    // after ~20 other stops.
+    document.documentElement.insertBefore(nav, document.body);
+    // ...and keep the skip link as the very first tab stop, ahead of the nav.
+    var skip = document.querySelector('.skip-to-main');
+    if (skip) document.documentElement.insertBefore(skip, nav);
     nav.style.position = 'fixed';
     nav.style.top = '0';
     nav.style.left = '0';

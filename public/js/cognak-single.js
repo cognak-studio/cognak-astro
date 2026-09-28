@@ -119,6 +119,7 @@
         document.addEventListener('touchstart', resetIdle, { passive: true });
         document.addEventListener('touchmove',  resetIdle, { passive: true });
         document.addEventListener('scroll',     resetIdle, { passive: true });
+        document.addEventListener('keydown',    resetIdle, { passive: true });
         resetIdle();
     } else {
         var mobileTimer = null;

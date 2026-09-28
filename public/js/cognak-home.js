@@ -212,7 +212,28 @@
         el.appendChild(s);
         setTimeout(function() { if (s.parentNode) s.parentNode.removeChild(s); }, 900);
     }
-    setInterval(spawn, 150);
+
+    // Decorative and endless, so it has to earn its keep: skip it entirely for
+    // visitors who ask for reduced motion, and only run while the phrase is
+    // actually on screen in a visible tab (it used to spawn ~7 nodes a second
+    // and re-measure layout every tick regardless).
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var timer = null;
+    var onScreen = true;
+    function sync() {
+        var shouldRun = onScreen && !document.hidden;
+        if (shouldRun && !timer) timer = setInterval(spawn, 150);
+        else if (!shouldRun && timer) { clearInterval(timer); timer = null; }
+    }
+    if ('IntersectionObserver' in window) {
+        onScreen = false;
+        new IntersectionObserver(function(entries) {
+            onScreen = entries[entries.length - 1].isIntersecting;
+            sync();
+        }).observe(el);
+    }
+    document.addEventListener('visibilitychange', sync);
+    sync();
 })();
 
 /* ── Homepage project hover metadata (JSON typewriter) ────────────────────── */

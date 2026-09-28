@@ -3873,6 +3873,17 @@ body.pagers-idle a[rel="next"] {
     opacity: 0 !important;
     pointer-events: none !important;
 }
+/* Keyboard parity. The pagers slide out on :hover and fade after idle, and a
+   keyboard user triggers neither, so tabbing onto one landed focus on an
+   invisible, unclickable link. While a pager has keyboard focus, show it fully. */
+a[rel="prev"]:focus-visible,
+a[rel="next"]:focus-visible,
+body.pagers-idle a[rel="prev"]:focus-visible,
+body.pagers-idle a[rel="next"]:focus-visible {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateX(0) !important;
+}
 @media (max-width: 720px) {
     a[rel="prev"],
     a[rel="next"] {
@@ -4817,6 +4828,19 @@ a[href*="cookieyes.com"],
         padding: 12px 16px;
         gap: 14px;
         border-radius: 14px;
+    }
+}
+
+/* Reserve room under the footer while the fixed cookie banner is showing, so it
+   never covers the footer's last row (Privacy Policy + copyright on phones, the
+   Projects / Studio links on desktop Studio and Projects). BaseLayout.astro sets
+   html.cognak-cookie-open when the banner appears and clears it on Accept/Decline. */
+html.cognak-cookie-open .main-footer {
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+}
+@media (max-width: 720px) {
+    html.cognak-cookie-open .main-footer {
+        padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
     }
 }
 
