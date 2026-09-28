@@ -569,6 +569,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .bslot{ border:1px solid #E8E5EF; border-radius:6px; padding:6px; font-size:var(--fs-12); color:var(--ink-soft); }
     .adm .bslot img{ width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:3px; background:#ECEAF1; display:block; margin-bottom:5px; }
     .adm .bslot b{ display:block; color:var(--ink); font-weight:500; font-size:var(--fs-12); }
+    /* The status line and Remove sit under the caption at caption size (Pierce, 9/28). */
+    .adm .bslot .st{ font-size:var(--fs-11); gap:6px; margin-top:4px; }
+    .adm .bslot .st i{ width:6px; height:6px; }
+    .adm .bslot .link{ font-size:var(--fs-11); margin:3px 0 0; }
     .adm dialog{ border:1px solid #E8E5EF; border-radius:12px; padding:26px; width:min(92vw,480px); font-family:'Diatype Variable', sans-serif; color:var(--ink); }
     /* undo toast (bottom centre, same pill language as the tabs) */
     .adm .undo{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:50; display:flex; align-items:center; gap:14px; background:var(--deep); color:#fff; border-radius:999px; padding:8px 8px 8px 22px; box-shadow:0 10px 30px rgba(0,0,0,.22); font-size:var(--fs-15); max-width:min(92vw,640px); }
