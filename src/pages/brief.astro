@@ -1,9 +1,10 @@
 ---
 /**
- * /brief — hidden, unlinked client discovery questionnaire.
- * Not in nav, footer, or sitemap; noindex. Pierce sends the URL per project.
+ * /brief — the client discovery questionnaire. Public and indexable: linked from
+ * the footer and the "Start a project" buttons, and listed in the sitemap.
  * Delivery: JS assembles a plaintext brief and POSTs it to /api/brief (a Vercel
- * serverless function that emails it via Resend, reply-to = the client's email).
+ * serverless function that files it as an issue in Linear, with the client's
+ * email as the reply-to; see api/brief.js).
  * Palette: adjusted olive-brown, dark ink — verified WCAG AA (see :root).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -722,7 +723,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     if (history.scrollRestoration) { history.scrollRestoration = 'manual'; }
     window.scrollTo(0, 0);
 
-    var DELIVER_TO = 'pierce@cognak.com';
+    var DELIVER_TO = 'hello@cognak.com';
 
     /* Lead capture shown at the top of every discipline's questionnaire */
     var LEAD = {title:'Your details',fields:[
@@ -1701,7 +1702,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           }, beat);
         })
         .catch(function(){
-          errEl.textContent='Something went wrong sending your brief. Please try again, or email us directly at pierce@cognak.com.';
+          errEl.textContent='Something went wrong sending your brief. Please try again, or email us directly at hello@cognak.com.';
           errEl.style.display='block';
           btn.classList.remove('is-sending');
           btn.classList.add('is-failed');

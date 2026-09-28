@@ -160,7 +160,7 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error('Linear brief create failed', err);
     return res.status(502).json({
-      error: 'Could not file your brief just now. Please try again, or email us at pierce@cognak.com.',
+      error: 'Could not file your brief just now. Please try again, or email us at hello@cognak.com.',
     });
   }
 }

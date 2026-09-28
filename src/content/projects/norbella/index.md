@@ -21,7 +21,7 @@ moreDetails: '<p>• 4+ month project</p>
   <p>• <a href="https://www.norbella.com">www.norbella.com</a></p>
 
   '
-metaDescription: View COGNAK's work for Norbella, a media agency partnering with brands to grow businesses by combining insights with media intelligence and expertly crafting custom media campaigns.
+metaDescription: COGNAK's work for Norbella, a media agency that grows brands by pairing insights with media intelligence and custom-crafted media campaigns.
 clientLocation: Boston
 role: led
 activeClient: false
