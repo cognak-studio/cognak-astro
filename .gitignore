@@ -33,3 +33,4 @@ __pycache__/
 
 # Per-session status files written for the menubar app (local state, not source)
 .claude-status/
+public/workflows/sitime/_import/
