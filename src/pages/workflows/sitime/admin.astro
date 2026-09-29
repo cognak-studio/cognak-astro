@@ -1177,7 +1177,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       const inScope = S.slots.filter((s) => s.state !== 'unreviewed' && s.state !== 'kept').length;
       $('stats').innerHTML = [
         ['' + inScope, 'slots in scope'],
-        ['' + S.slots.filter((s) => s.main && s.backup).length, 'main + backup assigned'],
+        /* A single-image slot is complete with its main alone (Pierce, 9/29). */
+        ['' + S.slots.filter((s) => s.main && (s.backup || isSingle(s))).length, 'fully assigned'],
         ['' + S.slots.filter(finalPick).length, 'approved by SiTime'],
         ['' + n('denied'), 'denied, need replacement', 'warn'],
         ['' + n('held'), 'held'],
