@@ -324,7 +324,7 @@
     var COL_W     = Math.round(CHAR_SIZE * 1.35);
     var ROW_H     = Math.round(CHAR_SIZE * 1.65);
     var RADIUS    = 190;
-    var MAX_ALPHA = 0.18;
+    var MAX_ALPHA = 0.20; // was 0.18; +10% (Pierce, 9/29)
 
     var W, H, cells = [];
     var mouse = { x: -9999, y: -9999 };
