@@ -220,29 +220,9 @@
 "file": "b619ee72da448ede.jpg",
 "name": "images__SiTime-TimeFabric-Holdover-Extension-System-Architecture-BD.jpg"
 },
-"a9e3bbcf6c721f2a": {
-"file": "a9e3bbcf6c721f2a.jpg",
-"name": "iht__hero_products.jpg"
-},
 "b55a4f4798e3b50f": {
 "file": "b55a4f4798e3b50f.jpg",
 "name": "productcats__Endura-5-packages_0.jpg"
-},
-"63048caaac394ae1": {
-"file": "63048caaac394ae1.jpg",
-"name": "images__software-suite-category.jpg"
-},
-"107e70b8633f25b1": {
-"file": "107e70b8633f25b1.jpg",
-"name": "images__SiTimeDirect-box-shipping.jpg"
-},
-"d6d9dedd8485e900": {
-"file": "d6d9dedd8485e900.png",
-"name": "images__time-machine.png"
-},
-"12d06ec34473b5f7": {
-"file": "12d06ec34473b5f7.jpg",
-"name": "heros__Home-Banner-precision-timing-clock-generator.jpg"
 },
 "a630795d5667573f": {
 "file": "a630795d5667573f.jpg",
@@ -2455,13 +2435,6 @@
 "key": "IMG-0188|main"
 },
 {
-"kind": "existing",
-"slotId": "IMG-0070",
-"file": "a9e3bbcf6c721f2a",
-"role": "main",
-"key": "IMG-0070|main"
-},
-{
 "kind": "new",
 "anchor": "IMG-0070",
 "name": "Category tile \u00b7 Endura-5-packages_0",
@@ -2542,42 +2515,11 @@
 "key": "IMG-0070|Category tile \u00b7 MHz-MEMS-Resonator--Angled--small"
 },
 {
-"kind": "new",
-"anchor": "IMG-0070",
-"name": "Category tile \u00b7 software-suite-category",
-"where": "/products",
-"file": "63048caaac394ae1",
-"key": "IMG-0070|Category tile \u00b7 software-suite-category"
-},
-{
-"kind": "new",
-"anchor": "IMG-0070",
-"name": "Category tile \u00b7 SiTimeDirect-box-shipping",
-"where": "/products",
-"file": "107e70b8633f25b1",
-"key": "IMG-0070|Category tile \u00b7 SiTimeDirect-box-shipping"
-},
-{
-"kind": "new",
-"anchor": "IMG-0070",
-"name": "Category tile \u00b7 time-machine",
-"where": "/products",
-"file": "d6d9dedd8485e900",
-"key": "IMG-0070|Category tile \u00b7 time-machine"
-},
-{
 "kind": "existing",
 "slotId": "IMG-0072",
 "file": "69c7787dae62113f",
 "role": "main",
 "key": "IMG-0072|main"
-},
-{
-"kind": "existing",
-"slotId": "IMG-0074",
-"file": "12d06ec34473b5f7",
-"role": "main",
-"key": "IMG-0074|main"
 },
 {
 "kind": "existing",
@@ -2599,13 +2541,6 @@
 "file": "52cc094f12d96395",
 "role": "main",
 "key": "IMG-0414|main"
-},
-{
-"kind": "existing",
-"slotId": "IMG-0461",
-"file": "63048caaac394ae1",
-"role": "main",
-"key": "IMG-0461|main"
 }
 ]
 }
