@@ -75,7 +75,7 @@ function img(pick) {
 }
 
 // Same rule as admin.astro autoDisplay(): card-type slots review as a tall card.
-function autoDisplay(s) { const m = (seedSlots.get(s.id) || {}).mask; if (m === 'burst' || m === 'arm') return m; return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
+function autoDisplay(s) { const m = (seedSlots.get(s.id) || {}).mask; if (m === 'burst' || m === 'arm') return m; if (s.kind === 'product') return 'product'; return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -121,7 +121,7 @@ export default async function handler(req, res) {
       single: !!s.single,
       original: originals(s),
       context: contextOf(s.id),
-      display: ['hero', 'card', 'burst', 'arm'].includes(s.display) ? s.display : autoDisplay(s),
+      display: ['hero', 'card', 'burst', 'arm', 'product'].includes(s.display) ? s.display : autoDisplay(s),
     }));
 
     const { latest } = await readDecisions(token);

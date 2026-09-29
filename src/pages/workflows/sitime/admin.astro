@@ -1858,7 +1858,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup; the image can be reframed there">Preview/Edit</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
         '<div class="tgtbar"><div class="tgrp"><span class="lbl">Assign to</span>' + tgtBtn(s, 'main') + (isSingle(s) ? '' : tgtBtn(s, 'backup')) + '<label class="chk single-chk" title="One image for this slot, no backup (headshots, product images)"><input type="checkbox" data-single="1"' + (isSingle(s) ? ' checked' : '') + '> Single image</label>' + '<label class="chk single-chk" title="Shows a chip or package. Product slots sit under the Product switch; the rest under Other."><input type="checkbox" data-kindchk="1"' + (kindOf(s) === 'product' ? ' checked' : '') + '> Product image</label>' +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
-        '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
+        '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white', product: 'Chip render in a rounded card, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
         '<div class="descrow"><label class="lbl-s" for="desc-' + s.id + '">Additional notes<span class="lbl-x">Shown to SiTime under the image</span></label><textarea id="desc-' + s.id + '" data-desc="1" maxlength="400" rows="3" placeholder="Optional">' + esc(slotDesc(s)) + '</textarea>' +
         /* Where each image comes from, for licensing (pick.lic). Guessed from the file name; correct it here. */
@@ -1928,10 +1928,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* How review shows a slot: hero (full width), card (tall card with copy),
        or through SiTime's logo burst / arm mask. Masks come from the seed
        (s.mask); s.display only exists when someone overrides the default. */
-    const DSP = ['hero', 'card', 'burst', 'arm'];
-    const DSP_LABEL = { hero: 'Hero', card: 'Card', burst: 'Logo mask', arm: 'Arm mask' };
+    const DSP = ['hero', 'card', 'burst', 'arm', 'product'];
+    const DSP_LABEL = { hero: 'Hero', card: 'Card', burst: 'Logo mask', arm: 'Arm mask', product: 'Product card' };
     const slotDesc = (s) => s.desc || (s.main && s.main.desc) || '';
-    function autoDisplay(s) { if (s.mask === 'burst' || s.mask === 'arm') return s.mask; return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
+    function autoDisplay(s) { if (s.mask === 'burst' || s.mask === 'arm') return s.mask; if (s.kind === 'product') return 'product'; return /\bcards?\b|^Applications ·|^Explore ·|^Culture is Key|focus area|tile/i.test(s.name || '') ? 'card' : 'hero'; }
     function displayOf(s) { return DSP.includes(s.display) ? s.display : autoDisplay(s); }
     function targetOf(s) { return pkWhich[s.id] === 'backup' && !isSingle(s) ? 'backup' : 'main'; }
     function tgtBtn(s, which) {
