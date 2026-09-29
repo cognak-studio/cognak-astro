@@ -75,6 +75,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="card rise tab" id="tab-slots" hidden>
         <div class="group">
           <div class="fbar">
+            <span class="seg kindseg" id="f-kind" role="group" aria-label="Product or other imagery"><button type="button" class="on" data-kind="" title="Every slot">All</button><button type="button" data-kind="product" title="Slots whose image shows a chip or package">Product</button><button type="button" data-kind="other" title="Heroes, application photos, diagrams, people and everything else">Other</button></span>
             <input class="search" id="search" placeholder="Search pages and slots" title="Matches page, slot, URL, part number and search terms" />
             <select class="sel" id="f-pri" aria-label="Filter by priority"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select>
             <select class="sel" id="f-status" aria-label="Filter by status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In a batch</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
@@ -792,6 +793,10 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .dmeta{ letter-spacing:.06em; flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .adm .drawer .dacts{ flex:none; }
     .adm .drawer .descrow{ margin-top:20px; }
+    .adm .kindseg{ display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:2px; background:#fff; flex:none; }
+    .adm .kindseg button{ font:inherit; font-size:var(--fs-13); border:0; background:none; padding:6px 14px; border-radius:999px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
+    .adm .kindseg button:hover{ color:var(--ink); }
+    .adm .kindseg button.on{ background:var(--ink); color:#fff; }
     .adm .drawer .seg{ display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:2px; background:#fff; }
     .adm .drawer .seg button{ font:inherit; font-size:var(--fs-13); border:0; background:none; padding:5px 14px; border-radius:999px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
     .adm .drawer .seg button:hover{ color:var(--ink); }
@@ -882,7 +887,13 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     let revealTile = null; // { slotId, which } -- which filled tile currently has its Swap/trash actions revealed
     let srcTab = 'stock';
     let libQuery = '', libGroup = '', libShown = 48;
-    const fx = { pri: '', status: '', section: '', page: '', rec: '', hideAi: true, hideReuse: false };
+    const fx = { pri: '', status: '', section: '', page: '', rec: '', hideAi: true, hideReuse: false, kind: '' };
+    /* Product imagery (shows a chip: renders, figures, package shots) vs everything
+       else (Pierce, 9/29). Product is a tag on the slot, s.kind = 'product'; no
+       tag = other. The switch filters rail, slots, Select all and the stats, so a
+       batch can be all product or all other. */
+    const kindOf = (s) => (s && s.kind === 'product' ? 'product' : 'other');
+    const kindOk = (s) => !fx.kind || kindOf(s) === fx.kind;
     let search = '';
     const PAGE = 8;
     let pageIdx = 0;
@@ -1174,14 +1185,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
     /* ---------- render: stats + tabs ---------- */
     function renderStats() {
-      const st = S.slots.map(status);
+      const SL = S.slots.filter(kindOk);
+      const st = SL.map(status);
       const n = (k) => st.filter((x) => x === k).length;
-      const inScope = S.slots.filter((s) => s.state !== 'unreviewed' && s.state !== 'kept').length;
+      const inScope = SL.filter((s) => s.state !== 'unreviewed' && s.state !== 'kept').length;
       $('stats').innerHTML = [
         ['' + inScope, 'slots in scope'],
         /* A single-image slot is complete with its main alone (Pierce, 9/29). */
-        ['' + S.slots.filter((s) => s.main && (s.backup || isSingle(s))).length, 'fully assigned'],
-        ['' + S.slots.filter(finalPick).length, 'approved by SiTime', 'approved'],
+        ['' + SL.filter((s) => s.main && (s.backup || isSingle(s))).length, 'fully assigned'],
+        ['' + SL.filter(finalPick).length, 'approved by SiTime', 'approved'],
         ['' + n('denied'), 'denied, need replacement', 'warn'],
         ['' + n('held'), 'held', 'held'],
       ].map((x) => '<div class="stat ' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('');
@@ -1583,7 +1595,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        current filters would show as empty. */
     function preFiltered() {
       const q = search.toLowerCase();
-      return S.slots.filter((s) => (!fx.pri || s.priority === fx.pri)
+      return S.slots.filter((s) => kindOk(s) && (!fx.pri || s.priority === fx.pri)
         && (!fx.status || status(s) === fx.status)
         && (!fx.rec || (s.rec || '').toUpperCase().startsWith(fx.rec))
         && (!fx.hideReuse || s.priority !== 'Reuse')
@@ -1842,7 +1854,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 
       el.innerHTML = '<div class="dhead"><span class="mini dmeta">' + esc(['sitime.com' + s.url, s.id].filter(Boolean).join(' · ')) + '</span>' +
         '<div class="dacts">' + (s.custom && !s.batch ? '<button class="sbtn" data-rmslot="1" title="Remove this added slot">Remove slot</button>' : '') + '<button class="sbtn" data-pv="1" title="See this slot in the review mockup; the image can be reframed there">Preview/Edit</button><button class="sbtn" data-clear="1">Clear picks</button><button class="sbtn" data-close="1">Close</button></div></div>' +
-        '<div class="tgtbar"><div class="tgrp"><span class="lbl">Assign to</span>' + tgtBtn(s, 'main') + (isSingle(s) ? '' : tgtBtn(s, 'backup')) + '<label class="chk single-chk" title="One image for this slot, no backup (headshots, product images)"><input type="checkbox" data-single="1"' + (isSingle(s) ? ' checked' : '') + '> Single image</label>' +
+        '<div class="tgtbar"><div class="tgrp"><span class="lbl">Assign to</span>' + tgtBtn(s, 'main') + (isSingle(s) ? '' : tgtBtn(s, 'backup')) + '<label class="chk single-chk" title="One image for this slot, no backup (headshots, product images)"><input type="checkbox" data-single="1"' + (isSingle(s) ? ' checked' : '') + '> Single image</label>' + '<label class="chk single-chk" title="Shows a chip or package. Product slots sit under the Product switch; the rest under Other."><input type="checkbox" data-kindchk="1"' + (kindOf(s) === 'product' ? ' checked' : '') + '> Product image</label>' +
         (s.state === 'unreviewed' ? '<button class="sbtn" data-keep="1">Keep the current image</button>' : '') + '</div>' +
         '<div class="tgrp"><span class="lbl">Shown as</span><span class="seg">' + DSP.map((v) => '<button class="' + (displayOf(s) === v ? 'on' : '') + '" data-dsp="' + v + '" title="' + ({ hero: 'Full width behind the headline', card: 'Tall card with copy on it', burst: 'Through the SiTime logo burst, centered on white', arm: 'Through the arm shape, centered on white' })[v] + (autoDisplay(s) === v ? ' (default for this slot)' : '') + '">' + DSP_LABEL[v] + '</button>').join('') + '</span></div>' +
         '</div>' +
@@ -1856,6 +1868,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         sourceBody(s);
 
       el.querySelectorAll('[data-tgt]').forEach((b) => b.addEventListener('click', () => { pkWhich[s.id] = b.dataset.tgt; refreshDrawer(s.id); }));
+      el.querySelector('[data-kindchk]').addEventListener('change', (e) => { if (e.target.checked) s.kind = 'product'; else delete s.kind; mark(); renderSlots(); renderStats(); });
       el.querySelector('[data-single]').addEventListener('change', (e) => { s.single = e.target.checked || undefined; if (s.single) pkWhich[s.id] = 'main'; mark(); renderSlots(); renderStats(); });
       el.querySelectorAll('[data-dsp]').forEach((b) => b.addEventListener('click', () => { const v = b.dataset.dsp; if (v === autoDisplay(s)) delete s.display; else s.display = v; mark(); refreshDrawer(s.id); }));
       const kp = el.querySelector('[data-keep]'); if (kp) kp.addEventListener('click', () => { s.state = 'kept'; mark(); renderSlots(); renderStats(); });
@@ -1971,6 +1984,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     $('check-all').addEventListener('change', (e) => { visibleSlots().forEach((s) => { if (s.batch) return; e.target.checked ? checked.add(s.id) : checked.delete(s.id); }); renderSlots(); });
     $('f-pri').addEventListener('change', (e) => { fx.pri = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-status').addEventListener('change', (e) => { fx.status = e.target.value; pageIdx = 0; renderSlots(); });
+    $('f-kind').querySelectorAll('[data-kind]').forEach((b) => b.addEventListener('click', () => { fx.kind = b.dataset.kind; $('f-kind').querySelectorAll('[data-kind]').forEach((x) => x.classList.toggle('on', x === b)); pageIdx = 0; openSlots.clear(); renderSlots(); renderStats(); }));
     $('f-rec').addEventListener('change', (e) => { fx.rec = e.target.value; pageIdx = 0; renderSlots(); });
     $('f-hideai').addEventListener('change', (e) => { fx.hideAi = e.target.checked; renderSlots(); });
     $('f-hidereuse').addEventListener('change', (e) => { fx.hideReuse = e.target.checked; pageIdx = 0; renderSlots(); });
