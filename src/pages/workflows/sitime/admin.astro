@@ -110,7 +110,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <!-- HANDOFF -->
       <div class="card rise tab" id="tab-handoff" hidden>
         <div class="group">
-          <div class="card-head"><div class="group-title">Approved</div><div><button class="sbtn" id="export-handoff">Export CSV</button></div></div>
+          <div class="card-head"><div class="group-title">Approved</div><div style="display:flex;gap:8px"><button class="sbtn" id="download-approved" disabled title="Not live yet: will download every approved image, full size, with treatments applied">Download approved</button><button class="sbtn" id="export-handoff">Export CSV</button></div></div>
           <div class="tablewrap" tabindex="0" role="region" aria-label="Handoff list"><table><thead><tr><th>Page · slot · IDs</th><th>Image</th><th>Source</th><th>Adobe asset ID</th><th>License / note</th><th>Batch</th></tr></thead><tbody id="handoff-rows"></tbody></table></div>
         </div>
       </div>
@@ -302,6 +302,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .stat span{ display:block; font-size:var(--fs-13); color:var(--ink-soft); margin-top:8px; }
     .adm .stat.warn b{ color:#D94A00; }
     .adm .stat.held b{ color:#FF7A00; }
+    .adm .stat.approved b{ color:#4A8200; }
     .adm .card-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:1.4rem; flex-wrap:wrap; }
     .adm .card-head .right{ display:flex; align-items:center; gap:12px; }
     /* The title carries a 1.6rem bottom margin on its own; inside a card-head the head owns the spacing, so the count or button centers on the title's text, not on title + margin (Pierce, 9/27). */
@@ -1180,7 +1181,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         ['' + inScope, 'slots in scope'],
         /* A single-image slot is complete with its main alone (Pierce, 9/29). */
         ['' + S.slots.filter((s) => s.main && (s.backup || isSingle(s))).length, 'fully assigned'],
-        ['' + S.slots.filter(finalPick).length, 'approved by SiTime'],
+        ['' + S.slots.filter(finalPick).length, 'approved by SiTime', 'approved'],
         ['' + n('denied'), 'denied, need replacement', 'warn'],
         ['' + n('held'), 'held', 'held'],
       ].map((x) => '<div class="stat ' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('');
