@@ -181,6 +181,10 @@ function restoreInternal(s, c, current) {
 }
 
 /** The state as this role may see it (GET, and the 409 conflict body). */
+/* COGNAK's internal slot flag (s.flag, e.g. OLD LOGO, NEED TO UPDATE, Pierce 9/29) never reaches SiTime's sign-in;
+   POST puts it back from the stored state. */
+function noFlag(s) { if (!s || !('flag' in s)) return s; const { flag, ...rest } = s; return rest; }
+
 function viewFor(who, state) {
   if (who.role === 'admin') return state;
   const out = { ...state, reviewPass: undefined };
@@ -197,7 +201,7 @@ function viewFor(who, state) {
      drops it). */
   return { ...out, batches: (state.batches || []).filter((b) => !b.internal), reviewLog: undefined,
     nextBatchNum: Math.max(0, ...(state.batches || []).map((b) => b.num || 0)) + 1,
-    slots: (state.slots || []).map((s) => stripInternal(s, visible)), retiredSlots: (state.retiredSlots || []).map((s) => stripInternal(s, visible)),
+    slots: (state.slots || []).map((s) => noFlag(stripInternal(s, visible))), retiredSlots: (state.retiredSlots || []).map((s) => noFlag(stripInternal(s, visible))),
     ...(Array.isArray(state.trash) ? { trash: state.trash.map((t) => stripTrash(t, visible)) } : {}) };   // (2026-09-27)
 }
 
@@ -327,7 +331,7 @@ export default async function handler(req, res) {
         if (who.role === 'client') {
           const cur = new Map((current.slots || []).map((s) => [s.id, s]));
           const merged = { ...current, batches: state.batches };   // a batch the client made in this save counts as one it can see
-          state.slots.forEach((s) => { const c = cur.get(s.id); if (c) restoreInternal(s, c, merged); });
+          state.slots.forEach((s) => { const c = cur.get(s.id); if (c) { restoreInternal(s, c, merged); if (c.flag) s.flag = c.flag; else delete s.flag; } });
           restoreTrash(state, current);   // trash[].cleared picks carry them too (2026-09-27)
           syncSlots(current.slots, current.retiredSlots); state.retiredSlots = syncSlots.parked;   // the parked list as GET computes it, unstripped
         }
