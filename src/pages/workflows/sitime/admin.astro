@@ -76,9 +76,9 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="group">
           <div class="fbar">
             <input class="search" id="search" placeholder="Search pages and slots" title="Matches page, slot, URL, part number and search terms" />
-            <select class="sel" id="f-pri"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select>
-            <select class="sel" id="f-status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In a batch</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
-            <select class="sel client-hide" id="f-rec"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
+            <select class="sel" id="f-pri" aria-label="Filter by priority"><option value="">All priorities</option><option value="High">High</option><option value="Medium">Medium</option><option value="Low">Low</option><option value="Reuse">Reuse</option></select>
+            <select class="sel" id="f-status" aria-label="Filter by status"><option value="">All statuses</option><option value="unassigned">Unassigned</option><option value="assigned">Assigned</option><option value="queued">In a batch</option><option value="approved">Approved</option><option value="denied">Denied</option><option value="held">Held</option><option value="unreviewed">Unreviewed</option></select>
+            <select class="sel client-hide" id="f-rec" aria-label="Filter by recommendation"><option value="">All recommendations</option><option value="STOCK">Stock</option><option value="GENERATE">Generate</option><option value="REUSE">Reuse</option><option value="NO">No imagery</option></select>
             <label class="chk client-hide"><input type="checkbox" id="f-hideai" checked /> Hide Gen-AI candidates</label>
             <label class="chk client-hide"><input type="checkbox" id="f-hidereuse" /> Hide migrate-as-is pages</label>
             <button class="sbtn" id="expand-all">Expand all</button>
@@ -111,7 +111,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       <div class="card rise tab" id="tab-handoff" hidden>
         <div class="group">
           <div class="card-head"><div class="group-title">Approved</div><div><button class="sbtn" id="export-handoff">Export CSV</button></div></div>
-          <div class="tablewrap"><table><thead><tr><th>Page · slot · IDs</th><th>Image</th><th>Source</th><th>Adobe asset ID</th><th>License / note</th><th>Batch</th></tr></thead><tbody id="handoff-rows"></tbody></table></div>
+          <div class="tablewrap" tabindex="0" role="region" aria-label="Handoff list"><table><thead><tr><th>Page · slot · IDs</th><th>Image</th><th>Source</th><th>Adobe asset ID</th><th>License / note</th><th>Batch</th></tr></thead><tbody id="handoff-rows"></tbody></table></div>
         </div>
       </div>
 
@@ -147,7 +147,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="group admin-only">
           <div class="card-head"><div class="group-title">People</div><span class="mini" id="people-count"></span></div>
           <p class="hint">Each person signs in with their own password, and their name goes on what they do. SiTime people can pick, upload, add slots, make batches and review; they never see internal reviews. The COGNAK team can do the same and sees internal batches. Issuing a new password signs that person out.</p>
-          <div class="tablewrap"><table id="people-table"><thead><tr><th>First name</th><th>Email</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead><tbody id="people-rows"><tr><td colspan="5" class="hint">Loading.</td></tr></tbody></table></div>
+          <div class="tablewrap" tabindex="0" role="region" aria-label="People"><table id="people-table"><thead><tr><th>First name</th><th>Email</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead><tbody id="people-rows"><tr><td colspan="5" class="hint">Loading.</td></tr></tbody></table></div>
           <div class="grid3" style="margin-top:1.4rem">
             {/* readonly until focused: browsers ignore autocomplete="off" on a name + email pair and fill in the admin's own contact card (Pierce, 9/27). */}
             <label class="q"><span class="q-title">First name</span><input class="txt" id="pp-name" placeholder="Enter first name" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" /></label>
@@ -285,7 +285,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .tabs{ display:flex; gap:6px; margin:0 0 1.6rem 40px; align-items:center; flex-wrap:wrap; }
     .adm .tabs a{ font-size:var(--fs-15); padding:9px 16px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink); text-decoration:none; cursor:pointer; user-select:none; }
     .adm .tabs a.on{ background:#1A1A1A; color:#fff; border-color:#1A1A1A; }
-    .adm .tabs a i{ font-style:normal; color:inherit; opacity:.6; margin-left:6px; font-family:'Diatype Mono', monospace; font-size:var(--fs-12); }
+    .adm .tabs a i{ font-style:normal; color:inherit; opacity:.62; margin-left:6px; font-family:'Diatype Mono', monospace; font-size:var(--fs-12); }
     .adm.team .admin-only{ display:none !important; }
     /* SiTime's own sign-in: COGNAK working lists and inventory vocabulary stay out of view. */
     .adm.client .client-hide{ display:none !important; }
@@ -690,7 +690,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .rsec{ margin-bottom:4px; }
     .adm .rsec > button{ width:100%; display:flex; align-items:center; gap:8px; font:inherit; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); background:none; border:0; padding:11px 4px; cursor:pointer; text-align:left; }
     .adm .rsec > button:hover{ color:var(--ink); }
-    .adm .rsec > button b{ margin-left:auto; font-weight:400; opacity:.7; }
+    .adm .rsec > button b{ margin-left:auto; font-weight:400; opacity:.93; }
     .adm .rsec .sdot{ flex:none; width:7px; height:7px; border-radius:50%; background:#C9C9C4; box-sizing:border-box; }
     .adm .rsec .sdot.part{ background:#F3D456; border:1px solid #C9A81E; }
     .adm .rsec .sdot.done{ background:#AAFF00; border:1px solid #6EB300; }
