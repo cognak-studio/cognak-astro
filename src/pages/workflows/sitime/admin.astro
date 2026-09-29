@@ -301,6 +301,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .stat b{ display:block; font-size:1.9rem; font-weight:500; letter-spacing:-.02em; line-height:1; }
     .adm .stat span{ display:block; font-size:var(--fs-13); color:var(--ink-soft); margin-top:8px; }
     .adm .stat.warn b{ color:#D94A00; }
+    .adm .stat.held b{ color:#FF7A00; }
     .adm .card-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:1.4rem; flex-wrap:wrap; }
     .adm .card-head .right{ display:flex; align-items:center; gap:12px; }
     /* The title carries a 1.6rem bottom margin on its own; inside a card-head the head owns the spacing, so the count or button centers on the title's text, not on title + margin (Pierce, 9/27). */
@@ -1181,7 +1182,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         ['' + S.slots.filter((s) => s.main && (s.backup || isSingle(s))).length, 'fully assigned'],
         ['' + S.slots.filter(finalPick).length, 'approved by SiTime'],
         ['' + n('denied'), 'denied, need replacement', 'warn'],
-        ['' + n('held'), 'held'],
+        ['' + n('held'), 'held', 'held'],
       ].map((x) => '<div class="stat ' + (x[2] || '') + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('');
       $('n-batches').textContent = S.batches.length;
       $('n-slots').textContent = S.slots.length;
