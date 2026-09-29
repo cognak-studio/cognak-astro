@@ -793,6 +793,8 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .drawer .dmeta{ letter-spacing:.06em; flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .adm .drawer .dacts{ flex:none; }
     .adm .drawer .descrow{ margin-top:20px; }
+    /* Internal flag on a slot card (Pierce, 9/29): e.g. OLD LOGO, NEED TO UPDATE. Team view only. */
+    .adm .srow .flag{ display:inline-block; margin-top:8px; padding:3px 8px; border:1px solid #C8170F; border-radius:4px; color:#C8170F; font-size:var(--fs-12, 12px); font-weight:600; letter-spacing:.06em; }
     .adm .kindseg{ display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:2px; background:#fff; flex:none; }
     .adm .kindseg button{ font:inherit; font-size:var(--fs-13); border:0; background:none; padding:6px 14px; border-radius:999px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
     .adm .kindseg button:hover{ color:var(--ink); }
@@ -1782,7 +1784,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         const st = status(s); const b = batchOf(s); const open = openSlots.has(s.id);
         return '<div class="srow ' + (open ? 'sel' : '') + '" data-id="' + s.id + '">' + tilesFor(s) +
           /* Title is the slot, the line under it is the page (and section when that differs). Priority, display, status and the checkbox sit together at the right on the title line (Pierce, 9/27), so the title, the tiles and the drawer share one left edge. No "who · when" line: s.edit is kept for the record, not shown. */
-          '<div class="mrow"><div class="who"><div class="pg">' + esc(s.name) + '</div><div class="sub">' + esc(s.section && s.section !== s.page ? s.section + ' · ' + s.page : s.page) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + '</div>' +
+          '<div class="mrow"><div class="who"><div class="pg">' + esc(s.name) + '</div><div class="sub">' + esc(s.section && s.section !== s.page ? s.section + ' · ' + s.page : s.page) + '</div>' + (s.where ? '<div class="where">' + esc(s.where) + '</div>' : '') + (s.flag && !isClient() ? '<div class="flag" title="Internal flag, not shown to SiTime">' + esc(s.flag) + '</div>' : '') + '</div>' +
           '<div class="end"><span class="pri p-' + esc(s.priority.toLowerCase()) + '">' + esc(s.priority) + '</span><span class="pri">' + DSP_LABEL[displayOf(s)] + '</span><span class="st ' + st + '"><i></i>' + STATUS_LABEL[st] + '</span>' + (b ? '<span class="mini">Batch ' + String(b.num).padStart(2, '0') + '</span>' : s.batch ? '<span class="mini" title="' + HELD_BY_COGNAK + '">COGNAK review</span>' : '') + '<input type="checkbox" data-chk="' + s.id + '" title="' + (s.batch && !b ? HELD_BY_COGNAK : 'Select for a batch') + '" aria-label="Select for a batch" ' + (checked.has(s.id) ? 'checked' : '') + ' ' + (s.batch ? 'disabled' : '') + '>' + '<button type="button" class="chev" title="Open the slot" aria-label="Open the slot" aria-expanded="' + (open ? 'true' : 'false') + '">' + ICONS.chevron + '</button></div></div></div>' +
           (open ? '<div class="drawer-wrap"><div class="drawer" data-detail="' + s.id + '"></div></div>' : '');
       });
