@@ -2797,10 +2797,9 @@ html.pv-grid .projects-list,
     font-family: 'Diatype Mono', monospace;
     font-size: var(--fs-12);
     font-weight: 400;
-    /* #6d6d6d was 4.19:1 on the #EAE5F2 list (AA needs 4.5). Nudged to #606060,
-       a touch past the floor, so the grade below can reach 4.5 and still read
-       as the quieter of the two. */
-    color: #606060;
+    /* #6d6d6d was 4.19:1 on the #EAE5F2 list (AA needs 4.5). #686868 is the
+       smallest step that passes (4.51). */
+    color: #686868;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -3239,13 +3238,12 @@ html.pv-grid .projects-list,
     border-radius: 2px;
 }
 .studio-tab:hover {
-    color: rgba(255,255,255,0.75);
+    color: rgba(255,255,255,0.55);
 }
 /* From 1200px the label is 24px+, which counts as large text and only needs
    3:1 (0.34 = 3.2:1), so the desktop keeps its quiet look. */
 @media (min-width: 1200px) {
     .studio-tab { color: rgba(255,255,255,0.34); }
-    .studio-tab:hover { color: rgba(255,255,255,0.55); }
 }
 .studio-tab--active {
     color: #FFB2E4;
@@ -5962,4 +5960,18 @@ html.js .fourofour-btn.is-in {
 @media (hover: hover) {
 .workflow-nav .home-bottom-email:hover,
 .workflow-nav .inner-nav-links a:hover { color: #6A5C8A !important; }
+}
+
+/* Touch: small text links (phone nav, Back to top, the cookie banner link) are ~15px
+   tall. Extra padding grows the tappable area a little; the equal negative margin
+   cancels it out, so layout and looks don't change. */
+@media (pointer: coarse) {
+    .inner-nav-links a,
+    .home-nav a,
+    .home-nav-links-mobile a,
+    .footer-backtotop,
+    .cognak-cookie-link {
+        padding: 7px 6px;
+        margin: -7px -6px;
+    }
 }
