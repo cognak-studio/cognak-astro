@@ -186,8 +186,8 @@ export const html = `
   <h2>The same hands, start to finish.</h2>
   <p>COGNAK is a design and development studio. The same people design and build the work, start to finish. Nothing is outsourced, and nothing is handed off between agency layers.</p>
   <ul class="pr-people">
-    <li><strong>Pierce Liefeld</strong><span>Founder: design direction and build</span></li>
-    <li><strong>Michael</strong><span>Brand strategy and identity</span></li>
+    <li><strong>Pierce Liefeld</strong><span>Project, design and build lead</span></li>
+    <li><strong>Michael</strong><span>Brand strategy and identity lead</span></li>
   </ul>
   <ol class="pr-steps">
     <li>Choose Option A or B.</li>
