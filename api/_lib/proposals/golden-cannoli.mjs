@@ -8,7 +8,7 @@
 export const subtitle = 'website and brand.';
 
 export const lede =
-  'A new website for the largest cannoli manufacturer in the country, designed and built by the same two people start to finish, live in February or March 2027.';
+  'A new website for the largest cannoli manufacturer in the country, designed and built start to finish by the same people, targeting February or March 2027.';
 
 /* Timeline: bars placed by date between Nov 1, 2026 and Mar 31, 2027. */
 const T0 = Date.parse('2026-11-01'), T1 = Date.parse('2027-03-31');
@@ -20,52 +20,51 @@ const axis = `<div class="tl-axis"><span class="tl-name"></span><span class="tl-
 const grid = `<span class="tl-grid" aria-hidden="true">${MONTHS.map(([d]) => `<i style="left:${pct(d)}%"></i>`).join('')}</span>`;
 
 const timeline = `
-<div class="tl" role="img" aria-label="Option B launches the week of February 22, 2027. Option A launches the week of March 22, 2027.">
+<div class="tl" role="img" aria-label="Ideal case. Option A targets the week of February 22, 2027. Option B targets the week of March 22, 2027.">
   ${axis}
   <div class="tl-body">${grid}
-    <div class="tl-group">Option A: brand and site</div>
+    <div class="tl-group">Option A: website</div>
+    ${bar('Discovery', '2026-11-02', '2026-11-13')}
+    ${bar('Design', '2026-11-16', '2026-12-18')}
+    ${bar('Build', '2026-12-14', '2027-02-05')}
+    ${bar('QA, accessibility, content load', '2027-02-08', '2027-02-19')}
+    ${ms('Launch', '2027-02-22', 'Feb 22')}
+    <div class="tl-group">Option B: website and brand</div>
     ${bar('Brand identity', '2026-11-02', '2026-12-18', 'a')}
     ${bar('Site discovery', '2026-11-09', '2026-11-27', 'a')}
     ${bar('Site design', '2026-12-07', '2027-01-22', 'a')}
     ${bar('Build', '2027-01-11', '2027-03-05', 'a')}
     ${bar('QA, accessibility, content load', '2027-03-08', '2027-03-19', 'a')}
     ${ms('Launch', '2027-03-22', 'Mar 22', 'a')}
-    <div class="tl-group">Option B: site now</div>
-    ${bar('Discovery', '2026-11-02', '2026-11-13')}
-    ${bar('Design', '2026-11-16', '2026-12-18')}
-    ${bar('Build', '2026-12-14', '2027-02-05')}
-    ${bar('QA, accessibility, content load', '2027-02-08', '2027-02-19')}
-    ${ms('Launch', '2027-02-22', 'Feb 22')}
-  </div>
-</div>`;
+  </div>`;
 
 export const html = `
 <section class="pr-sec" id="summary">
   <p class="pr-label">01 · Summary</p>
   <h2>A site that reads like the category leader.</h2>
-  <p>Golden Cannoli is the largest cannoli manufacturer in the country, and the website should read that way. We propose a new site, designed and built by the same two people start to finish, live in February or March 2027.</p>
+  <p>Golden Cannoli is the largest cannoli manufacturer in the country, with a family story that starts local and spans nearly six decades of growth. The website should read that way. We propose a new site, designed and built start to finish by the same people, with nothing outsourced, targeting February or March 2027.</p>
   <p>The site drops the Shopify store in favor of a custom store finder, connects to HubSpot, and adds what sales, brokers and HR have asked for: a password-protected document area, the catalog, and a bilingual job application. It is simpler to navigate, easier for your team to update, and built to meet ADA standards.</p>
-  <p>Because a rebrand is also on the table, we lay out two paths below. Our recommendation is to do both together so the new brand and the new site launch as one.</p>
+  <p>Because a rebrand may also be on the table, we lay out two paths below. We know you are eager to get the site done, and Option A is the fastest way there. We still want to make the case for Option B, doing both together: the new brand and the new site launch as one, and the site is designed once, on the brand it will carry. It is the better path and the better value.</p>
 </section>
 
 <section class="pr-sec" id="paths">
   <p class="pr-label">02 · Two paths</p>
-  <h2>Brand and site together, or site first.</h2>
+  <h2>Site first, or brand and site together.</h2>
   <div class="pr-options">
-    <article class="pr-opt is-rec">
-      <span class="pr-pill">Recommended</span>
-      <p class="pr-opt-k">Option A</p>
-      <h3>Brand and site together</h3>
-      <p>A brand engagement runs first; the site is designed on the new identity. Both launch together.</p>
-      <p class="pr-why">One launch, one story. "Golden" and the star arrive everywhere at once instead of twice.</p>
-      <dl><div><dt>Launch</dt><dd>March 2027</dd></div><div><dt>Brand</dt><dd>One of three tiers</dd></div></dl>
-    </article>
     <article class="pr-opt">
-      <p class="pr-opt-k">Option B</p>
-      <h3>Site now, brand-ready</h3>
+      <p class="pr-opt-k">Option A</p>
+      <h3>Website, brand-ready</h3>
       <p>The site is rebuilt on the current identity, cleaned up and made consistent. A later rebrand swaps in without a rebuild.</p>
       <p class="pr-why">Fastest route to a better site. Brand work can follow on its own schedule.</p>
-      <dl><div><dt>Launch</dt><dd>February 2027</dd></div><div><dt>Brand</dt><dd>Not included</dd></div></dl>
+      <dl><div><dt>Target launch</dt><dd>February 2027</dd></div><div><dt>Brand</dt><dd>Not included</dd></div></dl>
+    </article>
+    <article class="pr-opt is-rec">
+      <span class="pr-pill">Recommended</span>
+      <p class="pr-opt-k">Option B</p>
+      <h3>Website and brand together</h3>
+      <p>A brand engagement runs first; the site is designed on the new identity. Both launch together.</p>
+      <p class="pr-why">One launch, one story. Everything new arrives at once, instead of in two rounds.</p>
+      <dl><div><dt>Target launch</dt><dd>March 2027</dd></div><div><dt>Brand</dt><dd>One of three tiers</dd></div></dl>
     </article>
   </div>
   <p class="pr-note">Either way, the site is built on a token system: color, type, spacing and logo live in one place, so brand changes are a settings change, not a redesign.</p>
@@ -108,7 +107,7 @@ export const html = `
 </section>
 
 <section class="pr-sec" id="brand">
-  <p class="pr-label">05 · Brand scope (Option A)</p>
+  <p class="pr-label">05 · Brand scope (Option B)</p>
   <h2>Three depths, building on your discovery work.</h2>
   <p>Your discovery work already points the way: "Golden" as the master brand, the star as its shorthand, gold and hunter green at the core. The brand work builds on that rather than starting over. Each tier includes everything in the one before it.</p>
   <ol class="pr-tiers">
@@ -121,18 +120,19 @@ export const html = `
 
 <section class="pr-sec" id="timeline">
   <p class="pr-label">06 · Timeline</p>
-  <h2>Launch the week of February 22 or March 22.</h2>
-  <p>With a November 2 start, Option B launches the week of February 22 and Option A the week of March 22.</p>
+  <h2>Targeting late February or late March.</h2>
+  <p class="pr-caveat"><strong>These dates are the ideal case, not a commitment.</strong> They assume a November 2 start, quick turnarounds on reviews and approvals, and content delivered on time. Schedules like this often shift. We will confirm dates at kickoff and keep them current as the work moves.</p>
+  <p>On that basis, Option A targets the week of February 22 and Option B the week of March 22.</p>
   ${timeline}
-  <p class="pr-note">In Option A, site discovery runs alongside the brand work, and site design starts once the brand direction is approved in early December. Content (photos, copy, Spanish text) is needed by the start of build to hold these dates.</p>
+  <p class="pr-note">In Option B, site discovery runs alongside the brand work, and site design starts once the brand direction is approved in early December. Content (photos, copy, Spanish text) is needed by the start of build to hold these dates.</p>
 </section>
 
 <section class="pr-sec" id="investment">
   <p class="pr-label">07 · Investment</p>
   <h2>Fixed fees by phase.</h2>
   <div class="pr-totals">
-    <div class="pr-total is-rec"><span class="pr-pill">Recommended</span><p class="pr-opt-k">Option A</p><p class="pr-num">$102,000</p><p class="pr-sub">Website with the identity system</p></div>
-    <div class="pr-total"><p class="pr-opt-k">Option B</p><p class="pr-num">$74,000</p><p class="pr-sub">Website only</p></div>
+    <div class="pr-total"><p class="pr-opt-k">Option A</p><p class="pr-num">$74,000</p><p class="pr-sub">Website</p></div>
+    <div class="pr-total is-rec"><span class="pr-pill">Recommended</span><p class="pr-opt-k">Option B</p><p class="pr-num">$102,000</p><p class="pr-sub">Website with the identity system</p></div>
   </div>
   <h3 class="pr-h3">Website, both options</h3>
   <table class="pr-table pr-money">
@@ -145,7 +145,7 @@ export const html = `
     </tbody>
   </table>
   <p class="pr-note">Built on HubSpot CMS instead, the website total is $70,000, since the partner area and bilingual pages use HubSpot's built-in features.</p>
-  <h3 class="pr-h3">Brand, Option A only</h3>
+  <h3 class="pr-h3">Brand, Option B only</h3>
   <div class="pr-scroll"><table class="pr-table pr-money">
     <thead><tr><th>Tier</th><td>Fee</td><td>With website</td></tr></thead>
     <tbody>
@@ -185,13 +185,13 @@ export const html = `
 <section class="pr-sec" id="next">
   <p class="pr-label">09 · Team and next steps</p>
   <h2>The same hands, start to finish.</h2>
-  <p>COGNAK is a design and development studio: the same hands design and build the work, start to finish, with no handoff between agency layers.</p>
+  <p>COGNAK is a design and development studio. The same people design and build the work, start to finish. Nothing is outsourced, and nothing is handed off between agency layers.</p>
   <ul class="pr-people">
     <li><strong>Pierce Liefeld</strong><span>Founder: design direction and build</span></li>
     <li><strong>Michael</strong><span>Brand strategy and identity</span></li>
   </ul>
   <ol class="pr-steps">
-    <li>Choose Option A or B, and a brand tier if A.</li>
+    <li>Choose Option A or B, and a brand tier if B.</li>
     <li>Countersign NDA and agreement.</li>
     <li>Kickoff call and discovery questionnaire the following week.</li>
   </ol>
