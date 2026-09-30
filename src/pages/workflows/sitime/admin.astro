@@ -121,6 +121,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         <div class="group">
           <div class="card-head"><div class="group-title">Library</div><span class="mini" id="libgrid-count"></span></div>
           <div class="srctabs" id="libgrid-filters"></div>
+          <div class="srctabs" id="libgrid-groups"></div>
           <div class="libgrid" id="libgrid"></div>
           <div class="actions" id="libgrid-more"></div>
           <p class="mini" id="libgrid-status"></p>
@@ -521,7 +522,22 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .toolbar .sbtn{ flex:none; }
     .adm .srctabs{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
     /* Library grid (Pierce, 9/24): small thumbnails, Replace / Delete on hover. */
-    .adm .libgrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(112px, 1fr)); gap:8px; }
+    .adm .libgrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); gap:14px 8px; }
+    /* Every image in use, one grid (Pierce, 9/30): the source chip sits under
+       each thumbnail, same chip as the slot tiles. */
+    .adm .lw{ min-width:0; }
+    .adm .lt-cap{ margin-top:6px; min-height:20px; }
+    .adm .lt-cap .lic{ display:inline-flex; align-items:center; gap:5px; max-width:100%; font-family:'Diatype Variable', sans-serif; font-style:normal; font-weight:500; font-size:var(--fs-11); line-height:1; padding:4px 8px 4px 6px; border-radius:999px; border:1px solid #E8E5EF; background:#fff; color:#1A1A1A; white-space:nowrap; overflow:hidden; }
+    .adm .lt-cap .lic img, .adm .lt-cap .lic svg{ width:12px; height:12px; display:block; flex:none; }
+    .adm .lt-cap .lic.nomark{ padding-left:8px; }
+    .adm .lt-cap .lic.m-upload{ color:#9F50FF; }
+    .adm .lt-cap .lic.m-upload span{ color:#1A1A1A; }
+    .adm .lt-cap .lic em{ font-style:normal; font-weight:500; color:#6B6B6B; }
+    .adm .lt-cap .lic em.ls-unlicensed{ color:#B00020; }
+    .adm .lt-cap .lic em.ls-licensed, .adm .lt-cap .lic em.ls-owned{ color:#4A8C00; }
+    .adm .lt-cap .lic:not(.m-envato):not(.m-adobe):not(.m-istock):not(.m-shutterstock):not(.m-upload){ padding-left:8px; color:#6A5C8A; }
+    .adm .lt-cap .lic.m-existing{ color:#6A5C8A; }
+    .adm #libgrid-groups:empty{ display:none; }
     .adm .lt{ position:relative; aspect-ratio:3/2; border-radius:6px; overflow:hidden; background:#ECEAF1; }
     .adm .lt img{ width:100%; height:100%; object-fit:cover; display:block; }
     .adm .lt .used{ position:absolute; top:5px; left:5px; font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.08em; padding:2px 6px; border-radius:999px; background:#1A1A1A; color:#fff; }
@@ -1203,7 +1219,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
       $('n-slots').textContent = S.slots.length;
       $('n-repl').textContent = replItems().length;
       $('n-handoff').textContent = S.slots.filter(finalPick).length;
-      $('n-lib').textContent = (S.library || []).length;
+      $('n-lib').textContent = lgItems().length;
     }
     /* The tabs are anchors without an href, so they were unreachable by
        keyboard; they carry tabindex now and take Enter or Space. */
@@ -2648,32 +2664,83 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
        on replace, so the indexer still treats it as already indexed and does
        not overwrite it. The original files go to Recently deleted, where
        Restore brings them back as a separate library image. */
-    let lgGroup = '', lgQuery = '', lgShown = 120, lgBusy = null, lgTarget = null;
+    let lgGroup = '', lgQuery = '', lgShown = 120, lgBusy = null, lgTarget = null, lgSrc = '';
     const libUses = (l) => S.slots.filter((x) => (x.main && x.main.url === l.url) || (x.backup && x.backup.url === l.url));
+    /* The grid shows every image the tool holds or uses (Pierce, 9/30, for
+       Olena): SiTime's indexed library and uploads (library entries, shown
+       whether used or not), plus every main/backup pick that lives on a slot
+       instead of in the library -- Adobe Stock comps, generated images,
+       current-site images. Built at render time only; nothing is written to
+       state. Replace/Delete stay on library entries; slot-owned picks get
+       Open slot. */
+    const LG_SRC = [['', 'All'], ['library', 'SiTime library'], ['upload', 'Uploads'], ['stock', 'Adobe Stock'], ['generated', 'Generated'], ['existing', 'Current site']];
+    function lgItems() {
+      const out = [];
+      const byUrl = new Map();
+      (S.slots || []).forEach((s) => ['main', 'backup'].forEach((w) => { const u = s[w] && s[w].url; if (!u) return; const arr = byUrl.get(u) || []; if (!arr.includes(s)) arr.push(s); byUrl.set(u, arr); }));
+      (S.library || []).forEach((l) => {
+        const uses = byUrl.get(l.url) || [];
+        const p = pickFrom('library', l);
+        out.push({ key: 'l:' + l.id, src: l.tier === 'upload' ? 'upload' : 'library', lib: l, p, uses, name: l.name || '', group: l.group || '', hay: ((l.name || '') + ' ' + (l.group || '') + ' ' + (l.path || '')).toLowerCase() });
+      });
+      const onSlots = new Map();
+      (S.slots || []).forEach((s) => ['main', 'backup'].forEach((w) => {
+        const p = s[w];
+        if (!p || !p.url || p.source === 'library') return;
+        let it = onSlots.get(p.url);
+        if (!it) {
+          const src = p.source === 'upload' ? 'upload' : (p.source === 'stock' || p.source === 'generated' || p.source === 'existing') ? p.source : 'upload';
+          const name = p.source === 'stock' ? ('Adobe Stock' + (p.id ? ' ' + p.id : '') + (p.title ? ' · ' + p.title : '')) : (p.title || p.path || '');
+          it = { key: 's:' + p.url, src, p, uses: [], which: [], name, group: '', hay: '' };
+          onSlots.set(p.url, it); out.push(it);
+        }
+        it.uses.push(s); it.which.push(w);
+        it.hay = (it.name + ' ' + it.uses.map((x) => x.page + ' ' + x.name + ' ' + x.id).join(' ')).toLowerCase();
+      }));
+      return out;
+    }
+    const lgChip = (it) => it.src === 'existing'
+      ? '<i class="lic m-existing" title="Already on the current SiTime site"><span>Current site</span></i>'
+      : sourceChip(it.p, it.uses[0]);
     function renderLibGrid() {
-      const lib = S.library || [];
-      const groups = Array.from(new Set(lib.map((l) => l.group).filter(Boolean))).sort();
+      const all = lgItems();
+      const counts = {}; all.forEach((it) => { counts[it.src] = (counts[it.src] || 0) + 1; });
+      if (lgSrc && !counts[lgSrc]) lgSrc = '';
+      $('libgrid-filters').innerHTML = '<input class="search" id="lg-q" placeholder="Search filenames and slots" value="' + esc(lgQuery) + '">' +
+        LG_SRC.filter(([k]) => !k || counts[k]).map(([k, label]) => '<button class="sbtn ' + (lgSrc === k ? 'on' : '') + '" data-lgs="' + k + '">' + esc(label) + ' · ' + (k ? counts[k] : all.length) + '</button>').join('');
+      const groups = lgSrc === 'library' ? Array.from(new Set(all.filter((it) => it.src === 'library').map((it) => it.group).filter(Boolean))).sort() : [];
       if (lgGroup && !groups.includes(lgGroup)) lgGroup = '';
-      $('libgrid-filters').innerHTML = '<input class="search" id="lg-q" placeholder="Search filenames" value="' + esc(lgQuery) + '">' + ['', ...groups].map((g) => '<button class="sbtn ' + (lgGroup === g ? 'on' : '') + '" data-lgg="' + esc(g) + '">' + esc(g || 'All') + '</button>').join('');
+      $('libgrid-groups').innerHTML = groups.length > 1 ? ['', ...groups].map((g) => '<button class="sbtn ' + (lgGroup === g ? 'on' : '') + '" data-lgg="' + esc(g) + '">' + esc(g || 'All folders') + '</button>').join('') : '';
       $('lg-q').addEventListener('input', (e) => { lgQuery = e.target.value; lgShown = 120; drawLibGrid(); });
-      $('libgrid-filters').querySelectorAll('[data-lgg]').forEach((b) => b.addEventListener('click', () => { lgGroup = b.dataset.lgg; lgShown = 120; renderLibGrid(); }));
+      $('libgrid-filters').querySelectorAll('[data-lgs]').forEach((b) => b.addEventListener('click', () => { lgSrc = b.dataset.lgs; lgGroup = ''; lgShown = 120; renderLibGrid(); }));
+      $('libgrid-groups').querySelectorAll('[data-lgg]').forEach((b) => b.addEventListener('click', () => { lgGroup = b.dataset.lgg; lgShown = 120; renderLibGrid(); }));
       drawLibGrid();
     }
     function drawLibGrid() {
-      const lib = S.library || [];
+      const all = lgItems();
       const q = lgQuery.trim().toLowerCase();
-      const items = lib.filter((l) => (!lgGroup || l.group === lgGroup) && (!q || ((l.name || '') + ' ' + (l.group || '') + ' ' + (l.path || '')).toLowerCase().includes(q)));
-      $('libgrid-count').textContent = lib.length ? (items.length === lib.length ? lib.length : items.length + ' of ' + lib.length) + ' image' + (lib.length === 1 ? '' : 's') : '';
-      $('libgrid').innerHTML = items.length ? items.slice(0, lgShown).map((l) => {
-        const n = libUses(l).length;
-        return '<div class="lt' + (lgBusy === l.id ? ' busy' : '') + '" title="' + esc((l.name || '') + (l.group ? ' · ' + l.group : '') + (n ? ' · on ' + n + ' slot' + (n === 1 ? '' : 's') : '')) + '"><img loading="lazy" src="' + esc(l.thumb || l.url) + '" alt="">' +
+      const items = all.filter((it) => (!lgSrc || it.src === lgSrc) && (!lgGroup || it.group === lgGroup) && (!q || it.hay.includes(q)));
+      const scoped = all.filter((it) => !lgSrc || it.src === lgSrc).length;
+      $('libgrid-count').textContent = all.length ? (items.length === scoped ? scoped : items.length + ' of ' + scoped) + ' image' + (scoped === 1 ? '' : 's') : '';
+      $('libgrid').innerHTML = items.length ? items.slice(0, lgShown).map((it) => {
+        const n = it.uses.length; const l = it.lib;
+        const where = n ? ' · on ' + (n <= 2 ? it.uses.map((x) => x.page + ' · ' + x.name).join(', ') : n + ' slots') : '';
+        const acts = l
+          ? '<button type="button" class="lt-rep" data-lg-rep="' + esc(l.id) + '">Replace</button><button type="button" class="cand-x" data-lg-del="' + esc(l.id) + '" title="Delete" aria-label="Delete">' + ICONS.delete + '</button>'
+          : '<button type="button" class="lt-rep" data-lg-open="' + esc(it.uses[0].id) + ':' + it.which[0] + '">Open slot</button>';
+        return '<div class="lw"><div class="lt' + (l && lgBusy === l.id ? ' busy' : '') + '" title="' + esc(it.name + (it.group ? ' · ' + it.group : '') + where) + '"><img loading="lazy" src="' + esc(it.p.thumb || it.p.url) + '" alt="">' +
           (n ? '<span class="used">' + n + '</span>' : '') +
-          '<div class="lt-acts"><button type="button" class="lt-rep" data-lg-rep="' + esc(l.id) + '">Replace</button><button type="button" class="cand-x" data-lg-del="' + esc(l.id) + '" title="Delete" aria-label="Delete">' + ICONS.delete + '</button></div></div>';
-      }).join('') : '<p class="hint">' + (lib.length ? 'Nothing matches.' : me?.role === 'admin' ? 'The library is empty. Index the Image Mapping folder below, or upload from a slot.' : 'The library is empty. Upload from a slot to add images.') + '</p>';
+          '<div class="lt-acts">' + acts + '</div></div><div class="lt-cap">' + lgChip(it) + '</div></div>';
+      }).join('') : '<p class="hint">' + (all.length ? 'Nothing matches.' : me?.role === 'admin' ? 'The library is empty. Index the Image Mapping folder below, or upload from a slot.' : 'The library is empty. Upload from a slot to add images.') + '</p>';
       $('libgrid-more').innerHTML = items.length > lgShown ? '<button class="sbtn" id="lg-more">Show more (' + (items.length - lgShown) + ')</button>' : '';
       if ($('lg-more')) $('lg-more').addEventListener('click', () => { lgShown += 240; drawLibGrid(); });
       $('libgrid').querySelectorAll('[data-lg-del]').forEach((b) => b.addEventListener('click', () => deleteUpload(b.dataset.lgDel)));
       $('libgrid').querySelectorAll('[data-lg-rep]').forEach((b) => b.addEventListener('click', () => { if (lgBusy) return; lgTarget = b.dataset.lgRep; $('lib-replace').value = ''; $('lib-replace').click(); }));
+      $('libgrid').querySelectorAll('.lt-cap img[data-mark]').forEach((im) => im.addEventListener('error', () => { im.parentNode.classList.add('nomark'); im.remove(); }));
+      $('libgrid').querySelectorAll('[data-lg-open]').forEach((b) => b.addEventListener('click', () => {
+        const [id, w] = b.dataset.lgOpen.split(':'); const s = byId().get(id); if (!s) return;
+        fx.page = s.pageId; pageIdx = 0; showTab('slots'); renderSlots(); openPicker(s.id, w);
+      }));
     }
     $('lib-replace').addEventListener('change', () => { const f = ($('lib-replace').files || [])[0]; const id = lgTarget; lgTarget = null; if (f && id) replaceLibImage(id, f); });
     async function replaceLibImage(libId, file) {
