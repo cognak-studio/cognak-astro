@@ -149,7 +149,7 @@ const PAGE = 'proposals' as any;
     .pr .tl-date.a{ color:var(--accent); }
 
     @media print{
-      html, body{ background:#fff !important; } .prop-glow{ display:none; }
+      html, body{ background:#fff !important; }
       .pr{ --ground:#fff; --panel:#fff; --ink:#1A140C; --ink-soft:#5A4A35; --head:#1A140C; --line:#DDD3C4; --line-strong:#BFB29E; --accent:#B8621C; --accent-rgb:184,98,28; }
       .prop-nav, .main-footer, .pr .crumbs{ display:none !important; }
       .pr{ padding:0; max-width:none; } .pr .rise{ opacity:1; transform:none; }
@@ -164,10 +164,18 @@ const PAGE = 'proposals' as any;
     @media (hover:hover){ .prop-nav .home-bottom-email:hover, .prop-nav .inner-nav-links a:hover{ color:#DECBAF !important; } }
     body[data-page="proposals"] ::selection{ background:#D9A94E; color:#2A2010; }
     body[data-page="proposals"] ::-moz-selection{ background:#D9A94E; color:#2A2010; }
-    /* One soft brass pool, top right. Placeholder until the page gets its own WebGL scene (Pierce is picking one). */
-    .prop-glow{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-    .prop-glow::before{ content:''; position:absolute; width:min(900px,120vw); height:min(900px,120vw); right:max(-420px,-40vw); top:10vh; border-radius:50%;
-      background:radial-gradient(closest-side, rgba(217,169,78,.13), rgba(217,169,78,.04) 55%, rgba(217,169,78,0)); }
+    /* UnicornStudio scene OrDSZAlonXdZSqoUdt7I, mounted like /brief's .brief-webgl: fixed full-bleed
+       behind #cognak-main, fades in once its canvas exists; skipped under reduced motion (the loader
+       never runs), leaving the plain ground. See public/js/cognak-unicorn-init.js. */
+    .prop-webgl{ position:fixed; inset:0; width:100vw; height:100vh; z-index:0; pointer-events:none;
+      opacity:0; transition:opacity 1.6s var(--ease-standard); }
+    .prop-webgl.webgl-ready{ opacity:1; }
+    @media (prefers-reduced-motion:reduce){ .prop-webgl{ display:none; } }
+    /* Reading veil: the proposal is long body copy, so the scene sits under a steady wash
+       (the same left-weighted gradient /brief lays over its form, held on here). */
+    .prop-veil{ position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:linear-gradient(90deg, rgba(17,12,8,.62) 0%, rgba(17,12,8,.5) 50%, rgba(17,12,8,.3) 100%); }
+    @media print{ .prop-webgl, .prop-veil{ display:none !important; } }
   </style>
 
   <div class="home-bottom-bar inner-page-nav prop-nav">
@@ -177,7 +185,8 @@ const PAGE = 'proposals' as any;
     <div class="inner-nav-links"><a href="/projects">Projects</a><a href="/studio">Studio</a></div>
   </div>
 
-  <div class="prop-glow" aria-hidden="true"></div>
+  <div class="prop-webgl" data-us-project="OrDSZAlonXdZSqoUdt7I" aria-hidden="true"></div>
+  <div class="prop-veil" aria-hidden="true"></div>
   <main id="cognak-main"><article class="pr">
     <div class="crumbs"><a href="/proposals">&larr; Proposals</a><button type="button" id="print-btn" hidden>Print or save PDF</button></div>
     <p class="loading" id="loading">Opening proposal</p>
@@ -222,6 +231,20 @@ const PAGE = 'proposals' as any;
         })
         .catch(function () { fail('This proposal could not be opened. Check your connection and reload.'); });
       $('print-btn').addEventListener('click', function () { window.print(); });
+    })();
+  </script>
+
+  <script is:inline>
+    /* Fade the scene in once UnicornStudio has put a canvas in it (same as brief.astro). */
+    (function () {
+      var el = document.querySelector('.prop-webgl'); if (!el) return;
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      function ready() { el.classList.add('webgl-ready'); }
+      if ('MutationObserver' in window) {
+        var mo = new MutationObserver(function () { if (el.querySelector('canvas')) { ready(); mo.disconnect(); } });
+        mo.observe(el, { childList: true, subtree: true });
+        setTimeout(function () { ready(); mo.disconnect(); }, 4000);
+      } else { setTimeout(ready, 1200); }
     })();
   </script>
 </BaseLayout>
