@@ -1505,10 +1505,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* License columns for both CSVs (9/29): where the image is from, whether
        SiTime can use it as is, and what that means. Same values as the chips. */
     const licCols = (s, p) => { if (!p || !p.url) return ['', '', '']; const k = licOf(p); const st = licStatus(s, p); return [p.source === 'existing' ? 'Current site' : LIC[k][0], st ? LS_LABEL[st] : '', p.source === 'existing' ? 'Already on the current SiTime site' : LIC[k][1]]; };
-    /* DAM path agreed with Zaelab (Ivana, 9/30): /content/dam/sitime/site/<page>/<slot-id>.jpg,
-       folder = page, filename = slot ID. Derived at export; never stored on the slot. */
-    const pageSlug = (name) => String(name || 'page').split(/[›·]/).pop().trim().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'page';
-    const assetPath = (s) => '/content/dam/sitime/site/' + pageSlug(s.page) + '/' + s.id + '.jpg';
+    /* DAM path agreed with Zaelab (Ivana, 9/30), refined the same day (Pierce):
+       /content/dam/sitime/site/<page>/<slot-id>-<slot-name>.jpg, all lowercase, hyphens,
+       e.g. /content/dam/sitime/site/homepage/img-9002-mems-technology-hero.jpg.
+       Named for the SLOT, never the image, so a replacement lands on the same path.
+       Derived at export; never stored on the slot. */
+    const slugify = (x) => String(x || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const pageSlug = (name) => slugify(String(name || 'page').split(/[›·]/).pop()) || 'page';
+    const slotSlug = (name) => { const parts = String(name || '').split('·').map((x) => x.trim()).filter(Boolean); if (!parts.length) return ''; const tail = parts.length > 1 ? parts[parts.length - 1] + ' ' + parts[0].split(/\s+/)[0] : parts[0]; return slugify(tail).slice(0, 60).replace(/-+$/, ''); };
+    const assetPath = (s) => { const ss = slotSlug(s.name); return '/content/dam/sitime/site/' + pageSlug(s.page) + '/' + String(s.id).toLowerCase() + (ss ? '-' + ss : '') + '.jpg'; };
     const refOf = (p) => !p ? '' : p.source === 'stock' ? (p.id ? 'https://stock.adobe.com/images/x/' + p.id : '') : (p.path || p.title || '');
     function exportBatchCsv(b) {
       const m = byId();
