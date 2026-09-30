@@ -65,5 +65,5 @@ export default async function handler(req, res) {
   const slugs = Array.from(new Set([...sessionSlugs(req), slug]));
   res.setHeader('Set-Cookie', sessionCookie(slugs));
   const items = PROPOSALS.filter((p) => slugs.includes(p.slug)).map(meta);
-  return res.status(200).json({ ok: true, admin: false, items, opened: slug });
+  return res.status(200).json({ ok: true, admin: allowed(req).admin, items, opened: slug });
 }

@@ -221,7 +221,9 @@ const PAGE = 'proposals' as any;
       }
       function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
 
-      function render(items) {
+      /* admin = signed in to /admin, which opens every proposal. Sign out here only clears the
+         proposal passcode, so for admin it would do nothing: hide it and say so instead (Pierce, 9/29). */
+      function render(items, admin) {
         var ul = $('list'); ul.innerHTML = '';
         items.forEach(function (p, i) {
           var li = el('li'); var a = el('a', 'tcard'); a.href = '/proposals/' + p.slug;
@@ -232,7 +234,8 @@ const PAGE = 'proposals' as any;
           var ar = el('span', 'arrow', '→'); ar.setAttribute('aria-hidden', 'true'); a.appendChild(ar);
           li.appendChild(a); ul.appendChild(li);
         });
-        $('dash-status').textContent = items.length === 1 ? 'Unlocked' : items.length + ' unlocked';
+        $('dash-status').textContent = admin ? 'Signed in to admin' : (items.length === 1 ? 'Unlocked' : items.length + ' unlocked');
+        $('signout').hidden = !!admin; $('another').hidden = !!admin;
       }
 
       gate.addEventListener('submit', function (e) {
@@ -246,7 +249,7 @@ const PAGE = 'proposals' as any;
           if (!r.ok) { note.textContent = (r.data && r.data.error) || 'Could not check the passcode. Try again.'; note.className = 'note is-error'; return; }
           $('pass-input').value = '';
           if (next) { location.replace(next); return; }
-          render(r.data.items || []);
+          render(r.data.items || [], r.data.admin);
           swap(gate, dash);
         });
       });
@@ -256,8 +259,10 @@ const PAGE = 'proposals' as any;
         var b = $('signout'); b.disabled = true;
         api('POST', { signout: true }).then(function () {
           b.disabled = false; api('GET').then(function (r) {
-            if (r.ok && r.data && r.data.items && r.data.items.length) { render(r.data.items); return; } /* admin session still open */
-            $('pass-cancel').hidden = true; swap(dash, gate);
+            if (r.ok && r.data && r.data.items && r.data.items.length) { render(r.data.items, r.data.admin); return; } /* admin session still open */
+            $('pass-cancel').hidden = true;
+            var n = $('pass-note'); n.textContent = 'Signed out. Enter the passcode from your email to open it again.'; n.className = 'note';
+            swap(dash, gate);
           });
         });
       });
@@ -269,7 +274,7 @@ const PAGE = 'proposals' as any;
       api('GET').then(function (r) {
         if (r.ok && r.data && r.data.items && r.data.items.length) {
           if (next && r.data.items.some(function (p) { return '/proposals/' + p.slug === next.replace(/\/$/, ''); })) { location.replace(next); return; }
-          render(r.data.items); reveal(dash); return;
+          render(r.data.items, r.data.admin); reveal(dash); return;
         }
         reveal(gate);
       });
