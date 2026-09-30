@@ -110,7 +110,8 @@ const PAGE = 'proposals' as any;
     .pr .pr-compare{ min-width:560px; }
     .pr .pr-compare thead th .pr-pill{ display:table; margin:0 0 .5rem; }
     .pr .pr-compare thead th{ vertical-align:bottom; }   /* column names share a baseline; the pill sits above its own */
-    .pr .pr-compare td{ width:35%; color:var(--ink); }
+    .pr .pr-compare tbody th{ width:22%; }   /* narrower label column, more room for the two options */
+    .pr .pr-compare td{ width:39%; color:var(--ink); }
     /* Term tooltips (Astro, Vercel): dotted underline, a pill-toned popup on hover or focus (tap on touch). */
     .pr .term{ position:relative; cursor:help; text-decoration:underline dotted; text-decoration-color:rgba(var(--accent-rgb),.7);
       text-underline-offset:4px; text-decoration-thickness:1px; outline:none; }
@@ -122,6 +123,19 @@ const PAGE = 'proposals' as any;
       transition:opacity var(--dur-s,.18s) var(--ease-standard), transform var(--dur-s,.18s) var(--ease-standard), visibility 0s linear var(--dur-s,.18s); }
     .pr .term:hover .term-tip, .pr .term:focus .term-tip, .pr .term:focus-within .term-tip{ opacity:1; visibility:visible; transform:none; transition-delay:0s; }
     .pr .pr-scroll{ padding-bottom:4px; }
+    /* Phones: the platform comparison stacks instead of scrolling sideways (the recommended column
+       was off-screen with nothing saying it was there). Each row lists both options, labeled. */
+    @media (max-width:640px){
+      .pr .pr-compare{ min-width:0; }
+      .pr .pr-compare thead{ display:none; }
+      .pr .pr-compare, .pr .pr-compare tbody, .pr .pr-compare tr, .pr .pr-compare th, .pr .pr-compare td{ display:block; width:auto; }
+      .pr .pr-compare tbody tr{ border-top:1px solid var(--line); padding:14px 0 6px; }
+      .pr .pr-compare tbody tr:last-child{ border-bottom:1px solid var(--line); }
+      .pr .pr-compare tbody th, .pr .pr-compare td{ border:0 !important; padding:0 0 12px; }
+      .pr .pr-compare td::before{ content:attr(data-label); display:block; margin-bottom:4px;
+        font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; text-transform:uppercase; color:var(--ink-soft); }
+      .pr .pr-compare td.is-rec-col::before{ content:attr(data-label) "  \00B7  Recommended"; color:var(--accent); }
+    }
     .pr .term--left .term-tip{ right:auto; left:0; }   /* terms in a table's first column open to the right */
     .pr .pr-money th .term-tip{ font-weight:400; }
     .pr .pr-money td{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; padding-right:0; padding-left:16px; }
