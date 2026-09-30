@@ -134,10 +134,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
           <div class="actions"><label class="sbtn p" for="lib-dir">Choose folder</label><input type="file" id="lib-dir" webkitdirectory directory multiple hidden /><span class="mini" id="lib-progress"></span></div>
           <div class="hint" id="lib-log"></div>
         </div>
-        <div class="group client-hide">
-          <div class="card-head"><div class="group-title">Sourced from Stock / uploads</div><span class="mini" id="sourced-count"></span></div>
-          <div class="queue" id="sourced-list"></div>
-        </div>
         <div class="group">
           <div class="card-head"><div class="group-title">Recently deleted</div><span class="mini" id="trash-count"></span></div>
           <p class="hint">Deleted images, and the originals of replaced ones, stay here for 30 days before the file is removed for good. Restore puts the image back in the library and back on any slot it was cleared from, if that slot is still empty.</p>
@@ -480,8 +476,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .mini.decs{ display:inline-flex; flex-wrap:wrap; gap:4px 10px; } .adm .mini.decs b{ margin-right:0; white-space:nowrap; }
     .adm .link{ font:inherit; background:none; border:0; padding:0; color:var(--head); text-decoration:underline; text-underline-offset:3px; font-size:var(--fs-14); margin-right:12px; cursor:pointer; }
     .adm .queue{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .adm #sourced-list .qitem{ align-items:center; }
-    .adm #sourced-list .qitem .sbtn{ margin-left:auto; flex-shrink:0; }
     .adm .qitem{ display:flex; gap:12px; align-items:flex-start; border:1px solid #E8E5EF; border-radius:8px; padding:12px; }
     .adm .qitem > img, .adm .qitem > .thumb{ flex:none; }   /* a long title used to squeeze the thumbnail and shift the text */
     .adm .qitem img{ width:72px; height:48px; object-fit:cover; border-radius:4px; background:#ECEAF1; }
@@ -2651,11 +2645,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
         return { blob, w: im.w, h: im.h, ext: mime === 'image/png' ? 'png' : 'jpg' };
       } finally { im.done(); }
     }
-    function sourcedRows() {
-      const rows = [];
-      (S.slots || []).forEach((s) => { ['main', 'backup'].forEach((which) => { const p = s[which]; if (p && (p.source === 'stock' || p.source === 'upload')) rows.push({ s, which, p }); }); });
-      return rows;
-    }
     /* ---------- library grid (Pierce, 9/24) ----------
        Every library image as a small thumbnail. Hover: Replace (upload a new
        file for this entry; every slot using it switches to the new file) and
@@ -2770,23 +2759,6 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     function renderLib() {
       renderLibGrid();
       const n = (S.library || []).length; $('lib-status').textContent = n ? n + ' images indexed.' : 'Not indexed yet.';
-      const sourced = sourcedRows();
-      $('sourced-count').textContent = sourced.length ? sourced.length + ' image' + (sourced.length === 1 ? '' : 's') : '';
-      $('sourced-list').innerHTML = sourced.length ? sourced.map(({ s, which, p }) => '<div class="qitem"><img src="' + esc(p.thumb || p.url) + '"><div><div class="t">' + esc(s.page) + ' · ' + esc(s.name) + ' <span class="mini">(' + which + ')</span></div><div class="n">' + esc(p.source === 'stock' ? 'Adobe Stock' + (p.id ? ' · ' + p.id : '') : (p.title || p.path || 'Uploaded')) + '</div></div><button class="sbtn" data-unassign="' + s.id + ':' + which + '">Remove</button></div>').join('') : '<p class="hint">Nothing sourced from Stock or uploaded yet.</p>';
-      $('sourced-list').querySelectorAll('[data-unassign]').forEach((b) => b.addEventListener('click', async () => {
-        const [id, which] = b.dataset.unassign.split(':');
-        const s = byId().get(id); if (!s) return;
-        /* Same guard as deleting an upload: a slot in a batch may be on
-           screen with SiTime right now. */
-        const bt = batchOf(s);
-        if (bt) { toast('Can’t remove: ' + s.page + ' · ' + s.name + ' is in Batch ' + String(bt.num).padStart(2, '0') + '. Take the slot out of the batch first.'); return; }
-        if (!(await askConfirm('The ' + which + ' slot on ' + s.name + ' empties. The image itself stays.', { title: 'Remove the ' + which + ' from ' + s.name, ok: 'Remove' }))) return;
-        withUndo('Removed the ' + which + ' image from ' + s.name, () => {
-          retirePick(s, which, 'Removed');
-          if (!s.main && !s.backup && s.id.startsWith('EX-')) s.state = 'unreviewed';
-          mark(); renderLib(); renderSlots(); renderStats();
-        });
-      }));
       const trash = (S.trash || []).map((t, i) => ({ t, i })).reverse();
       $('trash-count').textContent = trash.length ? trash.length + ' item' + (trash.length === 1 ? '' : 's') : '';
       $('trash-list').innerHTML = trash.length ? trash.map(({ t, i }) => { const days = Math.max(0, 30 - Math.floor((Date.now() - t.deletedAt) / 864e5)); return '<div class="qitem"><img src="' + esc(t.item.thumb || t.item.url) + '"><div><div class="t">' + esc(t.item.name || 'Upload') + '</div><div class="n">' + (t.replaced ? 'Replaced' : 'Deleted') + ' by ' + esc(t.by || 'someone') + ' ' + ago(t.deletedAt) + (t.cleared && t.cleared.length ? ' · was on ' + t.cleared.length + ' slot' + (t.cleared.length === 1 ? '' : 's') : '') + ' · removed for good in ' + days + ' day' + (days === 1 ? '' : 's') + '</div></div><button class="sbtn" data-restore="' + i + '">Restore</button></div>'; }).join('') : '<p class="hint">Nothing deleted.</p>';
