@@ -185,12 +185,42 @@ const PAGE = 'proposals' as any;
     .pr .tl-date{ position:absolute; top:50%; transform:translate(-100%,-50%); padding-right:12px; font-size:var(--fs-12); font-weight:500; color:var(--ink-soft); white-space:nowrap; }
     .pr .tl-date.a{ color:var(--accent); }
 
+    /* ---- print / Save as PDF (audited 9/29 against a real Chrome export) ----
+       Light paper version of the page. Sections flow (no page per section); cards, table rows,
+       the caveat and the timeline never split. The recommended ring (a masked ::before) prints as
+       a solid fill over the card in Chrome, so print swaps it for a plain brass border. */
+    @page{ size:letter; margin:.55in .6in; }
     @media print{
       html, body{ background:#fff !important; }
-      .pr{ --ground:#fff; --panel:#fff; --ink:#1A140C; --ink-soft:#5A4A35; --head:#1A140C; --line:#DDD3C4; --line-strong:#BFB29E; --accent:#B8621C; --accent-rgb:184,98,28; }
-      .prop-nav, .main-footer, .pr .crumbs{ display:none !important; }
-      .pr{ padding:0; max-width:none; } .pr .rise{ opacity:1; transform:none; }
-      .pr .pr-sec{ break-inside:avoid-page; }
+      .prop-nav, .main-footer, .pr .crumbs, .prop-webgl, .prop-veil, .pr .pr-scroll-hint, .pr .term-tip{ display:none !important; }
+      .pr{ --ground:#fff; --panel:#fff; --ink:#1A140C; --ink-soft:#5A4A35; --head:#1A140C; --line:#DDD3C4; --line-strong:#BFB29E;
+        --accent:#9A5A1E; --accent-rgb:154,90,30; --accent-soft:#F6EBDA;
+        padding:0; max-width:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .pr .rise{ opacity:1 !important; transform:none !important; }
+      .pr .headline{ font-size:30pt; }
+      .pr .lede{ font-size:12.5pt; }
+      .pr .meta{ margin-bottom:.5rem; }
+      .pr .living{ margin-bottom:1.4rem; }
+      .pr .pr-sec{ padding:1.5rem 0 1.2rem; break-inside:auto; }
+      .pr h2{ font-size:17pt; }
+      .pr .pr-label, .pr h2, .pr h3, .pr .pr-h3{ break-after:avoid; page-break-after:avoid; }
+      .pr .pr-opt, .pr .pr-total, .pr .tl, .pr .pr-caveat, .pr .pr-table tr, .pr .pr-list li, .pr .pr-people li, .pr .pr-steps li,
+      .pr .pr-options, .pr .pr-totals{ break-inside:avoid; page-break-inside:avoid; }
+      .pr .pr-opt, .pr .pr-total, .pr .tl{ background:#fff !important; box-shadow:none !important; border:1px solid var(--line);
+        -webkit-backdrop-filter:none !important; backdrop-filter:none !important; }
+      .pr .pr-opt.is-rec::before, .pr .pr-total.is-rec::before, .pr .pr-tiers li.is-rec::before{ display:none !important; }
+      .pr .pr-opt.is-rec, .pr .pr-total.is-rec{ border:1.5px solid var(--accent); }
+      .pr .pr-pill{ background:var(--accent-soft) !important; color:var(--accent) !important; }
+      .pr .term{ text-decoration:none; cursor:auto; }
+      .pr a{ color:var(--accent); }
+      .pr .pr-scroll{ overflow:visible !important; -webkit-mask-image:none !important; mask-image:none !important; }
+      .pr .pr-compare{ min-width:0 !important; }
+      .pr .pr-caveat{ background:#FBF6EE !important; }
+      .pr .pr-money .is-rec th, .pr .pr-money .is-rec td{ background:#FBF6EE !important; }
+      .pr .tl-bar{ background:#EFE8DC !important; border-color:#A89A84 !important; }
+      .pr .tl-bar.a{ background:rgba(154,90,30,.16) !important; border-color:#9A5A1E !important; }
+      .pr .tl-dia{ background:#8C7F6A !important; } .pr .tl-dia.a{ background:#9A5A1E !important; }
+      .pr .tl-grid i{ background:#E6DED1 !important; }
     }
 
     /* nav + selection: /brief's espresso bar and tan text (brief.astro .brief-nav) */
