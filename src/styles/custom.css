@@ -5975,3 +5975,27 @@ html.js .fourofour-btn.is-in {
         margin: -7px -6px;
     }
 }
+
+/* ── In-page confirm / prompt (see cognakConfirm in cognak-global.js) ──
+   Colours come from the host page's own variables (--panel-hi/--ink/--line-strong
+   on /admin, --ink/--line-strong on /send) with dark fallbacks. Font is set here
+   because the dialog lives in the top layer. */
+.cognak-dlg {
+    font-family: 'Diatype Variable', sans-serif;
+    width: min(440px, calc(100vw - 32px));
+    padding: 26px 28px 22px;
+    border: 1px solid var(--line-strong, rgba(255,255,255,.22));
+    border-radius: 14px;
+    background: var(--panel-hi, #121A19);
+    color: var(--ink, #F2EEF7);
+    box-shadow: 0 24px 60px rgba(0,0,0,.5);
+}
+.cognak-dlg::backdrop { background: rgba(8, 8, 10, .62); }
+.cognak-dlg h2 { margin: 0 0 .7rem; font-size: var(--fs-17, 17px); font-weight: 500; letter-spacing: -.01em; }
+.cognak-dlg p { margin: 0 0 1.3rem; font-size: var(--fs-14, 14px); line-height: 1.6; color: var(--ink-soft, #BED0CD); white-space: pre-line; overflow-wrap: anywhere; }
+.cognak-dlg-input { width: 100%; box-sizing: border-box; margin: -.3rem 0 1.3rem; padding: 11px 12px; font: inherit; font-size: var(--fs-15, 15px); color: inherit; background: transparent; border: 1px solid var(--line-strong, rgba(255,255,255,.22)); border-radius: 8px; }
+.cognak-dlg-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.cognak-dlg-btn { font: inherit; font-size: var(--fs-14, 14px); font-weight: 500; padding: 10px 18px; border-radius: 999px; cursor: pointer; color: inherit; background: none; border: 1px solid var(--line-strong, rgba(255,255,255,.22)); transition: border-color var(--dur-s, .2s) ease; }
+.cognak-dlg-btn:hover { border-color: var(--ink, #fff); }
+.cognak-dlg-btn.is-primary { background: var(--ink, #F2EEF7); border-color: var(--ink, #F2EEF7); color: #15121A; }
+.cognak-dlg.is-danger .cognak-dlg-btn.is-primary { background: var(--err, #FFA79A); border-color: var(--err, #FFA79A); }

@@ -1774,7 +1774,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     $('cmodal-delete').addEventListener('click', async () => {
       if (!cmodalClient) return;
-      if (!confirm('Delete "' + cmodalClient.name + '" from saved clients? Shares already sent are untouched.')) return;
+      if (!(await cognakConfirm('Delete "' + cmodalClient.name + '" from saved clients? Shares already sent are untouched.', { title: 'Delete client', ok: 'Delete', danger: true }))) return;
       const note = $('cmodal-note');
       const btn = $('cmodal-delete');
       btn.disabled = true;
@@ -1999,7 +1999,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           const what = gone.length === 1
             ? '“' + gone[0].name + '”'
             : gone.length + ' files (' + gone.map((f) => f.name).join(', ') + ')';
-          if (!confirm('Permanently delete ' + what + ' from this share?\n\nThe file itself is deleted, not just hidden — anyone holding the direct link loses it too. This can’t be undone.')) return;
+          if (!(await cognakConfirm('Permanently delete ' + what + ' from this share?\n\nThe file itself is deleted, not just hidden — anyone holding the direct link loses it too. This can’t be undone.', { title: 'Delete files', ok: 'Delete permanently', danger: true }))) return;
         }
       }
 
@@ -2137,7 +2137,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
        is right: expiry is fixed, so there'd be nothing to save it into. */
     async function enterEdit(share, btn) {
       if (!editing && queued.length &&
-          !confirm('Discard the files queued for the new share and edit “' + (share.client || 'this share') + '” instead?')) return;
+          !(await cognakConfirm('Discard the files queued for the new share and edit “' + (share.client || 'this share') + '” instead?', { title: 'Discard queued files', ok: 'Discard and edit', danger: true }))) return;
 
       const label = btn ? btn.textContent : '';
       if (btn) { btn.disabled = true; btn.textContent = 'Opening'; }
@@ -2421,7 +2421,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         });
         editBtn.addEventListener('click', (e) => enterEdit(s, e.currentTarget));
         li.querySelector('[data-action="delete"]').addEventListener('click', async () => {
-          if (!confirm('Delete this share for "' + (s.client || 'this client') + '"? The link stops working immediately.')) return;
+          if (!(await cognakConfirm('Delete this share for "' + (s.client || 'this client') + '"? The link stops working immediately.', { title: 'Delete share', ok: 'Delete', danger: true }))) return;
           await api('/api/deliver-delete', { method: 'POST', body: { token: s.token } });
           // Deleting the share you're editing leaves the card pointed at
           // nothing — close it rather than let Save 404 later.

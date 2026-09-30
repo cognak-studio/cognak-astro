@@ -649,7 +649,7 @@ const TOOLS = [
       const note = $('pk-note'); const btn = $('pk-add');
       note.textContent = ''; note.className = 'note';
       if (typeof window.PublicKeyCredential === 'undefined') { note.textContent = 'This browser does not support passkeys.'; note.className = 'note is-error'; return; }
-      const label = prompt('Name this device (e.g. "MacBook Pro", "iPhone")', 'This device');
+      const label = await cognakPrompt('Name this device (e.g. "MacBook Pro", "iPhone")', { title: 'Add a passkey', value: 'This device', ok: 'Continue' });
       if (label === null) return;
       btn.disabled = true;
       try {

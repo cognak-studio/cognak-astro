@@ -881,3 +881,49 @@
         }
     });
 })();
+
+/* ── In-page confirm / prompt ─────────────────────────────────────────────────
+   Replaces the browser's confirm() and prompt(): some browsers (Arc, in-app
+   webviews) can silently suppress those, and a suppressed confirm() on a delete
+   button just looks like a dead button. Built on <dialog> so Escape, focus
+   trapping and focus restore come free.
+     cognakConfirm(message, { title, ok, cancel, danger }) -> Promise<boolean>
+     cognakPrompt(message, { title, value, ok, cancel })   -> Promise<string|null>
+   The dialog is appended inside the page's own scope (.adm / .send) so it picks
+   up that page's colour variables; see .cognak-dlg in custom.css. */
+(function () {
+    function open(kind, message, o) {
+        o = o || {};
+        return new Promise(function (resolve) {
+            if (typeof HTMLDialogElement === 'undefined' || !HTMLDialogElement.prototype.showModal) {
+                resolve(kind === 'prompt' ? window.prompt(message, o.value || '') : window.confirm(message));
+                return;
+            }
+            var host = document.querySelector('.adm, .send') || document.body;
+            var d = document.createElement('dialog');
+            d.className = 'cognak-dlg' + (o.danger ? ' is-danger' : '');
+            var h = document.createElement('h2'); h.textContent = o.title || (kind === 'prompt' ? 'Enter a value' : 'Are you sure?');
+            var m = document.createElement('p'); m.textContent = message;
+            var input = null;
+            if (kind === 'prompt') { input = document.createElement('input'); input.type = 'text'; input.className = 'cognak-dlg-input'; input.value = o.value || ''; input.setAttribute('aria-label', o.title || message); }
+            var row = document.createElement('div'); row.className = 'cognak-dlg-actions';
+            var no = document.createElement('button'); no.type = 'button'; no.className = 'cognak-dlg-btn'; no.textContent = o.cancel || 'Cancel';
+            var yes = document.createElement('button'); yes.type = 'button'; yes.className = 'cognak-dlg-btn is-primary'; yes.textContent = o.ok || (kind === 'prompt' ? 'Save' : 'OK');
+            row.appendChild(no); row.appendChild(yes);
+            d.appendChild(h); d.appendChild(m); if (input) d.appendChild(input); d.appendChild(row);
+            var answer = kind === 'prompt' ? null : false;
+            yes.addEventListener('click', function () { answer = kind === 'prompt' ? input.value : true; d.close(); });
+            no.addEventListener('click', function () { d.close(); });
+            if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); yes.click(); } });
+            d.addEventListener('click', function (e) { if (e.target === d) d.close(); });   // backdrop click cancels
+            d.addEventListener('close', function () { d.remove(); resolve(answer); });
+            host.appendChild(d);
+            d.showModal();
+            // A destructive confirm lands on Cancel, so a stray Enter can't delete anything.
+            (input || (o.danger ? no : yes)).focus();
+            if (input) input.select();
+        });
+    }
+    window.cognakConfirm = function (message, o) { return open('confirm', message, o); };
+    window.cognakPrompt = function (message, o) { return open('prompt', message, o); };
+})();
