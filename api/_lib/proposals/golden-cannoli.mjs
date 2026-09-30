@@ -193,6 +193,7 @@ export const html = `
     <li>Choose Option A or B.</li>
     <li>Countersign NDA and agreement.</li>
     <li>Kickoff call and discovery questionnaire the following week.</li>
+    <li>Build the site together, and tell the real Golden Cannoli story.</li>
   </ol>
 </section>
 `;
