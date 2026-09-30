@@ -105,6 +105,7 @@ const PAGE = 'proposals' as any;
       color:var(--ink-soft); font-weight:400; border-top:0; padding-bottom:10px; }
     .pr .pr-compare{ min-width:560px; }
     .pr .pr-compare thead th .pr-pill{ display:table; margin:0 0 .5rem; }
+    .pr .pr-compare thead th{ vertical-align:bottom; }   /* column names share a baseline; the pill sits above its own */
     .pr .pr-compare td{ width:35%; color:var(--ink); }
     .pr .pr-money td{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; padding-right:0; padding-left:16px; }
     .pr .pr-money thead td{ text-align:right; }

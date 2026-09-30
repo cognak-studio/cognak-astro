@@ -93,14 +93,14 @@ export const html = `
 <section class="pr-sec" id="platform">
   <p class="pr-label">04 · Platform</p>
   <h2>A custom site, with HubSpot as the CRM.</h2>
-  <p>We recommend a custom site on Vercel with HubSpot as the CRM. We can also build on HubSpot's own CMS if keeping everything in one login matters more.</p>
+  <p>We can build on HubSpot's own CMS, which keeps the website and marketing in one login. We recommend a custom site on Vercel instead, with HubSpot as the CRM: faster, more flexible, and not tied to one platform.</p>
   <div class="pr-scroll"><table class="pr-table pr-compare">
-    <thead><tr><th></th><th><span class="pr-pill">Recommended</span>Custom site on Vercel + HubSpot</th><th>HubSpot CMS</th></tr></thead>
+    <thead><tr><th></th><th>HubSpot CMS</th><th><span class="pr-pill">Recommended</span>Custom site on Vercel + HubSpot</th></tr></thead>
     <tbody>
-      <tr><th scope="row">How it works</th><td>Site built in Astro, hosted on Vercel, content managed in a simple editor. HubSpot handles forms, contacts and tracking.</td><td>Site built as a custom HubSpot theme. Pages, forms, contacts and the partner login all live in HubSpot.</td></tr>
-      <tr><th scope="row">Strengths</th><td>Fastest load times, most design freedom, strongest accessibility and SEO baseline. No platform lock-in.</td><td>One login for marketing and the website. Partner area and bilingual pages are built-in features.</td></tr>
-      <tr><th scope="row">Tradeoffs</th><td>Two tools for your team (site editor and HubSpot). Partner login is custom built.</td><td>Design is shaped by HubSpot's templating. Ongoing subscription cost is higher.</td></tr>
-      <tr><th scope="row">HubSpot plan</th><td>Any tier</td><td>Content Hub Professional or higher, <a href="https://knowledge.hubspot.com/website-pages/require-member-registration-to-access-private-content" target="_blank" rel="noopener">required for private member pages</a></td></tr>
+      <tr><th scope="row">How it works</th><td>Site built as a custom HubSpot theme. Pages, forms, contacts and the partner login all live in HubSpot.</td><td>Site built in Astro, hosted on Vercel, content managed in a simple editor. HubSpot handles forms, contacts and tracking.</td></tr>
+      <tr><th scope="row">Strengths</th><td>One login for marketing and the website. Partner area and bilingual pages are built-in features.</td><td>Fastest load times, most design freedom, strongest accessibility and SEO baseline. No platform lock-in.</td></tr>
+      <tr><th scope="row">Tradeoffs</th><td>Design is shaped by HubSpot's templating. Ongoing subscription cost is higher.</td><td>Two tools for your team (site editor and HubSpot). Partner login is custom built.</td></tr>
+      <tr><th scope="row">HubSpot plan</th><td>Content Hub Professional or higher, <a href="https://knowledge.hubspot.com/website-pages/require-member-registration-to-access-private-content" target="_blank" rel="noopener">required for private member pages</a></td><td>Any tier</td></tr>
     </tbody>
   </table></div>
   <p class="pr-note">Hosting and software subscriptions are billed to Golden Cannoli directly. We confirm the exact plans during discovery.</p>
