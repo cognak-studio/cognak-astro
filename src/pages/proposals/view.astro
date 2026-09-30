@@ -54,6 +54,7 @@ const PAGE = 'proposals' as any;
     .pr .living{ font-size:var(--fs-13); line-height:1.5; color:var(--ink-soft); margin:0 0 3.2rem; max-width:none; }
     @media (max-width:600px){ .pr .meta{ grid-template-columns:1fr; } .pr .meta div + div{ border-left:0; border-top:1px solid var(--line); padding-left:0; } }
 
+    .pr .print-logo{ display:none; }   /* paper only: the nav carries the mark on screen */
     .pr .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl,.7s) var(--ease-standard), transform var(--dur-2xl,.7s) var(--ease-standard); }
     .pr .rise.in{ opacity:1; transform:none; }
     @media (prefers-reduced-motion:reduce){ .pr .rise{ opacity:1; transform:none; transition:none; } }
@@ -197,6 +198,7 @@ const PAGE = 'proposals' as any;
         --accent:#9A5A1E; --accent-rgb:154,90,30; --accent-soft:#F6EBDA;
         padding:0; max-width:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
       .pr .rise{ opacity:1 !important; transform:none !important; }
+      .pr .print-logo{ display:block; width:56px; height:auto; margin:0 0 1.6rem; }
       .pr .headline{ font-size:30pt; }
       .pr .lede{ font-size:12.5pt; }
       .pr .meta{ margin-bottom:.5rem; }
@@ -256,6 +258,7 @@ const PAGE = 'proposals' as any;
   <div class="prop-veil" aria-hidden="true"></div>
   <main id="cognak-main"><article class="pr">
     <div class="crumbs"><a href="/proposals">&larr; Proposals</a><button type="button" id="print-btn" hidden>Print or save PDF</button></div>
+    <img class="print-logo" src="/theme/assets/images/cognak-logo.svg" alt="COGNAK" width="64" height="42" />
     <p class="loading" id="loading">Opening proposal</p>
     <header id="head" class="rise" hidden>
       <h1 class="headline" id="title"></h1>
