@@ -138,10 +138,10 @@ export const html = `
   <h3 class="pr-h3">Website, both options</h3>
   <table class="pr-table pr-money">
     <tbody>
-      <tr><th scope="row">Discovery and site structure</th><td>$5,600</td></tr>
-      <tr><th scope="row">Design</th><td>$17,600</td></tr>
-      <tr><th scope="row">Build</th><td>$40,000</td></tr>
-      <tr><th scope="row">Accessibility, QA, launch and training</th><td>$10,800</td></tr>
+      <tr><th scope="row"><span class="term term--left" tabindex="0" aria-describedby="tip-disc">Discovery and site structure<span class="term-tip" role="tooltip" id="tip-disc">Kickoff, audit of the current site, sitemap and content plan.</span></span></th><td>$5,600</td></tr>
+      <tr><th scope="row"><span class="term term--left" tabindex="0" aria-describedby="tip-design">Design<span class="term-tip" role="tooltip" id="tip-design">Homepage, every page template, mobile and the design system.</span></span></th><td>$17,600</td></tr>
+      <tr><th scope="row"><span class="term term--left" tabindex="0" aria-describedby="tip-build">Build<span class="term-tip" role="tooltip" id="tip-build">Site templates, store finder, partner area, HubSpot forms and HR routing, bilingual careers, and content editor setup.</span></span></th><td>$40,000</td></tr>
+      <tr><th scope="row"><span class="term term--left" tabindex="0" aria-describedby="tip-qa">Accessibility, QA, launch and training<span class="term-tip" role="tooltip" id="tip-qa">Accessibility testing, redirects from Shopify, cross-browser QA, launch, training and a written guide.</span></span></th><td>$10,800</td></tr>
       <tr class="is-sum"><th scope="row">Website total</th><td>$74,000</td></tr>
     </tbody>
   </table>
@@ -149,7 +149,7 @@ export const html = `
   <h3 class="pr-h3">Brand, Option B only</h3>
   <table class="pr-table pr-money">
     <tbody>
-      <tr><th scope="row">Brand identity system</th><td>$28,000</td></tr>
+      <tr><th scope="row"><span class="term term--left" tabindex="0" aria-describedby="tip-brand">Brand identity system<span class="term-tip" role="tooltip" id="tip-brand">Positioning session, full logo system, color, type, photography direction and complete guidelines.</span></span></th><td>$28,000</td></tr>
       <tr class="is-sum"><th scope="row">Option B total, website and brand</th><td>$102,000</td></tr>
     </tbody>
   </table>

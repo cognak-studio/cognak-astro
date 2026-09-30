@@ -122,6 +122,8 @@ const PAGE = 'proposals' as any;
       transition:opacity var(--dur-s,.18s) var(--ease-standard), transform var(--dur-s,.18s) var(--ease-standard), visibility 0s linear var(--dur-s,.18s); }
     .pr .term:hover .term-tip, .pr .term:focus .term-tip, .pr .term:focus-within .term-tip{ opacity:1; visibility:visible; transform:none; transition-delay:0s; }
     .pr .pr-scroll{ padding-bottom:4px; }
+    .pr .term--left .term-tip{ right:auto; left:0; }   /* terms in a table's first column open to the right */
+    .pr .pr-money th .term-tip{ font-weight:400; }
     .pr .pr-money td{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; padding-right:0; padding-left:16px; }
     .pr .pr-money thead td{ text-align:right; }
     .pr .pr-money tbody th{ width:auto; }
