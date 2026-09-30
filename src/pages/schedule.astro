@@ -97,7 +97,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           <div class="group-title">Pick a time</div>
           <div class="field">
             <label class="q">
-              <span class="q-title">Mon–Thu, 10am–5pm Pacific</span>
+              <span class="q-title" id="hours-title">Mon–Thu, 10am–5pm Pacific</span>
               <span class="q-sub">Pulled live from the calendar. If it's not shown here, it's already booked.</span>
             </label>
             <div id="days-wrap" class="days-wrap" aria-live="polite">
@@ -691,6 +691,74 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     return new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
   }
 
+  // Time zones (Pierce, 2026-09-30: most clients are East Coast). Slots,
+  // banners and the confirmation read in the visitor's own zone; Pacific
+  // rides along as the reference wherever the two differ. Slots are still
+  // grouped by Pacific calendar date — that's how the API returns them.
+  function zoneName(tz, iso) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'longGeneric' }).formatToParts(iso ? new Date(iso) : new Date());
+      const n = parts.find((x) => x.type === 'timeZoneName');
+      if (n && n.value) return n.value;
+    } catch (e) { /* older engines: fall through */ }
+    return tz === LA_TZ ? 'Pacific Time' : tz.replace(/^.*\//, '').replace(/_/g, ' ');
+  }
+  // Inline form: "Eastern", "Central"… for North American zones; elsewhere
+  // the browser's short name ("BST", "GMT+9") reads better than "Japan Standard".
+  function zoneShort(tz, iso) {
+    const long = zoneName(tz, iso);
+    if (/^(Eastern|Central|Mountain|Pacific|Atlantic|Alaska|Hawaii)/.test(long)) return long.replace(/ Time$/, '');
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' }).formatToParts(iso ? new Date(iso) : new Date());
+      const n = parts.find((x) => x.type === 'timeZoneName');
+      if (n && n.value) return n.value;
+    } catch (e) { /* fall through */ }
+    return long.replace(/ Time$/, '');
+  }
+  function dateKeyIn(t, tz) {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date(t));
+  }
+  function weekdayIn(t, tz) {
+    return new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(new Date(t));
+  }
+  // Slot button text: the visitor's time, plus the weekday if their zone has
+  // pushed it onto a different date than the Pacific day it's listed under.
+  function fmtSlot(iso) {
+    let s = fmtTime(iso, viewerTz);
+    if (showBothTz && dateKeyIn(iso, viewerTz) !== dateKeyIn(iso, LA_TZ)) s += ' ' + weekdayIn(iso, viewerTz);
+    return s;
+  }
+  function tzOffsetMs(tz, t) {
+    const p = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })
+      .formatToParts(new Date(t)).forEach((x) => { p[x.type] = x.value; });
+    return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second) - t;
+  }
+  function laInstant(dateKey, hour) {
+    const { y, m, d } = keyParts(dateKey);
+    const guess = Date.UTC(y, m - 1, d, hour);
+    return guess - tzOffsetMs(LA_TZ, guess);
+  }
+  function fmtHour(t, tz) {
+    return fmtTime(t, tz).replace(':00', '').replace(/\s+/g, '').toLowerCase();
+  }
+  // "Mon–Thu, 10am–5pm Pacific" -> "Mon–Thu, 1–8pm Eastern (10am–5pm Pacific)".
+  // Left as-is when the visitor's zone pushes the window across midnight —
+  // "Mon–Thu" would no longer be true there.
+  function localizeHoursTitle() {
+    const el = $('hours-title');
+    if (!el || !showBothTz) return;
+    const key = laTodayKey();
+    const a = laInstant(key, 10), b = laInstant(key, 17);
+    const dayA = dateKeyIn(a, viewerTz);
+    if (dayA !== dateKeyIn(b, viewerTz) || weekdayIn(a, viewerTz) !== weekdayIn(a, LA_TZ)) return;
+    let from = fmtHour(a, viewerTz);
+    const to = fmtHour(b, viewerTz);
+    if (from.slice(-2) === to.slice(-2)) from = from.slice(0, -2);
+    el.textContent = 'Mon–Thu, ' + from + '–' + to + ' ' + zoneShort(viewerTz) + ' (10am–5pm Pacific)';
+  }
+  localizeHoursTitle();
+
   function fmtDayLabel(dateKey) {
     // dateKey is a 'YYYY-MM-DD' LA calendar date. Anchor at 19:00 UTC (11am
     // Pacific, safely inside the day either side of DST) purely so the
@@ -994,7 +1062,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     const label = document.createElement('div');
     label.className = 'cal-day-label';
-    label.textContent = fmtDayLabel(dateKey);
+    label.textContent = fmtDayLabel(dateKey) + (showBothTz ? ' · ' + zoneName(viewerTz, day.slots[0]) : '');
     timesCol.appendChild(label);
 
     const note = document.createElement('div');
@@ -1009,7 +1077,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       b.type = 'button';
       b.className = 'sched-slot';
       b.dataset.iso = iso;
-      b.textContent = fmtTime(iso, LA_TZ);
+      b.textContent = fmtSlot(iso);
       b.style.animationDelay = (i * 0.045) + 's';
       if (iso === selectedSlot) b.classList.add('on');
       b.addEventListener('click', () => selectSlot(iso, b));
@@ -1023,10 +1091,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     daysWrap.querySelectorAll('.sched-slot.on').forEach((el) => el.classList.remove('on'));
     btnEl.classList.add('on');
 
-    let when = fmtTime(iso, LA_TZ) + ' Pacific';
-    if (showBothTz) when += ' · ' + fmtTime(iso, viewerTz) + ' your time';
-    const dayLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(iso));
-    selectedBanner.textContent = dayLabel + ', ' + when;
+    selectedBanner.textContent = fmtWhen(iso);
 
     detailsGroup.hidden = false;
     actions.hidden = false;
@@ -1121,10 +1186,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     scardBody.hidden = true;
     confirmedView.hidden = false;
 
-    let when = fmtTime(payload.start, LA_TZ) + ' Pacific';
-    if (showBothTz) when += ' · ' + fmtTime(payload.start, viewerTz) + ' your time';
-    const dayLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(payload.start));
-    $('confirmed-when').textContent = dayLabel + ', ' + when;
+    $('confirmed-when').textContent = fmtWhen(payload.start);
     // payload.revisit = opened later from the "View your booking" link
     // (?booking=<token>), not straight after submitting. Same card, past-tense
     // copy, no conversion ping.
@@ -1171,11 +1233,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   /* ---- reschedule / cancel (2026-09-22) ----------------------------- */
 
+  // "Monday, October 5, 3:00 PM Eastern (12:00 PM Pacific)" — visitor's
+  // zone first, Pacific in parentheses. Pacific visitors get one time.
   function fmtWhen(iso) {
-    let when = fmtTime(iso, LA_TZ) + ' Pacific';
-    if (showBothTz) when += ' · ' + fmtTime(iso, viewerTz) + ' your time';
-    const dayLabel = new Intl.DateTimeFormat('en-US', { timeZone: LA_TZ, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(iso));
-    return dayLabel + ', ' + when;
+    const longDay = (tz) => new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date(iso));
+    if (!showBothTz) return longDay(LA_TZ) + ', ' + fmtTime(iso, LA_TZ) + ' Pacific';
+    let pac = fmtTime(iso, LA_TZ) + ' Pacific';
+    if (dateKeyIn(iso, viewerTz) !== dateKeyIn(iso, LA_TZ)) pac += ', ' + longDay(LA_TZ);
+    return longDay(viewerTz) + ', ' + fmtTime(iso, viewerTz) + ' ' + zoneShort(viewerTz, iso) + ' (' + pac + ')';
   }
 
   function setUrl(qs) {
