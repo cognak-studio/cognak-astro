@@ -86,7 +86,10 @@ const PAGE = 'proposals' as any;
       -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; }
     .pr .pr-opt p:not(.pr-opt-k){ font-size:var(--fs-15); line-height:1.55; }
     .pr .pr-opt .pr-why{ color:var(--ink-soft); }
-    .pr .pr-opt dl{ display:flex; gap:24px; margin:1rem 0 0; padding-top:.9rem; border-top:1px solid var(--line); }
+    /* Cards are equal height (grid stretch); the facts row sits on the card's foot so both cards' rows line up (Pierce, 9/29). */
+    .pr .pr-opt{ display:flex; flex-direction:column; }
+    .pr .pr-opt dl{ display:flex; gap:24px; margin:auto 0 0; padding-top:.9rem; border-top:1px solid var(--line); }
+    .pr .pr-opt .pr-why{ margin-bottom:1rem; }
     .pr .pr-opt dt{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); }
     .pr .pr-opt dd{ margin:.25rem 0 0; font-size:var(--fs-14); }
 
