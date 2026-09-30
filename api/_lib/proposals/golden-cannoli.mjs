@@ -64,7 +64,7 @@ export const html = `
       <h3>Website and brand together</h3>
       <p>A brand engagement runs first; the site is designed on the new identity. Both launch together.</p>
       <p class="pr-why">One launch, one story. Everything new arrives at once, instead of in two rounds.</p>
-      <dl><div><dt>Target launch</dt><dd>March 2027</dd></div><div><dt>Brand</dt><dd>One of three tiers</dd></div></dl>
+      <dl><div><dt>Target launch</dt><dd>March 2027</dd></div><div><dt>Brand</dt><dd>Identity system</dd></div></dl>
     </article>
   </div>
   <p class="pr-note">Either way, the site is built on a token system: color, type, spacing and logo live in one place, so brand changes are a settings change, not a redesign.</p>
@@ -108,20 +108,21 @@ export const html = `
 
 <section class="pr-sec" id="brand">
   <p class="pr-label">05 · Brand scope (Option B)</p>
-  <h2>Three depths, building on your discovery work.</h2>
-  <p>Your discovery work already points the way: "Golden" as the master brand, the star as its shorthand, gold and hunter green at the core. The brand work builds on that rather than starting over. Each tier includes everything in the one before it.</p>
-  <ol class="pr-tiers">
-    <li><p class="pr-opt-k">Tier 1</p><h3>Refine</h3><p>Refinement of the star and the "Golden" wordmark into one consistent logo family. Color and type codified. A concise guidelines document.</p></li>
-    <li class="is-rec"><span class="pr-pill">Recommended</span><p class="pr-opt-k">Tier 2</p><h3>Identity system</h3><p>A working session with leadership to set positioning and voice. Full logo system (master brand, star, Golden Cannoli lockup). Color, type, photography direction and graphic elements. Complete guidelines.</p></li>
-    <li><p class="pr-opt-k">Tier 3</p><h3>Identity and packaging</h3><p>Tier 2, plus a packaging architecture: how the brand, product names, flavors and claims sit on every pack. Applied to three hero SKUs as print-ready templates.</p></li>
-  </ol>
-  <p class="pr-note">Tier 2 gives the website everything it needs. Tier 3 addresses the packaging inconsistency your team flagged as the largest brand weakness, and sets up the full retail refresh.</p>
+  <h2>One identity system, built on your discovery work.</h2>
+  <p>Your discovery work already points the way: "Golden" as the master brand, the star as its shorthand, gold and hunter green at the core. The brand work builds on that rather than starting over, and gives the new site everything it is designed on.</p>
+  <ul class="pr-list">
+    <li>A working session with leadership to set positioning and voice.</li>
+    <li>A full logo system: master brand, star, and the Golden Cannoli lockup.</li>
+    <li>Color, type, photography direction and graphic elements.</li>
+    <li>Complete brand guidelines.</li>
+  </ul>
+  <p class="pr-note">Packaging comes next. Your team flagged packaging consistency as the largest brand weakness; once the identity is set, we scope a packaging system on it as its own phase, so it does not hold up the site launch.</p>
 </section>
 
 <section class="pr-sec" id="timeline">
   <p class="pr-label">06 · Timeline</p>
   <h2>Targeting late February or late March.</h2>
-  <p class="pr-caveat"><strong>These dates are the ideal case, not a commitment.</strong> They assume a November 2 start, quick turnarounds on reviews and approvals, and content delivered on time. Schedules like this often shift. We will confirm dates at kickoff and keep them current as the work moves.</p>
+  <p class="pr-caveat"><strong>These dates are the ideal case, not a commitment.</strong> It assumes a November 2 start, quick turnarounds on reviews and approvals, and content delivered on time. Schedules like this often shift. We will confirm dates at kickoff and keep them current as the work moves.</p>
   <p>On that basis, Option A targets the week of February 22 and Option B the week of March 22.</p>
   ${timeline}
   <p class="pr-note">In Option B, site discovery runs alongside the brand work, and site design starts once the brand direction is approved in early December. Content (photos, copy, Spanish text) is needed by the start of build to hold these dates.</p>
@@ -146,14 +147,12 @@ export const html = `
   </table>
   <p class="pr-note">Built on HubSpot CMS instead, the website total is $70,000, since the partner area and bilingual pages use HubSpot's built-in features.</p>
   <h3 class="pr-h3">Brand, Option B only</h3>
-  <div class="pr-scroll"><table class="pr-table pr-money">
-    <thead><tr><th>Tier</th><td>Fee</td><td>With website</td></tr></thead>
+  <table class="pr-table pr-money">
     <tbody>
-      <tr><th scope="row">1. Refine</th><td>$15,000</td><td>$89,000</td></tr>
-      <tr class="is-rec"><th scope="row">2. Identity system <span class="pr-pill">Recommended</span></th><td>$28,000</td><td>$102,000</td></tr>
-      <tr><th scope="row">3. Identity and packaging</th><td>$45,000</td><td>$119,000</td></tr>
+      <tr><th scope="row">Brand identity system</th><td>$28,000</td></tr>
+      <tr class="is-sum"><th scope="row">Option B total, website and brand</th><td>$102,000</td></tr>
     </tbody>
-  </table></div>
+  </table>
   <p class="pr-note">Work outside this scope is billed at $200 per hour, with an estimate agreed before it starts.</p>
 </section>
 
@@ -167,7 +166,7 @@ export const html = `
         <li>Photography. We provide art direction and a shot list; Golden Cannoli supplies or commissions the photos.</li>
         <li>Copywriting and Spanish translation. We edit and fit copy to the design; Golden Cannoli supplies the text.</li>
         <li>Hosting, HubSpot and other software subscriptions.</li>
-        <li>Packaging beyond the three hero SKUs in Tier 3.</li>
+        <li>Packaging design. Scoped as its own phase once the identity is set.</li>
       </ul>
     </div>
     <div>
@@ -191,7 +190,7 @@ export const html = `
     <li><strong>Michael</strong><span>Brand strategy and identity</span></li>
   </ul>
   <ol class="pr-steps">
-    <li>Choose Option A or B, and a brand tier if B.</li>
+    <li>Choose Option A or B.</li>
     <li>Countersign NDA and agreement.</li>
     <li>Kickoff call and discovery questionnaire the following week.</li>
   </ol>
