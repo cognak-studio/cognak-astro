@@ -108,7 +108,7 @@ export const html = `
 
 <section class="pr-sec" id="brand">
   <p class="pr-label">05 · Brand scope (Option B)</p>
-  <h2>One identity system, built on your discovery work.</h2>
+  <h2>One identity system, <span class="keep">built on your discovery work.</span></h2>
   <p>Your discovery work already points the way: "Golden" as the master brand, the star as its shorthand, gold and hunter green at the core. The brand work builds on that rather than starting over, and gives the new site everything it is designed on.</p>
   <ul class="pr-list">
     <li>A working session with leadership to set positioning and voice.</li>
