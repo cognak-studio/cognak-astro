@@ -111,6 +111,17 @@ const PAGE = 'proposals' as any;
     .pr .pr-compare thead th .pr-pill{ display:table; margin:0 0 .5rem; }
     .pr .pr-compare thead th{ vertical-align:bottom; }   /* column names share a baseline; the pill sits above its own */
     .pr .pr-compare td{ width:35%; color:var(--ink); }
+    /* Term tooltips (Astro, Vercel): dotted underline, a pill-toned popup on hover or focus (tap on touch). */
+    .pr .term{ position:relative; cursor:help; text-decoration:underline dotted; text-decoration-color:rgba(var(--accent-rgb),.7);
+      text-underline-offset:4px; text-decoration-thickness:1px; outline:none; }
+    .pr .term:focus-visible{ outline:2px solid var(--accent) !important; outline-offset:2px; border-radius:2px; }
+    .pr .term-tip{ position:absolute; right:0; top:calc(100% + 8px);   /* right-anchored: the column sits at the table's right edge */ z-index:5; width:max-content; max-width:260px;
+      padding:9px 12px; border-radius:10px; background:#241C10; border:1px solid rgba(var(--accent-rgb),.35);
+      color:var(--head); font-size:var(--fs-13); line-height:1.45; font-weight:400; text-decoration:none;
+      box-shadow:0 8px 24px rgba(0,0,0,.4); opacity:0; visibility:hidden; transform:translateY(-4px); pointer-events:none;
+      transition:opacity var(--dur-s,.18s) var(--ease-standard), transform var(--dur-s,.18s) var(--ease-standard), visibility 0s linear var(--dur-s,.18s); }
+    .pr .term:hover .term-tip, .pr .term:focus .term-tip, .pr .term:focus-within .term-tip{ opacity:1; visibility:visible; transform:none; transition-delay:0s; }
+    .pr .pr-scroll{ padding-bottom:4px; }
     .pr .pr-money td{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; padding-right:0; padding-left:16px; }
     .pr .pr-money thead td{ text-align:right; }
     .pr .pr-money tbody th{ width:auto; }

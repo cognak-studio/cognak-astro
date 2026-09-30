@@ -97,7 +97,7 @@ export const html = `
   <div class="pr-scroll"><table class="pr-table pr-compare">
     <thead><tr><th></th><th>HubSpot CMS</th><th><span class="pr-pill">Recommended</span>Custom site on Vercel + HubSpot</th></tr></thead>
     <tbody>
-      <tr><th scope="row">How it works</th><td>Site built as a custom HubSpot theme. Pages, forms, contacts and the partner login all live in HubSpot.</td><td>Site built in Astro, hosted on Vercel, content managed in a simple editor. HubSpot handles forms, contacts and tracking.</td></tr>
+      <tr><th scope="row">How it works</th><td>Site built as a custom HubSpot theme. Pages, forms, contacts and the partner login all live in HubSpot.</td><td>Site built in <span class="term" tabindex="0" aria-describedby="tip-astro">Astro<span class="term-tip" role="tooltip" id="tip-astro">A modern web framework that ships pages as plain HTML, so the site loads fast and search engines read it cleanly.</span></span>, hosted on <span class="term" tabindex="0" aria-describedby="tip-vercel">Vercel<span class="term-tip" role="tooltip" id="tip-vercel">Hosting that serves the site from a global network, so it is fast everywhere and needs no server upkeep.</span></span>, content managed in a simple editor. HubSpot handles forms, contacts and tracking.</td></tr>
       <tr><th scope="row">Strengths</th><td>One login for marketing and the website. Partner area and bilingual pages are built-in features.</td><td>Fastest load times, most design freedom, strongest accessibility and SEO baseline. No platform lock-in.</td></tr>
       <tr><th scope="row">Tradeoffs</th><td>Design is shaped by HubSpot's templating. Ongoing subscription cost is higher.</td><td>Two tools for your team (site editor and HubSpot). Partner login is custom built.</td></tr>
       <tr><th scope="row">HubSpot plan</th><td>Content Hub Professional or higher, <a href="https://knowledge.hubspot.com/website-pages/require-member-registration-to-access-private-content" target="_blank" rel="noopener">required for private member pages</a></td><td>Any tier</td></tr>
@@ -116,7 +116,7 @@ export const html = `
     <li>Color, type, photography direction and graphic elements.</li>
     <li>Complete brand guidelines.</li>
   </ul>
-  <p class="pr-note">Packaging comes next. Your team flagged packaging consistency as the largest brand weakness; once the identity is set, we scope a packaging system on it as its own phase, so it does not hold up the site launch.</p>
+  <p class="pr-note">Packaging would come next. Your team flagged packaging consistency as the largest brand weakness; once the identity is set, we could scope a packaging system on it as its own separate phase, so it does not hold up the site launch.</p>
 </section>
 
 <section class="pr-sec" id="timeline">
