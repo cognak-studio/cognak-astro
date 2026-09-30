@@ -58,9 +58,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <div data-label="Set by">Google Ads</div>
         <div data-label="Purpose">Measures ad conversions</div>
         <div data-label="Lifetime">90 days</div>
+
+        <div class="pp-ck-name" data-label="Cookie">cognak_proposals</div>
+        <div data-label="Set by">COGNAK</div>
+        <div data-label="Purpose">Keeps a client proposal unlocked after its passcode</div>
+        <div data-label="Lifetime">30 days</div>
       </div>
 
-      <p class="pp-cookies-note">Only <code>cognak_consent</code> is ours, and it is the only one set if you decline. The rest appear solely after you accept.</p>
+      <p class="pp-cookies-note"><code>cognak_consent</code> and <code>cognak_proposals</code> are ours, and neither tracks you. <code>cognak_proposals</code> is set only when you open a client proposal with its passcode. The rest appear solely after you accept.</p>
 
       {/* JS-gated in CSS: with no JS this can't read your cookie, and a
           control that reports a state it can't verify is worse than none.
