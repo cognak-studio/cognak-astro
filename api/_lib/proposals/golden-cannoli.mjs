@@ -103,6 +103,7 @@ export const html = `
       <tr><th scope="row">HubSpot plan</th><td data-label="HubSpot CMS">Content Hub Professional or higher, <a href="https://knowledge.hubspot.com/website-pages/require-member-registration-to-access-private-content" target="_blank" rel="noopener">required for private member pages</a></td><td data-label="Custom site on Vercel + HubSpot" class="is-rec-col">Any tier</td></tr>
     </tbody>
   </table></div>
+  <p class="pr-scroll-hint" aria-hidden="true">Swipe to compare &rarr;</p>
   <p class="pr-note">Hosting and software subscriptions are billed to Golden Cannoli directly. We confirm the exact plans during discovery.</p>
 </section>
 
