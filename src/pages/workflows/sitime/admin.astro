@@ -532,6 +532,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     .adm .lt-cap .lic:not(.m-envato):not(.m-adobe):not(.m-istock):not(.m-shutterstock):not(.m-upload){ padding-left:8px; color:#6A5C8A; }
     .adm .lt-cap .lic.m-existing{ color:#6A5C8A; }
     .adm #libgrid-groups:empty{ display:none; }
+    .adm .mini.dam{ word-break:break-all; }   /* DAM path under the IDs in Handoff */
     .adm .lt{ position:relative; aspect-ratio:3/2; border-radius:6px; overflow:hidden; background:#ECEAF1; }
     .adm .lt img{ width:100%; height:100%; object-fit:cover; display:block; }
     .adm .lt .used{ position:absolute; top:5px; left:5px; font-family:'Diatype Mono', monospace; font-size:var(--fs-9); letter-spacing:.08em; padding:2px 6px; border-radius:999px; background:#1A1A1A; color:#fff; }
@@ -1504,11 +1505,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* License columns for both CSVs (9/29): where the image is from, whether
        SiTime can use it as is, and what that means. Same values as the chips. */
     const licCols = (s, p) => { if (!p || !p.url) return ['', '', '']; const k = licOf(p); const st = licStatus(s, p); return [p.source === 'existing' ? 'Current site' : LIC[k][0], st ? LS_LABEL[st] : '', p.source === 'existing' ? 'Already on the current SiTime site' : LIC[k][1]]; };
+    /* DAM path agreed with Zaelab (Ivana, 9/30): /content/dam/sitime/site/<page>/<slot-id>.jpg,
+       folder = page, filename = slot ID. Derived at export; never stored on the slot. */
+    const pageSlug = (name) => String(name || 'page').split(/[›·]/).pop().trim().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'page';
+    const assetPath = (s) => '/content/dam/sitime/site/' + pageSlug(s.page) + '/' + s.id + '.jpg';
     const refOf = (p) => !p ? '' : p.source === 'stock' ? (p.id ? 'https://stock.adobe.com/images/x/' + p.id : '') : (p.path || p.title || '');
     function exportBatchCsv(b) {
       const m = byId();
-      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'additional_notes', 'treatment', 'note', 'license_source', 'license_status', 'license_note']];
-      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? (o.ev.by || DECIDED_BY) : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '', ...licCols(s, p)]); });
+      const rows = [['batch', 'page_id', 'page', 'section', 'url', 'slot_id', 'asset_path', 'slot', 'where', 'decision', 'via', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'additional_notes', 'treatment', 'note', 'license_source', 'license_status', 'license_note']];
+      (b.slotIds || []).forEach((id) => { const s = m.get(id); if (!s) return; const o = outcomeIn(s, b); const p = (o.which === 'backup' ? s.backup : s.main) || s.main || {}; rows.push([String(b.num).padStart(2, '0'), s.pageId || '', s.page, s.section, s.url, s.id, assetPath(s), s.name, s.where || '', o.outcome, o.which || '', isoAt(o.ev), o.ev ? (o.ev.by || DECIDED_BY) : '', p.source || '', assetId(p), refOf(p), p.url || '', s.desc || p.desc || '', treatment(p), (o.ev && o.ev.note) || '', ...licCols(s, p)]); });
       downloadCsv('sitime-batch-' + String(b.num).padStart(2, '0') + '.csv', rows);
     }
     function downloadCsv(name, rows) { const csv = rows.map((r) => r.map((c) => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\n'); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = name; a.click(); }
@@ -2589,15 +2594,15 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
     /* ---------- handoff ---------- */
     function renderHandoff() {
       const rows = S.slots.map((s) => ({ s, p: finalPick(s), b: batchOf(s) })).filter((x) => x.p);
-      $('handoff-rows').innerHTML = rows.map(({ s, p, b }) => '<tr><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div><div class="mini">' + esc((s.pageId || '') + ' · ' + s.id) + '</div></td><td>' + thumbCell(p) + '</td><td>' + esc(p.source) + '</td><td class="sub">' + (p.source === 'stock' ? (p.id ? '<a href="https://stock.adobe.com/images/x/' + esc(p.id) + '" target="_blank" rel="noopener">' + esc(p.id) + '</a>' : '—') : esc(p.source === 'library' ? p.path : p.title || '')) + '</td><td><input class="txt" data-lic="' + s.id + '" value="' + esc(s.license && s.license.id || '') + '" placeholder="' + (licStatus(s, p) === 'unlicensed' || (s.license && s.license.id) ? 'License #' : 'n/a') + '"></td><td class="mini">' + (b ? String(b.num).padStart(2, '0') : '') + '</td></tr>').join('') || '<tr><td colspan="6" class="hint">Nothing approved yet.</td></tr>';
+      $('handoff-rows').innerHTML = rows.map(({ s, p, b }) => '<tr><td><div class="pg">' + esc(s.page) + '</div><div class="sub">' + esc(s.section + ' · ' + s.name) + '</div><div class="mini">' + esc((s.pageId || '') + ' · ' + s.id) + '</div><div class="mini dam" title="DAM path">' + esc(assetPath(s)) + '</div></td><td>' + thumbCell(p) + '</td><td>' + esc(p.source) + '</td><td class="sub">' + (p.source === 'stock' ? (p.id ? '<a href="https://stock.adobe.com/images/x/' + esc(p.id) + '" target="_blank" rel="noopener">' + esc(p.id) + '</a>' : '—') : esc(p.source === 'library' ? p.path : p.title || '')) + '</td><td><input class="txt" data-lic="' + s.id + '" value="' + esc(s.license && s.license.id || '') + '" placeholder="' + (licStatus(s, p) === 'unlicensed' || (s.license && s.license.id) ? 'License #' : 'n/a') + '"></td><td class="mini">' + (b ? String(b.num).padStart(2, '0') : '') + '</td></tr>').join('') || '<tr><td colspan="6" class="hint">Nothing approved yet.</td></tr>';
       $('handoff-rows').querySelectorAll('[data-lic]').forEach((i) => i.addEventListener('change', (e) => { const s = byId().get(i.dataset.lic); const id = e.target.value.trim(); s.license = id ? { id, at: new Date().toISOString() } : null; mark(); }));
     }
     $('export-handoff').addEventListener('click', () => {
-      const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'license', 'license_source', 'license_status', 'license_note', 'batch', 'single_image']];
+      const rows = [['page_id', 'page', 'section', 'url', 'slot_id', 'asset_path', 'slot', 'decision', 'decided_at', 'decided_by', 'source', 'adobe_asset_id', 'reference', 'image_url', 'treatment', 'license', 'license_source', 'license_status', 'license_note', 'batch', 'single_image']];
       S.slots.forEach((s) => {
         const p = finalPick(s); if (!p) return;
         const b = batchOf(s); const o = b ? outcomeIn(s, b) : null; const ev = o && o.ev;
-        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? (ev.by || DECIDED_BY) : '', p.source, assetId(p), refOf(p), p.url, treatment(p), (s.license && s.license.id) || '', ...licCols(s, p), b ? String(b.num).padStart(2, '0') : '', isSingle(s) ? 'yes' : 'no']);
+        rows.push([s.pageId || '', s.page, s.section, s.url, s.id, assetPath(s), s.name, (o && o.outcome) || 'approved', isoAt(ev), ev ? (ev.by || DECIDED_BY) : '', p.source, assetId(p), refOf(p), p.url, treatment(p), (s.license && s.license.id) || '', ...licCols(s, p), b ? String(b.num).padStart(2, '0') : '', isSingle(s) ? 'yes' : 'no']);
       });
       downloadCsv('sitime-approved-images.csv', rows);
     });
