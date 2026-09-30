@@ -50,6 +50,8 @@ const PAGE = 'proposals' as any;
     .pr .meta div + div{ padding-left:16px; border-left:1px solid var(--line); }
     .pr .meta dt{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); margin:0 0 .35rem; }
     .pr .meta dd{ margin:0; font-size:var(--fs-15); }
+    .pr .meta{ margin-bottom:1.1rem; }
+    .pr .living{ font-size:var(--fs-13); line-height:1.5; color:var(--ink-soft); margin:0 0 3.2rem; max-width:none; }
     @media (max-width:600px){ .pr .meta{ grid-template-columns:1fr; } .pr .meta div + div{ border-left:0; border-top:1px solid var(--line); padding-left:0; } }
 
     .pr .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl,.7s) var(--ease-standard), transform var(--dur-2xl,.7s) var(--ease-standard); }
@@ -206,8 +208,9 @@ const PAGE = 'proposals' as any;
       <dl class="meta">
         <div><dt>Prepared for</dt><dd id="m-client"></dd></div>
         <div><dt>Prepared by</dt><dd>COGNAK</dd></div>
-        <div><dt>Date</dt><dd id="m-date"></dd></div>
+        <div><dt>Last updated</dt><dd id="m-date"></dd></div>
       </dl>
+      <p class="living">This is a living proposal. We update it on a rolling basis as we learn more, and the date above always shows the latest version.</p>
     </header>
     <div id="body" class="rise" hidden></div>
   </article></main>
@@ -232,7 +235,7 @@ const PAGE = 'proposals' as any;
           $('title').appendChild(em); if (p.subtitle) $('title').appendChild(document.createTextNode(': ' + p.subtitle));
           $('lede').textContent = p.lede || '';
           $('m-client').textContent = p.client;
-          var d = new Date(p.date + 'T12:00:00');
+          var d = new Date((p.updated || p.date) + 'T12:00:00');
           $('m-date').textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
           $('body').innerHTML = p.html;   /* our own markup from api/_lib/proposals, never user input */
           $('loading').hidden = true; $('print-btn').hidden = false;

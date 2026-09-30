@@ -13,7 +13,7 @@ import { PROPOSALS, bySlug } from './_lib/proposals/index.mjs';
 import { checkLoginAllowed, recordFailure, clearFailures } from './_lib/rateLimit.mjs';
 
 const RL = { path: 'security/proposal-attempts.json' };
-const meta = (p) => ({ slug: p.slug, client: p.client, tag: p.tag, title: p.title, desc: p.desc, date: p.date });
+const meta = (p) => ({ slug: p.slug, client: p.client, tag: p.tag, title: p.title, desc: p.desc, date: p.date, updated: p.updated || p.date });
 
 function list(req) {
   const a = allowed(req);
