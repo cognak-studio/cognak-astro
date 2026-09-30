@@ -1,0 +1,275 @@
+---
+/**
+ * /proposals (2026-09-29): client proposals behind a passcode. No username:
+ * each proposal has its own passcode (api/_lib/proposals/index.mjs), and the
+ * passcode opens only that proposal. A signed-in /admin session sees them all.
+ * Nothing about a proposal is in this page's HTML; the list and the body come
+ * from /api/proposals after the server accepts the passcode.
+ *
+ * Card = /admin's tool card (idx, tag, title, line, arrow, lit ring), recolored.
+ * Palette = a variation on /brief's: deeper espresso ground, tan ink, brass
+ * accent, light-brown card ring. Contrast figures sit with the tokens below.
+ *
+ * Unlisted: noindex meta, X-Robots-Tag (vercel.json), out of the sitemap.
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const PAGE = 'proposals' as any;
+---
+<BaseLayout
+  page={PAGE}
+  title="Proposals – COGNAK"
+  description="Client proposals."
+  ogUrl="https://cognak.com/proposals/"
+  noindex={true}
+  pageBg="#110C08"
+>
+  <style is:inline>
+    html, body { background-color:#110C08 !important; }
+    #cognak-main { position:relative; z-index:1; }
+
+    .prp{
+      /* A variation on /brief's palette (brief.astro), so the two read as related, not the same: a deeper
+         espresso ground and a brass accent in place of the brief's ember orange; same tan ink ladder and card ring.
+         On #110C08: ink #CFBB9B 10.4:1, quiet #A89372 6.6:1, brass #D9A94E 9.0:1; #2A2010 on brass 7.4:1. */
+      --ground:#110C08; --panel:rgba(12,8,3,0.4); --panel-hi:rgba(12,8,3,0.72); --field:rgba(12,8,3,0.55); --field-focus:rgba(12,8,3,0.72);
+      --ink:#CFBB9B; --ink-soft:#A89372; --head:#DECBAF; --line:rgba(207,187,155,0.20); --line-strong:rgba(207,187,155,0.40);
+      --accent:#D9A94E; --accent-deep:#E6BC6A; --accent-soft:rgba(217,169,78,0.14); --accent-rgb:217,169,78; --on-accent:#2A2010;
+      --ring:rgba(176,144,106,0.34); --ring-soft:rgba(176,144,106,0.10); --ring-mid:rgba(12,8,3,0.42); --err:#FF9E90;
+      max-width:1040px; margin:0 auto; padding:190px 6vw 30vh;
+      color:var(--ink); font-family:'Diatype Variable', sans-serif;
+    }
+    @media (max-width:720px){ .prp{ padding-top:120px; padding-bottom:14vh; } }
+    @media (max-width:600px){ .prp{ padding-left:24px; padding-right:24px; } }
+    .prp [hidden]{ display:none !important; }
+    .prp label.q{ display:block !important; }   /* screen.css hides labels sitewide */
+    .prp > *{ max-width:600px; margin-left:auto; margin-right:auto; }
+
+    .prp .headline{ font-size:clamp(24px,5.5vw,62px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 auto 1.4rem; }
+    .prp .headline em{ font-style:normal; font-weight:500; color:var(--accent); }
+    .prp .headline{ color:var(--ink); }
+    .prp .lede{ font-size:var(--fs-17); line-height:1.65; color:var(--ink-soft); text-wrap:pretty; margin:0 auto 3.4rem; padding-right:4ch; box-sizing:border-box; }
+    @media (max-width:720px){ .prp .headline{ font-size:clamp(24px,7vw,42px); } .prp .lede{ margin-bottom:2.4rem; padding-right:0; } }
+    .prp .group-title, .prp .status{ font-family:'Diatype Mono', monospace; font-size:var(--fs-11); letter-spacing:.2em; text-transform:uppercase; color:var(--ink-soft); }
+
+    .prp .rise{ opacity:0; transform:translateY(8px); transition:opacity var(--dur-2xl,.7s) var(--ease-standard), transform var(--dur-2xl,.7s) var(--ease-standard); }
+    .prp .rise.in{ opacity:1; transform:none; }
+    .prp .rise.out{ opacity:0; transform:translateY(-8px); transition:opacity var(--dur-sm,.26s) var(--ease-standard), transform var(--dur-sm,.26s) var(--ease-standard); }
+    @media (prefers-reduced-motion:reduce){ .prp .rise, .prp .rise.out{ opacity:1; transform:none; transition:none; } }
+
+    /* ---- gate ---- */
+    .prp .acard{ background:var(--panel); border:1px solid var(--line); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border-radius:12px; padding:36px 34px 32px;
+      box-shadow:0 2px 10px rgba(0,0,0,.18); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
+    @media (max-width:600px){ .prp .acard{ padding:28px 20px 24px; } }
+    .prp .signin-head{ display:flex; flex-direction:column; align-items:center; text-align:center; margin-bottom:1.2rem; }
+    .prp .signin-icon{ display:inline-flex; align-items:center; justify-content:center; width:84px; height:84px; border-radius:999px;
+      color:var(--accent); background:var(--accent-soft); border:1px solid rgba(var(--accent-rgb),.34); box-shadow:0 0 36px rgba(var(--accent-rgb),.18); margin-bottom:1.1rem; }
+    .prp .signin-head .group-title{ margin-bottom:1.15rem; }
+    .prp .signin-sub{ font-size:var(--fs-15); line-height:1.5; color:var(--ink-soft); max-width:34ch; margin:0; }
+    .prp .field{ margin:1.6rem 0 0; }
+    .prp .q{ margin-bottom:.75rem; }
+    .prp .q-title{ display:block; font-size:var(--fs-15); font-weight:500; line-height:1.3; color:var(--ink); }
+    .prp .txt{ width:100%; box-sizing:border-box; margin:0; background:var(--field); border:1px solid var(--line-strong); border-radius:8px;
+      color:var(--ink); -webkit-text-fill-color:var(--ink); caret-color:var(--accent); font-family:'Diatype Mono', monospace; font-size:var(--fs-16);
+      letter-spacing:.06em; line-height:1.5; padding:13px 16px; outline:none;
+      transition:border-color var(--dur-s) var(--ease-standard), background var(--dur-s) var(--ease-standard); }
+    .prp .txt:focus{ border-color:var(--accent); background:var(--field-focus); }
+    .prp .txt::placeholder{ color:#9C8763; }
+    .prp .txt:-webkit-autofill, .prp .txt:-webkit-autofill:focus{ -webkit-text-fill-color:var(--ink) !important;
+      -webkit-box-shadow:0 0 0 1000px #1E150A inset !important; box-shadow:0 0 0 1000px #1E150A inset !important; }
+    .prp .note{ margin:.9rem 0 0; font-size:var(--fs-13); line-height:1.45; color:var(--ink-soft); }
+    .prp .note:empty{ margin:0; }
+    .prp .note.is-error{ color:var(--err); }
+
+    .prp .actions{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; margin-top:1.6rem; }
+    .prp .btn{ font-family:inherit; font-size:var(--fs-15); font-weight:500; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+      border-radius:999px; padding:12px 22px; background:none; color:var(--ink); border:1px solid var(--line-strong);
+      transition:background var(--dur-s) var(--ease-standard), color var(--dur-s) var(--ease-standard), border-color var(--dur-s) var(--ease-standard); }
+    .prp .btn:hover:not(:disabled){ border-color:var(--ink); background:rgba(222,203,175,.10); }
+    .prp .btn.btn-primary{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+    .prp .btn.btn-primary:hover:not(:disabled){ background:var(--accent-deep); border-color:var(--accent-deep); box-shadow:0 0 24px rgba(var(--accent-rgb),.45); }
+    .prp .btn.btn-ghost{ padding:11px 18px; font-size:var(--fs-14); }
+    .prp .btn:active:not(:disabled){ transform:scale(.98); }
+    .prp .btn:disabled{ opacity:.55; cursor:not-allowed; }
+    @media (max-width:600px){ .prp #gate .actions .btn{ width:100%; } }
+    .prp a:focus-visible, .prp button:focus-visible{ outline:2px solid var(--accent) !important; outline-offset:3px; }
+    .prp input:focus-visible{ outline-color:var(--accent) !important; }
+
+    /* ---- list: /admin's tool card, recolored ---- */
+    .prp .dash-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:1.1rem; }
+    .prp .status{ display:inline-flex; align-items:center; gap:.6rem; }
+    .prp .status-dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); }
+    .prp .tools{ display:grid; grid-template-columns:1fr; gap:12px; margin:0; padding:0; list-style:none; }
+    .prp .tcard{ position:relative; display:flex; flex-direction:column; box-sizing:border-box; text-decoration:none; color:var(--ink);
+      background:var(--panel); border:none; border-radius:12px; padding:24px 24px 22px;
+      box-shadow:0 2px 10px rgba(0,0,0,.18); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+      transition:box-shadow var(--dur-sm) var(--ease-standard), background var(--dur-sm) var(--ease-standard); }
+    @media (max-width:900px){ .prp .tcard{ padding:22px 20px 20px; } }
+    .prp .tcard .idx, .prp .tcard .ttag{ line-height:1; font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.14em; color:var(--ink-soft);
+      transition:color var(--dur-s) var(--ease-standard); }
+    .prp .tcard .ttag{ position:absolute; top:24px; right:24px; text-transform:uppercase; }
+    @media (max-width:900px){ .prp .tcard .ttag{ top:22px; right:20px; } }
+    .prp .tcard h2{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em; line-height:1.2; margin:1.4rem 0 .45rem; color:var(--ink);
+      transition:color var(--dur-s) var(--ease-standard); }
+    .prp .tcard p{ font-size:var(--fs-14); line-height:1.5; color:var(--ink-soft); margin:0; padding-right:1.6rem; max-width:40ch;
+      transition:color var(--dur-s) var(--ease-standard); }
+    .prp .tcard .arrow{ position:absolute; bottom:20px; right:22px; color:var(--ink-soft);
+      transition:transform var(--dur-sm) var(--ease-standard), color var(--dur-sm) var(--ease-standard); }
+    .prp .tcard::before{ content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background:linear-gradient(135deg, var(--ring) 0%, var(--ring-soft) 26%, var(--ring-mid) 50%, var(--ring-soft) 74%, var(--ring) 100%);
+      -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none; opacity:.85;
+      transition:opacity var(--dur-sm) var(--ease-standard), filter var(--dur-sm) var(--ease-standard); }
+    @media (hover:hover){
+      .prp .tcard:hover{ background:var(--panel-hi); }
+      .prp .tcard:hover::before{ opacity:1; filter:brightness(1.15); }
+      .prp .tcard:hover h2, .prp .tcard:hover .arrow, .prp .tcard:hover .ttag{ color:var(--accent); }
+      .prp .tcard:hover .arrow{ transform:translateX(4px); }
+    }
+    .prp .tcard:active{ transform:scale(.995); }
+    .prp .dash-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:1.6rem; }
+
+    /* nav + selection: /brief's espresso bar and tan text (brief.astro .brief-nav) */
+    .home-bottom-bar.inner-page-nav.prop-nav{ background:rgba(12,8,3,0.6) !important;
+      backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; }
+    .prop-nav img:not(.emoji){ filter:none !important; }
+    .prop-nav .home-bottom-email, .prop-nav .home-bottom-location, .prop-nav .inner-nav-links a, .prop-nav .pulse-dot{ color:#A89372 !important; }
+    @media (hover:hover){ .prop-nav .home-bottom-email:hover, .prop-nav .inner-nav-links a:hover{ color:#DECBAF !important; } }
+    body[data-page="proposals"] ::selection{ background:#D9A94E; color:#2A2010; }
+    body[data-page="proposals"] ::-moz-selection{ background:#D9A94E; color:#2A2010; }
+    /* One soft brass pool, top right. Placeholder until the page gets its own WebGL scene (Pierce is picking one). */
+    .prop-glow{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .prop-glow::before{ content:''; position:absolute; width:min(900px,120vw); height:min(900px,120vw); right:max(-420px,-40vw); top:10vh; border-radius:50%;
+      background:radial-gradient(closest-side, rgba(217,169,78,.13), rgba(217,169,78,.04) 55%, rgba(217,169,78,0)); }
+  </style>
+
+  <div class="home-bottom-bar inner-page-nav prop-nav">
+    <a href="/" class="home-bottom-logo"><img src="/theme/assets/images/cognak-logo.svg" alt="COGNAK" /></a>
+    <a href="mailto:hello@cognak.com" class="home-bottom-email">hello@cognak.com</a>
+    <div class="home-bottom-location">Los Angeles, CA <span class="pulse-dot" aria-hidden="true">&bull;</span> <span id="la-time" aria-hidden="true"></span></div>
+    <div class="inner-nav-links"><a href="/projects">Projects</a><a href="/studio">Studio</a></div>
+  </div>
+
+  <div class="prop-glow" aria-hidden="true"></div>
+  <main id="cognak-main"><section class="prp">
+    <h1 class="headline rise" id="prp-headline">Client <em>proposals</em>.</h1>
+    <p class="lede rise" id="prp-lede">Scope, timeline and investment for work we are proposing. Enter the passcode from your email to open yours.</p>
+
+    <noscript><p class="note is-error">Opening a proposal needs JavaScript. Turn it on and reload.</p></noscript>
+
+    <form class="acard rise" id="gate" hidden autocomplete="on">
+      <div class="signin-head">
+        <span class="signin-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><path d="M12 14.5v2.5"/></svg>
+        </span>
+        <div class="group-title">Passcode</div>
+        <p class="signin-sub">One passcode opens one proposal.</p>
+      </div>
+      <div class="field">
+        <label class="q" for="pass-input"><span class="q-title">Passcode</span></label>
+        <input class="txt" id="pass-input" name="password" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" placeholder="xxxx-xxxx-xxxx" required />
+      </div>
+      <p class="note" id="pass-note" role="status" aria-live="polite"></p>
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="pass-submit">Open</button>
+        <button type="button" class="btn btn-ghost" id="pass-cancel" hidden>Back to proposals</button>
+      </div>
+    </form>
+
+    <div id="dash" class="rise" hidden>
+      <div class="dash-head"><span class="status"><span class="status-dot" aria-hidden="true"></span><span id="dash-status">Unlocked</span></span></div>
+      <ul class="tools" id="list"></ul>
+      <div class="dash-foot">
+        <button type="button" class="btn btn-ghost" id="another">Enter another passcode</button>
+        <button type="button" class="btn btn-ghost" id="signout">Sign out</button>
+      </div>
+    </div>
+  </section></main>
+
+  <script is:inline>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var gate = $('gate'), dash = $('dash');
+
+      /* Only a path under /proposals/ is ever followed. */
+      function safeNext(raw) {
+        if (typeof raw !== 'string' || !/^\/proposals\/[a-z0-9-]{1,64}\/?$/.test(raw)) return null;
+        return raw;
+      }
+      var next = safeNext(new URLSearchParams(location.search).get('next'));
+
+      function api(method, body) {
+        var ac = new AbortController(); var t = setTimeout(function () { ac.abort(); }, 10000);
+        return fetch('/api/proposals', { method: method, headers: { 'Content-Type': 'application/json' },
+          body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin', signal: ac.signal })
+          .then(function (r) { return r.json().catch(function () { return null; }).then(function (d) { return { ok: r.ok, status: r.status, data: d }; }); })
+          .catch(function () { return { ok: false, status: 0, data: null }; })
+          .finally(function () { clearTimeout(t); });
+      }
+      function reveal(el) {
+        el.classList.remove('in', 'out'); el.hidden = false;
+        if (reduce) { el.classList.add('in'); return; }
+        requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('in'); }); });
+      }
+      function swap(a, b, after) {
+        a.classList.add('out');
+        setTimeout(function () { a.hidden = true; a.classList.remove('in', 'out'); reveal(b); if (after) after();
+          try { if (window._lenis && window._lenis.resize) window._lenis.resize(); } catch (e) {} }, reduce ? 0 : 260);
+      }
+      function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+      function render(items) {
+        var ul = $('list'); ul.innerHTML = '';
+        items.forEach(function (p, i) {
+          var li = el('li'); var a = el('a', 'tcard'); a.href = '/proposals/' + p.slug;
+          a.appendChild(el('span', 'idx', (i < 9 ? '0' : '') + (i + 1)));
+          a.appendChild(el('span', 'ttag', p.tag));
+          a.appendChild(el('h2', null, p.title));
+          a.appendChild(el('p', null, p.desc));
+          var ar = el('span', 'arrow', '→'); ar.setAttribute('aria-hidden', 'true'); a.appendChild(ar);
+          li.appendChild(a); ul.appendChild(li);
+        });
+        $('dash-status').textContent = items.length === 1 ? 'Unlocked' : items.length + ' unlocked';
+      }
+
+      gate.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var note = $('pass-note'), btn = $('pass-submit'), v = $('pass-input').value.trim();
+        note.textContent = ''; note.className = 'note';
+        if (!v) { note.textContent = 'Enter the passcode.'; note.className = 'note is-error'; return; }
+        btn.disabled = true;
+        api('POST', { pass: v }).then(function (r) {
+          btn.disabled = false;
+          if (!r.ok) { note.textContent = (r.data && r.data.error) || 'Could not check the passcode. Try again.'; note.className = 'note is-error'; return; }
+          $('pass-input').value = '';
+          if (next) { location.replace(next); return; }
+          render(r.data.items || []);
+          swap(gate, dash);
+        });
+      });
+      $('another').addEventListener('click', function () { $('pass-cancel').hidden = false; swap(dash, gate, function () { $('pass-input').focus(); }); });
+      $('pass-cancel').addEventListener('click', function () { $('pass-note').textContent = ''; swap(gate, dash); });
+      $('signout').addEventListener('click', function () {
+        var b = $('signout'); b.disabled = true;
+        api('POST', { signout: true }).then(function () {
+          b.disabled = false; api('GET').then(function (r) {
+            if (r.ok && r.data && r.data.items && r.data.items.length) { render(r.data.items); return; } /* admin session still open */
+            $('pass-cancel').hidden = true; swap(dash, gate);
+          });
+        });
+      });
+
+      requestAnimationFrame(function () {
+        $('prp-headline').classList.add('in');
+        setTimeout(function () { $('prp-lede').classList.add('in'); }, reduce ? 0 : 90);
+      });
+      api('GET').then(function (r) {
+        if (r.ok && r.data && r.data.items && r.data.items.length) {
+          if (next && r.data.items.some(function (p) { return '/proposals/' + p.slug === next.replace(/\/$/, ''); })) { location.replace(next); return; }
+          render(r.data.items); reveal(dash); return;
+        }
+        reveal(gate);
+      });
+    })();
+  </script>
+</BaseLayout>

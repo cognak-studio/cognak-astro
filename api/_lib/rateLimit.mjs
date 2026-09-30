@@ -19,6 +19,9 @@
  * That's a far better failure than letting them keep guessing, and the window
  * is short enough to wait out.
  *
+ * opts.path (optional) keeps a separate counter, so a wrong /proposals passcode
+ * never counts against /admin (2026-09-29).
+ *
  * IPs are stored as a salted hash, never in the clear — this file is a security
  * control, not an access log, and it shouldn't quietly become one.
  */
@@ -48,9 +51,9 @@ export function clientIp(req) {
   return req.headers['x-real-ip'] || (req.socket && req.socket.remoteAddress) || 'unknown';
 }
 
-async function readState() {
+async function readState(path = PATH) {
   try {
-    const { blobs } = await list({ prefix: PATH, limit: 1 });
+    const { blobs } = await list({ prefix: path, limit: 1 });
     if (!blobs.length) return { ips: {}, global: { n: 0, first: 0 }, lockedUntil: 0 };
     // cache:'no-store' matters: Blob URLs are CDN-cached, and a stale read here
     // would silently reset the counter an attacker is supposed to be tripping.
@@ -61,8 +64,8 @@ async function readState() {
   }
 }
 
-async function writeState(state) {
-  await put(PATH, JSON.stringify(state), {
+async function writeState(state, path = PATH) {
+  await put(path, JSON.stringify(state), {
     access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
@@ -86,9 +89,9 @@ function prune(state, now) {
  * Call BEFORE checking the password.
  * -> { allowed: true } | { allowed: false, retryAfterSec, scope }
  */
-export async function checkLoginAllowed(req) {
+export async function checkLoginAllowed(req, opts = {}) {
   const now = Date.now();
-  const state = await readState();
+  const state = await readState(opts.path);
   prune(state, now);
 
   if (state.lockedUntil && state.lockedUntil > now) {
@@ -102,9 +105,9 @@ export async function checkLoginAllowed(req) {
 }
 
 /** Call AFTER a failed password check. */
-export async function recordFailure(req) {
+export async function recordFailure(req, opts = {}) {
   const now = Date.now();
-  const state = await readState();
+  const state = await readState(opts.path);
   prune(state, now);
   state.ips = state.ips || {};
   state.global = state.global || { n: 0, first: 0 };
@@ -123,17 +126,17 @@ export async function recordFailure(req) {
   state.global.n += 1;
   if (state.global.n >= GLOBAL_MAX) state.lockedUntil = now + LOCK_SHORT_MS;
 
-  try { await writeState(state); } catch (e) { console.error('rateLimit write failed', e); }
+  try { await writeState(state, opts.path); } catch (e) { console.error('rateLimit write failed', e); }
 }
 
 /** Call after a SUCCESSFUL login — clears that IP so a typo isn't punished later. */
-export async function clearFailures(req) {
+export async function clearFailures(req, opts = {}) {
   try {
     const now = Date.now();
-    const state = await readState();
+    const state = await readState(opts.path);
     prune(state, now);
     if (state.ips) delete state.ips[hashIp(clientIp(req))];
-    await writeState(state);
+    await writeState(state, opts.path);
   } catch (e) { /* non-fatal */ }
 }
 

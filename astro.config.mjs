@@ -40,6 +40,7 @@ export default defineConfig({
         if (/\/(send|receive)\/?$/.test(page)) return false;
         if (/\/admin\/?$/.test(page)) return false; // studio sign-in + dashboard, noindex
         if (/\/workflows\//.test(page)) return false; // internal client tools, noindex
+        if (/\/proposals(\/|$)/.test(page)) return false; // client proposals behind a passcode, noindex
         // /colophon is footer-linked and indexable (noindex dropped 2026-09-21),
         // so it stays in the sitemap. /colophon-motion below was its prototype.
         // /dev/* are internal tools, noindex.
