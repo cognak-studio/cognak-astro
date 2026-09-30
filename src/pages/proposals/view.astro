@@ -164,6 +164,7 @@ const PAGE = 'proposals' as any;
     .pr .tl-grid i{ position:absolute; top:0; bottom:0; width:1px; background:var(--line); }
     .pr .tl-group{ font-family:'Diatype Mono', monospace; font-size:var(--fs-10); letter-spacing:.16em; text-transform:uppercase; color:var(--ink-soft); padding:12px 0 4px; }
     .pr .tl-row{ min-height:28px; }
+    .pr .tl-row + .tl-group{ padding-top:26px; }   /* a little air between the two options (Pierce, 9/29) */
     .pr .tl-name{ font-size:var(--fs-13); line-height:1.25; color:var(--ink); }
     .pr .tl-bar{ position:absolute; top:50%; height:12px; margin-top:-6px; border-radius:999px; background:rgba(207,187,155,.10); border:1px solid rgba(207,187,155,.45); box-sizing:border-box; }
     .pr .tl-bar.a{ background:rgba(var(--accent-rgb),.22); border-color:rgba(var(--accent-rgb),.8); }
