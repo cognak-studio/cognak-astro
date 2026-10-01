@@ -58,7 +58,7 @@ const TOOLS = [
     .wf a:focus-visible, .wf button:focus-visible, .wf [tabindex]:focus-visible{ outline-color:var(--head) !important; }
     .wf{ --ink:#1A1A1A; --ink-soft:#6B6B6B; --head:#6A5C8A; --accent:#C7BDDF; --accent-rgb:199,189,223;
       max-width:1040px; margin:0 auto; padding:190px 6vw 40vh; color:var(--ink); font-family:'Diatype Variable', sans-serif; }
-    .wf .headline{ font-size:clamp(24px,5.5vw,58px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
+    .wf .headline{ font-size:clamp(20px,5.5vw,62px); font-weight:500; line-height:1.1; letter-spacing:-.02em; margin:0 0 1.4rem; color:var(--ink); }
     .wf .headline em{ font-style:normal; font-weight:500; color:var(--head); }
     .wf .lede{ font-size:var(--fs-17); text-wrap:pretty; line-height:1.65; color:var(--ink-soft); max-width:52ch; margin:0 0 3.4rem 40px; }
     .wf .picker{ display:grid; grid-template-columns:1fr; gap:14px; }
@@ -84,6 +84,11 @@ const TOOLS = [
     .wf .pcard p{ font-size:var(--fs-14); line-height:1.45; color:var(--ink-soft); margin:0; max-width:60ch; transition:color var(--dur-s) var(--ease-standard); }
     .wf .pcard .arrow{ position:absolute; bottom:20px; right:24px; color:var(--ink-soft); transition:transform var(--dur-sm) var(--ease-standard), color var(--dur-sm) var(--ease-standard); }
     .wf .pcard:hover .arrow{ transform:translateX(4px); }
-    @media (max-width:760px){ .wf{ padding:150px 5vw 30vh; } .wf .lede{ margin-left:0; } }
+    @media (max-width:760px){ .wf{ padding-bottom:30vh; } .wf .lede{ margin-left:0; } }
+    /* Headline size and position match /tools, /brief, /schedule (Pierce, 10/1: it sat
+       smaller and lower on mobile, narrower-set on desktop). */
+    @media (max-width:720px){ .wf{ padding-top:100px; } .wf .headline{ font-size:clamp(24px,7vw,42px); } }
+    @media (min-width:960px){ .wf{ margin-left:clamp(48px,10vw,180px); margin-right:auto; } }
+    @media (min-width:1800px){ .wf{ max-width:min(1440px, 100vw - 760px); margin-left:min(240px, 180px + (100vw - 1800px) * 0.15); } }
   </style>
 </BaseLayout>
