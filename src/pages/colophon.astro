@@ -98,22 +98,28 @@ const PAGE_FILES = {
   tools: 'pages/tools/index.astro',
   schedule: 'pages/schedule.astro',
   privacy: 'pages/privacy-policy.astro',
+  proposals: 'pages/proposals/index.astro',
+  workflow: 'pages/workflows/index.astro',
   '404': 'pages/404.astro'
 };
 const PAGE_NAMES = {
   home: 'Home', studio: 'Studio', projects: 'Projects', project: 'Project Detail',
   brief: 'Brief', send: 'Send', tools: 'Tools', schedule: 'Schedule',
-  privacy: 'Privacy', colophon: 'Colophon', '404': '404'
+  privacy: 'Privacy', proposals: 'Proposals', workflow: 'Workflows',
+  colophon: 'Colophon', '404': '404'
 };
 const BG_FALLBACK = { home: '#17151A', project: '#FFFFFF' };
 
-function groundOf(key: string): string {
-  if (key === 'colophon') { return COLOPHON_BG; }
+function pageSrc(key: string): string {
   /* Vite normalizes glob keys relative to this file, so match on the tail. */
   const rest = '/' + PAGE_FILES[key].replace(/^pages\//, '');
   const hit = Object.keys(PAGE_SRC).find(k => k.endsWith(rest));
   if (!hit) { throw new Error('colophon: cannot read ' + PAGE_FILES[key]); }
-  const file = PAGE_SRC[hit];
+  return PAGE_SRC[hit];
+}
+function groundOf(key: string): string {
+  if (key === 'colophon') { return COLOPHON_BG; }
+  const file = pageSrc(key);
   const m = file.match(/pageBg="(#[0-9a-fA-F]{6})"/);
   if (m) { return m[1].toUpperCase(); }
   if (BG_FALLBACK[key]) { return BG_FALLBACK[key]; }
@@ -121,13 +127,16 @@ function groundOf(key: string): string {
 }
 function selectionOf(key: string): { sel: string, selInk: string } {
   /* A selector list may name several pages before one block; match the
-     block whose selector list contains this page. */
+     block whose selector list contains this page. custom.css first, then the
+     page's own <style> (proposals and admin keep theirs there). */
   const re = /((?:body\[data-page="[\w-]+"\]\s*::selection\s*,?\s*)+)\{([^}]*)\}/g;
+  const own = PAGE_FILES[key] ? pageSrc(key) : '';
+  const hay = css + '\n' + own;
   let m;
-  while ((m = re.exec(css))) {
+  while ((m = re.exec(hay))) {
     if (m[1].indexOf('data-page="' + key + '"') === -1) { continue; }
     const bg = m[2].match(/background:\s*([^;]+);/);
-    const fg = m[2].match(/color:\s*([^;]+);/);
+    const fg = m[2].match(/color:\s*([^;}]+);?/);
     if (!bg || !fg) { break; }
     const resolve = (v: string) => {
       const ref = v.trim().match(/^var\((--[\w-]+)\)$/);
@@ -167,7 +176,7 @@ const PAGES = Object.keys(PAGE_NAMES).map((key) => {
 });
 
 /* The control is ordered by how dark the page is, not alphabetically and not
-   by nav order. That ordering is the finding: eleven pages, eight distinct
+   by nav order. That ordering is the finding: the pages, their distinct
    grounds, almost all of them at the dark end. */
 const LADDER = PAGES
   .map(p => ({ ...p, l: lum(p.ground) }))
@@ -187,9 +196,33 @@ const markOf = (pg) => (contrast(pg.sel, pg.ground) >= 3 ? pg.sel : pg.ink);
 const GROUND_COUNTS = PAGES.reduce((acc, p) => { acc[p.ground] = (acc[p.ground] || 0) + 1; return acc; }, {} as Record<string, number>);
 const N_GROUNDS = Object.keys(GROUND_COUNTS).length;
 const N_SHARED = Math.max(...Object.values(GROUND_COUNTS));
-const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
+/* Where each page sits for the prose under the deck: the near-blacks (and the
+   colophon's blue) at the dark end, the 404's gray alone in the middle, the
+   light pages at the other end. */
+const N_DARK = LADDER.filter(p => p.l < 0.1).length;
+const N_LIGHT_PAGES = LADDER.filter(p => p.l >= 0.35 && p.key !== 'project').length;
 const word = (n: number) => WORDS[n] || String(n);
 const Word = (n: number) => { const w = word(n); return w.charAt(0).toUpperCase() + w.slice(1); };
+
+/* ---- backgrounds -------------------------------------------------------
+   The pages that paint something over their ground, in the deck's order
+   (darkest ground first). The kind is read from each page's own file: a
+   UnicornStudio mount is WebGL, otherwise it is a canvas written for the page.
+   Each has a six-second clip recorded from the live page, with a poster frame,
+   in public/theme/assets/colophon/. A missing file fails the build. */
+const BG_KEYS = ['home', 'studio', 'projects', 'tools', 'brief', 'schedule', 'send', 'proposals', 'privacy'];
+const BG_DIR = '/theme/assets/colophon/';
+const BGS = LADDER.filter(p => BG_KEYS.indexOf(p.key) !== -1).map((p) => {
+  const kind = pageSrc(p.key).indexOf('data-us-project') !== -1 ? 'WebGL' : 'Canvas';
+  ['mp4', 'jpg'].forEach((ext) => {
+    const f = path.resolve(process.cwd(), 'public' + BG_DIR + 'bg-' + p.key + '.' + ext);
+    if (!fs.existsSync(f)) { throw new Error('colophon: missing ' + f); }
+  });
+  return { key: p.key, name: p.name, ground: p.ground, kind, src: BG_DIR + 'bg-' + p.key + '.mp4', poster: BG_DIR + 'bg-' + p.key + '.jpg' };
+});
+const N_WEBGL = BGS.filter(b => b.kind === 'WebGL').length;
+const N_CANVAS = BGS.length - N_WEBGL;
 
 /* ---- type ----------------------------------------------------------------
    The ten sizes come from the tokens. How often each one is used is counted
@@ -292,7 +325,7 @@ try {
     <p class="cm-sub">Each page makes one decision: its ground. The ink, the nav, the scrollbar and the highlight all follow from it by rule. {Word(PAGES.length)} pages, one function, run {word(PAGES.length)} times.</p>
 
     <figure class="cm-deck-wrap">
-      {/* Eleven pages in miniature, edge to edge, darkest first. At rest each
+      {/* Every page in miniature, edge to edge, darkest first. At rest each
           shows a sliver of itself: ground, nav, the left edge of its text and
           its highlight. Hover or focus widens one; click wears it. Every
           color on a card is derived from the ground by the site's own rules,
@@ -330,11 +363,26 @@ try {
       </figcaption>
     </figure>
 
-    <p class="cm-body">{Word(PAGES.length)} pages, {word(N_GROUNDS)} grounds. {Word(N_SHARED)} of them are the same near-black. Six sit stacked at the dark end, the 404's gray stands on its own in the middle, and the two light pages plus the white project template are the light end.</p>
+    <p class="cm-body">{Word(PAGES.length)} pages, {word(N_GROUNDS)} grounds. {Word(N_SHARED)} of them are the same near-black. {Word(N_DARK)} sit stacked at the dark end, the 404's gray stands on its own in the middle, and the {word(N_LIGHT_PAGES)} light pages plus the white project template are the light end.</p>
 
     <p class="cm-aside">The green is the default rather than the rule. It holds the homepage and the 404, and yields wherever a page has a voice of its own.</p>
 
     </div>
+
+    <h2 class="cm-h2" id="cm-bg">Backgrounds</h2>
+
+    <p class="cm-sub">{Word(BGS.length)} pages paint something over their ground. {Word(N_WEBGL)} are UnicornStudio scenes, {word(N_CANVAS)} are canvas written for the page. Hover or tap one to play it.</p>
+
+    <ul class="cm-bgs">
+      {BGS.map((bg) => (
+        <li class="cm-bg">
+          <button type="button" class="cm-bg-play" aria-pressed="false" aria-label={'Play the ' + bg.name + ' background'} style={'--c:' + bg.ground}>
+            <video class="cm-bg-v" src={bg.src} poster={bg.poster} muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+          </button>
+          <span class="cm-bg-k">{bg.name}<span class="cm-bg-kind">{bg.kind}</span></span>
+        </li>
+      ))}
+    </ul>
 
     <h2 class="cm-h2" id="cm-motion">Motion</h2>
 
@@ -451,7 +499,7 @@ try {
       <li><span class="cm-o-n">Homepage ground</span><span class="cm-o-d">A WebGL field, not a color token.</span></li>
       <li><span class="cm-o-n">Character sweep</span><span class="cm-o-d">Per-letter timing, authored against the text it runs on.</span></li>
       <li><span class="cm-o-n">Scroll choreography</span><span class="cm-o-d">Page-specific. Shares the easings, nothing else.</span></li>
-      <li><span class="cm-o-n">Living backgrounds</span><span class="cm-o-d">The glyph anatomy here, the baseline grid on /privacy-policy.</span></li>
+      <li><span class="cm-o-n">Living backgrounds</span><span class="cm-o-d">The glyph anatomy here, and the {word(BGS.length)} under Backgrounds.</span></li>
       <li><span class="cm-o-n">Project hero video</span><span class="cm-o-d">Cut per project. A convention, not a component.</span></li>
     </ul>
 
@@ -1700,16 +1748,16 @@ try {
     /* ---- color: the page wears a scheme rather than listing one ---------
        Everything below reads --wear-*, which default to the colophon's own
        klein blue and only change when someone picks a page. The blue is
-       deliberately NOT one of the eleven: it is the page's resting form, the
+       deliberately NOT one of the pages: it is the page's resting form, the
        thing you come back to. */
 
 
 
     /* ---- the deck --------------------------------------------------------
-       The eleven grounds, ordered by relative luminance, as pages in
+       The grounds, ordered by relative luminance, as pages in
        miniature set edge to edge. Each card paints its own ground, nav, ink
        and highlight from custom properties written at build, so what the
-       strip shows is the rule applied eleven times. Hover or focus widens a
+       strip shows is the rule applied once per page. Hover or focus widens a
        card; the worn one stays wide. */
     .cm-deck-wrap { margin: 0 0 2rem; padding: 0; }
     .cm-deck {
@@ -1793,6 +1841,56 @@ try {
     }
     html, body, .cm { transition-property: background-color, color; }
 
+
+    /* ---- backgrounds: clips that play on hover ---------------------------
+       Each tile rests on its poster frame over its own ground. Hover plays
+       the clip while the pointer is on it; a click or tap holds it playing. */
+    .cm-bgs {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-width: 620px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.3rem 0.75rem;
+    }
+    .cm-bg { margin: 0; min-width: 0; }
+    .cm-bg-play {
+      position: relative;
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      overflow: hidden;
+      background: var(--c);
+      cursor: pointer;
+    }
+    .cm-bg-play::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid color-mix(in srgb, var(--wear-ink) 18%, transparent);
+      pointer-events: none;
+      transition: border-color var(--dur-m) var(--ease-standard);
+    }
+    .cm-bg-play.is-playing::after { border-color: color-mix(in srgb, var(--wear-ink) 45%, transparent); }
+    .cm-bg-play:focus-visible { outline: 1px solid var(--wear-accent); outline-offset: 3px; }
+    .cm-bg-v { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    .cm-bg-k {
+      display: block;
+      margin-top: 0.55rem;
+      font-family: 'Diatype Mono', monospace;
+      font-size: var(--fs-11);
+      letter-spacing: 0.06em;
+      color: var(--wear-ink);
+    }
+    .cm-bg-kind { color: var(--wear-dim); }
+    .cm-bg-kind::before { content: '\00B7'; padding: 0 0.5em; }
+    @media (max-width: 720px) {
+      .cm-bgs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 
     /* ---- type: the ten sizes on one baseline ------------------------------
        The same word at every step, smallest first, sharing a baseline so the
@@ -1990,6 +2088,7 @@ try {
     .cm-curves,
     .cm-durs,
     .cm-body-last,
+    .cm-bgs,
     .cm-band,
     .cm-rules,
     .cm-outside { margin-bottom: var(--cm-gap); }
@@ -2173,7 +2272,7 @@ try {
       };
 
       /* Accents by hue. The inline ladder already plots the grounds by
-         lightness; this plots the other axis - the eleven highlight colors
+         lightness; this plots the other axis - every highlight color
          placed round a circle at their hue, red at the top, clockwise.
          Pages sharing an accent step inward rather than stacking on one
          point, so the count reads: four violets, three greens. The point for
@@ -2640,6 +2739,43 @@ try {
       window.addEventListener('resize', queue);
       window.addEventListener('pageshow', check);
       check();
+    })();
+  </script>
+  <script is:inline>
+    /* Backgrounds: hover plays a clip while the pointer is on it; a click or
+       tap holds it (aria-pressed) until clicked again. Only one is held at a
+       time. Under reduced motion nothing plays on hover; a click still does. */
+    (function () {
+      var tiles = Array.prototype.slice.call(document.querySelectorAll('.cm-bg-play'));
+      if (!tiles.length) { return; }
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var canHover = window.matchMedia('(hover: hover)').matches && !reduce;
+      function vid(t) { return t.querySelector('video'); }
+      function held(t) { return t.getAttribute('aria-pressed') === 'true'; }
+      function play(t) {
+        var v = vid(t);
+        var p = v.play();
+        if (p && p.catch) { p.catch(function () {}); }
+        t.classList.add('is-playing');
+      }
+      function stop(t) {
+        vid(t).pause();
+        t.classList.remove('is-playing');
+      }
+      function release(t) { t.setAttribute('aria-pressed', 'false'); stop(t); }
+      tiles.forEach(function (t) {
+        if (canHover) {
+          t.addEventListener('mouseenter', function () { play(t); });
+          t.addEventListener('mouseleave', function () { if (!held(t)) { stop(t); } });
+        }
+        t.addEventListener('click', function () {
+          if (held(t)) { release(t); return; }
+          tiles.forEach(function (o) { if (o !== t && held(o)) { release(o); } });
+          t.setAttribute('aria-pressed', 'true');
+          play(t);
+        });
+      });
+      window.addEventListener('pageshow', function () { tiles.forEach(release); });
     })();
   </script>
 </BaseLayout>
