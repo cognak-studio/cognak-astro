@@ -209,7 +209,8 @@ const Word = (n: number) => { const w = word(n); return w.charAt(0).toUpperCase(
    The pages that paint something over their ground, in the deck's order
    (darkest ground first). The kind is read from each page's own file: a
    UnicornStudio mount is WebGL, otherwise it is a canvas written for the page.
-   Each has a six-second clip recorded from the live page, with a poster frame,
+   Each has a clip recorded from the live page and cropped in on the effect,
+   with a poster frame,
    in public/theme/assets/colophon/. A missing file fails the build. */
 const BG_KEYS = ['home', 'studio', 'projects', 'tools', 'brief', 'schedule', 'send', 'proposals', 'privacy'];
 const BG_DIR = '/theme/assets/colophon/';
@@ -1844,15 +1845,17 @@ try {
 
     /* ---- backgrounds: clips that play on hover ---------------------------
        Each tile rests on its poster frame over its own ground. Hover plays
-       the clip while the pointer is on it; a click or tap holds it playing. */
+       the clip while the pointer is on it; a click or tap holds it playing.
+       The clips are cropped in on where each effect happens: these are
+       full-screen fields, and shown whole at this size they vanish. Two
+       across the full column, one on phones. */
     .cm-bgs {
       list-style: none;
       margin: 0;
       padding: 0;
-      max-width: 620px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1.3rem 0.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.6rem 1rem;
     }
     .cm-bg { margin: 0; min-width: 0; }
     .cm-bg-play {
@@ -1889,7 +1892,7 @@ try {
     .cm-bg-kind { color: var(--wear-dim); }
     .cm-bg-kind::before { content: '\00B7'; padding: 0 0.5em; }
     @media (max-width: 720px) {
-      .cm-bgs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cm-bgs { grid-template-columns: minmax(0, 1fr); }
     }
 
     /* ---- type: the ten sizes on one baseline ------------------------------
