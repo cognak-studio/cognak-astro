@@ -205,26 +205,6 @@ const N_LIGHT_PAGES = LADDER.filter(p => p.l >= 0.35 && p.key !== 'project').len
 const word = (n: number) => WORDS[n] || String(n);
 const Word = (n: number) => { const w = word(n); return w.charAt(0).toUpperCase() + w.slice(1); };
 
-/* ---- backgrounds -------------------------------------------------------
-   The pages that paint something over their ground, in the deck's order
-   (darkest ground first). The kind is read from each page's own file: a
-   UnicornStudio mount is WebGL, otherwise it is a canvas written for the page.
-   Each has a clip recorded from the live page and cropped in on the effect,
-   with a poster frame,
-   in public/theme/assets/colophon/. A missing file fails the build. */
-const BG_KEYS = ['home', 'studio', 'projects', 'tools', 'brief', 'schedule', 'send', 'proposals', 'privacy'];
-const BG_DIR = '/theme/assets/colophon/';
-const BGS = LADDER.filter(p => BG_KEYS.indexOf(p.key) !== -1).map((p) => {
-  const kind = pageSrc(p.key).indexOf('data-us-project') !== -1 ? 'WebGL' : 'Canvas';
-  ['mp4', 'jpg'].forEach((ext) => {
-    const f = path.resolve(process.cwd(), 'public' + BG_DIR + 'bg-' + p.key + '.' + ext);
-    if (!fs.existsSync(f)) { throw new Error('colophon: missing ' + f); }
-  });
-  return { key: p.key, name: p.name, ground: p.ground, kind, src: BG_DIR + 'bg-' + p.key + '.mp4', poster: BG_DIR + 'bg-' + p.key + '.jpg' };
-});
-const N_WEBGL = BGS.filter(b => b.kind === 'WebGL').length;
-const N_CANVAS = BGS.length - N_WEBGL;
-
 /* ---- type ----------------------------------------------------------------
    The ten sizes come from the tokens. How often each one is used is counted
    across src/ at build time (every var(--fs-N) in a template, stylesheet or
@@ -370,21 +350,6 @@ try {
 
     </div>
 
-    <h2 class="cm-h2" id="cm-bg">Backgrounds</h2>
-
-    <p class="cm-sub">{Word(BGS.length)} pages paint something over their ground. {Word(N_WEBGL)} are UnicornStudio scenes, {word(N_CANVAS)} are canvas written for the page. Hover or tap one to play it.</p>
-
-    <ul class="cm-bgs">
-      {BGS.map((bg) => (
-        <li class="cm-bg">
-          <button type="button" class="cm-bg-play" aria-pressed="false" aria-label={'Play the ' + bg.name + ' background'} style={'--c:' + bg.ground}>
-            <video class="cm-bg-v" src={bg.src} poster={bg.poster} muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
-          </button>
-          <span class="cm-bg-k">{bg.name}<span class="cm-bg-kind">{bg.kind}</span></span>
-        </li>
-      ))}
-    </ul>
-
     <h2 class="cm-h2" id="cm-motion">Motion</h2>
 
     <p class="cm-sub">The dot plots real elapsed time across the bottom against eased progress up the side, so it traces the curve at the speed the curve actually runs. The square travels on the same clock.</p>
@@ -500,7 +465,7 @@ try {
       <li><span class="cm-o-n">Homepage ground</span><span class="cm-o-d">A WebGL field, not a color token.</span></li>
       <li><span class="cm-o-n">Character sweep</span><span class="cm-o-d">Per-letter timing, authored against the text it runs on.</span></li>
       <li><span class="cm-o-n">Scroll choreography</span><span class="cm-o-d">Page-specific. Shares the easings, nothing else.</span></li>
-      <li><span class="cm-o-n">Living backgrounds</span><span class="cm-o-d">The glyph anatomy here, and the {word(BGS.length)} under Backgrounds.</span></li>
+      <li><span class="cm-o-n">Living backgrounds</span><span class="cm-o-d">The glyph anatomy here, the baseline grid on /privacy-policy.</span></li>
       <li><span class="cm-o-n">Project hero video</span><span class="cm-o-d">Cut per project. A convention, not a component.</span></li>
     </ul>
 
@@ -1843,58 +1808,6 @@ try {
     html, body, .cm { transition-property: background-color, color; }
 
 
-    /* ---- backgrounds: clips that play on hover ---------------------------
-       Each tile rests on its poster frame over its own ground. Hover plays
-       the clip while the pointer is on it; a click or tap holds it playing.
-       The clips are cropped in on where each effect happens: these are
-       full-screen fields, and shown whole at this size they vanish. Two
-       across the full column, one on phones. */
-    .cm-bgs {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1.6rem 1rem;
-    }
-    .cm-bg { margin: 0; min-width: 0; }
-    .cm-bg-play {
-      position: relative;
-      display: block;
-      width: 100%;
-      aspect-ratio: 16 / 10;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      overflow: hidden;
-      background: var(--c);
-      cursor: pointer;
-    }
-    .cm-bg-play::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border: 1px solid color-mix(in srgb, var(--wear-ink) 18%, transparent);
-      pointer-events: none;
-      transition: border-color var(--dur-m) var(--ease-standard);
-    }
-    .cm-bg-play.is-playing::after { border-color: color-mix(in srgb, var(--wear-ink) 45%, transparent); }
-    .cm-bg-play:focus-visible { outline: 1px solid var(--wear-accent); outline-offset: 3px; }
-    .cm-bg-v { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-    .cm-bg-k {
-      display: block;
-      margin-top: 0.55rem;
-      font-family: 'Diatype Mono', monospace;
-      font-size: var(--fs-11);
-      letter-spacing: 0.06em;
-      color: var(--wear-ink);
-    }
-    .cm-bg-kind { color: var(--wear-dim); }
-    .cm-bg-kind::before { content: '\00B7'; padding: 0 0.5em; }
-    @media (max-width: 720px) {
-      .cm-bgs { grid-template-columns: minmax(0, 1fr); }
-    }
-
     /* ---- type: the ten sizes on one baseline ------------------------------
        The same word at every step, smallest first, sharing a baseline so the
        scale reads as one object. Each carries its size and its use count. */
@@ -2091,7 +2004,6 @@ try {
     .cm-curves,
     .cm-durs,
     .cm-body-last,
-    .cm-bgs,
     .cm-band,
     .cm-rules,
     .cm-outside { margin-bottom: var(--cm-gap); }
@@ -2742,43 +2654,6 @@ try {
       window.addEventListener('resize', queue);
       window.addEventListener('pageshow', check);
       check();
-    })();
-  </script>
-  <script is:inline>
-    /* Backgrounds: hover plays a clip while the pointer is on it; a click or
-       tap holds it (aria-pressed) until clicked again. Only one is held at a
-       time. Under reduced motion nothing plays on hover; a click still does. */
-    (function () {
-      var tiles = Array.prototype.slice.call(document.querySelectorAll('.cm-bg-play'));
-      if (!tiles.length) { return; }
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var canHover = window.matchMedia('(hover: hover)').matches && !reduce;
-      function vid(t) { return t.querySelector('video'); }
-      function held(t) { return t.getAttribute('aria-pressed') === 'true'; }
-      function play(t) {
-        var v = vid(t);
-        var p = v.play();
-        if (p && p.catch) { p.catch(function () {}); }
-        t.classList.add('is-playing');
-      }
-      function stop(t) {
-        vid(t).pause();
-        t.classList.remove('is-playing');
-      }
-      function release(t) { t.setAttribute('aria-pressed', 'false'); stop(t); }
-      tiles.forEach(function (t) {
-        if (canHover) {
-          t.addEventListener('mouseenter', function () { play(t); });
-          t.addEventListener('mouseleave', function () { if (!held(t)) { stop(t); } });
-        }
-        t.addEventListener('click', function () {
-          if (held(t)) { release(t); return; }
-          tiles.forEach(function (o) { if (o !== t && held(o)) { release(o); } });
-          t.setAttribute('aria-pressed', 'true');
-          play(t);
-        });
-      });
-      window.addEventListener('pageshow', function () { tiles.forEach(release); });
     })();
   </script>
 </BaseLayout>
